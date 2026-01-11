@@ -1,0 +1,22 @@
+{
+  "name": "@sagepoint/ai",
+  "version": "0.0.1",
+  "description": "AI and LLM adapters for SagePoint",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@sagepoint/domain": "workspace:*",
+    "@nestjs/common": "^11.0.1",
+    "@nestjs/config": "^4.0.0",
+    "openai": "^4.20.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "@types/node": "^20.10.4"
+  }
+}
