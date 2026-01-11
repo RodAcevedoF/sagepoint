@@ -1,0 +1,40 @@
+
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg15
+    container_name: sagepoint_postgres
+    ports:
+      - "5440:5432"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_DB: sagepoint
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: sagepoint_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  neo4j:
+    image: neo4j:5-community
+    container_name: sagepoint_neo4j
+    ports:
+      - "7474:7474" # HTTP
+      - "7687:7687" # Bolt
+    environment:
+      NEO4J_AUTH: neo4j/password
+      NEO4J_PLUGINS: '["apoc"]'
+      NEO4J_dbms_security_procedures_unrestricted: apoc.*
+    volumes:
+      - neo4j_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
+  neo4j_data:

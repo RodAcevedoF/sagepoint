@@ -2,10 +2,22 @@
 	"name": "sagepoint",
 	"private": true,
 	"packageManager": "pnpm@10.15.1",
+	"devDependencies": {
+		"@types/node": "*",
+		"@types/pg": "^8.16.0",
+		"cross-env": "^10.1.0",
+		"pg": "^8.16.3",
+		"tsx": "^4.21.0",
+		"undici": "^7.18.2"
+	},
 	"scripts": {
-		"dev": "pnpm -r dev",
+		"dev": "pnpm -r --parallel --filter \"./apps/*\" start:dev",
+		"services:up": "docker compose up -d",
+		"services:down": "docker compose down --remove-orphans",
+		"db:push": "cross-env DATABASE_URL=\"postgresql://user@127.0.0.1:5440/sagepoint?schema=public\" pnpm --filter @sagepoint/database db:push",
 		"build": "pnpm -r build",
 		"lint": "pnpm -r lint",
-		"test": "pnpm -r test"
+		"test": "pnpm -r test",
+		"typecheck": "pnpm -r exec tsc --noEmit"
 	}
 }
