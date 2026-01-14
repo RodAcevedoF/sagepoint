@@ -13,11 +13,12 @@
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
     "@nestjs/schedule": "^5.0.1",
+    "@sagepoint/ai": "workspace:*",
     "@sagepoint/database": "workspace:*",
     "@sagepoint/domain": "workspace:*",
     "@sagepoint/graph": "workspace:*",
     "@sagepoint/parsing": "workspace:*",
-    "@sagepoint/ai": "workspace:*",
+    "@supabase/supabase-js": "^2.90.1",
     "bullmq": "^5.66.4",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"

@@ -16,6 +16,8 @@ import {
   type AuthConfig,
 } from '@/features/auth/dependencies';
 import { LocalDiskStorage } from '@/core/infra/storage/local-disk.storage';
+import { SupabaseStorage } from '@/core/infra/storage/supabase.storage';
+import { IFileStorage } from '@sagepoint/domain';
 import * as path from 'path';
 
 export interface AppDependencies {
@@ -33,8 +35,20 @@ export function bootstrap(): AppDependencies {
   }
 
   // Initialize Infrastructure Adapters (Shared)
-  const uploadDir = process.env.UPLOAD_DIR || path.resolve(process.cwd(), 'uploads');
-  const fileStorage = new LocalDiskStorage(uploadDir);
+  let fileStorage: IFileStorage;
+  const storageDriver = process.env.STORAGE_DRIVER || 'local';
+
+  if (storageDriver === 'supabase') {
+    fileStorage = new SupabaseStorage(
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_KEY!,
+      process.env.SUPABASE_BUCKET_NAME || 'documents'
+    );
+  } else {
+    // Default to local
+    const uploadDir = process.env.UPLOAD_DIR || path.resolve(process.cwd(), 'uploads');
+    fileStorage = new LocalDiskStorage(uploadDir);
+  }
 
   // User dependencies (needed by auth)
   const userDeps = makeUserDependencies();

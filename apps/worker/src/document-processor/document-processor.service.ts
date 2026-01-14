@@ -1,19 +1,14 @@
+
 import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Logger } from '@nestjs/common';
+import { Logger, Inject } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { PrismaClient } from '@sagepoint/database';
 import { PdfParser, ParsedDocument } from '@sagepoint/parsing';
 import { DocumentStatus, Concept } from '@sagepoint/domain';
+import type { IFileStorage } from '@sagepoint/domain';
 import { OpenAiContentAnalysisAdapter } from '@sagepoint/ai';
-import { LocalDiskStorage } from '../infra/storage/local-disk.storage';
 import { Neo4jService } from '@sagepoint/graph';
-import * as path from 'path';
 import { randomUUID } from 'crypto';
-
-// The worker needs to read from the SAME path as API.
-// process.cwd() is apps/worker, so ../api/uploads reaches apps/api/uploads
-const UPLOAD_DIR = process.env.UPLOAD_DIR || path.resolve(process.cwd(), '../api/uploads');
-console.log(`[Worker] Using Upload Dir: ${UPLOAD_DIR}`);
 
 @Processor('document-processing')
 export class DocumentProcessorService extends WorkerHost {
@@ -24,6 +19,7 @@ export class DocumentProcessorService extends WorkerHost {
   constructor(
     private readonly neo4jService: Neo4jService,
     private readonly contentAnalysis: OpenAiContentAnalysisAdapter,
+    @Inject('FILE_STORAGE') private readonly fileStorage: IFileStorage,
   ) {
     super();
   }
@@ -39,9 +35,8 @@ export class DocumentProcessorService extends WorkerHost {
         data: { status: DocumentStatus.PROCESSING },
       });
 
-      // 2. Read File from Disk (Shared Volume)
-      const storage = new LocalDiskStorage(UPLOAD_DIR);
-      const buffer = await storage.download(storagePath);
+      // 2. Read File from Storage
+      const buffer = await this.fileStorage.download(storagePath);
 
       // 3. Parse
       let result: ParsedDocument;

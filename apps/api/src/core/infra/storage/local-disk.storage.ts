@@ -10,7 +10,7 @@ export class LocalDiskStorage implements IFileStorage {
     await fs.mkdir(this.uploadDir, { recursive: true });
   }
 
-  async upload(storagePath: string, content: Buffer): Promise<string> {
+  async upload(storagePath: string, content: Buffer, mimeType: string): Promise<string> {
     const fullPath = path.join(this.uploadDir, storagePath);
     const dir = path.dirname(fullPath);
     

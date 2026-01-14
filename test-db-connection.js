@@ -2,7 +2,7 @@ const { Client } = require('pg');
 
 const client = new Client({
   host: '127.0.0.1',
-  port: 5432,
+  port: 5440,
   user: 'user',
   password: 'haster11',
   database: 'sagepoint',
