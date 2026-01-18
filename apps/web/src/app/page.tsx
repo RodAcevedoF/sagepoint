@@ -3,16 +3,26 @@
 import { useEffect, useState } from 'react';
 import { AuthForm } from '@/components/auth-form';
 import { Dashboard } from '@/components/dashboard';
+import { api } from '@/lib/api';
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    // Simple check on mount
-    const token = localStorage.getItem('token');
-    setIsAuthenticated(!!token);
-    setChecking(false);
+    // Check if we have a valid session by trying to refresh or hit a protected endpoint
+    const checkAuth = async () => {
+        try {
+            // We'll try to refresh the token to see if we have valid cookies
+            await api.post('/auth/refresh');
+            setIsAuthenticated(true);
+        } catch (e) {
+            setIsAuthenticated(false);
+        } finally {
+            setChecking(false);
+        }
+    };
+    checkAuth();
   }, []);
 
   if (checking) {

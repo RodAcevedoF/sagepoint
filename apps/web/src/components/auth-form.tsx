@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { api, setToken } from '@/lib/api';
-import { Lock, Mail, Loader2 } from 'lucide-react';
+import { api } from '@/lib/api';
+import { Lock, Mail, Loader2, Chrome } from 'lucide-react';
 
 export function AuthForm({ onLogin }: { onLogin: () => void }) {
   const [isLogin, setIsLogin] = useState(true);
@@ -19,14 +19,12 @@ export function AuthForm({ onLogin }: { onLogin: () => void }) {
 
     try {
       if (isLogin) {
-        const { data } = await api.post('/auth/login', { email, password });
-        setToken(data.accessToken);
+        await api.post('/auth/login', { email, password });
         onLogin();
       } else {
         await api.post('/auth/register', { email, password, name });
         // Auto-login after register for UX
-        const { data } = await api.post('/auth/login', { email, password });
-        setToken(data.accessToken);
+        await api.post('/auth/login', { email, password });
         onLogin();
       }
     } catch (err: any) {
@@ -110,6 +108,26 @@ export function AuthForm({ onLogin }: { onLogin: () => void }) {
           )}
         </button>
       </form>
+      
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200" />
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="px-2 bg-white text-gray-500">Or continue with</span>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => {
+          window.location.href = 'http://localhost:3333/auth/google';
+        }}
+        className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-white border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-all mb-6"
+      >
+        <Chrome className="h-5 w-5 text-gray-900" />
+        <span>Sign in with Google</span>
+      </button>
 
       <div className="text-center text-sm">
         <span className="text-gray-600">

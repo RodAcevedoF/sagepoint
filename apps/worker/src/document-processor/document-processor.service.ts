@@ -43,8 +43,9 @@ export class DocumentProcessorService extends WorkerHost {
       if (filename.toLowerCase().endsWith('.pdf')) {
            result = await this.pdfParser.parse(buffer, 'application/pdf');
       } else {
-          // Fallback or error
-          result = { text: "Simulated Text", metadata: {} };
+           // Simple text parsing for .txt, .md
+           const text = buffer.toString('utf-8');
+           result = { text, metadata: { type: 'text/plain' } };
       }
 
       this.logger.log(`Parsed content length: ${result.text.length}`);

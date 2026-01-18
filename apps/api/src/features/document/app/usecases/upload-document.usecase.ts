@@ -22,7 +22,7 @@ export class UploadDocumentUseCase {
     // 1. Upload file to storage
     const path = `documents/${id}/${command.filename}`;
     // Domain Port Signature: upload(path: string, content: Buffer)
-    const storagePath = await this.fileStorage.upload(path, command.fileBuffer);
+    const storagePath = await this.fileStorage.upload(path, command.fileBuffer, command.mimeType);
     
     // 2. Create entity
     const document = Document.create(id, command.filename, storagePath, command.userId);

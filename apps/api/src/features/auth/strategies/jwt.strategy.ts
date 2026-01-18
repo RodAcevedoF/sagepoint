@@ -19,10 +19,20 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     @Inject(USER_SERVICE) private readonly userService: IUserService,
   ) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (req) => {
+          let token = null;
+          if (req && req.cookies) {
+            token = req.cookies['access_token'];
+          }
+          return token || ExtractJwt.fromAuthHeaderAsBearerToken()(req);
+        },
+      ]),
       ignoreExpiration: false,
       secretOrKey: configService.get<string>('JWT_SECRET') || 'dev_secret',
     });
+    const secret = this.configService.get<string>('JWT_SECRET') || 'dev_secret';
+    console.log(`[JwtStrategy] Initialized with secret: ${secret.substring(0, 3)}... (Length: ${secret.length})`);
   }
 
   async validate(payload: JwtPayload): Promise<User> {

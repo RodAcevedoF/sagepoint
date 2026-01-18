@@ -20,10 +20,6 @@ import { JwtAuthGuard } from '@/features/auth/guards/jwt-auth.guard';
 import { CurrentUser } from '@/features/auth/decorators/current-user.decorator';
 import { User } from '@sagepoint/domain';
 import { RegisterDto } from '@/features/auth/dto/register.dto';
-import { UserAlreadyExistsError } from '@/features/auth/app/usecases/register.usecase';
-import { InvalidVerificationTokenError, UserNotFoundError } from '@/features/auth/app/usecases/verify-email.usecase';
-import { EmailNotVerifiedError } from '@/features/auth/app/usecases/validate-user.usecase';
-import { InvalidRefreshTokenError } from '@/features/auth/app/usecases/refresh-token.usecase';
 
 @Controller('auth')
 export class AuthController {
@@ -33,29 +29,12 @@ export class AuthController {
 
   @Post('register')
   async register(@Body() registerDto: RegisterDto) {
-    try {
-      return await this.authService.register(registerDto);
-    } catch (error) {
-      if (error instanceof UserAlreadyExistsError) {
-        throw new HttpException(error.message, HttpStatus.CONFLICT);
-      }
-      throw error;
-    }
+    return await this.authService.register(registerDto);
   }
 
   @Get('verify')
   async verifyEmail(@Query('token') token: string) {
-    try {
-      return await this.authService.verifyEmail(token);
-    } catch (error) {
-      if (error instanceof InvalidVerificationTokenError) {
-        throw new UnauthorizedException(error.message);
-      }
-      if (error instanceof UserNotFoundError) {
-        throw new UnauthorizedException(error.message);
-      }
-      throw error;
-    }
+    return await this.authService.verifyEmail(token);
   }
 
   @Post('login')
@@ -63,18 +42,11 @@ export class AuthController {
     @Body() body: { email: string; password: string },
     @Res({ passthrough: true }) response: Response,
   ) {
-    try {
-      const user = await this.authService.validateUser(body.email, body.password);
-      if (!user) {
-        throw new UnauthorizedException('Invalid credentials');
-      }
-      return this.handleLogin(user, response);
-    } catch (error) {
-      if (error instanceof EmailNotVerifiedError) {
-        throw new UnauthorizedException(error.message);
-      }
-      throw error;
+    const user = await this.authService.validateUser(body.email, body.password);
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
     }
+    return this.handleLogin(user, response);
   }
 
   @Get('google')
@@ -89,7 +61,8 @@ export class AuthController {
     @CurrentUser() user: User,
     @Res({ passthrough: true }) response: Response,
   ) {
-    return this.handleLogin(user, response);
+    await this.handleLogin(user, response);
+    response.redirect('http://localhost:3000');
   }
 
   @Post('refresh')
@@ -102,16 +75,9 @@ export class AuthController {
       throw new UnauthorizedException('No refresh token provided');
     }
 
-    try {
-      const result = await this.authService.refresh(refreshToken);
-      this.setRefreshTokenCookie(response, result.refreshToken);
-      return { accessToken: result.accessToken, user: result.user };
-    } catch (error) {
-      if (error instanceof InvalidRefreshTokenError) {
-        throw new UnauthorizedException(error.message);
-      }
-      throw error;
-    }
+    const result = await this.authService.refresh(refreshToken);
+    this.setCookies(response, result.accessToken, result.refreshToken);
+    return { user: result.user };
   }
 
   @Post('logout')
@@ -121,22 +87,40 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ) {
     await this.authService.logout(user.id);
-    response.clearCookie('refresh_token');
+    this.clearCookies(response);
     return { message: 'Logged out successfully' };
   }
 
   private async handleLogin(user: User, response: Response) {
     const result = await this.authService.login(user);
-    this.setRefreshTokenCookie(response, result.refreshToken);
-    return { accessToken: result.accessToken, user: result.user };
+    this.setCookies(response, result.accessToken, result.refreshToken);
+    return { user: result.user };
   }
 
-  private setRefreshTokenCookie(response: Response, refreshToken: string) {
+  private setCookies(response: Response, accessToken: string, refreshToken: string) {
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    // Access Token Cookie
+    response.cookie('access_token', accessToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 15 * 60 * 1000, // 15 minutes
+    });
+
+    // Refresh Token Cookie
     response.cookie('refresh_token', refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProduction,
       sameSite: 'strict',
+      path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
+  }
+
+  private clearCookies(response: Response) {
+    response.clearCookie('access_token', { path: '/' });
+    response.clearCookie('refresh_token', { path: '/' });
   }
 }

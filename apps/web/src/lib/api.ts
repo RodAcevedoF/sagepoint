@@ -4,26 +4,17 @@ const API_URL = 'http://localhost:3333';
 
 export const api = axios.create({
   baseURL: API_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-api.interceptors.request.use((config) => {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+export const logout = async () => {
+    try {
+        await api.post('/auth/logout');
+    } catch (e) {
+        console.error('Logout failed', e);
     }
-  }
-  return config;
-});
-
-export const setToken = (token: string) => {
-  localStorage.setItem('token', token);
-};
-
-export const logout = () => {
-  localStorage.removeItem('token');
   window.location.reload();
 };

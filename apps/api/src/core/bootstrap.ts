@@ -75,6 +75,8 @@ export function bootstrap(): AppDependencies {
     useMockEmail: process.env.NODE_ENV === 'development' && !process.env.SMTP_HOST,
   };
 
+  console.log(`[Bootstrap] AuthConfig initialized. Access Secret: ${authConfig.jwt.accessSecret.substring(0, 3)}... (Length: ${authConfig.jwt.accessSecret.length})`);
+
   dependencies = {
     roadmap: makeRoadmapDependencies(),
     document: makeDocumentDependencies(fileStorage),
