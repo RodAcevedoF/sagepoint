@@ -1,3 +1,4 @@
+import { Neo4jService } from '@sagepoint/graph';
 import {
   makeRoadmapDependencies,
   type RoadmapDependencies,
@@ -77,8 +78,17 @@ export function bootstrap(): AppDependencies {
 
   console.log(`[Bootstrap] AuthConfig initialized. Access Secret: ${authConfig.jwt.accessSecret.substring(0, 3)}... (Length: ${authConfig.jwt.accessSecret.length})`);
 
+  // Initialize Neo4j
+  const neo4jService = new Neo4jService({
+    uri: process.env.NEO4J_URI || 'bolt://localhost:7687',
+    user: process.env.NEO4J_USER || 'neo4j',
+    pass: process.env.NEO4J_PASSWORD || 'password',
+    encrypted: process.env.NEO4J_ENCRYPTION || 'ENCRYPTION_OFF'
+  });
+
   dependencies = {
-    roadmap: makeRoadmapDependencies(),
+    roadmap: makeRoadmapDependencies(neo4jService),
+
     document: makeDocumentDependencies(fileStorage),
     user: userDeps,
     auth: makeAuthDependencies(authConfig, userDeps.userService),

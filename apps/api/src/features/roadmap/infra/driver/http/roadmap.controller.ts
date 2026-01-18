@@ -50,4 +50,8 @@ export class RoadmapController {
     await this.roadmapService.delete(id);
     return { deleted: true };
   }
+  @Get('graph/:documentId')
+  async getGraph(@Param('documentId') documentId: string) {
+    return this.roadmapService.getGraph(documentId);
+  }
 }

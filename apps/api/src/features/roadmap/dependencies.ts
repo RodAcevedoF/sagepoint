@@ -11,17 +11,24 @@ export interface RoadmapDependencies {
   roadmapRepository: IRoadmapRepository;
 }
 
-export function makeRoadmapDependencies(): RoadmapDependencies {
+import { Neo4jService } from '@sagepoint/graph';
+import { Neo4jConceptRepository } from './infra/driven/neo4j-concept.repository';
+import { GetGraphUseCase } from './app/usecases/get-graph.usecase';
+
+export function makeRoadmapDependencies(neo4jService: Neo4jService): RoadmapDependencies {
   const roadmapRepository = new InMemoryRoadmapRepository();
+  const conceptRepository = new Neo4jConceptRepository(neo4jService);
 
   const generateRoadmapUseCase = new GenerateRoadmapUseCase(roadmapRepository);
   const getRoadmapUseCase = new GetRoadmapUseCase(roadmapRepository);
   const deleteRoadmapUseCase = new DeleteRoadmapUseCase(roadmapRepository);
+  const getGraphUseCase = new GetGraphUseCase(conceptRepository);
 
   const roadmapService = new RoadmapService(
     generateRoadmapUseCase,
     getRoadmapUseCase,
     deleteRoadmapUseCase,
+    getGraphUseCase
   );
 
   return {

@@ -1,7 +1,8 @@
+import { GetGraphUseCase } from '@/features/roadmap/app/usecases/get-graph.usecase';
 import { DeleteRoadmapUseCase } from '@/features/roadmap/app/usecases/delete-roadmap.usecase';
 import { GenerateRoadmapUseCase } from '@/features/roadmap/app/usecases/generate-roadmap.usecase';
 import { GetRoadmapUseCase } from '@/features/roadmap/app/usecases/get-roadmap.usecase';
-import { Roadmap } from '@sagepoint/domain';
+import { Roadmap, Concept } from '@sagepoint/domain';
 import {
   GenerateRoadmapInput,
   IRoadmapService,
@@ -12,7 +13,12 @@ export class RoadmapService implements IRoadmapService {
     private readonly generateRoadmapUseCase: GenerateRoadmapUseCase,
     private readonly getRoadmapUseCase: GetRoadmapUseCase,
     private readonly deleteRoadmapUseCase: DeleteRoadmapUseCase,
+    private readonly getGraphUseCase: GetGraphUseCase,
   ) {}
+
+  async getGraph(documentId: string): Promise<{ nodes: Concept[]; edges: { from: string; to: string; type: string }[] }> {
+    return await this.getGraphUseCase.execute(documentId);
+  }
 
   async generate(input: GenerateRoadmapInput): Promise<Roadmap> {
     return await this.generateRoadmapUseCase.execute(input);

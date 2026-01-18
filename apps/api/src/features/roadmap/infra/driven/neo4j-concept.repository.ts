@@ -56,4 +56,37 @@ export class Neo4jConceptRepository implements IConceptRepository {
     `;
     await this.neo4j.write(cypher, { fromId, toId });
   }
+
+  async getGraphByDocumentId(documentId: string): Promise<{ nodes: Concept[]; edges: { from: string; to: string; type: string }[] }> {
+    console.log(`[Neo4jRepo] Fetching graph for documentId: ${documentId}`);
+    
+    // Fetch nodes
+    const nodesResult = await this.neo4j.read(
+      `MATCH (c:Concept {documentId: $documentId}) RETURN c`,
+      { documentId }
+    );
+    
+    console.log(`[Neo4jRepo] Found ${nodesResult.records.length} nodes`);
+
+    const nodes = nodesResult.records.map(r => {
+      const node = r.get('c').properties;
+      return new Concept(node.id, node.name, node.documentId, node.description);
+    });
+
+    // Fetch edges
+    const edgesResult = await this.neo4j.read(
+      `MATCH (c1:Concept {documentId: $documentId})-[r]->(c2:Concept {documentId: $documentId}) RETURN c1.id as from, c2.id as to, type(r) as type`,
+      { documentId }
+    );
+    
+    console.log(`[Neo4jRepo] Found ${edgesResult.records.length} edges`);
+
+    const edges = edgesResult.records.map(r => ({
+      from: r.get('from'),
+      to: r.get('to'),
+      type: r.get('type')
+    }));
+
+    return { nodes, edges };
+  }
 }
