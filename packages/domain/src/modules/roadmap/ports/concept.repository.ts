@@ -8,4 +8,5 @@ export interface IConceptRepository {
   searchByName(name: string): Promise<Concept[]>;
   // Graph operations
   addRelation(fromId: string, toId: string, type: 'DEPENDS_ON' | 'NEXT_STEP'): Promise<void>;
+  getGraphByDocumentId(documentId: string): Promise<{ nodes: Concept[]; edges: { from: string; to: string; type: string }[] }>;
 }

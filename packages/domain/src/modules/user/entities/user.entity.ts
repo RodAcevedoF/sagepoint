@@ -1,3 +1,5 @@
+import { Category } from '../../category/entities/category.entity';
+
 export enum UserRole {
   ADMIN = 'ADMIN',
   USER = 'USER',
@@ -15,6 +17,8 @@ export class User {
     public readonly verificationToken: string | null = null,
     public readonly passwordHash: string | null = null,
     public readonly googleId: string | null = null,
+    public readonly learningGoal: string | null = null,
+    public readonly interests: Category[] = [],
     public readonly createdAt: Date = new Date(),
     public readonly updatedAt: Date = new Date(),
   ) {}
@@ -36,9 +40,30 @@ export class User {
       this.verificationToken,
       this.passwordHash,
       this.googleId,
+      this.learningGoal,
+      this.interests,
       this.createdAt,
       new Date(),
     );
+  }
+
+  updateProfile(goal: string, interests: Category[]): User {
+      return new User(
+        this.id,
+        this.email,
+        this.name,
+        this.role,
+        this.avatarUrl,
+        this.isActive,
+        this.isVerified,
+        this.verificationToken,
+        this.passwordHash,
+        this.googleId,
+        goal,
+        interests,
+        this.createdAt,
+        new Date()
+      );
   }
 
   verify(): User {
@@ -53,6 +78,8 @@ export class User {
       null, // verificationToken
       this.passwordHash,
       this.googleId,
+      this.learningGoal,
+      this.interests,
       this.createdAt,
       new Date(),
     );
@@ -70,6 +97,8 @@ export class User {
       token,
       this.passwordHash,
       this.googleId,
+      this.learningGoal,
+      this.interests,
       this.createdAt,
       new Date(),
     );

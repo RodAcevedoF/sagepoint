@@ -73,7 +73,7 @@ export function bootstrap(): AppDependencies {
       pass: process.env.SMTP_PASS || 'pass',
       frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
     },
-    useMockEmail: process.env.NODE_ENV === 'development' && !process.env.SMTP_HOST,
+    useMockEmail: true, // Force mock email for debugging
   };
 
   console.log(`[Bootstrap] AuthConfig initialized. Access Secret: ${authConfig.jwt.accessSecret.substring(0, 3)}... (Length: ${authConfig.jwt.accessSecret.length})`);

@@ -1,25 +1,21 @@
 'use client';
 
+import { Dashboard } from '@/features/roadmap/components/Dashboard';
 import { useAppSelector } from '@/common/store/store';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { CircularProgress, Box } from '@mui/material';
 
-export default function Home() {
+export default function Page() {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
   const router = useRouter();
 
   useEffect(() => {
-    if (isAuthenticated) {
-      router.push('/dashboard');
-    } else {
+    if (!isAuthenticated) {
       router.push('/login');
     }
   }, [isAuthenticated, router]);
 
-  return (
-    <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-      <CircularProgress />
-    </Box>
-  );
+  if (!isAuthenticated) return null;
+
+  return <Dashboard />;
 }
