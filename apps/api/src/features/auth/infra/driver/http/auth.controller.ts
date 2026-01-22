@@ -8,23 +8,26 @@ import {
   Body,
   Query,
   Inject,
-  HttpException,
-  HttpStatus,
   UnauthorizedException,
 } from '@nestjs/common';
 import type { Response, Request } from 'express';
 import type { IAuthService } from '@/features/auth/domain/inbound/auth.service.port';
 import { AUTH_SERVICE } from '@/features/auth/domain/inbound/auth.service.port';
-import { GoogleAuthGuard } from '@/features/auth/guards/google-auth.guard';
-import { JwtAuthGuard } from '@/features/auth/guards/jwt-auth.guard';
+import type { IUserService } from '@/features/user/domain/inbound/user.service';
+import { USER_SERVICE } from '@/features/user/domain/inbound/user.service';
+import { GoogleAuthGuard } from '@/features/auth/infra/guards/google-auth.guard';
+import { JwtAuthGuard } from '@/features/auth/infra/guards/jwt-auth.guard';
 import { CurrentUser } from '@/features/auth/decorators/current-user.decorator';
+import type { RequestUser } from '@/features/auth/domain/request-user';
 import { User } from '@sagepoint/domain';
-import { RegisterDto } from '@/features/auth/dto/register.dto';
+import { RegisterDto } from '@/features/auth/app/dto/register.dto';
+import { toUserResponseDto } from '@/features/user/app/dto/user-response.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     @Inject(AUTH_SERVICE) private readonly authService: IAuthService,
+    @Inject(USER_SERVICE) private readonly userService: IUserService,
   ) {}
 
   @Post('register')
@@ -58,35 +61,48 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
   async googleAuthRedirect(
-    @CurrentUser() user: User,
+    @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ) {
+    // GoogleStrategy returns full User, not RequestUser
+    const user = request.user as User;
     await this.handleLogin(user, response);
     response.redirect('http://localhost:3000');
   }
 
   @Post('refresh')
   async refresh(
-    @Req() request: Request,
+    @Req() request: Request & { cookies?: Record<string, string> },
     @Res({ passthrough: true }) response: Response,
   ) {
-    const refreshToken = request.cookies?.refresh_token;
+    const refreshToken = (request.cookies as Record<string, string> | undefined)
+      ?.refresh_token;
     if (!refreshToken) {
       throw new UnauthorizedException('No refresh token provided');
     }
 
     const result = await this.authService.refresh(refreshToken);
     this.setCookies(response, result.accessToken, result.refreshToken);
-    return { user: result.user };
+    return { user: toUserResponseDto(result.user) };
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  async me(@CurrentUser() reqUser: RequestUser) {
+    const user = await this.userService.get(reqUser.id);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    return toUserResponseDto(user);
   }
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
   async logout(
-    @CurrentUser() user: User,
+    @CurrentUser() reqUser: RequestUser,
     @Res({ passthrough: true }) response: Response,
   ) {
-    await this.authService.logout(user.id);
+    await this.authService.logout(reqUser.id);
     this.clearCookies(response);
     return { message: 'Logged out successfully' };
   }
@@ -94,12 +110,15 @@ export class AuthController {
   private async handleLogin(user: User, response: Response) {
     const result = await this.authService.login(user);
     this.setCookies(response, result.accessToken, result.refreshToken);
-    return { user: result.user };
+    return { user: toUserResponseDto(result.user) };
   }
 
-  private setCookies(response: Response, accessToken: string, refreshToken: string) {
+  private setCookies(
+    response: Response,
+    accessToken: string,
+    refreshToken: string,
+  ) {
     const isProduction = process.env.NODE_ENV === 'production';
-    
     // Access Token Cookie
     response.cookie('access_token', accessToken, {
       httpOnly: true,

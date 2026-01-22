@@ -1,4 +1,6 @@
+import { Injectable, Inject } from '@nestjs/common';
 import type { IUserService } from '@/features/user/domain/inbound/user.service';
+import { USER_SERVICE } from '@/features/user/domain/inbound/user.service';
 import { User, UserRole } from '@sagepoint/domain';
 
 export interface GoogleUserDetails {
@@ -8,8 +10,9 @@ export interface GoogleUserDetails {
   picture?: string;
 }
 
+@Injectable()
 export class ValidateGoogleUserUseCase {
-  constructor(private readonly userService: IUserService) {}
+  constructor(@Inject(USER_SERVICE) private readonly userService: IUserService) {}
 
   async execute(details: GoogleUserDetails): Promise<User> {
     const existingUser = await this.userService.getByEmail(details.email);

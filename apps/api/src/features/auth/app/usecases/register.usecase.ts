@@ -1,7 +1,12 @@
+import { Injectable, Inject } from '@nestjs/common';
 import type { IUserService } from '@/features/user/domain/inbound/user.service';
+import { USER_SERVICE } from '@/features/user/domain/inbound/user.service';
 import type { IEmailService } from '@/features/auth/domain/outbound/email.service.port';
+import { EMAIL_SERVICE_PORT } from '@/features/auth/domain/outbound/email.service.port';
 import type { ITokenStore } from '@/features/auth/domain/outbound/token-store.port';
+import { TOKEN_STORE } from '@/features/auth/domain/outbound/token-store.port';
 import type { IPasswordHasher } from '@/features/auth/domain/outbound/password-hasher.port';
+import { PASSWORD_HASHER } from '@/features/auth/domain/outbound/password-hasher.port';
 import { UserRole } from '@sagepoint/domain';
 import { randomBytes } from 'crypto';
 
@@ -18,14 +23,15 @@ export class UserAlreadyExistsError extends Error {
   }
 }
 
+@Injectable()
 export class RegisterUseCase {
   private static readonly VERIFICATION_TOKEN_TTL = 24 * 60 * 60; // 24 hours
 
   constructor(
-    private readonly userService: IUserService,
-    private readonly emailService: IEmailService,
-    private readonly tokenStore: ITokenStore,
-    private readonly passwordHasher: IPasswordHasher,
+    @Inject(USER_SERVICE) private readonly userService: IUserService,
+    @Inject(EMAIL_SERVICE_PORT) private readonly emailService: IEmailService,
+    @Inject(TOKEN_STORE) private readonly tokenStore: ITokenStore,
+    @Inject(PASSWORD_HASHER) private readonly passwordHasher: IPasswordHasher,
   ) {}
 
   async execute(input: RegisterInput): Promise<{ message: string }> {

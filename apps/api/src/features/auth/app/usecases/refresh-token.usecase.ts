@@ -1,10 +1,12 @@
+import { Injectable, Inject } from '@nestjs/common';
 import type { IUserService } from '@/features/user/domain/inbound/user.service';
+import { USER_SERVICE } from '@/features/user/domain/inbound/user.service';
 import type { ITokenStore } from '@/features/auth/domain/outbound/token-store.port';
-import { LoginUseCase, type LoginResult, type TokenPayload } from './login.usecase';
-
-export interface TokenVerifier {
-  verifyRefreshToken(token: string): TokenPayload;
-}
+import { TOKEN_STORE } from '@/features/auth/domain/outbound/token-store.port';
+import type { ITokenService } from '@/features/auth/domain/outbound/token-service.port';
+import { TOKEN_SERVICE } from '@/features/auth/domain/outbound/token-service.port';
+import type { LoginResult } from '@/features/auth/domain/inbound/auth.service.port';
+import { LoginUseCase, type TokenPayload } from './login.usecase';
 
 export class InvalidRefreshTokenError extends Error {
   constructor() {
@@ -13,18 +15,19 @@ export class InvalidRefreshTokenError extends Error {
   }
 }
 
+@Injectable()
 export class RefreshTokenUseCase {
   constructor(
-    private readonly userService: IUserService,
-    private readonly tokenStore: ITokenStore,
-    private readonly tokenVerifier: TokenVerifier,
+    @Inject(USER_SERVICE) private readonly userService: IUserService,
+    @Inject(TOKEN_STORE) private readonly tokenStore: ITokenStore,
+    @Inject(TOKEN_SERVICE) private readonly tokenService: ITokenService,
     private readonly loginUseCase: LoginUseCase,
   ) {}
 
   async execute(refreshToken: string): Promise<LoginResult> {
     let payload: TokenPayload;
     try {
-      payload = this.tokenVerifier.verifyRefreshToken(refreshToken);
+      payload = this.tokenService.verifyRefreshToken(refreshToken);
     } catch {
       throw new InvalidRefreshTokenError();
     }

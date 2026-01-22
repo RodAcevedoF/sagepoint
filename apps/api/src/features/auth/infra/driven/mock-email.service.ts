@@ -1,5 +1,7 @@
+import { Injectable } from '@nestjs/common';
 import type { IEmailService } from '@/features/auth/domain/outbound/email.service.port';
 
+@Injectable()
 export class MockEmailService implements IEmailService {
   private readonly logs: string[] = [];
 

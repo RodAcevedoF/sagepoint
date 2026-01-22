@@ -11,11 +11,6 @@ import {
   makeUserDependencies,
   type UserDependencies,
 } from '@/features/user/dependencies';
-import {
-  makeAuthDependencies,
-  type AuthDependencies,
-  type AuthConfig,
-} from '@/features/auth/dependencies';
 import { LocalDiskStorage } from '@/core/infra/storage/local-disk.storage';
 import { SupabaseStorage } from '@/core/infra/storage/supabase.storage';
 import { IFileStorage } from '@sagepoint/domain';
@@ -25,7 +20,7 @@ export interface AppDependencies {
   roadmap: RoadmapDependencies;
   document: DocumentDependencies;
   user: UserDependencies;
-  auth: AuthDependencies;
+  // auth removed
 }
 
 let dependencies: AppDependencies | null = null;
@@ -51,32 +46,8 @@ export function bootstrap(): AppDependencies {
     fileStorage = new LocalDiskStorage(uploadDir);
   }
 
-  // User dependencies (needed by auth)
+  // User dependencies
   const userDeps = makeUserDependencies();
-
-  // Auth configuration
-  const authConfig: AuthConfig = {
-    redis: {
-      host: process.env.REDIS_HOST || 'localhost',
-      port: parseInt(process.env.REDIS_PORT || '6379'),
-    },
-    jwt: {
-      accessSecret: process.env.JWT_SECRET || 'dev_secret',
-      refreshSecret: process.env.JWT_REFRESH_SECRET || 'refresh_secret',
-      accessExpiresIn: '15m',
-      refreshExpiresIn: '7d',
-    },
-    email: {
-      host: process.env.SMTP_HOST || 'smtp.ethereal.email',
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      user: process.env.SMTP_USER || 'user',
-      pass: process.env.SMTP_PASS || 'pass',
-      frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
-    },
-    useMockEmail: true, // Force mock email for debugging
-  };
-
-  console.log(`[Bootstrap] AuthConfig initialized. Access Secret: ${authConfig.jwt.accessSecret.substring(0, 3)}... (Length: ${authConfig.jwt.accessSecret.length})`);
 
   // Initialize Neo4j
   const neo4jService = new Neo4jService({
@@ -88,10 +59,8 @@ export function bootstrap(): AppDependencies {
 
   dependencies = {
     roadmap: makeRoadmapDependencies(neo4jService),
-
     document: makeDocumentDependencies(fileStorage),
     user: userDeps,
-    auth: makeAuthDependencies(authConfig, userDeps.userService),
   };
 
   return dependencies;

@@ -1,3 +1,4 @@
+import { Injectable, Inject } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import type { IEmailService } from '@/features/auth/domain/outbound/email.service.port';
 
@@ -9,10 +10,11 @@ export interface EmailConfig {
   frontendUrl: string;
 }
 
+@Injectable()
 export class NodemailerEmailService implements IEmailService {
   private transporter: nodemailer.Transporter;
 
-  constructor(private readonly config: EmailConfig) {
+  constructor(@Inject('EMAIL_CONFIG') private readonly config: EmailConfig) {
     this.transporter = nodemailer.createTransport({
       host: config.host,
       port: config.port,

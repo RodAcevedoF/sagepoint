@@ -20,7 +20,7 @@ import type { Express } from 'express';
 import { CurrentUser } from '@/features/auth/decorators/current-user.decorator';
 import { User } from '@sagepoint/domain';
 
-import { JwtAuthGuard } from '@/features/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '@/features/auth/infra/guards/jwt-auth.guard';
 
 @Controller('documents')
 @UseGuards(JwtAuthGuard)

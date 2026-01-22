@@ -1,3 +1,4 @@
+import { Injectable } from '@nestjs/common';
 import { User } from '@sagepoint/domain';
 import type { IAuthService, RegisterInput, LoginResult } from '@/features/auth/domain/inbound/auth.service.port';
 import { RegisterUseCase } from '@/features/auth/app/usecases/register.usecase';
@@ -8,6 +9,7 @@ import { RefreshTokenUseCase } from '@/features/auth/app/usecases/refresh-token.
 import { ValidateUserUseCase } from '@/features/auth/app/usecases/validate-user.usecase';
 import { ValidateGoogleUserUseCase, type GoogleUserDetails } from '@/features/auth/app/usecases/validate-google-user.usecase';
 
+@Injectable()
 export class AuthService implements IAuthService {
   constructor(
     private readonly registerUseCase: RegisterUseCase,

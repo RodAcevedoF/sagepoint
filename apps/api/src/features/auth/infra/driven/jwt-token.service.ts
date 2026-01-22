@@ -1,6 +1,7 @@
+import { Injectable, Inject } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
-import type { TokenGenerator, TokenPayload } from '@/features/auth/app/usecases/login.usecase';
-import type { TokenVerifier } from '@/features/auth/app/usecases/refresh-token.usecase';
+import type { ITokenService } from '@/features/auth/domain/outbound/token-service.port';
+import type { TokenPayload } from '@/features/auth/app/usecases/login.usecase';
 
 export interface JwtConfig {
   accessSecret: string;
@@ -9,8 +10,9 @@ export interface JwtConfig {
   refreshExpiresIn: string;
 }
 
-export class JwtTokenService implements TokenGenerator, TokenVerifier {
-  constructor(private readonly config: JwtConfig) {}
+@Injectable()
+export class JwtTokenService implements ITokenService {
+  constructor(@Inject('JWT_CONFIG') private readonly config: JwtConfig) {}
 
   signAccessToken(payload: TokenPayload): string {
     return jwt.sign(payload, this.config.accessSecret, {

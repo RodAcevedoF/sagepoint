@@ -1,6 +1,6 @@
 import { Controller, Post, Body, Req, UseGuards, Inject } from '@nestjs/common';
 import { UpdateUserProfileUseCase } from '../../../app/usecases/update-user-profile.usecase';
-import { JwtAuthGuard } from '@/features/auth/guards/jwt-auth.guard'; 
+import { JwtAuthGuard } from '@/features/auth/infra/guards/jwt-auth.guard';
 
 @Controller('users/onboarding')
 export class OnboardingController {
