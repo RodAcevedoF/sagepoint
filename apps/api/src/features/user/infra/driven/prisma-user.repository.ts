@@ -67,6 +67,15 @@ export class PrismaUserRepository implements IUserRepository {
     return this.mapToDomain(data);
   }
 
+  async findByGoogleId(googleId: string): Promise<User | null> {
+    const data = await this.prisma.user.findFirst({ 
+        where: { googleId },
+        include: { interests: true }
+    });
+    if (!data) return null;
+    return this.mapToDomain(data);
+  }
+
   // Helper mapper
   private mapToDomain(data: any): User {
     const interests = (data.interests || []).map((i: any) => new Category(

@@ -19,7 +19,7 @@ model User {
   email     String   @unique
   name      String
   password  String?
-  googleId  String?
+  googleId  String?  @unique
   role      UserRole @default(USER)
   avatarUrl String?
   isActive  Boolean  @default(true)
@@ -27,7 +27,7 @@ model User {
   verificationToken String?
   
   learningGoal String?  // "Become a DevOps Engineer"
-  interests    Category[] // Implicit M-N relation
+  interests    UserInterest[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -35,7 +35,21 @@ model User {
   documents Document[]
   roadmaps  Roadmap[]
 
+  @@index([verificationToken])
   @@map("users")
+}
+
+model UserInterest {
+  userId     String
+  categoryId String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@id([userId, categoryId])
+  @@index([userId])
+  @@index([categoryId])
+  @@map("user_interests")
 }
 
 model Document {
@@ -52,6 +66,7 @@ model Document {
 
   roadmaps    Roadmap[]
 
+  @@index([userId])
   @@map("documents")
 }
 
@@ -67,7 +82,7 @@ model Category {
   updatedAt   DateTime @updatedAt
 
   roadmaps    Roadmap[]
-  users       User[]    // Implicit M-N relation
+  users       UserInterest[]
 
   @@map("categories")
 }
@@ -89,5 +104,8 @@ model Roadmap {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  @@index([userId])
+  @@index([documentId])
+  @@index([categoryId])
   @@map("roadmaps")
 }

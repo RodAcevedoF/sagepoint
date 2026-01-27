@@ -26,4 +26,8 @@ export class UserService implements IUserService {
   async getByEmail(email: string): Promise<User | null> {
     return await this.getUserUseCase.byEmail(email);
   }
+
+  async getByGoogleId(googleId: string): Promise<User | null> {
+    return await this.getUserUseCase.byGoogleId(googleId);
+  }
 }

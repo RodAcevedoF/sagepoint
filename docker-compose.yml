@@ -2,7 +2,7 @@
 
 services:
   postgres:
-    image: pgvector/pgvector:pg15
+    image: pgvector/pgvector:pg17
     container_name: sagepoint_postgres
     ports:
       - "5440:5432"

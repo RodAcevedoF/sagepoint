@@ -13,4 +13,5 @@ export interface IUserService {
   save(user: User): Promise<void>;
   get(id: string): Promise<User | null>;
   getByEmail(email: string): Promise<User | null>;
+  getByGoogleId(googleId: string): Promise<User | null>;
 }

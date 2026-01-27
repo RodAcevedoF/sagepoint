@@ -11,4 +11,8 @@ export class GetUserUseCase {
   async byEmail(email: string): Promise<User | null> {
     return await this.userRepository.findByEmail(email);
   }
+
+  async byGoogleId(googleId: string): Promise<User | null> {
+    return await this.userRepository.findByGoogleId(googleId);
+  }
 }
