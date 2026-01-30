@@ -6,4 +6,4 @@ coverage
 .env.*
 .DS_Store
 pnpm-debug.log*
-
+/pre-docs
