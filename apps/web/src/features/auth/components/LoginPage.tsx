@@ -1,20 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useLoginMutation } from '../api/authApi';
-import { useDispatch } from 'react-redux';
-import { setCredentials } from '../slices/authSlice';
-import { 
-  Container, 
-  Box, 
-  Typography, 
-  TextField, 
-  Button, 
-  Paper, 
+import { useLoginCommand } from '@/application/auth/commands/login.command';
+import {
+  Container,
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Paper,
   Alert,
   CircularProgress,
-  Link as MuiLink
+  Link as MuiLink,
 } from '@mui/material';
 import Link from 'next/link';
 
@@ -23,17 +20,13 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
-  const [login, { isLoading }] = useLoginMutation();
-  const dispatch = useDispatch();
-  const router = useRouter();
+  const { execute, isLoading } = useLoginCommand();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     try {
-      const result = await login({ email, password }).unwrap();
-      dispatch(setCredentials({ user: result.user, token: result.accessToken }));
-      router.push('/dashboard');
+      await execute(email, password);
     } catch (err: any) {
       setErrorMsg(err?.data?.message || 'Login failed');
     }
@@ -51,13 +44,12 @@ export function LoginPage() {
       >
         <Paper elevation={3} sx={{ p: 4, width: '100%', borderRadius: 2 }}>
           <Box display="flex" flexDirection="column" alignItems="center" mb={3}>
-             {/* Logo Placeholder */}
-             <Typography component="h1" variant="h5" fontWeight="bold" color="primary">
-               SagePoint
-             </Typography>
-             <Typography component="h2" variant="h6" color="text.secondary">
-               Sign In
-             </Typography>
+            <Typography component="h1" variant="h5" fontWeight="bold" color="primary">
+              SagePoint
+            </Typography>
+            <Typography component="h2" variant="h6" color="text.secondary">
+              Sign In
+            </Typography>
           </Box>
 
           {errorMsg && (
@@ -100,7 +92,7 @@ export function LoginPage() {
             >
               {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Sign In'}
             </Button>
-            
+
             <Box display="flex" justifyContent="center">
               <MuiLink component={Link} href="/register" variant="body2" underline="hover">
                 {"Don't have an account? Sign Up"}

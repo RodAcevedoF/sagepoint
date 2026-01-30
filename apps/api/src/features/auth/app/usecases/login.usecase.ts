@@ -3,14 +3,7 @@ import type { ITokenStore } from '@/features/auth/domain/outbound/token-store.po
 import { TOKEN_STORE } from '@/features/auth/domain/outbound/token-store.port';
 import type { ITokenService } from '@/features/auth/domain/outbound/token-service.port';
 import { TOKEN_SERVICE } from '@/features/auth/domain/outbound/token-service.port';
-import { User } from '@sagepoint/domain';
-import type { LoginResult } from '@/features/auth/domain/inbound/auth.service.port';
-
-export interface TokenPayload {
-  sub: string;
-  email: string;
-  role: string;
-}
+import { User, LoginResult, TokenPayload } from '@sagepoint/domain';
 
 @Injectable()
 export class LoginUseCase {

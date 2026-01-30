@@ -1,27 +1,27 @@
-import { baseApi } from '@/common/api/baseApi';
+import { baseApi } from './baseApi';
 
-export interface User {
+export interface UserDto {
   id: string;
   email: string;
   name: string;
   role: string;
   learningGoal?: string;
-  interests?: any[]; // Category[] but keeping loose for now
+  interests?: { id: string; name: string; slug: string }[];
 }
 
-export interface LoginResponse {
+export interface LoginResponseDto {
   accessToken: string;
   refreshToken: string;
-  user: User;
+  user: UserDto;
 }
 
-export interface RegisterResponse {
+export interface RegisterResponseDto {
   message: string;
 }
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    login: builder.mutation<LoginResponse, { email: string; password: string }>({
+    login: builder.mutation<LoginResponseDto, { email: string; password: string }>({
       query: (credentials) => ({
         url: '/auth/login',
         method: 'POST',
@@ -29,14 +29,14 @@ export const authApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['User'],
     }),
-    register: builder.mutation<RegisterResponse, { email: string; password: string; name: string }>({
+    register: builder.mutation<RegisterResponseDto, { email: string; password: string; name: string }>({
       query: (userData) => ({
         url: '/auth/register',
         method: 'POST',
         body: userData,
       }),
     }),
-    getProfile: builder.query<User, void>({
+    getProfile: builder.query<UserDto, void>({
       query: () => '/auth/me',
       providesTags: ['User'],
     }),

@@ -5,11 +5,8 @@ export class PrismaUserRepository implements IUserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async save(user: User): Promise<void> {
-    const interestConnect = user.interests.map(i => ({ id: i.id }));
-    
-    // For many-to-many update in Prisma, we often need to explicit set/connect
-    // A simple overwrite approach:
-    
+    const interestCreate = user.interests.map(i => ({ categoryId: i.id }));
+
     await this.prisma.user.upsert({
       where: { id: user.id },
       create: {
@@ -25,7 +22,7 @@ export class PrismaUserRepository implements IUserRepository {
         verificationToken: user.verificationToken,
         learningGoal: user.learningGoal,
         interests: {
-            connect: interestConnect
+          create: interestCreate,
         },
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
@@ -42,7 +39,8 @@ export class PrismaUserRepository implements IUserRepository {
         verificationToken: user.verificationToken,
         learningGoal: user.learningGoal,
         interests: {
-            set: interestConnect // Replace all interests
+          deleteMany: {},
+          create: interestCreate,
         },
         updatedAt: user.updatedAt,
       },
@@ -52,25 +50,25 @@ export class PrismaUserRepository implements IUserRepository {
   async findByEmail(email: string): Promise<User | null> {
     const data = await this.prisma.user.findUnique({ 
         where: { email },
-        include: { interests: true }
+        include: { interests: { include: { category: true } } }
     });
     if (!data) return null;
     return this.mapToDomain(data);
   }
 
   async findById(id: string): Promise<User | null> {
-    const data = await this.prisma.user.findUnique({ 
+    const data = await this.prisma.user.findUnique({
         where: { id },
-        include: { interests: true }
+        include: { interests: { include: { category: true } } }
     });
     if (!data) return null;
     return this.mapToDomain(data);
   }
 
   async findByGoogleId(googleId: string): Promise<User | null> {
-    const data = await this.prisma.user.findFirst({ 
+    const data = await this.prisma.user.findFirst({
         where: { googleId },
-        include: { interests: true }
+        include: { interests: { include: { category: true } } }
     });
     if (!data) return null;
     return this.mapToDomain(data);
@@ -79,7 +77,7 @@ export class PrismaUserRepository implements IUserRepository {
   // Helper mapper
   private mapToDomain(data: any): User {
     const interests = (data.interests || []).map((i: any) => new Category(
-        i.id, i.name, i.slug, i.description, i.parentId, i.createdAt, i.updatedAt
+        i.category.id, i.category.name, i.category.slug, i.category.description, i.category.parentId, i.category.createdAt, i.category.updatedAt
     ));
 
     return new User(

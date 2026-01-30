@@ -1,7 +1,7 @@
 'use client';
 
-import { Dashboard } from '@/features/roadmap/components/Dashboard';
-import { useAppSelector } from '@/common/store/store';
+import { Dashboard } from '@/features/dashboard/components/Dashboard';
+import { useAppSelector } from '@/common/hooks';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 

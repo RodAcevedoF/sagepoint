@@ -1,18 +1,6 @@
-import { User } from '@sagepoint/domain';
+import { User, RegisterInput, LoginResult } from '@sagepoint/domain';
 
 export const AUTH_SERVICE = Symbol('AUTH_SERVICE');
-
-export interface RegisterInput {
-  email: string;
-  name: string;
-  password: string;
-}
-
-export interface LoginResult {
-  accessToken: string;
-  refreshToken: string;
-  user: User;
-}
 
 export interface IAuthService {
   register(input: RegisterInput): Promise<{ message: string }>;

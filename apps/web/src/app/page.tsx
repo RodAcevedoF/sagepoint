@@ -1,25 +1,7 @@
 'use client';
 
-import { useAppSelector } from '@/common/store/store';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { CircularProgress, Box } from '@mui/material';
+import { LandingPage } from '@/features/landing/components/LandingPage';
 
 export default function Home() {
-  const { isAuthenticated } = useAppSelector((state) => state.auth);
-  const router = useRouter();
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      router.push('/dashboard');
-    } else {
-      router.push('/login');
-    }
-  }, [isAuthenticated, router]);
-
-  return (
-    <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-      <CircularProgress />
-    </Box>
-  );
+  return <LandingPage />;
 }

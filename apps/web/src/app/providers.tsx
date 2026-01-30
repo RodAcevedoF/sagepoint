@@ -3,7 +3,7 @@
 import { Provider } from 'react-redux';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
-import { store } from '@/common/store/store';
+import { store } from '@/infrastructure/store/store';
 
 // Create a custom MUI theme (can be moved to separate file later)
 const theme = createTheme({

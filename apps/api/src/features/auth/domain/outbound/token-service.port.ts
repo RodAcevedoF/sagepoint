@@ -1,5 +1,4 @@
-
-import { TokenPayload } from '@/features/auth/app/usecases/login.usecase';
+import { TokenPayload } from '@sagepoint/domain';
 
 export const TOKEN_SERVICE = Symbol('TOKEN_SERVICE');
 

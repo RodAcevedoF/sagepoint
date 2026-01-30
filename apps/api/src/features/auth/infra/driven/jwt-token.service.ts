@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 import type { ITokenService } from '@/features/auth/domain/outbound/token-service.port';
-import type { TokenPayload } from '@/features/auth/app/usecases/login.usecase';
+import type { TokenPayload } from '@sagepoint/domain';
 
 export interface JwtConfig {
   accessSecret: string;

@@ -1,6 +1,6 @@
-import { baseApi } from '@/common/api/baseApi';
+import { baseApi } from './baseApi';
 
-export interface Category {
+export interface CategoryDto {
   id: string;
   name: string;
   slug: string;
@@ -8,7 +8,7 @@ export interface Category {
 
 export const onboardingApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getCategories: builder.query<Category[], void>({
+    getCategories: builder.query<CategoryDto[], void>({
       query: () => '/categories',
       providesTags: ['Category'],
     }),

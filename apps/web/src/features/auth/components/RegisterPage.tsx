@@ -1,18 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useRegisterMutation } from '../api/authApi';
-import { 
-  Container, 
-  Box, 
-  Typography, 
-  TextField, 
-  Button, 
-  Paper, 
+import { useRegisterCommand } from '@/application/auth/commands/register.command';
+import {
+  Container,
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Paper,
   Alert,
   CircularProgress,
-  Link as MuiLink
+  Link as MuiLink,
 } from '@mui/material';
 import Link from 'next/link';
 
@@ -22,16 +21,13 @@ export function RegisterPage() {
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
-  const [register, { isLoading }] = useRegisterMutation();
-  const router = useRouter();
+  const { execute, isLoading } = useRegisterCommand();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     try {
-      await register({ name, email, password }).unwrap();
-      // Auto redirect to login or show success (simple redirect for now)
-      router.push('/login?registered=true');
+      await execute(name, email, password);
     } catch (err: any) {
       setErrorMsg(err?.data?.message || 'Registration failed');
     }
@@ -49,12 +45,12 @@ export function RegisterPage() {
       >
         <Paper elevation={3} sx={{ p: 4, width: '100%', borderRadius: 2 }}>
           <Box display="flex" flexDirection="column" alignItems="center" mb={3}>
-             <Typography component="h1" variant="h5" fontWeight="bold" color="primary">
-               SagePoint
-             </Typography>
-             <Typography component="h2" variant="h6" color="text.secondary">
-               Create Account
-             </Typography>
+            <Typography component="h1" variant="h5" fontWeight="bold" color="primary">
+              SagePoint
+            </Typography>
+            <Typography component="h2" variant="h6" color="text.secondary">
+              Create Account
+            </Typography>
           </Box>
 
           {errorMsg && (
@@ -108,7 +104,7 @@ export function RegisterPage() {
             >
               {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Sign Up'}
             </Button>
-            
+
             <Box display="flex" justifyContent="center">
               <MuiLink component={Link} href="/login" variant="body2" underline="hover">
                 {"Already have an account? Sign In"}

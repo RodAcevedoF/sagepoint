@@ -5,8 +5,8 @@ import type { ITokenStore } from '@/features/auth/domain/outbound/token-store.po
 import { TOKEN_STORE } from '@/features/auth/domain/outbound/token-store.port';
 import type { ITokenService } from '@/features/auth/domain/outbound/token-service.port';
 import { TOKEN_SERVICE } from '@/features/auth/domain/outbound/token-service.port';
-import type { LoginResult } from '@/features/auth/domain/inbound/auth.service.port';
-import { LoginUseCase, type TokenPayload } from './login.usecase';
+import type { LoginResult, TokenPayload } from '@sagepoint/domain';
+import { LoginUseCase } from './login.usecase';
 
 export class InvalidRefreshTokenError extends Error {
   constructor() {

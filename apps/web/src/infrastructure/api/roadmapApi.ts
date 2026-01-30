@@ -1,24 +1,24 @@
-import { baseApi } from '@/common/api/baseApi';
+import { baseApi } from './baseApi';
 
-export interface Document {
+export interface DocumentDto {
   id: string;
   filename: string;
   status: string;
   createdAt: string;
 }
 
-export interface GraphData {
+export interface GraphDataDto {
   nodes: any[];
   edges: any[];
 }
 
 export const roadmapApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getDocuments: builder.query<Document[], void>({
+    getDocuments: builder.query<DocumentDto[], void>({
       query: () => '/documents',
       providesTags: ['Document'],
     }),
-    uploadDocument: builder.mutation<Document, FormData>({
+    uploadDocument: builder.mutation<DocumentDto, FormData>({
       query: (formData) => ({
         url: '/documents',
         method: 'POST',
@@ -26,7 +26,7 @@ export const roadmapApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Document'],
     }),
-    getGraph: builder.query<GraphData, string>({
+    getGraph: builder.query<GraphDataDto, string>({
       query: (documentId) => `/roadmaps/graph/${documentId}`,
       providesTags: ['Graph'],
     }),

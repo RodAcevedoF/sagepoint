@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { User } from '@sagepoint/domain';
-import type { IAuthService, RegisterInput, LoginResult } from '@/features/auth/domain/inbound/auth.service.port';
+import { User, type RegisterInput, type LoginResult } from '@sagepoint/domain';
+import type { IAuthService } from '@/features/auth/domain/inbound/auth.service.port';
 import { RegisterUseCase } from '@/features/auth/app/usecases/register.usecase';
 import { VerifyEmailUseCase } from '@/features/auth/app/usecases/verify-email.usecase';
 import { LoginUseCase } from '@/features/auth/app/usecases/login.usecase';

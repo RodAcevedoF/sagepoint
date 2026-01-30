@@ -1,33 +1,32 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { 
-  Box, 
-  Container, 
-  Paper, 
-  Stepper, 
-  Step, 
-  StepLabel, 
-  Button, 
-  Typography, 
+import { useSubmitOnboardingCommand } from '@/application/onboarding/commands/submit-onboarding.command';
+import { useCategoriesQuery } from '@/application/onboarding/queries/get-categories.query';
+import {
+  Box,
+  Container,
+  Paper,
+  Stepper,
+  Step,
+  StepLabel,
+  Button,
+  Typography,
   TextField,
   Chip,
   CircularProgress,
-  Stack
+  Stack,
 } from '@mui/material';
-import { useGetCategoriesQuery, useSubmitOnboardingMutation } from '../api/onboardingApi';
 
 const steps = ['Set Your Goal', 'Select Interests', 'Review'];
 
 export function OnboardingFlow() {
-  const router = useRouter();
   const [activeStep, setActiveStep] = useState(0);
   const [goal, setGoal] = useState('');
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
-  
-  const { data: categories = [], isLoading: isLoadingCategories } = useGetCategoriesQuery();
-  const [submitOnboarding, { isLoading: isSubmitting }] = useSubmitOnboardingMutation();
+
+  const { data: categories = [], isLoading: isLoadingCategories } = useCategoriesQuery();
+  const { execute: submitOnboarding, isLoading: isSubmitting } = useSubmitOnboardingCommand();
 
   const handleNext = async () => {
     if (activeStep === steps.length - 1) {
@@ -43,17 +42,15 @@ export function OnboardingFlow() {
 
   const handleSubmit = async () => {
     try {
-      await submitOnboarding({ goal, interests: selectedInterests }).unwrap();
-      router.push('/dashboard');
+      await submitOnboarding(goal, selectedInterests);
     } catch (error) {
       console.error('Onboarding failed', error);
-      // Ideally show error toast
     }
   };
 
   const toggleInterest = (id: string) => {
-    setSelectedInterests(prev => 
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    setSelectedInterests((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
     );
   };
 
@@ -78,7 +75,7 @@ export function OnboardingFlow() {
       case 1:
         return (
           <Box sx={{ mt: 4 }}>
-             <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" gutterBottom>
               Select topics you are interested in
             </Typography>
             {isLoadingCategories ? (
@@ -96,7 +93,9 @@ export function OnboardingFlow() {
                   />
                 ))}
                 {categories.length === 0 && (
-                    <Typography color="text.secondary">No categories found. Admin needs to seed them.</Typography>
+                  <Typography color="text.secondary">
+                    No categories found. Admin needs to seed them.
+                  </Typography>
                 )}
               </Box>
             )}
@@ -104,21 +103,27 @@ export function OnboardingFlow() {
         );
       case 2:
         return (
-            <Box sx={{ mt: 4 }}>
+          <Box sx={{ mt: 4 }}>
             <Typography variant="h6" gutterBottom>
               Review your profile
             </Typography>
             <Stack spacing={2}>
-                <Box>
-                    <Typography variant="subtitle2" color="text.secondary">Learning Goal</Typography>
-                    <Typography variant="body1">{goal}</Typography>
-                </Box>
-                <Box>
-                    <Typography variant="subtitle2" color="text.secondary">Interests</Typography>
-                    <Typography variant="body1">
-                        {selectedInterests.length > 0 ? `${selectedInterests.length} topics selected` : 'None selected'}
-                    </Typography>
-                </Box>
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Learning Goal
+                </Typography>
+                <Typography variant="body1">{goal}</Typography>
+              </Box>
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Interests
+                </Typography>
+                <Typography variant="body1">
+                  {selectedInterests.length > 0
+                    ? `${selectedInterests.length} topics selected`
+                    : 'None selected'}
+                </Typography>
+              </Box>
             </Stack>
           </Box>
         );
@@ -140,11 +145,9 @@ export function OnboardingFlow() {
             </Step>
           ))}
         </Stepper>
-        
-        <Box sx={{ minHeight: '200px' }}>
-            {renderCurrentStep()}
-        </Box>
-        
+
+        <Box sx={{ minHeight: '200px' }}>{renderCurrentStep()}</Box>
+
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4 }}>
           {activeStep !== 0 && (
             <Button onClick={handleBack} sx={{ mr: 1 }}>
@@ -154,9 +157,13 @@ export function OnboardingFlow() {
           <Button
             variant="contained"
             onClick={handleNext}
-            disabled={activeStep === 0 && !goal || isSubmitting}
+            disabled={(activeStep === 0 && !goal) || isSubmitting}
           >
-            {activeStep === steps.length - 1 ? (isSubmitting ? 'Finishing...' : 'Finish') : 'Next'}
+            {activeStep === steps.length - 1
+              ? isSubmitting
+                ? 'Finishing...'
+                : 'Finish'
+              : 'Next'}
           </Button>
         </Box>
       </Paper>
