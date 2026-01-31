@@ -1,0 +1,60 @@
+import { createTheme } from '@mui/material';
+
+export const palette = {
+  primary: {
+    main: '#35A29F',
+    light: '#97FEED',
+    dark: '#0B666A',
+  },
+  secondary: {
+    main: '#0B666A',
+    light: '#35A29F',
+    dark: '#071952',
+  },
+  background: {
+    default: '#030712',
+    paper: '#0a0f1a',
+    gradient: 'radial-gradient(circle at 50% 50%, #0a0a0a 0%, #030712 60%, #071952 100%)',
+  },
+  text: {
+    primary: '#f5f5f5',
+    secondary: 'rgba(151, 254, 237, 0.7)',
+  },
+  accent: '#97FEED',
+  divider: 'rgba(151, 254, 237, 0.08)',
+};
+
+export const darkTheme = createTheme({
+  palette: {
+    mode: 'dark',
+    primary: palette.primary,
+    secondary: palette.secondary,
+    background: {
+      default: palette.background.default,
+      paper: palette.background.paper,
+    },
+    text: palette.text,
+    divider: palette.divider,
+  },
+  typography: {
+    fontFamily: 'var(--font-geist-sans), "Inter", "Roboto", sans-serif',
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          borderRadius: '8px',
+          fontWeight: 500,
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          backgroundImage: 'none',
+        },
+      },
+    },
+  },
+});
