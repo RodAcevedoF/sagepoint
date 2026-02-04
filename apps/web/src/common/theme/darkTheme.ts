@@ -1,32 +1,48 @@
-import { createTheme } from '@mui/material';
+import { createTheme } from "@mui/material";
 
 export const palette = {
   primary: {
-    main: '#35A29F',
-    light: '#97FEED',
-    dark: '#0B666A',
+    main: "#35A29F",
+    light: "#97FEED",
+    dark: "#0B666A",
   },
   secondary: {
-    main: '#0B666A',
-    light: '#35A29F',
-    dark: '#071952',
+    main: "#0B666A",
+    light: "#35A29F",
+    dark: "#071952",
   },
   background: {
-    default: '#030712',
-    paper: '#0a0f1a',
-    gradient: 'radial-gradient(circle at 50% 50%, #0a0a0a 0%, #030712 60%, #071952 100%)',
+    default: "#030712",
+    paper: "#0a0f1a",
+    gradient:
+      "radial-gradient(circle at 50% 50%, #0a0a0a 0%, #030712 60%, #071952 100%)",
   },
   text: {
-    primary: '#f5f5f5',
-    secondary: 'rgba(151, 254, 237, 0.7)',
+    primary: "#f5f5f5",
+    secondary: "rgba(151, 254, 237, 0.7)",
   },
-  accent: '#97FEED',
-  divider: 'rgba(151, 254, 237, 0.08)',
+  warning: {
+    main: "#f59e0b",
+    light: "#fbbf24",
+    dark: "#d97706",
+  },
+  error: {
+    main: "#ef4444",
+    light: "#f87171",
+    dark: "#dc2626",
+  },
+  success: {
+    main: "#10b981",
+    light: "#34d399",
+    dark: "#059669",
+  },
+  accent: "#97FEED",
+  divider: "rgba(151, 254, 237, 0.08)",
 };
 
 export const darkTheme = createTheme({
   palette: {
-    mode: 'dark',
+    mode: "dark",
     primary: palette.primary,
     secondary: palette.secondary,
     background: {
@@ -35,6 +51,9 @@ export const darkTheme = createTheme({
     },
     text: palette.text,
     divider: palette.divider,
+    warning: palette.warning,
+    error: palette.error,
+    success: palette.success,
   },
   typography: {
     fontFamily: 'var(--font-geist-sans), "Inter", "Roboto", sans-serif',
@@ -43,8 +62,8 @@ export const darkTheme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          textTransform: 'none',
-          borderRadius: '8px',
+          textTransform: "none",
+          borderRadius: "8px",
           fontWeight: 500,
         },
       },
@@ -52,7 +71,7 @@ export const darkTheme = createTheme({
     MuiPaper: {
       styleOverrides: {
         root: {
-          backgroundImage: 'none',
+          backgroundImage: "none",
         },
       },
     },

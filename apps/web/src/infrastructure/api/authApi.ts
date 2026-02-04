@@ -1,11 +1,15 @@
 import { baseApi } from './baseApi';
 
+export type OnboardingStatus = 'PENDING' | 'COMPLETED' | 'SKIPPED';
+
 export interface UserDto {
   id: string;
   email: string;
   name: string;
   role: string;
+  avatarUrl?: string;
   learningGoal?: string;
+  onboardingStatus?: OnboardingStatus;
   interests?: { id: string; name: string; slug: string }[];
 }
 

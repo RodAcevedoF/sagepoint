@@ -1,5 +1,5 @@
-import { OnboardingFlow } from '@/features/onboarding/components/OnboardingFlow';
+import { redirect } from "next/navigation";
 
 export default function Page() {
-  return <OnboardingFlow />;
+  redirect("/onboarding/welcome");
 }

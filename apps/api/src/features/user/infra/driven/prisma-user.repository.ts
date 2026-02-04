@@ -1,4 +1,4 @@
-import { IUserRepository, User, Category } from '@sagepoint/domain';
+import { IUserRepository, User, Category, OnboardingStatus } from '@sagepoint/domain';
 import { PrismaService } from '@/core/infra/database/prisma.service';
 
 export class PrismaUserRepository implements IUserRepository {
@@ -21,6 +21,7 @@ export class PrismaUserRepository implements IUserRepository {
         isVerified: user.isVerified,
         verificationToken: user.verificationToken,
         learningGoal: user.learningGoal,
+        onboardingStatus: user.onboardingStatus,
         interests: {
           create: interestCreate,
         },
@@ -38,6 +39,7 @@ export class PrismaUserRepository implements IUserRepository {
         isVerified: user.isVerified,
         verificationToken: user.verificationToken,
         learningGoal: user.learningGoal,
+        onboardingStatus: user.onboardingStatus,
         interests: {
           deleteMany: {},
           create: interestCreate,
@@ -87,11 +89,12 @@ export class PrismaUserRepository implements IUserRepository {
         data.role as any,
         data.avatarUrl,
         data.isActive,
-        data.isVerified, 
+        data.isVerified,
         data.verificationToken,
         data.password, // passwordHash -> db.password
         data.googleId,
         data.learningGoal,
+        data.onboardingStatus as OnboardingStatus,
         interests,
         data.createdAt,
         data.updatedAt,

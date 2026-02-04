@@ -12,11 +12,26 @@ export const onboardingApi = baseApi.injectEndpoints({
       query: () => '/categories',
       providesTags: ['Category'],
     }),
-    submitOnboarding: builder.mutation<{ success: true }, { goal: string; interests: string[] }>({
+    submitOnboarding: builder.mutation<
+      { success: true },
+      {
+        goal: string;
+        experience: string;
+        interests: string[];
+        weeklyHours: string;
+        status: 'COMPLETED' | 'SKIPPED';
+      }
+    >({
       query: (data) => ({
-        url: '/users/onboarding',
+        url: '/users/me/onboarding',
         method: 'POST',
-        body: data,
+        body: {
+          learningGoal: data.goal,
+          experienceLevel: data.experience,
+          interests: data.interests,
+          weeklyHoursGoal: parseInt(data.weeklyHours) || null,
+          status: data.status,
+        },
       }),
       invalidatesTags: ['User'],
     }),

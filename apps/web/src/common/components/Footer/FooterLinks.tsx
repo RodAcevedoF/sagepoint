@@ -1,6 +1,7 @@
 "use client";
 
-import { Box, Grid, Stack, Typography, alpha } from "@mui/material";
+import { ReactNode } from "react";
+import { Box, Stack, Typography, alpha, Grid } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { palette } from "@/common/theme";
 import {
@@ -43,55 +44,87 @@ const styles = {
   },
 };
 
-export function FooterLinks() {
+export interface FooterLink {
+  label: string;
+  icon: ReactNode;
+  path: string;
+}
+
+export interface FooterSection {
+  title: string;
+  links: FooterLink[];
+}
+
+export const FOOTER_SECTIONS: FooterSection[] = [
+  {
+    title: "Product",
+    links: [
+      {
+        label: "Sign In",
+        icon: <LoginIcon sx={styles.icon} className="link-icon" />,
+        path: "/login",
+      },
+      {
+        label: "Get Started",
+        icon: <RegisterIcon sx={styles.icon} className="link-icon" />,
+        path: "/register",
+      },
+      {
+        label: "AI Features",
+        icon: <FeaturesIcon sx={styles.icon} className="link-icon" />,
+        path: "/#features",
+      },
+    ],
+  },
+  {
+    title: "Resources",
+    links: [
+      {
+        label: "Documentation",
+        icon: <DocsIcon sx={styles.icon} className="link-icon" />,
+        path: "/docs",
+      },
+      {
+        label: "Open Source",
+        icon: <GitHubIcon sx={styles.icon} className="link-icon" />,
+        path: "https://github.com",
+      },
+      {
+        label: "Help Center",
+        icon: <HelpIcon sx={styles.icon} className="link-icon" />,
+        path: "/help",
+      },
+    ],
+  },
+];
+
+interface FooterLinkItemProps {
+  link: FooterLink;
+}
+
+export function FooterLinkItem({ link }: FooterLinkItemProps) {
   const router = useRouter();
 
-  const sections = [
-    {
-      title: "Product",
-      links: [
-        {
-          label: "Sign In",
-          icon: <LoginIcon sx={styles.icon} className="link-icon" />,
-          path: "/login",
-        },
-        {
-          label: "Get Started",
-          icon: <RegisterIcon sx={styles.icon} className="link-icon" />,
-          path: "/register",
-        },
-        {
-          label: "AI Features",
-          icon: <FeaturesIcon sx={styles.icon} className="link-icon" />,
-          path: "/#features",
-        },
-      ],
-    },
-    {
-      title: "Resources",
-      links: [
-        {
-          label: "Documentation",
-          icon: <DocsIcon sx={styles.icon} className="link-icon" />,
-          path: "/docs",
-        },
-        {
-          label: "Open Source",
-          icon: <GitHubIcon sx={styles.icon} className="link-icon" />,
-          path: "https://github.com",
-        },
-        {
-          label: "Help Center",
-          icon: <HelpIcon sx={styles.icon} className="link-icon" />,
-          path: "/help",
-        },
-      ],
-    },
-  ];
+  const handleClick = () => {
+    if (link.path.startsWith("http")) {
+      window.open(link.path, "_blank");
+    } else {
+      router.push(link.path);
+    }
+  };
 
   return (
+    <Box sx={styles.link} onClick={handleClick}>
+      {link.icon}
+      <Typography variant="body2">{link.label}</Typography>
+    </Box>
+  );
+}
+
+export function FooterLinks() {
+  return (
     <Grid container spacing={{ xs: 4, sm: 6, md: 8 }}>
-      {sections.map((section) => (
+      {FOOTER_SECTIONS.map((section) => (
         <Grid
           key={section.title}
           size={{ xs: 6, sm: "auto" }}
@@ -102,20 +135,7 @@ export function FooterLinks() {
           </Typography>
           <Stack spacing={2}>
             {section.links.map((link) => (
-              <Box
-                key={link.label}
-                sx={styles.link}
-                onClick={() => {
-                  if (link.path.startsWith("http")) {
-                    window.open(link.path, "_blank");
-                  } else {
-                    router.push(link.path);
-                  }
-                }}
-              >
-                {link.icon}
-                <Typography variant="body2">{link.label}</Typography>
-              </Box>
+              <FooterLinkItem key={link.label} link={link} />
             ))}
           </Stack>
         </Grid>

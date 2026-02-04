@@ -1,4 +1,4 @@
-import { User, UserRole, Category } from '@sagepoint/domain';
+import { User, UserRole, Category, OnboardingStatus } from '@sagepoint/domain';
 
 /**
  * Safe user response - excludes sensitive fields like passwordHash, verificationToken
@@ -13,6 +13,7 @@ export interface UserResponseDto {
   isVerified: boolean;
   googleId: string | null;
   learningGoal: string | null;
+  onboardingStatus: OnboardingStatus;
   interests: Category[];
   createdAt: Date;
   updatedAt: Date;
@@ -29,6 +30,7 @@ export function toUserResponseDto(user: User): UserResponseDto {
     isVerified: user.isVerified,
     googleId: user.googleId,
     learningGoal: user.learningGoal,
+    onboardingStatus: user.onboardingStatus,
     interests: user.interests,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,

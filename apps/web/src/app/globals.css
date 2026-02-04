@@ -6,3 +6,29 @@ body {
     margin: 0;
     padding: 0;
 }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #030712;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(151, 254, 237, 0.1);
+    border-radius: 5px;
+    border: 2px solid #030712;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(151, 254, 237, 0.2);
+}
+
+/* Firefox support */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(151, 254, 237, 0.1) #030712;
+}

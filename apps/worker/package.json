@@ -16,6 +16,7 @@
     "@sagepoint/ai": "workspace:*",
     "@sagepoint/database": "workspace:*",
     "@sagepoint/domain": "workspace:*",
+    "@sagepoint/storage": "workspace:*",
     "@sagepoint/graph": "workspace:*",
     "@sagepoint/parsing": "workspace:*",
     "@supabase/supabase-js": "^2.90.1",

@@ -5,6 +5,7 @@ import { RoadmapModule } from '@/features/roadmap/roadmap.module';
 import { DocumentModule } from '@/features/document/document.module';
 import { UserModule } from '@/features/user/user.module';
 import { AuthModule } from '@/features/auth/auth.module';
+import { StorageModule } from '@/features/storage/storage.module';
 import { Neo4jModule } from '@/core/infra/neo4j/neo4j.module';
 
 @Module({
@@ -20,6 +21,7 @@ import { Neo4jModule } from '@/core/infra/neo4j/neo4j.module';
     DocumentModule,
     UserModule,
     AuthModule,
+    StorageModule,
     Neo4jModule,
   ],
 })

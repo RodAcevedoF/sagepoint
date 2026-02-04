@@ -7,9 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { Neo4jModule } from '@sagepoint/graph';
 import { AiModule } from '@sagepoint/ai';
 
-import { LocalDiskStorage } from './infra/storage/local-disk.storage';
-import { SupabaseStorage } from './infra/storage/supabase.storage';
-import * as path from 'path';
+import { GCSStorage } from '@sagepoint/storage';
 import { ConfigService } from '@nestjs/config';
 
 @Module({
@@ -33,17 +31,12 @@ import { ConfigService } from '@nestjs/config';
     {
       provide: 'FILE_STORAGE',
       useFactory: (configService: ConfigService) => {
-        const storageDriver = configService.get<string>('STORAGE_DRIVER', 'local');
-        if (storageDriver === 'supabase') {
-          return new SupabaseStorage(configService);
-        } else {
-          // Default to local. Worker must access same volume as API.
-          // apps/worker is CWD. API uploads are in ../api/uploads
-          const defaultUploadDir = path.resolve(process.cwd(), '../api/uploads');
-          const uploadDir = configService.get<string>('UPLOAD_DIR', defaultUploadDir);
-          console.log(`[Worker] Using Storage: LocalDisk (${uploadDir})`);
-          return new LocalDiskStorage(uploadDir);
-        }
+        // TODO: Consider adding local/supabase fallbacks if needed for dev
+        return new GCSStorage({
+          projectId: configService.getOrThrow<string>('GCP_PROJECT_ID'),
+          bucketName: configService.getOrThrow<string>('GCS_BUCKET_NAME'),
+          keyFilename: configService.get<string>('GCP_KEY_FILE'),
+        });
       },
       inject: [ConfigService],
     }

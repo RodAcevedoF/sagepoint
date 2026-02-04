@@ -1,23 +1,31 @@
 {
-	"name": "sagepoint",
-	"private": true,
-	"packageManager": "pnpm@10.15.1",
-	"devDependencies": {
-		"@types/node": "*",
-		"@types/pg": "^8.16.0",
-		"cross-env": "^10.1.0",
-		"pg": "^8.16.3",
-		"tsx": "^4.21.0",
-		"undici": "^7.18.2"
-	},
-	"scripts": {
-		"dev": "pnpm services:up && pnpm -r --parallel --filter \"./apps/*\" start:dev",
-		"services:up": "docker compose up -d",
-		"services:down": "docker compose down --remove-orphans",
-		"db:push": "cross-env DATABASE_URL=\"postgresql://user@127.0.0.1:5440/sagepoint?schema=public\" pnpm --filter @sagepoint/database db:push",
-		"build": "pnpm -r build",
-		"lint": "pnpm -r lint",
-		"test": "pnpm -r test",
-		"typecheck": "pnpm -r exec tsc --noEmit"
-	}
+  "name": "sagepoint",
+  "private": true,
+  "packageManager": "pnpm@10.28.2",
+  "pnpm": {
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "zod": "4"
+      }
+    }
+  },
+  "devDependencies": {
+    "@types/node": "*",
+    "@types/pg": "^8.16.0",
+    "cross-env": "^10.1.0",
+    "pg": "^8.16.3",
+    "tsx": "^4.21.0",
+    "undici": "^7.18.2"
+  },
+  "scripts": {
+    "dev": "pnpm services:up && pnpm --filter @sagepoint/web exec rm -rf .next && pnpm -r --parallel --filter \"./apps/*\" start:dev",
+    "services:up": "docker compose up -d",
+    "services:down": "docker compose down --remove-orphans",
+    "db:push": "cross-env DATABASE_URL=\"postgresql://user@127.0.0.1:5440/sagepoint?schema=public\" pnpm --filter @sagepoint/database db:push",
+    "sagepoint:init": "cross-env DATABASE_URL=\"postgresql://user@127.0.0.1:5440/sagepoint?schema=public\" pnpm --filter @sagepoint/database seed",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r exec tsc --noEmit"
+  }
 }

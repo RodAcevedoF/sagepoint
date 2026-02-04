@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "SagePoint",
   description: "AI-Powered Learning Roadmaps",
+  icons: {
+    icon: "/logo.webp",
+  },
 };
 
 export default function RootLayout({
@@ -29,9 +32,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
-        <Providers>
-            {children}
-        </Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

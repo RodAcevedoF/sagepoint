@@ -8,8 +8,10 @@ import {
   Box,
   IconButton,
   Tooltip,
+  Link,
 } from "@mui/material";
 import { ReactNode, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { NavbarBrand } from "./NavbarBrand";
 import { palette } from "@/common/theme";
 import {
@@ -28,7 +30,9 @@ const styles = {
     borderColor: isScrolled ? alpha(palette.primary.light, 0.1) : "transparent",
     transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
     backgroundImage: "none",
-    boxShadow: isScrolled ? `0 4px 30px ${alpha("#000", 0.2)}` : "none",
+    boxShadow: isScrolled
+      ? `0 4px 30px ${alpha(palette.background.default, 0.2)}`
+      : "none",
   }),
   toolbar: {
     justifyContent: "space-between",
@@ -47,9 +51,11 @@ const styles = {
 
 interface NavbarProps {
   actions?: ReactNode;
+  showPublicLinks?: boolean;
 }
 
-export function Navbar({ actions }: NavbarProps) {
+export function Navbar({ actions, showPublicLinks = true }: NavbarProps) {
+  const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -73,30 +79,49 @@ export function Navbar({ actions }: NavbarProps) {
               gap: { xs: 1, md: 2 },
             }}
           >
-            <Box
-              sx={{
-                display: { xs: "none", sm: "flex" },
-                alignItems: "center",
-                gap: 1,
-                mr: 2,
-              }}
-            >
-              <Tooltip title="View Roadmaps">
-                <IconButton sx={styles.iconButton}>
-                  <LearnIcon />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="GitHub Repository">
-                <IconButton sx={styles.iconButton}>
-                  <GitHubIcon />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="AI Features">
-                <IconButton sx={styles.iconButton}>
-                  <SparklesIcon />
-                </IconButton>
-              </Tooltip>
-            </Box>
+            {showPublicLinks && (
+              <Box
+                sx={{
+                  display: { xs: "none", sm: "flex" },
+                  alignItems: "center",
+                  gap: 1,
+                  mr: 2,
+                }}
+              >
+                <Tooltip title="View Docs">
+                  <IconButton
+                    sx={styles.iconButton}
+                    onClick={() => router.push("/docs")}
+                  >
+                    <LearnIcon />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="GitHub Repository">
+                  <Link
+                    href="https://github.com/RodAcevedoF/sagepoint"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    underline="none"
+                    sx={{
+                      ...styles.iconButton,
+                      display: "inline-flex",
+                      p: 1,
+                      borderRadius: "50%",
+                    }}
+                  >
+                    <GitHubIcon />
+                  </Link>
+                </Tooltip>
+                <Tooltip title="AI Features">
+                  <IconButton
+                    sx={styles.iconButton}
+                    onClick={() => router.push("/blog")}
+                  >
+                    <SparklesIcon />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            )}
             {actions}
           </Box>
         </Toolbar>

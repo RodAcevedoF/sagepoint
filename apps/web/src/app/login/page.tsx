@@ -1,5 +1,9 @@
-import { LoginPage } from '@/features/auth/components/LoginPage';
+import { LoginPage, GuestGuard } from '@/features/auth/components';
 
 export default function Page() {
-  return <LoginPage />;
+  return (
+    <GuestGuard>
+      <LoginPage />
+    </GuestGuard>
+  );
 }

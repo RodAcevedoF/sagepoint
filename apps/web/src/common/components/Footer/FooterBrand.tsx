@@ -1,29 +1,36 @@
-'use client';
+"use client";
 
-import { Box, Typography, SxProps, Theme } from '@mui/material';
-import { palette } from '@/common/theme';
+import { Box, Typography, SxProps, Theme } from "@mui/material";
+import { Brand } from "../Brand";
+import { TechStack } from "../TechStack";
 
 const styles = {
-  brand: {
-    background: `linear-gradient(135deg, ${palette.primary.main} 0%, ${palette.primary.light} 100%)`,
-    backgroundClip: 'text',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
+  container: {
+    mb: 2,
   },
   description: {
     maxWidth: 280,
+    mt: 1.5,
   },
 } satisfies Record<string, SxProps<Theme>>;
 
+/**
+ * FooterBrand component for the application footer.
+ * Uses the unified Brand component without the logo, featuring
+ * the distinct "Sage" and "Point" coloring.
+ */
 export function FooterBrand() {
   return (
-    <Box>
-      <Typography variant="h6" fontWeight="bold" gutterBottom sx={styles.brand}>
-        SagePoint
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={styles.description}>
+    <Box sx={styles.container}>
+      <Brand showLogo={false} fontSize="1.5rem" />
+      <Typography
+        variant="body2"
+        color="text.secondary"
+        sx={styles.description}
+      >
         AI-powered learning roadmaps from your own documents.
       </Typography>
+      <TechStack />
     </Box>
   );
 }

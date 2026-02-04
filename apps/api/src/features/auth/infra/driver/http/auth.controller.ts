@@ -67,7 +67,8 @@ export class AuthController {
     // GoogleStrategy returns full User, not RequestUser
     const user = request.user as User;
     await this.handleLogin(user, response);
-    response.redirect('http://localhost:3000');
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    response.redirect(`${frontendUrl}/dashboard?login=success`);
   }
 
   @Post('refresh')
@@ -83,7 +84,11 @@ export class AuthController {
 
     const result = await this.authService.refresh(refreshToken);
     this.setCookies(response, result.accessToken, result.refreshToken);
-    return { user: toUserResponseDto(result.user) };
+    return {
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+      user: toUserResponseDto(result.user),
+    };
   }
 
   @Get('me')
@@ -110,7 +115,13 @@ export class AuthController {
   private async handleLogin(user: User, response: Response) {
     const result = await this.authService.login(user);
     this.setCookies(response, result.accessToken, result.refreshToken);
-    return { user: toUserResponseDto(result.user) };
+    // Return tokens in body for server-side auth (Next.js server actions)
+    // Cookies are also set for browser-based auth (Google OAuth redirect)
+    return {
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+      user: toUserResponseDto(result.user),
+    };
   }
 
   private setCookies(

@@ -11,6 +11,7 @@ import {
 } from "@mui/icons-material";
 import { ReactNode } from "react";
 import { palette } from "@/common/theme";
+import { Card } from "@/common/components";
 
 const styles = {
   root: {
@@ -51,42 +52,6 @@ const styles = {
   },
   gridContainer: {
     mt: 4,
-  },
-  card: {
-    height: "100%",
-    p: { xs: 3, md: 4 },
-    borderRadius: 6,
-    background: alpha(palette.background.paper, 0.4),
-    backdropFilter: "blur(12px)",
-    border: `1px solid ${alpha(palette.primary.light, 0.1)}`,
-    transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-    display: "flex",
-    flexDirection: "column",
-    position: "relative",
-    overflow: "hidden",
-    "&:hover": {
-      transform: "translateY(-8px)",
-      borderColor: alpha(palette.primary.light, 0.4),
-      bgcolor: alpha(palette.background.paper, 0.6),
-      boxShadow: `0 20px 40px ${alpha(palette.primary.main, 0.15)}`,
-      "& .feature-icon-box": {
-        bgcolor: alpha(palette.primary.main, 0.2),
-        color: palette.primary.light,
-        transform: "scale(1.05)",
-      },
-    },
-  },
-  iconBox: {
-    width: 56,
-    height: 56,
-    borderRadius: 3,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    bgcolor: alpha(palette.primary.main, 0.1),
-    mb: 3,
-    color: palette.primary.light,
-    transition: "all 0.3s ease",
   },
 };
 
@@ -144,26 +109,37 @@ const features: Feature[] = [
 
 function FeatureCard({ icon, title, description }: Omit<Feature, "gridSpan">) {
   return (
-    <Box sx={styles.card}>
-      <Box className="feature-icon-box" sx={styles.iconBox}>
-        {icon}
-      </Box>
-      <Typography
-        variant="h5"
-        fontWeight="700"
-        gutterBottom
-        sx={{ color: "text.primary", letterSpacing: "-0.01em" }}
-      >
-        {title}
-      </Typography>
-      <Typography
-        variant="body1"
-        color="text.secondary"
-        sx={{ lineHeight: 1.7, fontSize: "0.95rem" }}
-      >
-        {description}
-      </Typography>
-    </Box>
+    <Card
+      variant="glass"
+      sx={{
+        "&:hover .card-icon-box": {
+          bgcolor: alpha(palette.primary.main, 0.2),
+          color: palette.primary.light,
+          transform: "scale(1.05)",
+        },
+      }}
+    >
+      <Card.Header>
+        <Card.IconBox>{icon}</Card.IconBox>
+      </Card.Header>
+      <Card.Content>
+        <Typography
+          variant="h5"
+          fontWeight="700"
+          gutterBottom
+          sx={{ color: "text.primary", letterSpacing: "-0.01em" }}
+        >
+          {title}
+        </Typography>
+        <Typography
+          variant="body1"
+          color="text.secondary"
+          sx={{ lineHeight: 1.7, fontSize: "0.95rem" }}
+        >
+          {description}
+        </Typography>
+      </Card.Content>
+    </Card>
   );
 }
 

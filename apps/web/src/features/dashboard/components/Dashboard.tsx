@@ -1,237 +1,158 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Grid, CircularProgress, Box, Button, alpha } from "@mui/material";
+import { RotateCcw } from "lucide-react";
+import { useAppSelector } from "@/common/hooks";
+import { useSnackbar } from "@/common/components";
+import { useGetProfileQuery } from "@/infrastructure/api/authApi";
+import { palette } from "@/common/theme";
+
+import { DashboardLayout } from "./DashboardLayout";
+import { DashboardGreeting } from "./DashboardGreeting";
+import { DashboardMetrics } from "./DashboardMetrics";
+import { DashboardProgress } from "./DashboardProgress";
+import { DashboardActivity } from "./DashboardActivity";
+import { DashboardNews } from "./DashboardNews";
+import { DashboardTopics } from "./DashboardTopics";
+
 import {
-  useGetDocumentsQuery,
-  useUploadDocumentMutation,
-  useLazyGetGraphQuery,
-} from '@/infrastructure/api/roadmapApi';
-import { useLogoutCommand } from '@/application/auth/commands/logout.command';
-import { useAppSelector } from '@/common/hooks';
-import { GraphVisualization } from '@/components/graph-visualization';
-import {
-  Container,
-  Box,
-  Paper,
-  Typography,
-  Button,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Alert,
-  CircularProgress,
-  AppBar,
-  Toolbar,
-} from '@mui/material';
-import {
-  CloudUpload as CloudUploadIcon,
-  Description as DescriptionIcon,
-  Logout as LogoutIcon,
-} from '@mui/icons-material';
-import { useRouter } from 'next/navigation';
+  mockUserMetrics,
+  mockProgressData,
+  mockRecentActivities,
+  mockNews,
+  mockTopicDistribution,
+} from "../data/dashboard.mock";
+
+// ============================================================================
+// Component
+// ============================================================================
 
 export function Dashboard() {
   const router = useRouter();
-  const { execute: handleLogout } = useLogoutCommand();
-
-  const { data: documents = [], isLoading: isLoadingDocs } = useGetDocumentsQuery();
-  const [uploadDocument, { isLoading: isUploading }] = useUploadDocumentMutation();
-  const [triggerGraph, { data: graphData, isFetching: isGraphLoading }] = useLazyGetGraphQuery();
+  const searchParams = useSearchParams();
+  const { showSnackbar } = useSnackbar();
   const { user } = useAppSelector((state) => state.auth);
+  const [isResetting, setIsResetting] = useState(false);
 
+  // Refetch profile to get latest onboarding status
+  const { isLoading: isLoadingProfile, refetch } = useGetProfileQuery();
+
+  // Show login success toast (ref prevents double-firing in StrictMode)
+  const toastShown = useRef(false);
   useEffect(() => {
-    if (user && !user.learningGoal) {
-      router.push('/onboarding');
+    if (searchParams.get("login") === "success" && !toastShown.current) {
+      toastShown.current = true;
+      showSnackbar("Welcome back!", { severity: "success" });
+      router.replace("/dashboard", { scroll: false });
     }
-  }, [user, router]);
+  }, [searchParams, showSnackbar, router]);
 
-  const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const [uploadSuccess, setUploadSuccess] = useState(false);
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-    const file = e.target.files[0];
-    const formData = new FormData();
-    formData.append('file', file);
-
-    setUploadError(null);
-    setUploadSuccess(false);
-
+  // Dev only: Reset onboarding status
+  const handleResetOnboarding = async () => {
+    setIsResetting(true);
     try {
-      const result = await uploadDocument(formData).unwrap();
-      setUploadSuccess(true);
-      handleSelectDocument(result.id);
-    } catch {
-      setUploadError('Upload failed. Please try again.');
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/users/me/onboarding`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // Send cookies for auth
+        body: JSON.stringify({ status: "PENDING" }),
+      });
+      await refetch();
+      router.push("/onboarding");
+    } catch (error) {
+      console.error("Failed to reset onboarding:", error);
+    } finally {
+      setIsResetting(false);
     }
   };
 
-  const handleSelectDocument = (docId: string) => {
-    setSelectedDocId(docId);
-    triggerGraph(docId);
-  };
+  // Redirect to onboarding if not completed/skipped
+  useEffect(() => {
+    if (isLoadingProfile) return;
+    // Default to PENDING if onboardingStatus is undefined (for existing users)
+    const status = user?.onboardingStatus ?? "PENDING";
+    if (user && status === "PENDING") {
+      router.push("/onboarding");
+    }
+  }, [user, router, isLoadingProfile]);
+
+  if (isLoadingProfile) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "50vh" }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  const isDev = process.env.NODE_ENV === "development";
+
+  const userName = user?.name || "Learner";
 
   return (
-    <Box
-      sx={{
-        flexGrow: 1,
-        height: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        bgcolor: 'background.default',
-      }}
-    >
-      <AppBar position="static" color="default" elevation={1}>
-        <Toolbar>
-          <Typography
-            variant="h6"
-            component="div"
-            sx={{ flexGrow: 1, color: 'primary.main', fontWeight: 'bold' }}
-          >
-            SagePoint
-          </Typography>
-          <Button color="inherit" startIcon={<LogoutIcon />} onClick={handleLogout}>
-            Sign Out
-          </Button>
-        </Toolbar>
-      </AppBar>
+    <DashboardLayout>
+      {/* Greeting */}
+      <DashboardGreeting
+        userName={userName}
+        streak={mockUserMetrics.currentStreak}
+      />
 
-      <Container maxWidth="xl" sx={{ mt: 4, mb: 4, flexGrow: 1 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', md: 'row' },
-            gap: 3,
-            height: '100%',
-          }}
-        >
-          <Box sx={{ width: { xs: '100%', md: '33.333%', lg: '25%' }, flexShrink: 0 }}>
-            <Paper sx={{ p: 3, mb: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Upload Document
-              </Typography>
-              <Box
-                sx={{
-                  border: '2px dashed #e0e7ff',
-                  borderRadius: 2,
-                  p: 4,
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                  '&:hover': { bgcolor: '#f5f7ff', borderColor: 'primary.main' },
-                }}
-                component="label"
-              >
-                <input type="file" hidden onChange={handleFileUpload} accept=".pdf,.txt,.md" />
-                {isUploading ? (
-                  <CircularProgress />
-                ) : (
-                  <>
-                    <CloudUploadIcon sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
-                    <Typography variant="body2" color="textSecondary">
-                      Click to upload PDF or TXT
-                    </Typography>
-                  </>
-                )}
-              </Box>
+      {/* Metrics Row */}
+      <DashboardMetrics metrics={mockUserMetrics} />
 
-              {uploadSuccess && (
-                <Alert severity="success" sx={{ mt: 2 }}>
-                  Upload successful! Processing...
-                </Alert>
-              )}
-              {uploadError && (
-                <Alert severity="error" sx={{ mt: 2 }}>
-                  {uploadError}
-                </Alert>
-              )}
-            </Paper>
+      {/* Main Content Grid */}
+      <Grid container spacing={3}>
+        {/* Left Column - Progress & Activity */}
+        <Grid size={{ xs: 12, lg: 8 }}>
+          <Grid container spacing={3}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <DashboardProgress data={mockProgressData} />
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <DashboardActivity activities={mockRecentActivities} />
+            </Grid>
+          </Grid>
+        </Grid>
 
-            <Paper sx={{ p: 0, overflow: 'hidden' }}>
-              <Box sx={{ p: 2, bgcolor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                <Typography variant="subtitle1" fontWeight="bold">
-                  Recent Documents
-                </Typography>
-              </Box>
-              <List sx={{ maxHeight: 400, overflow: 'auto' }}>
-                {isLoadingDocs ? (
-                  <Box display="flex" justifyContent="center" p={2}>
-                    <CircularProgress size={20} />
-                  </Box>
-                ) : (
-                  documents.map((doc) => (
-                    <ListItem
-                      key={doc.id}
-                      component="button"
-                      onClick={() => handleSelectDocument(doc.id)}
-                      sx={{
-                        cursor: 'pointer',
-                        bgcolor: selectedDocId === doc.id ? '#e0e7ff' : 'transparent',
-                        '&:hover': { bgcolor: '#f1f5f9' },
-                        border: 'none',
-                        width: '100%',
-                        textAlign: 'left',
-                      }}
-                    >
-                      <ListItemIcon sx={{ minWidth: 36 }}>
-                        <DescriptionIcon
-                          color={doc.status === 'completed' ? 'primary' : 'disabled'}
-                          fontSize="small"
-                        />
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={doc.filename}
-                        primaryTypographyProps={{ variant: 'body2', noWrap: true }}
-                        secondary={new Date(doc.createdAt).toLocaleDateString()}
-                        secondaryTypographyProps={{ variant: 'caption' }}
-                      />
-                    </ListItem>
-                  ))
-                )}
-                {documents.length === 0 && !isLoadingDocs && (
-                  <Box p={2} textAlign="center">
-                    <Typography variant="caption" color="textSecondary">
-                      No documents yet
-                    </Typography>
-                  </Box>
-                )}
-              </List>
-            </Paper>
-          </Box>
+        {/* Right Column - Topics */}
+        <Grid size={{ xs: 12, lg: 4 }}>
+          <DashboardTopics distribution={mockTopicDistribution} />
+        </Grid>
 
-          <Box sx={{ flexGrow: 1, width: { xs: '100%', md: '66.666%', lg: '75%' } }}>
-            <Paper
+        {/* Full Width - News */}
+        <Grid size={{ xs: 12 }}>
+          <DashboardNews news={mockNews} />
+        </Grid>
+
+        {/* Dev Tools */}
+        {isDev && (
+          <Grid size={{ xs: 12 }}>
+            <Box
               sx={{
-                p: 0,
-                height: '600px',
-                display: 'flex',
-                flexDirection: 'column',
-                overflow: 'hidden',
+                mt: 4,
+                p: 2,
+                borderRadius: 2,
+                border: `1px dashed ${alpha(palette.warning.main, 0.5)}`,
+                bgcolor: alpha(palette.warning.main, 0.05),
               }}
             >
-              <Box sx={{ p: 2, borderBottom: '1px solid #eee' }}>
-                <Typography variant="h6">Knowledge Graph</Typography>
-              </Box>
-              <Box sx={{ flexGrow: 1, position: 'relative' }}>
-                {selectedDocId ? (
-                  <GraphVisualization data={graphData || null} loading={isGraphLoading} />
-                ) : (
-                  <Box
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                    height="100%"
-                    color="text.secondary"
-                  >
-                    <Typography>Select a document to visualize</Typography>
-                  </Box>
-                )}
-              </Box>
-            </Paper>
-          </Box>
-        </Box>
-      </Container>
-    </Box>
+              <Button
+                variant="outlined"
+                color="warning"
+                size="small"
+                startIcon={isResetting ? <CircularProgress size={16} /> : <RotateCcw size={16} />}
+                onClick={handleResetOnboarding}
+                disabled={isResetting}
+              >
+                {isResetting ? "Resetting..." : "Reset Onboarding (Dev)"}
+              </Button>
+            </Box>
+          </Grid>
+        )}
+      </Grid>
+    </DashboardLayout>
   );
 }

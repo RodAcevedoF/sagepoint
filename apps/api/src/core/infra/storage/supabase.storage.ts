@@ -1,7 +1,6 @@
-
 import { Logger } from '@nestjs/common';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { IFileStorage } from '@sagepoint/domain';
+import { IFileStorage, UploadOptions } from '@sagepoint/domain';
 
 export class SupabaseStorage implements IFileStorage {
   private readonly client: SupabaseClient;
@@ -18,7 +17,12 @@ export class SupabaseStorage implements IFileStorage {
     this.logger.log(`Initialized Supabase Storage with bucket: ${bucketName}`);
   }
 
-  async upload(path: string, content: Buffer, mimeType: string): Promise<string> {
+  async upload(
+    path: string,
+    content: Buffer,
+    mimeType: string,
+    options?: UploadOptions,
+  ): Promise<string> {
     const { data, error } = await this.client.storage
       .from(this.bucketName)
       .upload(path, content, {
@@ -31,7 +35,14 @@ export class SupabaseStorage implements IFileStorage {
       throw error;
     }
 
-    // Return the path that can be used to download later (inner path)
+    // If public, return the public URL
+    if (options?.isPublic) {
+      const { data: urlData } = this.client.storage
+        .from(this.bucketName)
+        .getPublicUrl(path);
+      return urlData.publicUrl;
+    }
+
     return data.path;
   }
 
@@ -57,5 +68,19 @@ export class SupabaseStorage implements IFileStorage {
       this.logger.error(`Failed to delete file from Supabase: ${error.message}`);
       throw error;
     }
+  }
+
+  async getUrl(path: string, expiresInSeconds = 3600): Promise<string> {
+    // Try to get a signed URL for private files
+    const { data, error } = await this.client.storage
+      .from(this.bucketName)
+      .createSignedUrl(path, expiresInSeconds);
+
+    if (error) {
+      this.logger.error(`Failed to get signed URL from Supabase: ${error.message}`);
+      throw error;
+    }
+
+    return data.signedUrl;
   }
 }

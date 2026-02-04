@@ -11,8 +11,13 @@ import {
   makeUserDependencies,
   type UserDependencies,
 } from '@/features/user/dependencies';
+import {
+  makeStorageDependencies,
+  type StorageDependencies,
+} from '@/features/storage/dependencies';
 import { LocalDiskStorage } from '@/core/infra/storage/local-disk.storage';
 import { SupabaseStorage } from '@/core/infra/storage/supabase.storage';
+import { GCSStorage } from '@sagepoint/storage';
 import { IFileStorage } from '@sagepoint/domain';
 import * as path from 'path';
 
@@ -20,7 +25,8 @@ export interface AppDependencies {
   roadmap: RoadmapDependencies;
   document: DocumentDependencies;
   user: UserDependencies;
-  // auth removed
+  storage: StorageDependencies;
+  fileStorage: IFileStorage;
 }
 
 let dependencies: AppDependencies | null = null;
@@ -34,7 +40,13 @@ export function bootstrap(): AppDependencies {
   let fileStorage: IFileStorage;
   const storageDriver = process.env.STORAGE_DRIVER || 'local';
 
-  if (storageDriver === 'supabase') {
+  if (storageDriver === 'gcs') {
+    fileStorage = new GCSStorage({
+      projectId: process.env.GCP_PROJECT_ID!,
+      bucketName: process.env.GCS_BUCKET_NAME!,
+      keyFilename: process.env.GCP_KEY_FILE, // Optional - uses ADC if not provided
+    });
+  } else if (storageDriver === 'supabase') {
     fileStorage = new SupabaseStorage(
       process.env.SUPABASE_URL!,
       process.env.SUPABASE_KEY!,
@@ -61,6 +73,8 @@ export function bootstrap(): AppDependencies {
     roadmap: makeRoadmapDependencies(neo4jService),
     document: makeDocumentDependencies(fileStorage),
     user: userDeps,
+    storage: makeStorageDependencies(fileStorage),
+    fileStorage,
   };
 
   return dependencies;

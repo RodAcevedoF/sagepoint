@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useRef, useEffect } from "react";
-import { useInView } from "react-intersection-observer";
+import React, { useMemo, useRef, useEffect } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import * as THREE from "three";
 
-interface AntigravityProps {
+export interface AntigravityProps {
   count?: number;
   magnetRadius?: number;
   ringRadius?: number;
@@ -17,26 +18,27 @@ interface AntigravityProps {
   rotationSpeed?: number;
   depthFactor?: number;
   pulseSpeed?: number;
-  particleShape?: "capsule" | "circle";
+  particleShape?: "capsule" | "sphere" | "box" | "tetrahedron" | "circle";
   fieldStrength?: number;
+  idleTimeout?: number;
 }
 
-interface Particle {
-  x: number;
-  y: number;
-  baseX: number;
-  baseY: number;
-  size: number;
-  angle: number;
-  velocity: number;
-  distance: number;
-  opacity: number;
-  variance: number;
+interface ParticleData {
+  t: number;
+  factor: number;
+  speed: number;
+  mx: number;
+  my: number;
+  mz: number;
+  cx: number;
+  cy: number;
+  cz: number;
+  randomRadiusOffset: number;
 }
 
-export const Antigravity: React.FC<AntigravityProps> = ({
+const AntigravityInner: React.FC<AntigravityProps> = ({
   count = 320,
-  magnetRadius = 8,
+  magnetRadius = 10,
   ringRadius = 10,
   waveSpeed = 0.4,
   waveAmplitude = 1,
@@ -50,213 +52,169 @@ export const Antigravity: React.FC<AntigravityProps> = ({
   pulseSpeed = 3,
   particleShape = "capsule",
   fieldStrength = 10,
+  idleTimeout = 2000,
 }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const mouseRef = useRef({ x: -1000, y: -1000 });
-  const timeRef = useRef(0);
-  const particlesRef = useRef<Particle[]>([]);
-  const lastStructuralConfig = useRef("");
+  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const { viewport } = useThree();
+  const dummy = useMemo(() => new THREE.Object3D(), []);
 
-  const { ref: inViewRef, inView } = useInView({
-    threshold: 0,
-  });
-
-  const setRefs = (node: HTMLCanvasElement | null) => {
-    canvasRef.current = node;
-    inViewRef(node);
-  };
+  const lastMouseMoveTime = useRef(0);
+  const virtualMouse = useRef({ x: 0, y: 0 });
+  const mouse = useRef({ x: 0, y: 0 });
+  const particlesRef = useRef<ParticleData[]>([]);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    const temp: ParticleData[] = [];
+    const width = viewport.width || 100;
+    const height = viewport.height || 100;
 
-    const ctx = canvas.getContext("2d", { alpha: true });
-    if (!ctx) return;
+    for (let i = 0; i < count; i++) {
+      const t = Math.random() * 100;
+      const factor = 20 + Math.random() * 100;
+      const speed = 0.01 + Math.random() / 200;
 
-    const structuralConfig = `${count}-${particleSize}-${particleVariance}-${ringRadius}`;
-    if (
-      particlesRef.current.length !== count ||
-      lastStructuralConfig.current !== structuralConfig
-    ) {
-      lastStructuralConfig.current = structuralConfig;
-      const p: Particle[] = [];
-      for (let i = 0; i < count; i++) {
-        const x = Math.random();
-        const y = Math.random();
-        p.push({
-          x: x * (typeof window !== "undefined" ? window.innerWidth : 1000), // Random initial spread
-          y: y * (typeof window !== "undefined" ? window.innerHeight : 1000),
-          baseX: x,
-          baseY: y,
-          size: Math.random() * particleSize + 0.5,
-          angle: Math.random() * Math.PI * 2,
-          velocity: Math.random() * 0.01 + 0.005,
-          distance: Math.random() * ringRadius,
-          opacity: Math.random() * 0.6 + 0.2,
-          variance: Math.random() * particleVariance,
-        });
-      }
-      particlesRef.current = p;
+      const x = (Math.random() - 0.5) * width;
+      const y = (Math.random() - 0.5) * height;
+      const z = (Math.random() - 0.5) * 20;
+
+      const randomRadiusOffset = (Math.random() - 0.5) * 2;
+
+      temp.push({
+        t,
+        factor,
+        speed,
+        mx: x,
+        my: y,
+        mz: z,
+        cx: x,
+        cy: y,
+        cz: z,
+        randomRadiusOffset,
+      });
+    }
+    particlesRef.current = temp;
+  }, [count, viewport.width, viewport.height]);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      mouse.current.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.current.y = -(e.clientY / window.innerHeight) * 2 + 1;
+      lastMouseMoveTime.current = Date.now();
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
+
+  useFrame((state) => {
+    const mesh = meshRef.current;
+    if (!mesh || particlesRef.current.length === 0) return;
+
+    const { viewport: v } = state;
+    const m = mouse.current;
+
+    let destX = (m.x * v.width) / 2;
+    let destY = (m.y * v.height) / 2;
+
+    if (autoAnimate && Date.now() - lastMouseMoveTime.current > idleTimeout) {
+      const time = state.clock.getElapsedTime() * 0.3;
+      // Figure-eight Lissajous curve for a more organic idle movement
+      destX = Math.sin(time) * (v.width / 3);
+      destY = (Math.sin(time * 2) / 2) * (v.height / 3);
     }
 
-    const currentParticles = particlesRef.current;
-    let animationFrameId: number;
+    const smoothFactor = 0.05;
+    virtualMouse.current.x += (destX - virtualMouse.current.x) * smoothFactor;
+    virtualMouse.current.y += (destY - virtualMouse.current.y) * smoothFactor;
 
-    const handleResize = () => {
-      const parent = canvas.parentElement;
-      if (parent) {
-        canvas.width = parent.clientWidth;
-        canvas.height = parent.clientHeight;
-      }
-    };
+    const targetX = virtualMouse.current.x;
+    const targetY = virtualMouse.current.y;
 
-    const handleMouseMove = (e: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      mouseRef.current = {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
+    const globalRotation = state.clock.getElapsedTime() * rotationSpeed;
+
+    particlesRef.current.forEach((particle, i) => {
+      const t = (particle.t += particle.speed / 2);
+
+      const projectionFactor = 1 - particle.cz / 50;
+      const projectedTargetX = targetX * projectionFactor;
+      const projectedTargetY = targetY * projectionFactor;
+
+      const dx = particle.mx - projectedTargetX;
+      const dy = particle.my - projectedTargetY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      const targetPos = {
+        x: particle.mx,
+        y: particle.my,
+        z: particle.mz * depthFactor,
       };
-    };
 
-    const handleMouseLeave = () => {
-      mouseRef.current = { x: -1000, y: -1000 };
-    };
+      if (dist < magnetRadius) {
+        const angle = Math.atan2(dy, dx) + globalRotation;
 
-    window.addEventListener("resize", handleResize);
-    window.addEventListener("mousemove", handleMouseMove);
-    canvas.addEventListener("mouseleave", handleMouseLeave);
-    handleResize();
+        const wave = Math.sin(t * waveSpeed + angle) * (0.5 * waveAmplitude);
+        const deviation =
+          particle.randomRadiusOffset * (5 / (fieldStrength + 0.1));
 
-    const render = () => {
-      if (!inView) return;
+        const currentRingRadius = ringRadius + wave + deviation;
 
-      timeRef.current += waveSpeed * 0.02;
-      const t = timeRef.current;
-      const centerX = canvas.width / 2;
-      const centerY = canvas.height / 2;
+        targetPos.x = projectedTargetX + currentRingRadius * Math.cos(angle);
+        targetPos.y = projectedTargetY + currentRingRadius * Math.sin(angle);
+        targetPos.z =
+          particle.mz * depthFactor +
+          Math.sin(t) * (1 * waveAmplitude * depthFactor);
+      }
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particle.cx += (targetPos.x - particle.cx) * lerpSpeed;
+      particle.cy += (targetPos.y - particle.cy) * lerpSpeed;
+      particle.cz += (targetPos.z - particle.cz) * lerpSpeed;
 
-      currentParticles.forEach((p) => {
-        // 1. Calculate Base Movement (Rotation + Wave)
-        const rotationAngle = t * rotationSpeed;
-        const cosR = Math.cos(rotationAngle);
-        const sinR = Math.sin(rotationAngle);
+      dummy.position.set(particle.cx, particle.cy, particle.cz);
 
-        const nx = (p.baseX - 0.5) * canvas.width;
-        const ny = (p.baseY - 0.5) * canvas.height;
+      dummy.lookAt(projectedTargetX, projectedTargetY, particle.cz);
+      dummy.rotateX(Math.PI / 2);
 
-        const rx = nx * cosR - ny * sinR;
-        const ry = nx * sinR + ny * cosR;
+      const currentDistToMouse = Math.sqrt(
+        Math.pow(particle.cx - projectedTargetX, 2) +
+          Math.pow(particle.cy - projectedTargetY, 2),
+      );
 
-        const bx = centerX + rx;
-        const by = centerY + ry;
+      const distFromRing = Math.abs(currentDistToMouse - ringRadius);
+      let scaleFactor = 1 - distFromRing / 10;
 
-        const depth = Math.sin(t * 0.5 + p.angle) * depthFactor;
-        const waveX =
-          Math.cos(t + p.angle * p.variance) * waveAmplitude * fieldStrength;
-        const waveY =
-          Math.sin(t * 0.8 + p.angle * p.variance) *
-          waveAmplitude *
-          fieldStrength;
+      scaleFactor = Math.max(0, Math.min(1, scaleFactor));
 
-        let targetX = bx + waveX;
-        let targetY = by + waveY;
+      const finalScale =
+        scaleFactor *
+        (0.8 + Math.sin(t * pulseSpeed) * 0.2 * particleVariance) *
+        particleSize;
+      dummy.scale.set(finalScale, finalScale, finalScale);
 
-        // 2. Vertical Drifting (Auto Animate)
-        if (autoAnimate) {
-          const drift = (t * p.velocity * 100) % canvas.height;
-          targetY -= drift;
-          if (targetY < 0) targetY += canvas.height;
-        }
+      dummy.updateMatrix();
 
-        // 3. ENHANCED Magnetism / Attraction Logic
-        const mouseX = mouseRef.current.x;
-        const mouseY = mouseRef.current.y;
-        const dx = mouseX - targetX;
-        const dy = mouseY - targetY;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+      mesh.setMatrixAt(i, dummy.matrix);
+    });
 
-        const effectiveMagnetRadius = magnetRadius * 85; // Massive influence area
-        const minDistance = ringRadius * 2.5; // Tighter gathering
-
-        if (distance < effectiveMagnetRadius && distance > 0) {
-          // Responsive attraction curve
-          const pullForce = Math.pow(
-            (effectiveMagnetRadius - distance) / effectiveMagnetRadius,
-            0.8,
-          );
-
-          if (distance < minDistance) {
-            // Core push-back
-            const pushForce = (minDistance - distance) / minDistance;
-            targetX -= (dx / distance) * pushForce * 12;
-            targetY -= (dy / distance) * pushForce * 12;
-          } else {
-            // Highly magnetic attraction
-            targetX += dx * pullForce * (lerpSpeed * 6.5);
-            targetY += dy * pullForce * (lerpSpeed * 6.5);
-          }
-        }
-
-        // 4. Smooth Easing to calculated target
-        p.x += (targetX - p.x) * lerpSpeed;
-        p.y += (targetY - p.y) * lerpSpeed;
-
-        // 5. Draw Particle
-        const pulse = (Math.sin(t * pulseSpeed + p.angle) + 1) / 2;
-        const scale = 1 + depth * 0.3;
-        ctx.globalAlpha = p.opacity * (0.4 + 0.6 * pulse);
-
-        ctx.beginPath();
-        if (particleShape === "capsule") {
-          const length = p.size * 3 * scale;
-          ctx.lineWidth = p.size * scale;
-          ctx.lineCap = "round";
-          ctx.strokeStyle = color;
-          ctx.moveTo(p.x, p.y);
-          ctx.lineTo(p.x, p.y + length);
-          ctx.stroke();
-        } else {
-          ctx.fillStyle = color;
-          ctx.arc(p.x, p.y, p.size * scale, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      });
-
-      animationFrameId = requestAnimationFrame(render);
-    };
-
-    render();
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      window.removeEventListener("mousemove", handleMouseMove);
-      canvas.removeEventListener("mouseleave", handleMouseLeave);
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, [
-    inView,
-    color,
-    waveSpeed,
-    waveAmplitude,
-    fieldStrength,
-    magnetRadius,
-    ringRadius,
-    lerpSpeed,
-    autoAnimate,
-    particleShape,
-    pulseSpeed,
-    count,
-    particleSize,
-    particleVariance,
-    rotationSpeed,
-    depthFactor,
-  ]);
+    mesh.instanceMatrix.needsUpdate = true;
+  });
 
   return (
-    <canvas
-      ref={setRefs}
+    <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
+      {particleShape === "capsule" && (
+        <capsuleGeometry args={[0.1, 0.4, 4, 8]} />
+      )}
+      {(particleShape === "sphere" || particleShape === "circle") && (
+        <sphereGeometry args={[0.2, 16, 16]} />
+      )}
+      {particleShape === "box" && <boxGeometry args={[0.3, 0.3, 0.3]} />}
+      {particleShape === "tetrahedron" && <tetrahedronGeometry args={[0.3]} />}
+      <meshBasicMaterial color={color} transparent opacity={0.8} />
+    </instancedMesh>
+  );
+};
+
+export const Antigravity: React.FC<AntigravityProps> = (props) => {
+  return (
+    <div
       style={{
         position: "absolute",
         top: 0,
@@ -266,6 +224,10 @@ export const Antigravity: React.FC<AntigravityProps> = ({
         pointerEvents: "none",
         zIndex: 0,
       }}
-    />
+    >
+      <Canvas camera={{ position: [0, 0, 50], fov: 35 }}>
+        <AntigravityInner {...props} />
+      </Canvas>
+    </div>
   );
 };

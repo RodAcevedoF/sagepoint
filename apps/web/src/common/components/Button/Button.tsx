@@ -1,76 +1,89 @@
-'use client';
+"use client";
 
-import { Button as MuiButton, CircularProgress, Typography, SxProps, Theme } from '@mui/material';
-import type { ReactNode } from 'react';
-import type { LucideIcon } from 'lucide-react';
-import { ButtonVariants, ButtonTypes, ButtonIconPositions, ButtonSizes } from '@/common/types';
-import { palette } from '@/common/theme';
+import {
+  Button as MuiButton,
+  CircularProgress,
+  Typography,
+  SxProps,
+  Theme,
+} from "@mui/material";
+import type { ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
+import {
+  ButtonVariants,
+  ButtonTypes,
+  ButtonIconPositions,
+  ButtonSizes,
+} from "@/common/types";
+import { palette } from "@/common/theme";
 
 const styles = {
   base: {
-    display: 'flex',
-    alignItems: 'center',
+    display: "flex",
+    alignItems: "center",
     gap: 1,
     fontWeight: 500,
-    transition: 'all 0.2s ease-in-out',
+    transition: "all 0.2s ease-in-out",
   },
   default: {
     bgcolor: palette.primary.main,
-    color: '#fff',
-    '&:hover': {
+    color: palette.primary.light,
+    "&:hover": {
       bgcolor: palette.primary.dark,
+      color: "#fff",
     },
   },
   secondary: {
     bgcolor: palette.secondary.main,
-    color: '#fff',
-    '&:hover': {
+    color: palette.primary.light,
+    "&:hover": {
       bgcolor: palette.secondary.dark,
+      color: "#fff",
     },
   },
   outlined: {
-    bgcolor: 'transparent',
+    bgcolor: "transparent",
     color: palette.primary.light,
-    border: '1px solid',
+    border: "1px solid",
     borderColor: palette.primary.main,
-    '&:hover': {
-      bgcolor: 'rgba(53, 162, 159, 0.1)',
+    "&:hover": {
+      bgcolor: "rgba(53, 162, 159, 0.1)",
       borderColor: palette.primary.light,
     },
   },
   ghost: {
-    bgcolor: 'transparent',
+    bgcolor: "transparent",
     color: palette.text.secondary,
-    '&:hover': {
-      bgcolor: 'rgba(151, 254, 237, 0.08)',
+    "&:hover": {
+      bgcolor: "rgba(151, 254, 237, 0.08)",
       color: palette.text.primary,
     },
   },
   danger: {
-    bgcolor: '#dc2626',
-    color: '#fff',
-    '&:hover': {
-      bgcolor: '#b91c1c',
+    bgcolor: palette.error.main,
+    color: "#fff",
+    "&:hover": {
+      bgcolor: palette.error.dark,
     },
   },
   small: {
     px: 2,
     py: 0.75,
-    fontSize: '0.875rem',
+    fontSize: "0.875rem",
   },
   medium: {
     px: 3,
     py: 1,
-    fontSize: '1rem',
+    fontSize: "1rem",
   },
   large: {
     px: 4,
     py: 1.5,
-    fontSize: '1.125rem',
+    fontSize: "1.125rem",
   },
   disabled: {
     opacity: 0.6,
-    cursor: 'not-allowed',
+    cursor: "not-allowed",
   },
   loaderText: {
     ml: 1,
@@ -106,7 +119,7 @@ export function Button({
   fullWidth = false,
   sx = {},
   iconSx = {},
-  testId = 'button',
+  testId = "button",
 }: ButtonProps) {
   const isDisabled = disabled || loading;
 
@@ -136,14 +149,14 @@ export function Button({
     }
   };
 
-  const buttonStyles: SxProps<Theme> = {
-    ...styles.base,
-    ...getVariantStyles(),
-    ...getSizeStyles(),
-    ...(isDisabled ? styles.disabled : {}),
-    ...(fullWidth ? { width: '100%' } : {}),
-    ...sx,
-  };
+  const buttonStyles: SxProps<Theme> = [
+    styles.base,
+    getVariantStyles(),
+    getSizeStyles(),
+    isDisabled && styles.disabled,
+    fullWidth && { width: "100%" },
+    ...(Array.isArray(sx) ? sx : [sx]),
+  ];
 
   return (
     <MuiButton
@@ -153,8 +166,10 @@ export function Button({
       type={type}
       sx={buttonStyles}
     >
-      {iconPos === ButtonIconPositions.START && Icon && <Icon size={18} style={iconSx} />}
-      {loading && <CircularProgress size={18} sx={{ color: 'inherit' }} />}
+      {iconPos === ButtonIconPositions.START && Icon && (
+        <Icon size={18} style={iconSx} />
+      )}
+      {loading && <CircularProgress size={18} sx={{ color: "inherit" }} />}
       {loading ? (
         <Typography component="span" sx={styles.loaderText}>
           {label}
@@ -162,7 +177,9 @@ export function Button({
       ) : (
         label
       )}
-      {iconPos === ButtonIconPositions.END && Icon && <Icon size={18} style={iconSx} />}
+      {iconPos === ButtonIconPositions.END && Icon && (
+        <Icon size={18} style={iconSx} />
+      )}
     </MuiButton>
   );
 }

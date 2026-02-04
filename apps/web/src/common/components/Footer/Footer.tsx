@@ -11,14 +11,17 @@ import {
 } from "@mui/material";
 import { FooterBrand } from "./FooterBrand";
 import { FooterLinks } from "./FooterLinks";
-import { FooterAbout } from "./FooterAbout";
 import { palette } from "@/common/theme";
+
+// ============================================================================
+// Styles
+// ============================================================================
 
 const styles = {
   footer: {
     position: "relative",
     bgcolor: "background.default",
-    pt: { xs: 10, md: 12 },
+    pt: { xs: 8, md: 10 },
     pb: 4,
     mt: "auto",
     overflow: "hidden",
@@ -51,7 +54,7 @@ const styles = {
     zIndex: 1,
   },
   bottomBar: {
-    mt: 8,
+    mt: 1,
     pt: 4,
     display: "flex",
     flexDirection: { xs: "column", md: "row" },
@@ -65,6 +68,10 @@ const styles = {
   },
 };
 
+// ============================================================================
+// Component
+// ============================================================================
+
 export function Footer() {
   return (
     <Box component="footer" sx={styles.footer}>
@@ -72,21 +79,25 @@ export function Footer() {
       <Box sx={styles.glow} />
 
       <Container maxWidth="lg" sx={styles.container}>
-        <Grid container spacing={6}>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <Stack spacing={3}>
-              <FooterBrand />
-              <FooterAbout />
-            </Stack>
+        <Grid
+          container
+          spacing={{ xs: 6, md: 4 }}
+          justifyContent="space-between"
+          sx={{ mb: 6 }}
+        >
+          {/* Column 1: Brand & Tech Stack */}
+          <Grid size={{ xs: 12, md: 5 }}>
+            <FooterBrand />
           </Grid>
 
-          <Grid size={{ xs: 12, md: 8 }}>
+          {/* Column 2 & 3: Product & Resources (handled by FooterLinks internally) */}
+          <Grid size={{ xs: 12, md: 6 }}>
             <FooterLinks />
           </Grid>
         </Grid>
 
         <Divider
-          sx={{ mt: 8, borderColor: alpha(palette.primary.light, 0.05) }}
+          sx={{ mt: 3, borderColor: alpha(palette.primary.light, 0.15) }}
         />
 
         <Box sx={styles.bottomBar}>

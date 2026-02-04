@@ -1,5 +1,9 @@
-import { RegisterPage } from '@/features/auth/components/RegisterPage';
+import { RegisterPage, GuestGuard } from '@/features/auth/components';
 
 export default function Page() {
-  return <RegisterPage />;
+  return (
+    <GuestGuard>
+      <RegisterPage />
+    </GuestGuard>
+  );
 }
