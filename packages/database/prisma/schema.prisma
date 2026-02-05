@@ -20,6 +20,29 @@ enum OnboardingStatus {
   SKIPPED
 }
 
+enum ResourceType {
+  ARTICLE
+  VIDEO
+  COURSE
+  DOCUMENTATION
+  TUTORIAL
+  BOOK
+}
+
+enum RoadmapGenerationStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum StepStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -122,22 +145,71 @@ model Category {
 model Roadmap {
   id          String   @id @default(uuid())
   title       String
-  
+  description String?
+
   userId      String
   user        User     @relation(fields: [userId], references: [id])
-  
+
   documentId  String
   document    Document @relation(fields: [documentId], references: [id])
-  
+
   categoryId  String?
   category    Category? @relation(fields: [categoryId], references: [id])
 
-  steps       Json     // Storing steps as JSON for simplicity, or could be separate model
+  steps              Json     // Storing steps as JSON for simplicity, or could be separate model
+  generationStatus   RoadmapGenerationStatus @default(PENDING)
+  totalDuration      Int?     // Total estimated duration in minutes
+  recommendedPace    String?  // e.g., "2-3 concepts per week"
+
+  resources   Resource[]
+  progress    UserRoadmapProgress[]
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([userId])
   @@index([documentId])
   @@index([categoryId])
+  @@index([generationStatus])
   @@map("roadmaps")
+}
+
+model Resource {
+  id                String       @id @default(uuid())
+  title             String
+  url               String
+  type              ResourceType
+  description       String?
+  provider          String?
+  estimatedDuration Int?         // in minutes
+  difficulty        String?      // beginner, intermediate, advanced
+  conceptId         String       // ID of the concept this resource is for
+  order             Int          @default(0)
+
+  roadmapId         String
+  roadmap           Roadmap      @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+
+  createdAt         DateTime     @default(now())
+
+  @@index([conceptId])
+  @@index([roadmapId])
+  @@map("resources")
+}
+
+model UserRoadmapProgress {
+  userId      String
+  roadmapId   String
+  conceptId   String
+  status      StepStatus @default(NOT_STARTED)
+  completedAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  roadmap     Roadmap    @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roadmapId, conceptId])
+  @@index([userId])
+  @@index([roadmapId])
+  @@index([userId, roadmapId])  // Composite for efficient user+roadmap queries
+  @@map("user_roadmap_progress")
 }

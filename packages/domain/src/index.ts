@@ -17,9 +17,15 @@ export * from './modules/document/ports/processing-queue.port';
 // Roadmap
 export * from './modules/roadmap/entities/concept.entity';
 export * from './modules/roadmap/entities/roadmap.entity';
+export * from './modules/roadmap/entities/resource.entity';
+export * from './modules/roadmap/entities/progress.entity';
 export * from './modules/roadmap/ports/roadmap.repository';
 export * from './modules/roadmap/ports/concept.repository';
+export * from './modules/roadmap/ports/resource.repository';
+export * from './modules/roadmap/ports/progress.repository';
 
 // Shared Ports
 export * from './ports/file-storage.port';
 export * from './ports/content-analysis.port';
+export * from './ports/roadmap-generation.port';
+export * from './ports/resource-discovery.port';

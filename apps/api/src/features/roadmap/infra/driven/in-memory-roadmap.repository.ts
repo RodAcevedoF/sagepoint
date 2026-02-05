@@ -20,6 +20,12 @@ export class InMemoryRoadmapRepository implements IRoadmapRepository {
     );
   }
 
+  async findByUserId(userId: string): Promise<Roadmap[]> {
+    return Array.from(this.roadmaps.values()).filter(
+      (r) => r.userId === userId,
+    );
+  }
+
   async delete(id: string): Promise<void> {
     this.roadmaps.delete(id);
   }

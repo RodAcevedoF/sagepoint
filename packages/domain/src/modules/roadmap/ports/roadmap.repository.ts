@@ -7,6 +7,7 @@ export interface IRoadmapRepository {
   save(roadmap: Roadmap): Promise<Roadmap>;
   findById(id: string): Promise<Roadmap | null>;
   findByDocumentId(documentId: string): Promise<Roadmap[]>;
+  findByUserId(userId: string): Promise<Roadmap[]>;
   delete(id: string): Promise<void>;
 
   saveConcept(concept: Concept): Promise<Concept>;
