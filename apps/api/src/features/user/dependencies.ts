@@ -1,5 +1,5 @@
 import type { IUserService } from '@/features/user/domain/inbound/user.service';
-import { IUserRepository, ICategoryRepository } from '@sagepoint/domain';
+import type { IUserRepository } from '@sagepoint/domain';
 import { UserService } from '@/features/user/infra/driver/user.service';
 import { CreateUserUseCase } from './app/usecases/create-user.usecase';
 import { GetUserUseCase } from './app/usecases/get-user.usecase';
@@ -24,7 +24,10 @@ export function makeUserDependencies(): UserDependencies {
   const getUserUseCase = new GetUserUseCase(userRepository);
   const updateUserUseCase = new UpdateUserUseCase(userRepository);
   const updateMeUseCase = new UpdateMeUseCase(userRepository);
-  const completeOnboardingUseCase = new CompleteOnboardingUseCase(userRepository, categoryRepository);
+  const completeOnboardingUseCase = new CompleteOnboardingUseCase(
+    userRepository,
+    categoryRepository,
+  );
 
   const userService = new UserService(
     createUserUseCase,

@@ -9,8 +9,17 @@ export class RedisTokenStore implements ITokenStore {
 
   constructor(@Inject('REDIS_CLIENT') private readonly redis: Redis) {}
 
-  async storeVerificationToken(userId: string, token: string, ttlSeconds: number): Promise<void> {
-    await this.redis.set(`${RedisTokenStore.VERIFY_PREFIX}${token}`, userId, 'EX', ttlSeconds);
+  async storeVerificationToken(
+    userId: string,
+    token: string,
+    ttlSeconds: number,
+  ): Promise<void> {
+    await this.redis.set(
+      `${RedisTokenStore.VERIFY_PREFIX}${token}`,
+      userId,
+      'EX',
+      ttlSeconds,
+    );
   }
 
   async getVerificationToken(token: string): Promise<string | null> {
@@ -21,8 +30,17 @@ export class RedisTokenStore implements ITokenStore {
     await this.redis.del(`${RedisTokenStore.VERIFY_PREFIX}${token}`);
   }
 
-  async storeRefreshToken(userId: string, token: string, ttlSeconds: number): Promise<void> {
-    await this.redis.set(`${RedisTokenStore.REFRESH_PREFIX}${userId}`, token, 'EX', ttlSeconds);
+  async storeRefreshToken(
+    userId: string,
+    token: string,
+    ttlSeconds: number,
+  ): Promise<void> {
+    await this.redis.set(
+      `${RedisTokenStore.REFRESH_PREFIX}${userId}`,
+      token,
+      'EX',
+      ttlSeconds,
+    );
   }
 
   async getRefreshToken(userId: string): Promise<string | null> {

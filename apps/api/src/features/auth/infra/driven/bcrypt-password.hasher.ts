@@ -4,7 +4,8 @@ import type { IPasswordHasher } from '@/features/auth/domain/outbound/password-h
 
 @Injectable()
 export class BcryptPasswordHasher implements IPasswordHasher {
-  private static readonly SALT_ROUNDS = Number(process.env.BCRYPT_SALT_ROUNDS) || 10;
+  private static readonly SALT_ROUNDS =
+    Number(process.env.BCRYPT_SALT_ROUNDS) || 10;
 
   async hash(password: string): Promise<string> {
     return bcrypt.hash(password, BcryptPasswordHasher.SALT_ROUNDS);

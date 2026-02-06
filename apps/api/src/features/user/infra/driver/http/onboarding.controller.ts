@@ -1,6 +1,11 @@
-import { Controller, Post, Body, Req, UseGuards, Inject } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Inject } from '@nestjs/common';
 import { JwtAuthGuard } from '@/features/auth/infra/guards/jwt-auth.guard';
-import { USER_SERVICE, type IUserService } from '@/features/user/domain/inbound/user.service';
+import { CurrentUser } from '@/features/auth/decorators/current-user.decorator';
+import type { RequestUser } from '@sagepoint/domain';
+import {
+  USER_SERVICE,
+  type IUserService,
+} from '@/features/user/domain/inbound/user.service';
 
 interface OnboardingDto {
   learningGoal?: string;
@@ -18,9 +23,11 @@ export class OnboardingController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  async completeOnboarding(@Body() body: OnboardingDto, @Req() req: any) {
-    const userId = req.user.id;
-    await this.userService.completeOnboarding(userId, {
+  async completeOnboarding(
+    @Body() body: OnboardingDto,
+    @CurrentUser() user: RequestUser,
+  ) {
+    await this.userService.completeOnboarding(user.id, {
       learningGoal: body.learningGoal,
       experienceLevel: body.experienceLevel,
       interests: body.interests || [],

@@ -1,4 +1,8 @@
-import type { IUserRepository, ICategoryRepository, Category } from '@sagepoint/domain';
+import type {
+  IUserRepository,
+  ICategoryRepository,
+  Category,
+} from '@sagepoint/domain';
 import { NotFoundException } from '@nestjs/common';
 import type { OnboardingInput } from '@/features/user/domain/inbound/user.service';
 

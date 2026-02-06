@@ -18,7 +18,7 @@ export class DocumentService implements IDocumentService {
       filename: input.filename,
       mimeType: input.mimeType,
       size: input.size,
-      fileBuffer: (input as any).fileBuffer,
+      fileBuffer: input.fileBuffer,
       userId: input.userId,
     });
   }

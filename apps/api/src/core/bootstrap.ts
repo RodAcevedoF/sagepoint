@@ -15,11 +15,8 @@ import {
   makeStorageDependencies,
   type StorageDependencies,
 } from '@/features/storage/dependencies';
-import { LocalDiskStorage } from '@/core/infra/storage/local-disk.storage';
-import { SupabaseStorage } from '@/core/infra/storage/supabase.storage';
 import { GCSStorage } from '@sagepoint/storage';
 import { IFileStorage } from '@sagepoint/domain';
-import * as path from 'path';
 
 export interface AppDependencies {
   roadmap: RoadmapDependencies;
@@ -36,27 +33,11 @@ export function bootstrap(): AppDependencies {
     return dependencies;
   }
 
-  // Initialize Infrastructure Adapters (Shared)
-  let fileStorage: IFileStorage;
-  const storageDriver = process.env.STORAGE_DRIVER || 'local';
-
-  if (storageDriver === 'gcs') {
-    fileStorage = new GCSStorage({
-      projectId: process.env.GCP_PROJECT_ID!,
-      bucketName: process.env.GCS_BUCKET_NAME!,
-      keyFilename: process.env.GCP_KEY_FILE, // Optional - uses ADC if not provided
-    });
-  } else if (storageDriver === 'supabase') {
-    fileStorage = new SupabaseStorage(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_KEY!,
-      process.env.SUPABASE_BUCKET_NAME || 'documents'
-    );
-  } else {
-    // Default to local
-    const uploadDir = process.env.UPLOAD_DIR || path.resolve(process.cwd(), 'uploads');
-    fileStorage = new LocalDiskStorage(uploadDir);
-  }
+  const fileStorage: IFileStorage = new GCSStorage({
+    projectId: process.env.GCP_PROJECT_ID!,
+    bucketName: process.env.GCS_BUCKET_NAME!,
+    keyFilename: process.env.GCP_KEY_FILE,
+  });
 
   // User dependencies
   const userDeps = makeUserDependencies();
@@ -66,7 +47,7 @@ export function bootstrap(): AppDependencies {
     uri: process.env.NEO4J_URI || 'bolt://localhost:7687',
     user: process.env.NEO4J_USER || 'neo4j',
     pass: process.env.NEO4J_PASSWORD || 'password',
-    encrypted: process.env.NEO4J_ENCRYPTION || 'ENCRYPTION_OFF'
+    encrypted: process.env.NEO4J_ENCRYPTION || 'ENCRYPTION_OFF',
   });
 
   dependencies = {

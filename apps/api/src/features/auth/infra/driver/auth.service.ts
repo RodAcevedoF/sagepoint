@@ -7,7 +7,10 @@ import { LoginUseCase } from '@/features/auth/app/usecases/login.usecase';
 import { LogoutUseCase } from '@/features/auth/app/usecases/logout.usecase';
 import { RefreshTokenUseCase } from '@/features/auth/app/usecases/refresh-token.usecase';
 import { ValidateUserUseCase } from '@/features/auth/app/usecases/validate-user.usecase';
-import { ValidateGoogleUserUseCase, type GoogleUserDetails } from '@/features/auth/app/usecases/validate-google-user.usecase';
+import {
+  ValidateGoogleUserUseCase,
+  type GoogleUserDetails,
+} from '@/features/auth/app/usecases/validate-google-user.usecase';
 
 @Injectable()
 export class AuthService implements IAuthService {

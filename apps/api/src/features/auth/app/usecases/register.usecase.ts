@@ -63,15 +63,21 @@ export class RegisterUseCase {
     // OR we could return the token.
     // Let's auto-verify to unblock E2E tests simply.
     const isMock = process.env.USE_MOCK_EMAIL === 'true';
-    
+
     if (isMock) {
-        // Auto-verify
-        const verifiedUser = user.verify();
-        await this.userService.save(verifiedUser);
+      // Auto-verify
+      const verifiedUser = user.verify();
+      await this.userService.save(verifiedUser);
     } else {
-        await this.emailService.sendVerificationEmail(user.email, verificationToken);
+      await this.emailService.sendVerificationEmail(
+        user.email,
+        verificationToken,
+      );
     }
 
-    return { message: 'Registration successful. Please check your email to verify your account.' };
+    return {
+      message:
+        'Registration successful. Please check your email to verify your account.',
+    };
   }
 }

@@ -83,20 +83,16 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
   }
 
   // Concept methods — delegated to Neo4j in practice, stubs here to satisfy interface
-  async saveConcept(concept: Concept): Promise<Concept> {
-    return concept;
+  saveConcept(concept: Concept): Promise<Concept> {
+    return Promise.resolve(concept);
   }
 
-  async findConceptsByDocumentId(_documentId: string): Promise<Concept[]> {
-    return [];
+  findConceptsByDocumentId(): Promise<Concept[]> {
+    return Promise.resolve([]);
   }
 
-  async saveConceptRelation(
-    _fromConceptId: string,
-    _toConceptId: string,
-    _relationType: 'DEPENDS_ON' | 'NEXT_STEP',
-  ): Promise<void> {
-    // Concepts and relations live in Neo4j
+  saveConceptRelation(): Promise<void> {
+    return Promise.resolve();
   }
 
   private serializeSteps(steps: RoadmapStep[]): object[] {

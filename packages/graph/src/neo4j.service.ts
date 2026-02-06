@@ -1,12 +1,13 @@
-import {
-	Injectable,
-	OnApplicationShutdown,
-	Inject,
-	Logger,
-	Optional,
-} from '@nestjs/common';
-import neo4j, { Driver, Session, Config, Result } from 'neo4j-driver';
+import { Injectable, OnApplicationShutdown, Inject, Logger, Optional } from '@nestjs/common';
+import neo4j, { type Driver, type Result } from 'neo4j-driver';
 import { ConfigService } from '@nestjs/config';
+
+interface Neo4jDirectConfig {
+	uri: string;
+	user: string;
+	pass: string;
+	encrypted: string;
+}
 
 @Injectable()
 export class Neo4jService implements OnApplicationShutdown {
@@ -16,31 +17,24 @@ export class Neo4jService implements OnApplicationShutdown {
 	constructor(
 		@Inject(ConfigService)
 		@Optional()
-		private readonly configServiceOrOptions?:
-			| ConfigService
-			| { uri: string; user: string; pass: string; encrypted: string },
-		// Legacy support arguments if any (none here)
+		private readonly configServiceOrOptions?: ConfigService | Neo4jDirectConfig,
 	) {
-		// TODO: Remove this legacy support
-		let uri, user, password, encrypted;
+		let uri: string;
+		let user: string;
+		let password: string;
+		let encrypted: string;
 
 		if (configServiceOrOptions instanceof ConfigService) {
-			uri =
-				configServiceOrOptions.get<string>('NEO4J_URI') ||
-				'bolt://localhost:7687';
+			uri = configServiceOrOptions.get<string>('NEO4J_URI') || 'bolt://localhost:7687';
 			user = configServiceOrOptions.get<string>('NEO4J_USER') || 'neo4j';
-			password =
-				configServiceOrOptions.get<string>('NEO4J_PASSWORD') || 'password';
-			encrypted =
-				configServiceOrOptions.get<string>('NEO4J_ENCRYPTION') ||
-				'ENCRYPTION_OFF'; // Default for dev
+			password = configServiceOrOptions.get<string>('NEO4J_PASSWORD') || 'password';
+			encrypted = configServiceOrOptions.get<string>('NEO4J_ENCRYPTION') || 'ENCRYPTION_OFF';
 		} else if (configServiceOrOptions) {
 			uri = configServiceOrOptions.uri;
 			user = configServiceOrOptions.user;
 			password = configServiceOrOptions.pass;
 			encrypted = configServiceOrOptions.encrypted;
 		} else {
-			// Fallback defaults
 			uri = 'bolt://localhost:7687';
 			user = 'neo4j';
 			password = 'password';
@@ -52,15 +46,12 @@ export class Neo4jService implements OnApplicationShutdown {
 			encrypted: encrypted === 'ENCRYPTION_ON',
 		});
 
-		// Verify connection
 		this.driver
 			.getServerInfo()
 			.then((serverInfo) =>
-				this.logger.log(
-					`Connected to Neo4j at ${uri} (Version: ${serverInfo.agent})`,
-				),
+				this.logger.log(`Connected to Neo4j at ${uri} (Version: ${serverInfo.agent})`),
 			)
-			.catch((err) =>
+			.catch((err: Error) =>
 				this.logger.error(`Failed to connect to Neo4j: ${err.message}`),
 			);
 	}
@@ -73,14 +64,8 @@ export class Neo4jService implements OnApplicationShutdown {
 		await this.driver.close();
 	}
 
-	// Helper for simple queries
-	async read(
-		cypher: string,
-		params: Record<string, any> = {},
-	): Promise<Result> {
-		const session = this.driver.session({
-			defaultAccessMode: neo4j.session.READ,
-		});
+	async read(cypher: string, params: Record<string, unknown> = {}): Promise<Result> {
+		const session = this.driver.session({ defaultAccessMode: neo4j.session.READ });
 		try {
 			return await session.run(cypher, params);
 		} finally {
@@ -88,13 +73,8 @@ export class Neo4jService implements OnApplicationShutdown {
 		}
 	}
 
-	async write(
-		cypher: string,
-		params: Record<string, any> = {},
-	): Promise<Result> {
-		const session = this.driver.session({
-			defaultAccessMode: neo4j.session.WRITE,
-		});
+	async write(cypher: string, params: Record<string, unknown> = {}): Promise<Result> {
+		const session = this.driver.session({ defaultAccessMode: neo4j.session.WRITE });
 		try {
 			return await session.run(cypher, params);
 		} finally {

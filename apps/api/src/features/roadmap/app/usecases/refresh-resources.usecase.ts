@@ -3,7 +3,6 @@ import {
   IResourceRepository,
   IResourceDiscoveryService,
   Resource,
-  Roadmap,
 } from '@sagepoint/domain';
 
 export interface RefreshResourcesCommand {
@@ -21,10 +20,12 @@ export class RefreshResourcesUseCase {
   constructor(
     private readonly roadmapRepository: IRoadmapRepository,
     private readonly resourceRepository: IResourceRepository,
-    private readonly resourceDiscoveryService: IResourceDiscoveryService
+    private readonly resourceDiscoveryService: IResourceDiscoveryService,
   ) {}
 
-  async execute(command: RefreshResourcesCommand): Promise<RefreshResourcesResult> {
+  async execute(
+    command: RefreshResourcesCommand,
+  ): Promise<RefreshResourcesResult> {
     const roadmap = await this.roadmapRepository.findById(command.roadmapId);
     if (!roadmap) {
       throw new Error(`Roadmap ${command.roadmapId} not found`);
@@ -44,29 +45,22 @@ export class RefreshResourcesUseCase {
     }
 
     // Delete existing resources for concepts being refreshed
-    const conceptIdsToRefresh = stepsToRefresh.map((s) => s.concept.id);
-
-    // Get existing resources and filter by concepts being refreshed
-    const existingResources = await this.resourceRepository.findByRoadmapId(command.roadmapId);
-    const resourcesToDelete = existingResources.filter((r) =>
-      conceptIdsToRefresh.includes(r.conceptId)
-    );
-
-    // Delete old resources (in batch via roadmap if refreshing all, or individually)
+    // Delete old resources before re-discovering
     if (!command.conceptIds) {
       await this.resourceRepository.deleteByRoadmapId(command.roadmapId);
     }
 
     // Discover new resources in parallel
     const resourcePromises = stepsToRefresh.map(async (step) => {
-      const discovered = await this.resourceDiscoveryService.discoverResourcesForConcept(
-        step.concept.name,
-        step.concept.description,
-        {
-          maxResults: 3,
-          difficulty: step.difficulty,
-        }
-      );
+      const discovered =
+        await this.resourceDiscoveryService.discoverResourcesForConcept(
+          step.concept.name,
+          step.concept.description,
+          {
+            maxResults: 3,
+            difficulty: step.difficulty,
+          },
+        );
 
       return discovered.map((d, index) =>
         Resource.create({
@@ -80,7 +74,7 @@ export class RefreshResourcesUseCase {
           conceptId: step.concept.id,
           roadmapId: command.roadmapId,
           order: index,
-        })
+        }),
       );
     });
 

@@ -2,10 +2,24 @@ import { GetGraphUseCase } from '@/features/roadmap/app/usecases/get-graph.useca
 import { DeleteRoadmapUseCase } from '@/features/roadmap/app/usecases/delete-roadmap.usecase';
 import { GenerateRoadmapUseCase } from '@/features/roadmap/app/usecases/generate-roadmap.usecase';
 import { GetRoadmapUseCase } from '@/features/roadmap/app/usecases/get-roadmap.usecase';
-import { UpdateStepProgressUseCase, UpdateStepProgressResult } from '@/features/roadmap/app/usecases/update-step-progress.usecase';
-import { RefreshResourcesUseCase, RefreshResourcesResult } from '@/features/roadmap/app/usecases/refresh-resources.usecase';
-import { GetUserRoadmapsUseCase, UserRoadmapWithProgress } from '@/features/roadmap/app/usecases/get-user-roadmaps.usecase';
-import { Roadmap, Concept, Resource, IResourceRepository } from '@sagepoint/domain';
+import {
+  UpdateStepProgressUseCase,
+  UpdateStepProgressResult,
+} from '@/features/roadmap/app/usecases/update-step-progress.usecase';
+import {
+  RefreshResourcesUseCase,
+  RefreshResourcesResult,
+} from '@/features/roadmap/app/usecases/refresh-resources.usecase';
+import {
+  GetUserRoadmapsUseCase,
+  UserRoadmapWithProgress,
+} from '@/features/roadmap/app/usecases/get-user-roadmaps.usecase';
+import {
+  Roadmap,
+  Concept,
+  Resource,
+  IResourceRepository,
+} from '@sagepoint/domain';
 import {
   GenerateRoadmapInput,
   UpdateProgressInput,
@@ -25,7 +39,10 @@ export class RoadmapService implements IRoadmapService {
     private readonly resourceRepository: IResourceRepository,
   ) {}
 
-  async getGraph(documentId: string): Promise<{ nodes: Concept[]; edges: { from: string; to: string; type: string }[] }> {
+  async getGraph(documentId: string): Promise<{
+    nodes: Concept[];
+    edges: { from: string; to: string; type: string }[];
+  }> {
     return await this.getGraphUseCase.execute(documentId);
   }
 
@@ -46,7 +63,9 @@ export class RoadmapService implements IRoadmapService {
   }
 
   // Phase 3: Progress tracking
-  async updateStepProgress(input: UpdateProgressInput): Promise<UpdateStepProgressResult> {
+  async updateStepProgress(
+    input: UpdateProgressInput,
+  ): Promise<UpdateStepProgressResult> {
     return await this.updateStepProgressUseCase.execute(input);
   }
 
@@ -54,12 +73,20 @@ export class RoadmapService implements IRoadmapService {
     return await this.getUserRoadmapsUseCase.execute(userId);
   }
 
-  async getUserRoadmapById(userId: string, roadmapId: string): Promise<UserRoadmapWithProgress | null> {
-    return await this.getUserRoadmapsUseCase.executeForRoadmap(userId, roadmapId);
+  async getUserRoadmapById(
+    userId: string,
+    roadmapId: string,
+  ): Promise<UserRoadmapWithProgress | null> {
+    return await this.getUserRoadmapsUseCase.executeForRoadmap(
+      userId,
+      roadmapId,
+    );
   }
 
   // Phase 3: Resource management
-  async refreshResources(input: RefreshResourcesInput): Promise<RefreshResourcesResult> {
+  async refreshResources(
+    input: RefreshResourcesInput,
+  ): Promise<RefreshResourcesResult> {
     return await this.refreshResourcesUseCase.execute(input);
   }
 

@@ -10,9 +10,15 @@ import { AuthService } from '@/features/auth/infra/driver/auth.service';
 import { AuthController } from '@/features/auth/infra/driver/http/auth.controller';
 import { RedisTokenStore } from '@/features/auth/infra/driven/redis-token.store';
 import { BcryptPasswordHasher } from '@/features/auth/infra/driven/bcrypt-password.hasher';
-import { NodemailerEmailService, EmailConfig } from '@/features/auth/infra/driven/nodemailer-email.service';
+import {
+  NodemailerEmailService,
+  EmailConfig,
+} from '@/features/auth/infra/driven/nodemailer-email.service';
 import { MockEmailService } from '@/features/auth/infra/driven/mock-email.service';
-import { JwtTokenService, JwtConfig } from '@/features/auth/infra/driven/jwt-token.service';
+import {
+  JwtTokenService,
+  JwtConfig,
+} from '@/features/auth/infra/driven/jwt-token.service';
 import { RegisterUseCase } from '@/features/auth/app/usecases/register.usecase';
 import { VerifyEmailUseCase } from '@/features/auth/app/usecases/verify-email.usecase';
 import { LoginUseCase } from '@/features/auth/app/usecases/login.usecase';
@@ -26,10 +32,7 @@ import { UserModule } from '@/features/user/user.module';
 
 @Global()
 @Module({
-  imports: [
-    UserModule,
-    PassportModule,
-  ],
+  imports: [UserModule, PassportModule],
   controllers: [AuthController],
   providers: [
     // Configuration Providers
@@ -66,7 +69,9 @@ import { UserModule } from '@/features/user/user.module';
       useFactory: () => ({
         clientID: process.env.GOOGLE_CLIENT_ID || 'mock_client_id',
         clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'mock_client_secret',
-        callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:3000/api/auth/google/callback',
+        callbackURL:
+          process.env.GOOGLE_CALLBACK_URL ||
+          'http://localhost:3000/api/auth/google/callback',
       }),
     },
 
@@ -83,8 +88,10 @@ import { UserModule } from '@/features/user/user.module';
       provide: EMAIL_SERVICE_PORT,
       useFactory: (config: EmailConfig) => {
         // Force mock email for debugging as per previous bootstrap logic
-        const useMockEmail = true; 
-        return useMockEmail ? new MockEmailService() : new NodemailerEmailService(config);
+        const useMockEmail = true;
+        return useMockEmail
+          ? new MockEmailService()
+          : new NodemailerEmailService(config);
       },
       inject: ['EMAIL_CONFIG'],
     },

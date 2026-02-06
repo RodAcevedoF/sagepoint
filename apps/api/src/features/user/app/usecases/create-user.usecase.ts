@@ -17,16 +17,22 @@ export class CreateUserUseCase {
   async execute(command: CreateUserCommand): Promise<User> {
     const existing = await this.userRepository.findByEmail(command.email);
     if (existing) {
-      // In a real app we might throw ConflictException, 
+      // In a real app we might throw ConflictException,
       // but strictly speaking idempotency could also return the existing one.
       return existing;
     }
 
     const id = randomUUID();
-    const user = User.create(id, command.email, command.name, command.role, command.passwordHash);
+    const user = User.create(
+      id,
+      command.email,
+      command.name,
+      command.role,
+      command.passwordHash,
+    );
 
     await this.userRepository.save(user);
-    
+
     return user;
   }
 }

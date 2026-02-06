@@ -41,7 +41,10 @@ export class RoadmapController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  async generate(@Body() dto: GenerateRoadmapDto, @CurrentUser() user: RequestUser) {
+  async generate(
+    @Body() dto: GenerateRoadmapDto,
+    @CurrentUser() user: RequestUser,
+  ) {
     const roadmap = await this.roadmapService.generate({
       ...dto,
       userId: user.id,
@@ -66,7 +69,10 @@ export class RoadmapController {
 
   @Get(':id/with-progress')
   @UseGuards(JwtAuthGuard)
-  async findByIdWithProgress(@Param('id') id: string, @CurrentUser() user: RequestUser) {
+  async findByIdWithProgress(
+    @Param('id') id: string,
+    @CurrentUser() user: RequestUser,
+  ) {
     const result = await this.roadmapService.getUserRoadmapById(user.id, id);
     if (!result) {
       throw new NotFoundException(`Roadmap ${id} not found`);

@@ -20,4 +20,4 @@ async function main() {
   await app.listen(process.env.PORT ?? 3333);
 }
 
-main();
+void main();

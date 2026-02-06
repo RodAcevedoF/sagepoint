@@ -6,7 +6,6 @@ import { DocumentModule } from '@/features/document/document.module';
 import { UserModule } from '@/features/user/user.module';
 import { AuthModule } from '@/features/auth/auth.module';
 import { StorageModule } from '@/features/storage/storage.module';
-import { Neo4jModule } from '@/core/infra/neo4j/neo4j.module';
 
 @Module({
   imports: [
@@ -22,7 +21,6 @@ import { Neo4jModule } from '@/core/infra/neo4j/neo4j.module';
     UserModule,
     AuthModule,
     StorageModule,
-    Neo4jModule,
   ],
 })
 export class AppModule {}

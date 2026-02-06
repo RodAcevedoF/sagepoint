@@ -4,7 +4,12 @@ import { UpdateUserUseCase } from '@/features/user/app/usecases/update-user.usec
 import { UpdateMeUseCase } from '@/features/user/app/usecases/update-me.usecase';
 import { CompleteOnboardingUseCase } from '@/features/user/app/usecases/complete-onboarding.usecase';
 import { User } from '@sagepoint/domain';
-import { CreateUserInput, IUserService, OnboardingInput, UpdateProfileInput } from '@/features/user/domain/inbound/user.service';
+import {
+  CreateUserInput,
+  IUserService,
+  OnboardingInput,
+  UpdateProfileInput,
+} from '@/features/user/domain/inbound/user.service';
 
 export class UserService implements IUserService {
   constructor(
@@ -35,11 +40,17 @@ export class UserService implements IUserService {
     return await this.getUserUseCase.byGoogleId(googleId);
   }
 
-  async updateProfile(userId: string, input: UpdateProfileInput): Promise<User> {
+  async updateProfile(
+    userId: string,
+    input: UpdateProfileInput,
+  ): Promise<User> {
     return await this.updateMeUseCase.execute(userId, input);
   }
 
-  async completeOnboarding(userId: string, input: OnboardingInput): Promise<void> {
+  async completeOnboarding(
+    userId: string,
+    input: OnboardingInput,
+  ): Promise<void> {
     await this.completeOnboardingUseCase.execute(userId, input);
   }
 }

@@ -21,10 +21,12 @@ export interface UpdateStepProgressResult {
 export class UpdateStepProgressUseCase {
   constructor(
     private readonly progressRepository: IProgressRepository,
-    private readonly roadmapRepository: IRoadmapRepository
+    private readonly roadmapRepository: IRoadmapRepository,
   ) {}
 
-  async execute(command: UpdateStepProgressCommand): Promise<UpdateStepProgressResult> {
+  async execute(
+    command: UpdateStepProgressCommand,
+  ): Promise<UpdateStepProgressResult> {
     // Verify roadmap exists and belongs to user
     const roadmap = await this.roadmapRepository.findById(command.roadmapId);
     if (!roadmap) {
@@ -32,9 +34,13 @@ export class UpdateStepProgressUseCase {
     }
 
     // Verify concept exists in roadmap
-    const conceptExists = roadmap.steps.some((s) => s.concept.id === command.conceptId);
+    const conceptExists = roadmap.steps.some(
+      (s) => s.concept.id === command.conceptId,
+    );
     if (!conceptExists) {
-      throw new Error(`Concept ${command.conceptId} not found in roadmap ${command.roadmapId}`);
+      throw new Error(
+        `Concept ${command.conceptId} not found in roadmap ${command.roadmapId}`,
+      );
     }
 
     // Create or update progress
@@ -42,7 +48,7 @@ export class UpdateStepProgressUseCase {
       command.userId,
       command.roadmapId,
       command.conceptId,
-      command.status
+      command.status,
     );
 
     const savedProgress = await this.progressRepository.upsert(progress);
@@ -50,7 +56,7 @@ export class UpdateStepProgressUseCase {
     // Get updated summary
     const summary = await this.progressRepository.getProgressSummary(
       command.userId,
-      command.roadmapId
+      command.roadmapId,
     );
 
     return {

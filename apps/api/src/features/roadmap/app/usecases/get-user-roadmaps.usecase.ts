@@ -17,7 +17,7 @@ export class GetUserRoadmapsUseCase {
   constructor(
     private readonly roadmapRepository: IRoadmapRepository,
     private readonly progressRepository: IProgressRepository,
-    private readonly resourceRepository: IResourceRepository
+    private readonly resourceRepository: IResourceRepository,
   ) {}
 
   async execute(userId: string): Promise<UserRoadmapWithProgress[]> {
@@ -29,11 +29,14 @@ export class GetUserRoadmapsUseCase {
     }
 
     // Get progress summaries for all roadmaps in batch
-    const progressSummaries = await this.progressRepository.getProgressSummariesForUser(userId);
+    const progressSummaries =
+      await this.progressRepository.getProgressSummariesForUser(userId);
     const progressMap = new Map(progressSummaries.map((p) => [p.roadmapId, p]));
 
     // Get resources for all roadmaps in parallel
-    const resourcePromises = roadmaps.map((r) => this.resourceRepository.findByRoadmapId(r.id));
+    const resourcePromises = roadmaps.map((r) =>
+      this.resourceRepository.findByRoadmapId(r.id),
+    );
     const resourceArrays = await Promise.all(resourcePromises);
 
     // Combine results
@@ -55,7 +58,10 @@ export class GetUserRoadmapsUseCase {
     });
   }
 
-  async executeForRoadmap(userId: string, roadmapId: string): Promise<UserRoadmapWithProgress | null> {
+  async executeForRoadmap(
+    userId: string,
+    roadmapId: string,
+  ): Promise<UserRoadmapWithProgress | null> {
     const roadmap = await this.roadmapRepository.findById(roadmapId);
     if (!roadmap) {
       return null;

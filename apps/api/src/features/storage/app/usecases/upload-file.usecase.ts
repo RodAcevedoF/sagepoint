@@ -51,7 +51,8 @@ export class UploadFileUseCase {
     }
 
     // Generate storage path
-    const ext = path.extname(input.filename) || this.getExtFromMime(input.mimeType);
+    const ext =
+      path.extname(input.filename) || this.getExtFromMime(input.mimeType);
     const uniqueId = uuidv4();
     const storagePath = input.userId
       ? `${input.category}/${input.userId}/${uniqueId}${ext}`
