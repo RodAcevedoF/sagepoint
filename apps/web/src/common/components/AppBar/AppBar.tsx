@@ -104,9 +104,8 @@ function AppBarRoot({
 }: AppBarProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const { isRevealed, setIsHoveringBar } = useHoverReveal({
+  const { isRevealed, triggerProps, barProps } = useHoverReveal({
     disabled: alwaysVisible || isMobile, // Always visible on mobile
-    triggerHeight: 100,
     hideDelay: 500,
   });
 
@@ -117,6 +116,7 @@ function AppBarRoot({
       {/* Invisible trigger zone at bottom (desktop only) */}
       {revealOnHover && !alwaysVisible && !isMobile && (
         <Box
+          {...triggerProps}
           sx={{
             position: 'fixed',
             bottom: 0,
@@ -136,8 +136,7 @@ function AppBarRoot({
             initial="hidden"
             animate="visible"
             exit="exit"
-            onMouseEnter={() => setIsHoveringBar(true)}
-            onMouseLeave={() => setIsHoveringBar(false)}
+            {...barProps}
             style={{
               position: 'fixed',
               bottom: isMobile ? 16 : 24,
