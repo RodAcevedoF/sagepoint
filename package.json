@@ -24,8 +24,9 @@
     "db:push": "cross-env DATABASE_URL=\"postgresql://user@127.0.0.1:5440/sagepoint?schema=public\" pnpm --filter @sagepoint/database db:push",
     "sagepoint:init": "cross-env DATABASE_URL=\"postgresql://user@127.0.0.1:5440/sagepoint?schema=public\" pnpm --filter @sagepoint/database seed",
     "build": "pnpm -r build",
-    "lint": "pnpm -r lint",
-    "test": "pnpm -r test",
-    "typecheck": "pnpm -r exec tsc --noEmit"
+    "lint": "pnpm -r --if-present lint",
+    "test": "pnpm -r --if-present test",
+    "typecheck": "pnpm -r typecheck",
+    "check": "pnpm typecheck && pnpm lint"
   }
 }

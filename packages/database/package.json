@@ -10,6 +10,7 @@
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "seed": "tsx scripts/init.ts",
+    "lint": "eslint \"src/**/*.ts\"",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -17,10 +18,14 @@
     "bcryptjs": "^2.4.3"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.2",
     "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^22.10.7",
+    "eslint": "^9.39.2",
+    "globals": "^16.5.0",
     "prisma": "^6.2.1",
     "tsx": "^4.7.0",
     "typescript": "^5.7.3",
-    "@types/node": "^22.10.7"
+    "typescript-eslint": "^8.52.0"
   }
 }
