@@ -1,11 +1,26 @@
-import { IUserRepository, User, Category, OnboardingStatus } from '@sagepoint/domain';
+import {
+  IUserRepository,
+  User,
+  Category,
+  OnboardingStatus,
+  UserRole,
+} from '@sagepoint/domain';
+import type {
+  User as PrismaUser,
+  UserInterest as PrismaUserInterest,
+  Category as PrismaCategory,
+} from '@sagepoint/database';
 import { PrismaService } from '@/core/infra/database/prisma.service';
+
+type UserWithInterests = PrismaUser & {
+  interests: (PrismaUserInterest & { category: PrismaCategory })[];
+};
 
 export class PrismaUserRepository implements IUserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async save(user: User): Promise<void> {
-    const interestCreate = user.interests.map(i => ({ categoryId: i.id }));
+    const interestCreate = user.interests.map((i) => ({ categoryId: i.id }));
 
     await this.prisma.user.upsert({
       where: { id: user.id },
@@ -50,9 +65,9 @@ export class PrismaUserRepository implements IUserRepository {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    const data = await this.prisma.user.findUnique({ 
-        where: { email },
-        include: { interests: { include: { category: true } } }
+    const data = await this.prisma.user.findUnique({
+      where: { email },
+      include: { interests: { include: { category: true } } },
     });
     if (!data) return null;
     return this.mapToDomain(data);
@@ -60,8 +75,8 @@ export class PrismaUserRepository implements IUserRepository {
 
   async findById(id: string): Promise<User | null> {
     const data = await this.prisma.user.findUnique({
-        where: { id },
-        include: { interests: { include: { category: true } } }
+      where: { id },
+      include: { interests: { include: { category: true } } },
     });
     if (!data) return null;
     return this.mapToDomain(data);
@@ -69,35 +84,43 @@ export class PrismaUserRepository implements IUserRepository {
 
   async findByGoogleId(googleId: string): Promise<User | null> {
     const data = await this.prisma.user.findFirst({
-        where: { googleId },
-        include: { interests: { include: { category: true } } }
+      where: { googleId },
+      include: { interests: { include: { category: true } } },
     });
     if (!data) return null;
     return this.mapToDomain(data);
   }
 
-  // Helper mapper
-  private mapToDomain(data: any): User {
-    const interests = (data.interests || []).map((i: any) => new Category(
-        i.category.id, i.category.name, i.category.slug, i.category.description, i.category.parentId, i.category.createdAt, i.category.updatedAt
-    ));
+  private mapToDomain(data: UserWithInterests): User {
+    const interests = data.interests.map(
+      (i) =>
+        new Category(
+          i.category.id,
+          i.category.name,
+          i.category.slug,
+          i.category.description ?? undefined,
+          i.category.parentId ?? undefined,
+          i.category.createdAt,
+          i.category.updatedAt,
+        ),
+    );
 
     return new User(
-        data.id,
-        data.email,
-        data.name,
-        data.role as any,
-        data.avatarUrl,
-        data.isActive,
-        data.isVerified,
-        data.verificationToken,
-        data.password, // passwordHash -> db.password
-        data.googleId,
-        data.learningGoal,
-        data.onboardingStatus as OnboardingStatus,
-        interests,
-        data.createdAt,
-        data.updatedAt,
+      data.id,
+      data.email,
+      data.name,
+      data.role as UserRole,
+      data.avatarUrl ?? undefined,
+      data.isActive,
+      data.isVerified,
+      data.verificationToken ?? undefined,
+      data.password ?? undefined,
+      data.googleId ?? undefined,
+      data.learningGoal ?? undefined,
+      data.onboardingStatus as OnboardingStatus,
+      interests,
+      data.createdAt,
+      data.updatedAt,
     );
   }
 }

@@ -12,8 +12,10 @@ export class CreateCategoryDto {
 @Controller('categories')
 export class CategoryController {
   constructor(
-    @Inject('GetCategoriesUseCase') private readonly getCategoriesUseCase: GetCategoriesUseCase,
-    @Inject(CATEGORY_REPOSITORY) private readonly categoryConfigRepository: ICategoryRepository // Quick hack to create, ideally use CreateCategoryUseCase
+    @Inject('GetCategoriesUseCase')
+    private readonly getCategoriesUseCase: GetCategoriesUseCase,
+    @Inject(CATEGORY_REPOSITORY)
+    private readonly categoryConfigRepository: ICategoryRepository, // Quick hack to create, ideally use CreateCategoryUseCase
   ) {}
 
   @Get()
@@ -23,10 +25,10 @@ export class CategoryController {
 
   @Post()
   async create(@Body() body: CreateCategoryDto) {
-      // Need ID generation if not passed, but Category entity has logic? 
-      // Using quick entity creation for seed access
-      const id = crypto.randomUUID();
-      const cat = Category.create(id, body.name, body.slug);
-      return this.categoryConfigRepository.save(cat);
+    // Need ID generation if not passed, but Category entity has logic?
+    // Using quick entity creation for seed access
+    const id = crypto.randomUUID();
+    const cat = Category.create(id, body.name, body.slug);
+    return this.categoryConfigRepository.save(cat);
   }
 }

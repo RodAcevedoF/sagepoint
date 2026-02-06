@@ -1,4 +1,9 @@
-import { IDocumentRepository, Document, DocumentStatus } from '@sagepoint/domain';
+import {
+  IDocumentRepository,
+  Document,
+  DocumentStatus,
+} from '@sagepoint/domain';
+import type { Document as PrismaDocument } from '@sagepoint/database';
 import { PrismaService } from '@/core/infra/database/prisma.service';
 
 export class PrismaDocumentRepository implements IDocumentRepository {
@@ -33,10 +38,10 @@ export class PrismaDocumentRepository implements IDocumentRepository {
 
   async findAll(): Promise<Document[]> {
     const data = await this.prisma.document.findMany();
-    return data.map(this.mapToDomain);
+    return data.map((d) => this.mapToDomain(d));
   }
 
-  private mapToDomain(data: any): Document {
+  private mapToDomain(data: PrismaDocument): Document {
     return new Document(
       data.id,
       data.filename,
@@ -46,7 +51,7 @@ export class PrismaDocumentRepository implements IDocumentRepository {
       data.createdAt,
       data.updatedAt,
       data.errorMessage || undefined,
-      0 // Progress not stored in DB currently
+      0, // Progress not stored in DB currently
     );
   }
 }

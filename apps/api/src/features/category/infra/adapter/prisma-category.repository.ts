@@ -1,4 +1,5 @@
 import { Category, ICategoryRepository } from '@sagepoint/domain';
+import type { Category as PrismaCategory } from '@sagepoint/database';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/core/infra/database/prisma.service';
 
@@ -41,20 +42,20 @@ export class PrismaCategoryRepository implements ICategoryRepository {
 
   async list(): Promise<Category[]> {
     const found = await this.prisma.category.findMany();
-    return found.map(this.toDomain);
+    return found.map((c) => this.toDomain(c));
   }
 
   async delete(id: string): Promise<void> {
     await this.prisma.category.delete({ where: { id } });
   }
 
-  private toDomain(model: any): Category {
+  private toDomain(model: PrismaCategory): Category {
     return new Category(
       model.id,
       model.name,
       model.slug,
-      model.description,
-      model.parentId,
+      model.description ?? undefined,
+      model.parentId ?? undefined,
       model.createdAt,
       model.updatedAt,
     );

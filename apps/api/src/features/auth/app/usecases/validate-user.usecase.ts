@@ -29,7 +29,10 @@ export class ValidateUserUseCase {
       return null;
     }
 
-    const isPasswordValid = await this.passwordHasher.compare(password, user.passwordHash);
+    const isPasswordValid = await this.passwordHasher.compare(
+      password,
+      user.passwordHash,
+    );
     if (!isPasswordValid) {
       return null;
     }

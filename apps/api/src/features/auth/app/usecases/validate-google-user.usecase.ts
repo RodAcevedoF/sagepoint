@@ -12,7 +12,9 @@ export interface GoogleUserDetails {
 
 @Injectable()
 export class ValidateGoogleUserUseCase {
-  constructor(@Inject(USER_SERVICE) private readonly userService: IUserService) {}
+  constructor(
+    @Inject(USER_SERVICE) private readonly userService: IUserService,
+  ) {}
 
   async execute(details: GoogleUserDetails): Promise<User> {
     const existingUser = await this.userService.getByEmail(details.email);

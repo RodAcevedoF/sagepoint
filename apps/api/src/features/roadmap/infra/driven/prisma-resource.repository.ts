@@ -1,4 +1,5 @@
 import { IResourceRepository, Resource, ResourceType } from '@sagepoint/domain';
+import type { Resource as PrismaResource } from '@sagepoint/database';
 import { PrismaService } from '@/core/infra/database/prisma.service';
 
 export class PrismaResourceRepository implements IResourceRepository {
@@ -38,7 +39,6 @@ export class PrismaResourceRepository implements IResourceRepository {
   async saveMany(resources: Resource[]): Promise<Resource[]> {
     if (resources.length === 0) return [];
 
-    // Use transaction for batch insert
     const results = await this.prisma.$transaction(
       resources.map((resource) =>
         this.prisma.resource.upsert({
@@ -67,11 +67,11 @@ export class PrismaResourceRepository implements IResourceRepository {
             difficulty: resource.difficulty,
             order: resource.order,
           },
-        })
-      )
+        }),
+      ),
     );
 
-    return results.map(this.mapToDomain);
+    return results.map((r) => this.mapToDomain(r));
   }
 
   async findByRoadmapId(roadmapId: string): Promise<Resource[]> {
@@ -79,7 +79,7 @@ export class PrismaResourceRepository implements IResourceRepository {
       where: { roadmapId },
       orderBy: { order: 'asc' },
     });
-    return data.map(this.mapToDomain);
+    return data.map((r) => this.mapToDomain(r));
   }
 
   async findByConceptId(conceptId: string): Promise<Resource[]> {
@@ -87,7 +87,7 @@ export class PrismaResourceRepository implements IResourceRepository {
       where: { conceptId },
       orderBy: { order: 'asc' },
     });
-    return data.map(this.mapToDomain);
+    return data.map((r) => this.mapToDomain(r));
   }
 
   async deleteByRoadmapId(roadmapId: string): Promise<void> {
@@ -96,7 +96,7 @@ export class PrismaResourceRepository implements IResourceRepository {
     });
   }
 
-  private mapToDomain(data: any): Resource {
+  private mapToDomain(data: PrismaResource): Resource {
     return new Resource({
       id: data.id,
       title: data.title,

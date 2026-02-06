@@ -7,7 +7,7 @@ import type {
   IProgressRepository,
 } from '@sagepoint/domain';
 import { RoadmapService } from '@/features/roadmap/infra/driver/roadmap.service';
-import { InMemoryRoadmapRepository } from '@/features/roadmap/infra/driven/in-memory-roadmap.repository';
+import { PrismaRoadmapRepository } from '@/features/roadmap/infra/driven/prisma-roadmap.repository';
 import { GenerateRoadmapUseCase } from '@/features/roadmap/app/usecases/generate-roadmap.usecase';
 import { GetRoadmapUseCase } from '@/features/roadmap/app/usecases/get-roadmap.usecase';
 import { DeleteRoadmapUseCase } from '@/features/roadmap/app/usecases/delete-roadmap.usecase';
@@ -18,7 +18,10 @@ import { GetUserRoadmapsUseCase } from '@/features/roadmap/app/usecases/get-user
 import { Neo4jService } from '@sagepoint/graph';
 import { Neo4jConceptRepository } from './infra/driven/neo4j-concept.repository';
 import { GetGraphUseCase } from './app/usecases/get-graph.usecase';
-import { OpenAiRoadmapGeneratorAdapter, PerplexityResearchAdapter } from '@sagepoint/ai';
+import {
+  OpenAiRoadmapGeneratorAdapter,
+  PerplexityResearchAdapter,
+} from '@sagepoint/ai';
 import { PrismaService } from '@/core/infra/database/prisma.service';
 import { PrismaResourceRepository } from './infra/driven/prisma-resource.repository';
 import { PrismaProgressRepository } from './infra/driven/prisma-progress.repository';
@@ -32,12 +35,12 @@ export interface RoadmapDependencies {
   progressRepository: IProgressRepository;
 }
 
-export function makeRoadmapDependencies(neo4jService: Neo4jService): RoadmapDependencies {
-  const roadmapRepository = new InMemoryRoadmapRepository();
-  const conceptRepository = new Neo4jConceptRepository(neo4jService);
-
-  // Create Prisma service for storage
+export function makeRoadmapDependencies(
+  neo4jService: Neo4jService,
+): RoadmapDependencies {
   const prismaService = new PrismaService();
+  const roadmapRepository = new PrismaRoadmapRepository(prismaService);
+  const conceptRepository = new Neo4jConceptRepository(neo4jService);
   const resourceRepository = new PrismaResourceRepository(prismaService);
   const progressRepository = new PrismaProgressRepository(prismaService);
 
@@ -56,7 +59,7 @@ export function makeRoadmapDependencies(neo4jService: Neo4jService): RoadmapDepe
     conceptRepository,
     roadmapGenerationService,
     resourceDiscoveryService,
-    resourceRepository
+    resourceRepository,
   );
   const getRoadmapUseCase = new GetRoadmapUseCase(roadmapRepository);
   const deleteRoadmapUseCase = new DeleteRoadmapUseCase(roadmapRepository);
@@ -65,17 +68,17 @@ export function makeRoadmapDependencies(neo4jService: Neo4jService): RoadmapDepe
   // Phase 3 use cases
   const updateStepProgressUseCase = new UpdateStepProgressUseCase(
     progressRepository,
-    roadmapRepository
+    roadmapRepository,
   );
   const refreshResourcesUseCase = new RefreshResourcesUseCase(
     roadmapRepository,
     resourceRepository,
-    resourceDiscoveryService
+    resourceDiscoveryService,
   );
   const getUserRoadmapsUseCase = new GetUserRoadmapsUseCase(
     roadmapRepository,
     progressRepository,
-    resourceRepository
+    resourceRepository,
   );
 
   const roadmapService = new RoadmapService(
@@ -86,7 +89,7 @@ export function makeRoadmapDependencies(neo4jService: Neo4jService): RoadmapDepe
     updateStepProgressUseCase,
     refreshResourcesUseCase,
     getUserRoadmapsUseCase,
-    resourceRepository
+    resourceRepository,
   );
 
   return {

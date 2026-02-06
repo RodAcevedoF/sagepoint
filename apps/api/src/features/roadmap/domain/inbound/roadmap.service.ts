@@ -1,4 +1,4 @@
-import { Roadmap, Concept, StepStatus, RoadmapProgressSummary, Resource } from '@sagepoint/domain';
+import { Roadmap, Concept, StepStatus, Resource } from '@sagepoint/domain';
 import { UserRoadmapWithProgress } from '@/features/roadmap/app/usecases/get-user-roadmaps.usecase';
 import { UpdateStepProgressResult } from '@/features/roadmap/app/usecases/update-step-progress.usecase';
 import { RefreshResourcesResult } from '@/features/roadmap/app/usecases/refresh-resources.usecase';
@@ -29,14 +29,24 @@ export interface IRoadmapService {
   findById(id: string): Promise<Roadmap | null>;
   findByDocumentId(documentId: string): Promise<Roadmap[]>;
   delete(id: string): Promise<void>;
-  getGraph(documentId: string): Promise<{ nodes: Concept[]; edges: { from: string; to: string; type: string }[] }>;
+  getGraph(documentId: string): Promise<{
+    nodes: Concept[];
+    edges: { from: string; to: string; type: string }[];
+  }>;
 
   // Phase 3: Progress tracking
-  updateStepProgress(input: UpdateProgressInput): Promise<UpdateStepProgressResult>;
+  updateStepProgress(
+    input: UpdateProgressInput,
+  ): Promise<UpdateStepProgressResult>;
   getUserRoadmaps(userId: string): Promise<UserRoadmapWithProgress[]>;
-  getUserRoadmapById(userId: string, roadmapId: string): Promise<UserRoadmapWithProgress | null>;
+  getUserRoadmapById(
+    userId: string,
+    roadmapId: string,
+  ): Promise<UserRoadmapWithProgress | null>;
 
   // Phase 3: Resource management
-  refreshResources(input: RefreshResourcesInput): Promise<RefreshResourcesResult>;
+  refreshResources(
+    input: RefreshResourcesInput,
+  ): Promise<RefreshResourcesResult>;
   getResourcesByRoadmap(roadmapId: string): Promise<Resource[]>;
 }
