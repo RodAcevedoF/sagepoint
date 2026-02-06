@@ -1,6 +1,21 @@
 import { IConceptRepository, Concept } from '@sagepoint/domain';
 import { Neo4jService } from '@sagepoint/graph';
 import { Injectable } from '@nestjs/common';
+import type { Record as Neo4jRecord, Node } from 'neo4j-driver';
+
+interface ConceptNode {
+  id: string;
+  name: string;
+  documentId: string;
+  description?: string;
+}
+
+interface Neo4jConceptProperties {
+  id: string;
+  name: string;
+  documentId: string;
+  description?: string;
+}
 
 @Injectable()
 export class Neo4jConceptRepository implements IConceptRepository {
@@ -27,9 +42,7 @@ export class Neo4jConceptRepository implements IConceptRepository {
     const result = await this.neo4j.read(cypher, { id });
     if (result.records.length === 0) return null;
 
-    const record = result.records[0];
-    const node = record.get('c').properties;
-
+    const node = this.extractConceptNode(result.records[0]);
     return new Concept(node.id, node.name, node.documentId, node.description);
   }
 
@@ -41,14 +54,18 @@ export class Neo4jConceptRepository implements IConceptRepository {
       LIMIT 10
     `;
     const result = await this.neo4j.read(cypher, { name });
-    
-    return result.records.map(record => {
-      const node = record.get('c').properties;
+
+    return result.records.map((record) => {
+      const node = this.extractConceptNode(record);
       return new Concept(node.id, node.name, node.documentId, node.description);
     });
   }
 
-  async addRelation(fromId: string, toId: string, type: 'DEPENDS_ON' | 'NEXT_STEP'): Promise<void> {
+  async addRelation(
+    fromId: string,
+    toId: string,
+    type: 'DEPENDS_ON' | 'NEXT_STEP',
+  ): Promise<void> {
     const cypher = `
       MATCH (a:Concept {id: $fromId})
       MATCH (b:Concept {id: $toId})
@@ -57,36 +74,48 @@ export class Neo4jConceptRepository implements IConceptRepository {
     await this.neo4j.write(cypher, { fromId, toId });
   }
 
-  async getGraphByDocumentId(documentId: string): Promise<{ nodes: Concept[]; edges: { from: string; to: string; type: string }[] }> {
+  async getGraphByDocumentId(documentId: string): Promise<{
+    nodes: Concept[];
+    edges: { from: string; to: string; type: string }[];
+  }> {
     console.log(`[Neo4jRepo] Fetching graph for documentId: ${documentId}`);
-    
-    // Fetch nodes
+
     const nodesResult = await this.neo4j.read(
       `MATCH (c:Concept {documentId: $documentId}) RETURN c`,
-      { documentId }
+      { documentId },
     );
-    
+
     console.log(`[Neo4jRepo] Found ${nodesResult.records.length} nodes`);
 
-    const nodes = nodesResult.records.map(r => {
-      const node = r.get('c').properties;
+    const nodes = nodesResult.records.map((r) => {
+      const node = this.extractConceptNode(r);
       return new Concept(node.id, node.name, node.documentId, node.description);
     });
 
-    // Fetch edges
     const edgesResult = await this.neo4j.read(
       `MATCH (c1:Concept {documentId: $documentId})-[r]->(c2:Concept {documentId: $documentId}) RETURN c1.id as from, c2.id as to, type(r) as type`,
-      { documentId }
+      { documentId },
     );
-    
+
     console.log(`[Neo4jRepo] Found ${edgesResult.records.length} edges`);
 
-    const edges = edgesResult.records.map(r => ({
-      from: r.get('from'),
-      to: r.get('to'),
-      type: r.get('type')
+    const edges = edgesResult.records.map((r) => ({
+      from: r.get('from') as string,
+      to: r.get('to') as string,
+      type: r.get('type') as string,
     }));
 
     return { nodes, edges };
+  }
+
+  private extractConceptNode(record: Neo4jRecord): ConceptNode {
+    const node = record.get('c') as Node;
+    const props = node.properties as Neo4jConceptProperties;
+    return {
+      id: props.id,
+      name: props.name,
+      documentId: props.documentId,
+      description: props.description,
+    };
   }
 }

@@ -13,6 +13,7 @@ import {
 export interface GenerateRoadmapCommand {
   documentId: string;
   title: string;
+  userId?: string;
   userContext?: UserContext;
   discoverResources?: boolean; // defaults to true
 }
@@ -23,14 +24,16 @@ export class GenerateRoadmapUseCase {
     private readonly conceptRepository: IConceptRepository,
     private readonly roadmapGenerationService: IRoadmapGenerationService,
     private readonly resourceDiscoveryService?: IResourceDiscoveryService,
-    private readonly resourceRepository?: IResourceRepository
+    private readonly resourceRepository?: IResourceRepository,
   ) {}
 
   async execute(command: GenerateRoadmapCommand): Promise<Roadmap> {
     const shouldDiscoverResources = command.discoverResources !== false;
 
     // 1. Fetch concepts and relationships from Neo4j
-    const graph = await this.conceptRepository.getGraphByDocumentId(command.documentId);
+    const graph = await this.conceptRepository.getGraphByDocumentId(
+      command.documentId,
+    );
 
     if (graph.nodes.length === 0) {
       // No concepts found - return empty roadmap
@@ -38,7 +41,9 @@ export class GenerateRoadmapUseCase {
         id: crypto.randomUUID(),
         title: command.title,
         documentId: command.documentId,
-        description: 'No concepts found for this document. Please ensure the document has been processed.',
+        userId: command.userId,
+        description:
+          'No concepts found for this document. Please ensure the document has been processed.',
         steps: [],
         generationStatus: 'completed',
         createdAt: new Date(),
@@ -60,11 +65,12 @@ export class GenerateRoadmapUseCase {
     }));
 
     // 3. Call AI service to generate learning path
-    const learningPath = await this.roadmapGenerationService.generateLearningPath(
-      conceptsForOrdering,
-      relationshipsForOrdering,
-      command.userContext
-    );
+    const learningPath =
+      await this.roadmapGenerationService.generateLearningPath(
+        conceptsForOrdering,
+        relationshipsForOrdering,
+        command.userContext,
+      );
 
     // 4. Build RoadmapSteps with AI-generated order and enrichments
     const conceptMap = new Map(graph.nodes.map((c) => [c.id, c]));
@@ -76,7 +82,9 @@ export class GenerateRoadmapUseCase {
 
       // Find dependencies based on graph edges
       const dependsOn = graph.edges
-        .filter((e) => e.to === orderedConcept.conceptId && e.type === 'DEPENDS_ON')
+        .filter(
+          (e) => e.to === orderedConcept.conceptId && e.type === 'DEPENDS_ON',
+        )
         .map((e) => e.from);
 
       steps.push({
@@ -96,6 +104,7 @@ export class GenerateRoadmapUseCase {
       id: roadmapId,
       title: command.title,
       documentId: command.documentId,
+      userId: command.userId,
       description: learningPath.description,
       steps,
       generationStatus: 'completed',
@@ -108,26 +117,34 @@ export class GenerateRoadmapUseCase {
     const savedRoadmap = await this.roadmapRepository.save(roadmap);
 
     // 7. Discover and save resources for each concept (in parallel)
-    if (shouldDiscoverResources && this.resourceDiscoveryService && this.resourceRepository) {
+    if (
+      shouldDiscoverResources &&
+      this.resourceDiscoveryService &&
+      this.resourceRepository
+    ) {
       await this.discoverAndSaveResources(roadmapId, steps);
     }
 
     return savedRoadmap;
   }
 
-  private async discoverAndSaveResources(roadmapId: string, steps: RoadmapStep[]): Promise<void> {
+  private async discoverAndSaveResources(
+    roadmapId: string,
+    steps: RoadmapStep[],
+  ): Promise<void> {
     if (!this.resourceDiscoveryService || !this.resourceRepository) return;
 
     // Discover resources for all concepts in parallel
-    const resourcePromises = steps.map(async (step, stepIndex) => {
-      const discovered = await this.resourceDiscoveryService!.discoverResourcesForConcept(
-        step.concept.name,
-        step.concept.description,
-        {
-          maxResults: 3,
-          difficulty: step.difficulty,
-        }
-      );
+    const resourcePromises = steps.map(async (step) => {
+      const discovered =
+        await this.resourceDiscoveryService!.discoverResourcesForConcept(
+          step.concept.name,
+          step.concept.description,
+          {
+            maxResults: 3,
+            difficulty: step.difficulty,
+          },
+        );
 
       // Convert discovered resources to domain entities
       return discovered.map((d, resourceIndex) =>
@@ -142,7 +159,7 @@ export class GenerateRoadmapUseCase {
           conceptId: step.concept.id,
           roadmapId,
           order: resourceIndex,
-        })
+        }),
       );
     });
 
