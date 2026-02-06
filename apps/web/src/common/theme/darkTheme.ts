@@ -36,6 +36,11 @@ export const palette = {
     light: "#34d399",
     dark: "#059669",
   },
+  info: {
+    main: "#3b82f6",
+    light: "#60a5fa",
+    dark: "#2563eb",
+  },
   accent: "#97FEED",
   divider: "rgba(151, 254, 237, 0.08)",
 };
@@ -54,6 +59,7 @@ export const darkTheme = createTheme({
     warning: palette.warning,
     error: palette.error,
     success: palette.success,
+    info: palette.info,
   },
   typography: {
     fontFamily: 'var(--font-geist-sans), "Inter", "Roboto", sans-serif',

@@ -9,6 +9,7 @@ import { useSnackbar } from "@/common/components";
 import { useGetProfileQuery } from "@/infrastructure/api/authApi";
 import { palette } from "@/common/theme";
 
+import { DashboardAppBar } from "@/common/components";
 import { DashboardLayout } from "./DashboardLayout";
 import { DashboardGreeting } from "./DashboardGreeting";
 import { DashboardMetrics } from "./DashboardMetrics";
@@ -153,6 +154,9 @@ export function Dashboard() {
           </Grid>
         )}
       </Grid>
+
+      {/* Floating App Bar */}
+      <DashboardAppBar />
     </DashboardLayout>
   );
 }

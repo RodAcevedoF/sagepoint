@@ -1,3 +1,4 @@
+export { AppBar, DashboardAppBar, useAppBar, useScrollBehavior, useHoverReveal } from "./AppBar";
 export { Button } from "./Button";
 export { Navbar, NavbarBrand, NavbarActions } from "./Navbar";
 export { Brand } from "./Brand";
