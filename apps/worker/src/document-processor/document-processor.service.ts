@@ -139,7 +139,7 @@ export class DocumentProcessorService extends WorkerHost {
 
       this.logger.log(`Saved ${concepts.length} concepts and relationships to Graph for document ${documentId}`);
     } catch (error) {
-       this.logger.error(`Failed to save concepts: ${error.message}`);
+       this.logger.error(`Failed to save concepts: ${error instanceof Error ? error.message : 'Unknown error'}`);
        throw error;
     } finally {
       await session.close();

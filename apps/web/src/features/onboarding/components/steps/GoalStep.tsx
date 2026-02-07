@@ -52,7 +52,7 @@ const suggestions = [
 // ============================================================================
 
 export function GoalStep() {
-  const { data, updateData, goNext } = useOnboarding();
+  const { data, updateData } = useOnboarding();
 
   const handleSuggestionClick = (suggestion: string) => {
     updateData("goal", suggestion);

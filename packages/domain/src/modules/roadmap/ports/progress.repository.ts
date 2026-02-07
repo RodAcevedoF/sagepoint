@@ -1,4 +1,4 @@
-import { UserRoadmapProgress, RoadmapProgressSummary, StepStatus } from '../entities/progress.entity';
+import { UserRoadmapProgress, RoadmapProgressSummary } from '../entities/progress.entity';
 
 export const PROGRESS_REPOSITORY = Symbol('PROGRESS_REPOSITORY');
 

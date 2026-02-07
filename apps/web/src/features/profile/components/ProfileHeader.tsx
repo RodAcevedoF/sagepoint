@@ -4,10 +4,8 @@ import { useState } from "react";
 import {
   Avatar,
   Box,
-  Button,
   Typography,
   alpha,
-  IconButton,
   Chip,
 } from "@mui/material";
 import { Camera, Shield, CheckCircle } from "lucide-react";

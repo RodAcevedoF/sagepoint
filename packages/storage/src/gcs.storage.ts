@@ -64,7 +64,7 @@ export class GCSStorage implements IFileStorage {
     const [metadata] = await file.getMetadata();
 
     // If the file has public access, return direct URL
-    if (metadata.acl?.some((entry: any) => entry.entity === 'allUsers')) {
+    if (metadata.acl?.some((entry: { entity?: string }) => entry.entity === 'allUsers')) {
       return `https://storage.googleapis.com/${this.bucketName}/${path}`;
     }
 

@@ -1,4 +1,3 @@
-import { Concept } from '../modules/roadmap/entities/concept.entity';
 
 export interface ConceptForOrdering {
   id: string;
