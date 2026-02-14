@@ -1,11 +1,11 @@
 'use client';
 
-import { Box, Grid, Typography, CircularProgress, alpha } from '@mui/material';
+import { Box, Grid, Typography, alpha } from '@mui/material';
 import { BookOpen, Lightbulb, Rocket, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useUserRoadmapsQuery } from '@/application/roadmap';
-import { ErrorState, Button } from '@/common/components';
+import { ErrorState, Loader, Button } from '@/common/components';
 import { ButtonIconPositions, ButtonSizes } from '@/common/types';
 import { palette } from '@/common/theme';
 import { RoadmapCard } from './RoadmapCard';
@@ -96,11 +96,7 @@ export function RoadmapList() {
       <RoadmapHero />
 
       {/* Loading */}
-      {isLoading && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-          <CircularProgress />
-        </Box>
-      )}
+      {isLoading && <Loader variant="page" message="Loading roadmaps" />}
 
       {/* Error */}
       {!isLoading && error && (
