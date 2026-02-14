@@ -6,14 +6,14 @@ import { DashboardAppBar } from '@/common/components';
 import { RoadmapList } from '@/features/roadmap';
 
 export default function RoadmapsPage() {
-  return (
-    <AuthGuard>
-      <Box sx={{ minHeight: '100vh', py: 4, pb: 12 }}>
-        <Container maxWidth="lg">
-          <RoadmapList />
-        </Container>
-      </Box>
-      <DashboardAppBar />
-    </AuthGuard>
-  );
+	return (
+		<AuthGuard>
+			<Box sx={{ minHeight: '100vh', pt: 2, pb: 12 }}>
+				<Container maxWidth='lg'>
+					<RoadmapList />
+				</Container>
+			</Box>
+			<DashboardAppBar />
+		</AuthGuard>
+	);
 }

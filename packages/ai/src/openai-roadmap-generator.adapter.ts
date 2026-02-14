@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   IRoadmapGenerationService,
@@ -19,7 +19,7 @@ export class OpenAiRoadmapGeneratorAdapter implements IRoadmapGenerationService 
   private readonly model: ChatOpenAI;
   private readonly logger = new Logger(OpenAiRoadmapGeneratorAdapter.name);
 
-  constructor(configOrService?: ConfigService | OpenAiRoadmapGeneratorConfig) {
+  constructor(@Optional() @Inject(ConfigService) configOrService?: ConfigService | OpenAiRoadmapGeneratorConfig) {
     let apiKey: string | undefined;
 
     if (configOrService && 'apiKey' in configOrService) {
@@ -71,7 +71,7 @@ export class OpenAiRoadmapGeneratorAdapter implements IRoadmapGenerationService 
               .describe('What the learner will understand or be able to do after this step'),
             estimatedDuration: z
               .number()
-              .optional()
+              .nullable()
               .describe('Estimated time to learn this concept in minutes'),
             difficulty: z
               .enum(['beginner', 'intermediate', 'advanced'])
@@ -86,11 +86,11 @@ export class OpenAiRoadmapGeneratorAdapter implements IRoadmapGenerationService 
           .describe('A brief description of the overall learning path and its goals'),
         totalEstimatedDuration: z
           .number()
-          .optional()
+          .nullable()
           .describe('Total estimated time to complete the path in minutes'),
         recommendedPace: z
           .string()
-          .optional()
+          .nullable()
           .describe('Suggested learning pace (e.g., "2-3 concepts per week")'),
       });
 
@@ -153,10 +153,13 @@ Return a structured learning path with each concept ordered, along with learning
       this.logger.log(`Generated learning path with ${result.orderedConcepts.length} ordered concepts`);
 
       return {
-        orderedConcepts: result.orderedConcepts,
+        orderedConcepts: result.orderedConcepts.map((c) => ({
+          ...c,
+          estimatedDuration: c.estimatedDuration ?? undefined,
+        })),
         description: result.description,
-        totalEstimatedDuration: result.totalEstimatedDuration,
-        recommendedPace: result.recommendedPace,
+        totalEstimatedDuration: result.totalEstimatedDuration ?? undefined,
+        recommendedPace: result.recommendedPace ?? undefined,
       };
     } catch (error) {
       this.logger.error('Failed to generate learning path via LangChain', error);

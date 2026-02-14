@@ -15,7 +15,7 @@ export type RoadmapGenerationStatus = 'pending' | 'processing' | 'completed' | '
 export interface RoadmapProps {
   id: string;
   title: string;
-  documentId: string;
+  documentId?: string;
   userId?: string;
   categoryId?: string;
   description?: string;

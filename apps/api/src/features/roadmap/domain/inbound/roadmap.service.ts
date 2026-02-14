@@ -11,6 +11,12 @@ export interface GenerateRoadmapInput {
   userId?: string;
 }
 
+export interface GenerateTopicRoadmapInput {
+  topic: string;
+  title?: string;
+  userId?: string;
+}
+
 export interface UpdateProgressInput {
   userId: string;
   roadmapId: string;
@@ -26,6 +32,7 @@ export interface RefreshResourcesInput {
 export interface IRoadmapService {
   // Existing methods
   generate(input: GenerateRoadmapInput): Promise<Roadmap>;
+  generateFromTopic(input: GenerateTopicRoadmapInput): Promise<Roadmap>;
   findById(id: string): Promise<Roadmap | null>;
   findByDocumentId(documentId: string): Promise<Roadmap[]>;
   delete(id: string): Promise<void>;

@@ -15,7 +15,7 @@ interface SerializedStep {
   concept: {
     id: string;
     name: string;
-    documentId: string;
+    documentId?: string;
     description?: string;
   };
   order: number;
@@ -35,7 +35,7 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
       create: {
         id: roadmap.id,
         title: roadmap.title,
-        documentId: roadmap.documentId,
+        documentId: roadmap.documentId || null,
         userId: roadmap.userId!,
         categoryId: roadmap.categoryId,
         description: roadmap.description,
@@ -143,7 +143,7 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
     return new Roadmap({
       id: data.id,
       title: data.title,
-      documentId: data.documentId,
+      documentId: data.documentId || undefined,
       userId: data.userId,
       categoryId: data.categoryId || undefined,
       description: data.description || undefined,

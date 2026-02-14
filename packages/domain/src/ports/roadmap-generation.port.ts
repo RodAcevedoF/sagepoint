@@ -43,3 +43,15 @@ export interface IRoadmapGenerationService {
     userContext?: UserContext
   ): Promise<GeneratedLearningPath>;
 }
+
+export const TOPIC_CONCEPT_GENERATION_SERVICE = Symbol('TOPIC_CONCEPT_GENERATION_SERVICE');
+
+export interface ITopicConceptGenerationService {
+  generateConceptsFromTopic(
+    topic: string,
+    userContext?: UserContext
+  ): Promise<{
+    concepts: ConceptForOrdering[];
+    relationships: ConceptRelationshipForOrdering[];
+  }>;
+}

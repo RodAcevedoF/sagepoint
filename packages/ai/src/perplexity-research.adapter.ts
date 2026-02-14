@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   IResourceDiscoveryService,
@@ -18,7 +18,7 @@ export class PerplexityResearchAdapter implements IResourceDiscoveryService {
   private readonly model: ChatOpenAI;
   private readonly logger = new Logger(PerplexityResearchAdapter.name);
 
-  constructor(configOrService?: ConfigService | PerplexityResearchConfig) {
+  constructor(@Optional() @Inject(ConfigService) configOrService?: ConfigService | PerplexityResearchConfig) {
     let apiKey: string | undefined;
 
     if (configOrService && 'apiKey' in configOrService) {
@@ -64,19 +64,19 @@ export class PerplexityResearchAdapter implements IResourceDiscoveryService {
               .describe('The type of resource'),
             description: z
               .string()
-              .optional()
+              .nullable()
               .describe('A brief description of what this resource covers'),
             provider: z
               .string()
-              .optional()
+              .nullable()
               .describe('The platform or author providing this resource (e.g., YouTube, MDN, Udemy)'),
             estimatedDuration: z
               .number()
-              .optional()
+              .nullable()
               .describe('Estimated time to complete in minutes'),
             difficulty: z
               .enum(['beginner', 'intermediate', 'advanced'])
-              .optional()
+              .nullable()
               .describe('The difficulty level of this resource'),
           })
         ),
@@ -125,10 +125,10 @@ Return resources that would help someone learn and understand this concept effec
         title: r.title,
         url: r.url,
         type: r.type as ResourceType,
-        description: r.description,
-        provider: r.provider,
-        estimatedDuration: r.estimatedDuration,
-        difficulty: r.difficulty,
+        description: r.description ?? undefined,
+        provider: r.provider ?? undefined,
+        estimatedDuration: r.estimatedDuration ?? undefined,
+        difficulty: r.difficulty ?? undefined,
       }));
     } catch (error) {
       this.logger.error(`Failed to discover resources for "${conceptName}"`, error);

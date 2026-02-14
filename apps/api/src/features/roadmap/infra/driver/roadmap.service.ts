@@ -1,6 +1,7 @@
 import { GetGraphUseCase } from '@/features/roadmap/app/usecases/get-graph.usecase';
 import { DeleteRoadmapUseCase } from '@/features/roadmap/app/usecases/delete-roadmap.usecase';
 import { GenerateRoadmapUseCase } from '@/features/roadmap/app/usecases/generate-roadmap.usecase';
+import { GenerateTopicRoadmapUseCase } from '@/features/roadmap/app/usecases/generate-topic-roadmap.usecase';
 import { GetRoadmapUseCase } from '@/features/roadmap/app/usecases/get-roadmap.usecase';
 import {
   UpdateStepProgressUseCase,
@@ -22,6 +23,7 @@ import {
 } from '@sagepoint/domain';
 import {
   GenerateRoadmapInput,
+  GenerateTopicRoadmapInput,
   UpdateProgressInput,
   RefreshResourcesInput,
   IRoadmapService,
@@ -30,6 +32,7 @@ import {
 export class RoadmapService implements IRoadmapService {
   constructor(
     private readonly generateRoadmapUseCase: GenerateRoadmapUseCase,
+    private readonly generateTopicRoadmapUseCase: GenerateTopicRoadmapUseCase,
     private readonly getRoadmapUseCase: GetRoadmapUseCase,
     private readonly deleteRoadmapUseCase: DeleteRoadmapUseCase,
     private readonly getGraphUseCase: GetGraphUseCase,
@@ -48,6 +51,10 @@ export class RoadmapService implements IRoadmapService {
 
   async generate(input: GenerateRoadmapInput): Promise<Roadmap> {
     return await this.generateRoadmapUseCase.execute(input);
+  }
+
+  async generateFromTopic(input: GenerateTopicRoadmapInput): Promise<Roadmap> {
+    return await this.generateTopicRoadmapUseCase.execute(input);
   }
 
   async findById(id: string): Promise<Roadmap | null> {

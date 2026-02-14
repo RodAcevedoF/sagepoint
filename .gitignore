@@ -3,6 +3,7 @@ dist
 .next
 coverage
 .env
+.claude
 .env.*
 .DS_Store
 pnpm-debug.log*

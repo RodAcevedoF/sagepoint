@@ -2,6 +2,7 @@ import type { IRoadmapService } from '@/features/roadmap/domain/inbound/roadmap.
 import type {
   IRoadmapRepository,
   IRoadmapGenerationService,
+  ITopicConceptGenerationService,
   IResourceDiscoveryService,
   IResourceRepository,
   IProgressRepository,
@@ -9,6 +10,7 @@ import type {
 import { RoadmapService } from '@/features/roadmap/infra/driver/roadmap.service';
 import { PrismaRoadmapRepository } from '@/features/roadmap/infra/driven/prisma-roadmap.repository';
 import { GenerateRoadmapUseCase } from '@/features/roadmap/app/usecases/generate-roadmap.usecase';
+import { GenerateTopicRoadmapUseCase } from '@/features/roadmap/app/usecases/generate-topic-roadmap.usecase';
 import { GetRoadmapUseCase } from '@/features/roadmap/app/usecases/get-roadmap.usecase';
 import { DeleteRoadmapUseCase } from '@/features/roadmap/app/usecases/delete-roadmap.usecase';
 import { UpdateStepProgressUseCase } from '@/features/roadmap/app/usecases/update-step-progress.usecase';
@@ -20,6 +22,7 @@ import { Neo4jConceptRepository } from './infra/driven/neo4j-concept.repository'
 import { GetGraphUseCase } from './app/usecases/get-graph.usecase';
 import {
   OpenAiRoadmapGeneratorAdapter,
+  OpenAiTopicConceptGeneratorAdapter,
   PerplexityResearchAdapter,
 } from '@sagepoint/ai';
 import { PrismaService } from '@/core/infra/database/prisma.service';
@@ -30,6 +33,7 @@ export interface RoadmapDependencies {
   roadmapService: IRoadmapService;
   roadmapRepository: IRoadmapRepository;
   roadmapGenerationService: IRoadmapGenerationService;
+  topicConceptGenerationService: ITopicConceptGenerationService;
   resourceDiscoveryService: IResourceDiscoveryService;
   resourceRepository: IResourceRepository;
   progressRepository: IProgressRepository;
@@ -49,6 +53,10 @@ export function makeRoadmapDependencies(
     apiKey: process.env.OPENAI_API_KEY || '',
   });
 
+  const topicConceptGenerationService = new OpenAiTopicConceptGeneratorAdapter({
+    apiKey: process.env.OPENAI_API_KEY || '',
+  });
+
   const resourceDiscoveryService = new PerplexityResearchAdapter({
     apiKey: process.env.PERPLEXITY_API_KEY || '',
   });
@@ -57,6 +65,13 @@ export function makeRoadmapDependencies(
   const generateRoadmapUseCase = new GenerateRoadmapUseCase(
     roadmapRepository,
     conceptRepository,
+    roadmapGenerationService,
+    resourceDiscoveryService,
+    resourceRepository,
+  );
+  const generateTopicRoadmapUseCase = new GenerateTopicRoadmapUseCase(
+    roadmapRepository,
+    topicConceptGenerationService,
     roadmapGenerationService,
     resourceDiscoveryService,
     resourceRepository,
@@ -83,6 +98,7 @@ export function makeRoadmapDependencies(
 
   const roadmapService = new RoadmapService(
     generateRoadmapUseCase,
+    generateTopicRoadmapUseCase,
     getRoadmapUseCase,
     deleteRoadmapUseCase,
     getGraphUseCase,
@@ -96,6 +112,7 @@ export function makeRoadmapDependencies(
     roadmapService,
     roadmapRepository,
     roadmapGenerationService,
+    topicConceptGenerationService,
     resourceDiscoveryService,
     resourceRepository,
     progressRepository,

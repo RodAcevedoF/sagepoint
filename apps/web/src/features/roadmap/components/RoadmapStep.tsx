@@ -305,7 +305,7 @@ export function RoadmapStep({
       </Box>
 
       {/* Resources */}
-      <StepResources resources={resources} isLoading={resourcesLoading} expanded={expanded} />
+      {expanded && <StepResources resources={resources} isLoading={resourcesLoading} />}
     </Box>
   );
 }

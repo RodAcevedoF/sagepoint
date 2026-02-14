@@ -150,8 +150,8 @@ model Roadmap {
   userId      String
   user        User     @relation(fields: [userId], references: [id])
 
-  documentId  String
-  document    Document @relation(fields: [documentId], references: [id])
+  documentId  String?
+  document    Document? @relation(fields: [documentId], references: [id])
 
   categoryId  String?
   category    Category? @relation(fields: [categoryId], references: [id])

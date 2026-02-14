@@ -36,7 +36,7 @@ export interface GraphDataDto {
 export interface RoadmapDto {
 	id: string;
 	title: string;
-	documentId: string;
+	documentId?: string;
 	userId?: string;
 	categoryId?: string;
 	description?: string;
@@ -47,9 +47,11 @@ export interface RoadmapDto {
 	createdAt: string;
 }
 
-export interface RoadmapWithProgressDto extends RoadmapDto {
+export interface RoadmapWithProgressDto {
+	roadmap: RoadmapDto;
 	progress: RoadmapProgressSummary;
 	stepProgress: Record<string, StepStatus>;
+	resources: ResourceDto[];
 }
 
 export interface UserRoadmapDto {
@@ -80,6 +82,11 @@ export interface UpdateProgressDto {
 
 export interface GenerateRoadmapDto {
 	documentId: string;
+}
+
+export interface GenerateTopicRoadmapDto {
+	topic: string;
+	title?: string;
 }
 
 export const roadmapApi = baseApi.injectEndpoints({
@@ -139,6 +146,14 @@ export const roadmapApi = baseApi.injectEndpoints({
 			}),
 			invalidatesTags: [{ type: 'Roadmap', id: 'LIST' }],
 		}),
+		generateTopicRoadmap: builder.mutation<RoadmapDto, GenerateTopicRoadmapDto>({
+			query: (body) => ({
+				url: '/roadmaps/from-topic',
+				method: 'POST',
+				body,
+			}),
+			invalidatesTags: [{ type: 'Roadmap', id: 'LIST' }],
+		}),
 		updateStepProgress: builder.mutation<
 			RoadmapProgressSummary,
 			UpdateProgressDto
@@ -177,6 +192,7 @@ export const {
 	useGetRoadmapResourcesQuery,
 	useLazyGetRoadmapResourcesQuery,
 	useGenerateRoadmapMutation,
+	useGenerateTopicRoadmapMutation,
 	useUpdateStepProgressMutation,
 	useRefreshResourcesMutation,
 } = roadmapApi;

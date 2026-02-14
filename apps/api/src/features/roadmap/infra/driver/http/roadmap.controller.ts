@@ -24,6 +24,11 @@ interface GenerateRoadmapDto {
   title: string;
 }
 
+interface GenerateTopicRoadmapDto {
+  topic: string;
+  title?: string;
+}
+
 interface UpdateStepProgressDto {
   status: StepStatus;
 }
@@ -47,6 +52,20 @@ export class RoadmapController {
   ) {
     const roadmap = await this.roadmapService.generate({
       ...dto,
+      userId: user.id,
+    });
+    return roadmap;
+  }
+
+  @Post('from-topic')
+  @UseGuards(JwtAuthGuard)
+  async generateFromTopic(
+    @Body() dto: GenerateTopicRoadmapDto,
+    @CurrentUser() user: RequestUser,
+  ) {
+    const roadmap = await this.roadmapService.generateFromTopic({
+      topic: dto.topic,
+      title: dto.title,
       userId: user.id,
     });
     return roadmap;

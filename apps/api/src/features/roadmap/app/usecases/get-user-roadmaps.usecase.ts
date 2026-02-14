@@ -4,12 +4,14 @@ import {
   IResourceRepository,
   Roadmap,
   RoadmapProgressSummary,
+  StepStatus,
   Resource,
 } from '@sagepoint/domain';
 
 export interface UserRoadmapWithProgress {
   roadmap: Roadmap;
   progress: RoadmapProgressSummary;
+  stepProgress: Record<string, StepStatus>;
   resources: Resource[];
 }
 
@@ -53,6 +55,7 @@ export class GetUserRoadmapsUseCase {
       return {
         roadmap,
         progress,
+        stepProgress: {},
         resources: resourceArrays[index],
       };
     });
@@ -67,10 +70,16 @@ export class GetUserRoadmapsUseCase {
       return null;
     }
 
-    const [progress, resources] = await Promise.all([
+    const [progress, stepEntries, resources] = await Promise.all([
       this.progressRepository.getProgressSummary(userId, roadmapId),
+      this.progressRepository.findByUserAndRoadmap(userId, roadmapId),
       this.resourceRepository.findByRoadmapId(roadmapId),
     ]);
+
+    const stepProgress: Record<string, StepStatus> = {};
+    for (const entry of stepEntries) {
+      stepProgress[entry.conceptId] = entry.status;
+    }
 
     return {
       roadmap,
@@ -82,6 +91,7 @@ export class GetUserRoadmapsUseCase {
         skippedSteps: 0,
         progressPercentage: 0,
       },
+      stepProgress,
       resources,
     };
   }
