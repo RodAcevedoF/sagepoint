@@ -6,19 +6,21 @@ import {
 	TextField,
 	Typography,
 	CircularProgress,
-	alpha,
+	useTheme,
 } from '@mui/material';
 import { Sparkles } from 'lucide-react';
-import { Button, useModal } from '@/common/components';
-import { ButtonTypes, ButtonIconPositions } from '@/common/types';
-import { palette } from '@/common/theme';
-import { useGenerateTopicRoadmapCommand } from '@/application/roadmap';
+import { Button, useModal } from '../../../../common/components';
+import { ButtonTypes, ButtonIconPositions } from '../../../../common/types';
+import { useGenerateTopicRoadmapCommand } from '../../../../application/roadmap';
+import { makeStyles } from './CreateRoadmapModal.styles';
 
 export function CreateRoadmapModal() {
 	const [topic, setTopic] = useState('');
 	const [title, setTitle] = useState('');
 	const { execute, isLoading, error } = useGenerateTopicRoadmapCommand();
 	const { closeModal } = useModal();
+	const theme = useTheme();
+	const styles = makeStyles(theme);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -35,8 +37,8 @@ export function CreateRoadmapModal() {
 	};
 
 	return (
-		<Box component='form' onSubmit={handleSubmit} sx={{ py: 1 }}>
-			<Typography variant='body2' sx={{ color: palette.text.secondary, mb: 3 }}>
+		<Box component='form' onSubmit={handleSubmit} sx={styles.container}>
+			<Typography variant='body2' sx={styles.description}>
 				Tell us what you want to learn and we&apos;ll create a personalized
 				roadmap with AI.
 			</Typography>
@@ -49,7 +51,7 @@ export function CreateRoadmapModal() {
 				value={topic}
 				onChange={(e) => setTopic(e.target.value)}
 				disabled={isLoading}
-				sx={{ mb: 2 }}
+				sx={styles.field}
 			/>
 
 			<TextField
@@ -59,29 +61,19 @@ export function CreateRoadmapModal() {
 				value={title}
 				onChange={(e) => setTitle(e.target.value)}
 				disabled={isLoading}
-				sx={{ mb: 3 }}
+				sx={styles.nameField}
 			/>
 
 			{error && (
-				<Typography variant='body2' sx={{ color: palette.error.light, mb: 2 }}>
+				<Typography variant='body2' sx={styles.errorText}>
 					Something went wrong. Please try again.
 				</Typography>
 			)}
 
 			{isLoading && (
-				<Box
-					sx={{
-						display: 'flex',
-						alignItems: 'center',
-						gap: 2,
-						mb: 3,
-						p: 2,
-						borderRadius: 2,
-						bgcolor: alpha(palette.primary.main, 0.08),
-						border: `1px solid ${alpha(palette.primary.main, 0.15)}`,
-					}}>
-					<CircularProgress size={20} sx={{ color: palette.primary.light }} />
-					<Typography variant='body2' sx={{ color: palette.text.secondary }}>
+				<Box sx={styles.loadingContainer}>
+					<CircularProgress size={20} sx={styles.loadingProgress} />
+					<Typography variant='body2' sx={styles.loadingText}>
 						Generating your roadmap... This may take a moment.
 					</Typography>
 				</Box>
@@ -95,9 +87,7 @@ export function CreateRoadmapModal() {
 				disabled={!topic.trim() || isLoading}
 				loading={isLoading}
 				fullWidth
-				sx={{
-					py: 1.5,
-				}}
+				sx={styles.submitButton}
 			/>
 		</Box>
 	);

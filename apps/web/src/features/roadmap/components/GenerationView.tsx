@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Box, TextField, Typography, alpha } from '@mui/material';
+import { Box, TextField, Typography, useTheme } from '@mui/material';
 import {
 	Sparkles,
 	Search,
@@ -14,13 +14,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/common/components';
 import { ButtonTypes, ButtonIconPositions, ButtonSizes } from '@/common/types';
-import { palette } from '@/common/theme';
 import { useGenerateTopicRoadmapCommand } from '@/application/roadmap';
 import {
 	GenerationStage,
 	type GenerationStageData,
 	type StageState,
 } from './GenerationStage';
+import { makeStyles } from './GenerationView.styles';
 
 const MotionBox = motion.create(Box);
 
@@ -59,6 +59,8 @@ function getStageState(stageIndex: number, activeStage: number): StageState {
 }
 
 export function GenerationView() {
+	const theme = useTheme();
+	const styles = makeStyles(theme);
 	const router = useRouter();
 	const [topic, setTopic] = useState('');
 	const [title, setTitle] = useState('');
@@ -140,56 +142,19 @@ export function GenerationView() {
 					animate={{ opacity: 1, y: 0 }}
 					exit={{ opacity: 0, y: -20 }}
 					transition={{ duration: 0.4 }}>
-					<Box
-						component='form'
-						onSubmit={handleSubmit}
-						sx={{
-							position: 'relative',
-							overflow: 'hidden',
-							p: { xs: 4, md: 5 },
-							borderRadius: 6,
-							background: alpha(palette.background.paper, 0.4),
-							backdropFilter: 'blur(12px)',
-							border: `1px solid ${alpha(palette.primary.light, 0.1)}`,
-						}}>
+					<Box component='form' onSubmit={handleSubmit} sx={styles.inputCard}>
 						{/* Floating icon */}
-						<Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-							<Box
-								sx={{
-									width: 64,
-									height: 64,
-									borderRadius: 4,
-									display: 'flex',
-									alignItems: 'center',
-									justifyContent: 'center',
-									bgcolor: alpha(palette.primary.main, 0.12),
-									color: palette.primary.light,
-								}}>
+						<Box sx={styles.iconCenter}>
+							<Box sx={styles.iconWrapper}>
 								<Sparkles size={28} />
 							</Box>
 						</Box>
 
-						<Typography
-							variant='h5'
-							sx={{
-								fontWeight: 700,
-								textAlign: 'center',
-								mb: 1,
-								background: `linear-gradient(135deg, ${palette.primary.light}, ${palette.accent})`,
-								backgroundClip: 'text',
-								WebkitBackgroundClip: 'text',
-								WebkitTextFillColor: 'transparent',
-							}}>
+						<Typography variant='h5' sx={styles.title}>
 							Create a Learning Roadmap
 						</Typography>
 
-						<Typography
-							variant='body2'
-							sx={{
-								color: palette.text.secondary,
-								textAlign: 'center',
-								mb: 4,
-							}}>
+						<Typography variant='body2' sx={styles.subtitle}>
 							Tell us what you want to learn and AI will build a personalized
 							path.
 						</Typography>
@@ -202,7 +167,7 @@ export function GenerationView() {
 							value={topic}
 							onChange={(e) => setTopic(e.target.value)}
 							disabled={isLoading}
-							sx={{ mb: 2 }}
+							sx={styles.textField}
 						/>
 
 						<TextField
@@ -212,13 +177,11 @@ export function GenerationView() {
 							value={title}
 							onChange={(e) => setTitle(e.target.value)}
 							disabled={isLoading}
-							sx={{ mb: 3 }}
+							sx={styles.nameField}
 						/>
 
 						{(errorMessage || error) && (
-							<Typography
-								variant='body2'
-								sx={{ color: palette.error.light, mb: 2, textAlign: 'center' }}>
+							<Typography variant='body2' sx={styles.errorText}>
 								{errorMessage || 'Something went wrong. Please try again.'}
 							</Typography>
 						)}
@@ -241,33 +204,15 @@ export function GenerationView() {
 					animate={{ opacity: 1, y: 0 }}
 					exit={{ opacity: 0, y: -20 }}
 					transition={{ duration: 0.4 }}>
-					<Box
-						sx={{
-							p: { xs: 4, md: 5 },
-							borderRadius: 6,
-							background: alpha(palette.background.paper, 0.4),
-							backdropFilter: 'blur(12px)',
-							border: `1px solid ${alpha(palette.primary.light, 0.1)}`,
-						}}>
-						<Typography
-							variant='h5'
-							sx={{
-								fontWeight: 700,
-								mb: 1,
-								background: `linear-gradient(135deg, ${palette.primary.light}, ${palette.accent})`,
-								backgroundClip: 'text',
-								WebkitBackgroundClip: 'text',
-								WebkitTextFillColor: 'transparent',
-							}}>
+					<Box sx={styles.generatingCard}>
+						<Typography variant='h5' sx={styles.generatingTitle}>
 							Generating your roadmap
 						</Typography>
-						<Typography
-							variant='body2'
-							sx={{ color: palette.text.secondary, mb: 4 }}>
+						<Typography variant='body2' sx={styles.generatingSubtitle}>
 							Creating a personalized learning path for <strong>{topic}</strong>
 						</Typography>
 
-						<Box sx={{ pl: 1 }}>
+						<Box sx={styles.stagesWrapper}>
 							{GENERATION_STAGES.map((stage, index) => (
 								<GenerationStage
 									key={stage.label}

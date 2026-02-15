@@ -1,16 +1,22 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Box, Typography, Chip, CircularProgress, alpha } from '@mui/material';
+import {
+	Box,
+	Typography,
+	Chip,
+	CircularProgress,
+	useTheme,
+} from '@mui/material';
 import { Clock, BookOpen, Zap, ArrowLeft } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { StepStatus } from '@sagepoint/domain';
 import { useRoadmapWithProgressQuery } from '@/application/roadmap';
 import { EmptyState, ErrorState, Loader, Button } from '@/common/components';
-import { palette } from '@/common/theme';
 import { ButtonVariants, ButtonIconPositions } from '@/common/types';
-import { TimelineStep } from './TimelineStep';
+import { TimelineStep } from './TimelineStep/TimelineStep';
+import { makeStyles } from './RoadmapDetail.styles';
 
 const MotionBox = motion.create(Box);
 
@@ -40,7 +46,9 @@ function groupResourcesByConceptId<T extends { conceptId: string }>(
 }
 
 export function RoadmapDetail({ roadmapId }: RoadmapDetailProps) {
+	const theme = useTheme();
 	const router = useRouter();
+	const styles = makeStyles(theme);
 	const {
 		data: roadmapData,
 		isLoading: roadmapLoading,
@@ -56,7 +64,7 @@ export function RoadmapDetail({ roadmapId }: RoadmapDetailProps) {
 	);
 
 	if (roadmapLoading) {
-		return <Loader variant="page" message="Loading roadmap" />;
+		return <Loader variant='page' message='Loading roadmap' />;
 	}
 
 	if (roadmapError || !roadmapData) {
@@ -76,7 +84,7 @@ export function RoadmapDetail({ roadmapId }: RoadmapDetailProps) {
 	);
 
 	return (
-		<Box>
+		<Box sx={styles.container}>
 			{/* Back Button */}
 			<Box sx={{ mb: 3 }}>
 				<Button
@@ -93,83 +101,40 @@ export function RoadmapDetail({ roadmapId }: RoadmapDetailProps) {
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.5 }}
-				sx={{
-					mb: 5,
-					p: { xs: 3, md: 4 },
-					borderRadius: 6,
-					position: 'relative',
-					overflow: 'hidden',
-					background: alpha(palette.background.paper, 0.4),
-					backdropFilter: 'blur(12px)',
-					border: `1px solid ${alpha(palette.primary.light, 0.1)}`,
-				}}>
+				sx={styles.headerCard}>
 				{/* Gradient accent bar */}
-				<Box
-					sx={{
-						position: 'absolute',
-						top: 0,
-						left: 0,
-						right: 0,
-						height: 4,
-						background: `linear-gradient(90deg, ${palette.primary.main}, ${palette.accent}, ${palette.info.main})`,
-					}}
-				/>
+				<Box sx={styles.accentBar} />
 
-				<Box
-					sx={{
-						display: 'flex',
-						justifyContent: 'space-between',
-						gap: 3,
-						alignItems: 'flex-start',
-					}}>
+				<Box sx={styles.headerContent}>
 					{/* Text content */}
 					<Box sx={{ flex: 1, minWidth: 0 }}>
-						<Typography
-							variant='h4'
-							sx={{
-								fontWeight: 700,
-								mb: 1,
-								background: `linear-gradient(135deg, ${palette.primary.light}, ${palette.accent})`,
-								backgroundClip: 'text',
-								WebkitBackgroundClip: 'text',
-								WebkitTextFillColor: 'transparent',
-							}}>
+						<Typography variant='h4' sx={styles.title}>
 							{roadmap.title}
 						</Typography>
 						{roadmap.description && (
-							<Typography
-								variant='body1'
-								sx={{ color: palette.text.secondary, mb: 3 }}>
+							<Typography variant='body1' sx={styles.description}>
 								{roadmap.description}
 							</Typography>
 						)}
 
 						{/* Stats */}
-						<Box
-							sx={{
-								display: 'flex',
-								gap: 3,
-								flexWrap: 'wrap',
-								alignItems: 'center',
-							}}>
-							<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-								<BookOpen size={18} color={palette.text.secondary} />
+						<Box sx={styles.metaRow}>
+							<Box sx={styles.metaItem}>
+								<BookOpen size={18} color={theme.palette.text.secondary} />
 								<Typography
 									variant='body2'
-									sx={{ color: palette.text.secondary }}>
-									<Box
-										component='span'
-										sx={{ color: palette.text.primary, fontWeight: 600 }}>
+									sx={{ color: theme.palette.text.secondary }}>
+									<Box component='span' sx={styles.metaValue}>
 										{progress.completedSteps}
 									</Box>
 									/{progress.totalSteps} steps completed
 								</Typography>
 							</Box>
-							<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-								<Clock size={18} color={palette.text.secondary} />
+							<Box sx={styles.metaItem}>
+								<Clock size={18} color={theme.palette.text.secondary} />
 								<Typography
 									variant='body2'
-									sx={{ color: palette.text.secondary }}>
+									sx={{ color: theme.palette.text.secondary }}>
 									Est. {formatDuration(roadmap.totalEstimatedDuration)}
 								</Typography>
 							</Box>
@@ -178,69 +143,33 @@ export function RoadmapDetail({ roadmapId }: RoadmapDetailProps) {
 									size='small'
 									icon={<Zap size={14} />}
 									label={roadmap.recommendedPace}
-									sx={{
-										bgcolor: alpha(palette.info.main, 0.1),
-										color: palette.info.light,
-										'& .MuiChip-icon': { color: palette.info.light },
-									}}
+									sx={styles.paceChip}
 								/>
 							)}
 						</Box>
 					</Box>
 
 					{/* Large circular progress */}
-					<Box
-						sx={{
-							position: 'relative',
-							flexShrink: 0,
-							width: 100,
-							height: 100,
-							display: { xs: 'none', sm: 'block' },
-						}}>
+					<Box sx={styles.progressCircleContainer}>
 						<CircularProgress
 							variant='determinate'
 							value={100}
 							size={100}
 							thickness={3}
-							sx={{
-								position: 'absolute',
-								color: alpha(palette.primary.main, 0.1),
-							}}
+							sx={styles.progressCircleBackground}
 						/>
 						<CircularProgress
 							variant='determinate'
 							value={progress.progressPercentage}
 							size={100}
 							thickness={3}
-							sx={{
-								position: 'absolute',
-								color:
-									progress.progressPercentage === 100 ?
-										palette.success.light
-									:	palette.primary.light,
-							}}
+							sx={styles.progressCircleForeground(progress.progressPercentage)}
 						/>
-						<Box
-							sx={{
-								position: 'absolute',
-								inset: 0,
-								display: 'flex',
-								flexDirection: 'column',
-								alignItems: 'center',
-								justifyContent: 'center',
-							}}>
-							<Typography
-								variant='h5'
-								sx={{
-									fontWeight: 700,
-									color: palette.text.primary,
-									lineHeight: 1,
-								}}>
+						<Box sx={styles.progressLabelContainer}>
+							<Typography variant='h5' sx={styles.progressPercentage}>
 								{progress.progressPercentage}%
 							</Typography>
-							<Typography
-								variant='caption'
-								sx={{ color: palette.text.secondary, fontSize: '0.6rem' }}>
+							<Typography variant='caption' sx={styles.progressLabel}>
 								complete
 							</Typography>
 						</Box>
@@ -254,7 +183,7 @@ export function RoadmapDetail({ roadmapId }: RoadmapDetailProps) {
 					title='No steps yet'
 					description="This roadmap doesn't have any steps defined."
 				/>
-			:	<Box sx={{ display: 'flex', flexDirection: 'column' }}>
+			:	<Box sx={styles.timelineContainer}>
 					{orderedSteps.map((step, index) => (
 						<TimelineStep
 							key={step.concept.id}
