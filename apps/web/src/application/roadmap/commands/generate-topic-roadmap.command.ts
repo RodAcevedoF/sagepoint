@@ -1,7 +1,15 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useGenerateTopicRoadmapMutation } from '@/infrastructure/api/roadmapApi';
+import {
+	useGenerateTopicRoadmapMutation,
+	type GenerateTopicRoadmapDto,
+} from '@/infrastructure/api/roadmapApi';
+
+interface GenerateOptions {
+	navigateOnSuccess?: boolean;
+	userContext?: GenerateTopicRoadmapDto['userContext'];
+}
 
 export function useGenerateTopicRoadmapCommand() {
 	const [generateMutation, { isLoading, error }] = useGenerateTopicRoadmapMutation();
@@ -10,9 +18,14 @@ export function useGenerateTopicRoadmapCommand() {
 	const execute = async (
 		topic: string,
 		title?: string,
-		options?: { navigateOnSuccess?: boolean },
+		options?: GenerateOptions,
 	) => {
-		const roadmap = await generateMutation({ topic, title: title || undefined }).unwrap();
+		const body: GenerateTopicRoadmapDto = {
+			topic,
+			title: title || undefined,
+			userContext: options?.userContext,
+		};
+		const roadmap = await generateMutation(body).unwrap();
 		if (options?.navigateOnSuccess) {
 			router.push(`/roadmaps/${roadmap.id}`);
 		}

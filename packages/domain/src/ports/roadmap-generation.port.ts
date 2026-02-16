@@ -13,7 +13,7 @@ export interface ConceptRelationshipForOrdering {
 
 export interface UserContext {
   goal?: string;
-  experienceLevel?: 'beginner' | 'intermediate' | 'advanced';
+  experienceLevel?: 'beginner' | 'intermediate' | 'advanced' | 'expert';
   timeAvailable?: number; // hours per week
   preferredLearningStyle?: string;
 }
@@ -23,7 +23,7 @@ export interface OrderedConcept {
   order: number;
   learningObjective: string;
   estimatedDuration?: number; // in minutes
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  difficulty: 'beginner' | 'intermediate' | 'advanced' | 'expert';
   rationale: string; // why this concept is at this position
 }
 

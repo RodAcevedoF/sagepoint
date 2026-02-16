@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/features/auth/infra/guards/jwt-auth.guard';
 import { CurrentUser } from '@/features/auth/decorators/current-user.decorator';
-import type { RequestUser } from '@sagepoint/domain';
+import type { RequestUser, UserContext } from '@sagepoint/domain';
 import { StepStatus } from '@sagepoint/domain';
 import {
   ROADMAP_SERVICE,
@@ -27,6 +27,7 @@ interface GenerateRoadmapDto {
 interface GenerateTopicRoadmapDto {
   topic: string;
   title?: string;
+  userContext?: UserContext;
 }
 
 interface UpdateStepProgressDto {
@@ -67,6 +68,7 @@ export class RoadmapController {
       topic: dto.topic,
       title: dto.title,
       userId: user.id,
+      userContext: dto.userContext,
     });
     return roadmap;
   }

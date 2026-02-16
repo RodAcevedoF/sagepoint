@@ -6,5 +6,6 @@ coverage
 .claude
 .env.*
 .DS_Store
+gcp-key*.json
 pnpm-debug.log*
 /pre-docs

@@ -74,7 +74,7 @@ export class OpenAiRoadmapGeneratorAdapter implements IRoadmapGenerationService 
               .nullable()
               .describe('Estimated time to learn this concept in minutes'),
             difficulty: z
-              .enum(['beginner', 'intermediate', 'advanced'])
+              .enum(['beginner', 'intermediate', 'advanced', 'expert'])
               .describe('The difficulty level of this concept'),
             rationale: z
               .string()

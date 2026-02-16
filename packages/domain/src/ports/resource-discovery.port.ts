@@ -3,7 +3,7 @@ import { ResourceType } from '../modules/roadmap/entities/resource.entity';
 export interface ResourceDiscoveryOptions {
   maxResults?: number;
   preferredTypes?: ResourceType[];
-  difficulty?: 'beginner' | 'intermediate' | 'advanced';
+  difficulty?: 'beginner' | 'intermediate' | 'advanced' | 'expert';
   freeOnly?: boolean;
 }
 

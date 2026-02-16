@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Box, TextField, Typography, useTheme } from '@mui/material';
+import { Box, TextField, Typography, useTheme, alpha } from '@mui/material';
 import {
 	Sparkles,
 	Search,
@@ -9,6 +9,10 @@ import {
 	GitBranch,
 	BookOpen,
 	CheckCircle2,
+	Sprout,
+	Flame,
+	Award,
+	Rocket,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
@@ -48,6 +52,39 @@ const GENERATION_STAGES: GenerationStageData[] = [
 	{ label: 'Done!', description: 'Your roadmap is ready', icon: CheckCircle2 },
 ];
 
+const EXPERIENCE_LEVELS = [
+	{
+		id: 'beginner' as const,
+		icon: Sprout,
+		title: 'Beginner',
+		description: 'Just starting out',
+		color: '#4ade80',
+	},
+	{
+		id: 'intermediate' as const,
+		icon: Flame,
+		title: 'Intermediate',
+		description: 'Some experience',
+		color: '#f59e0b',
+	},
+	{
+		id: 'advanced' as const,
+		icon: Award,
+		title: 'Advanced',
+		description: 'Solid foundation',
+		color: '#3b82f6',
+	},
+	{
+		id: 'expert' as const,
+		icon: Rocket,
+		title: 'Expert',
+		description: 'Deep expertise',
+		color: '#a855f7',
+	},
+];
+
+type ExperienceLevel = (typeof EXPERIENCE_LEVELS)[number]['id'];
+
 const STAGE_INTERVAL_MS = 4500;
 const DONE_DELAY_MS = 1500;
 const PAUSE_AT_STAGE = 3; // 0-indexed: pause at "Discovering resources..."
@@ -58,12 +95,29 @@ function getStageState(stageIndex: number, activeStage: number): StageState {
 	return 'pending';
 }
 
-export function GenerationView() {
+export interface GenerationViewProps {
+	initialTopic?: string;
+	initialExperience?: string;
+	fromOnboarding?: boolean;
+}
+
+export function GenerationView({
+	initialTopic,
+	initialExperience,
+	fromOnboarding,
+}: GenerationViewProps) {
 	const theme = useTheme();
 	const styles = makeStyles(theme);
 	const router = useRouter();
-	const [topic, setTopic] = useState('');
+	const [topic, setTopic] = useState(initialTopic || '');
 	const [title, setTitle] = useState('');
+	const [experienceLevel, setExperienceLevel] = useState<
+		ExperienceLevel | undefined
+	>(
+		EXPERIENCE_LEVELS.some((l) => l.id === initialExperience)
+			? (initialExperience as ExperienceLevel)
+			: undefined,
+	);
 	const [phase, setPhase] = useState<'input' | 'generating'>('input');
 	const [activeStage, setActiveStage] = useState(0);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -120,7 +174,11 @@ export function GenerationView() {
 		apiCompleteRef.current = null;
 
 		try {
-			const roadmap = await execute(topic.trim(), title.trim() || undefined);
+			const roadmap = await execute(topic.trim(), title.trim() || undefined, {
+				userContext: experienceLevel
+					? { experienceLevel }
+					: undefined,
+			});
 			apiCompleteRef.current = roadmap.id;
 			// Jump to final stage — triggers the redirect effect
 			setActiveStage(GENERATION_STAGES.length - 1);
@@ -132,6 +190,14 @@ export function GenerationView() {
 			);
 		}
 	};
+
+	const headingTitle = fromOnboarding
+		? "Let's create your first roadmap!"
+		: 'Create a Learning Roadmap';
+
+	const headingSubtitle = fromOnboarding
+		? "We've pre-filled your goal. Adjust if needed and hit generate!"
+		: 'Tell us what you want to learn and AI will build a personalized path.';
 
 	return (
 		<AnimatePresence mode='wait'>
@@ -151,12 +217,11 @@ export function GenerationView() {
 						</Box>
 
 						<Typography variant='h5' sx={styles.title}>
-							Create a Learning Roadmap
+							{headingTitle}
 						</Typography>
 
 						<Typography variant='body2' sx={styles.subtitle}>
-							Tell us what you want to learn and AI will build a personalized
-							path.
+							{headingSubtitle}
 						</Typography>
 
 						<TextField
@@ -179,6 +244,88 @@ export function GenerationView() {
 							disabled={isLoading}
 							sx={styles.nameField}
 						/>
+
+						{/* Experience level selector */}
+						<Typography
+							variant='body2'
+							sx={{
+								color: theme.palette.text.secondary,
+								mb: 1.5,
+								fontWeight: 500,
+							}}>
+							Your experience level (optional)
+						</Typography>
+						<Box
+							sx={{
+								display: 'grid',
+								gridTemplateColumns: 'repeat(4, 1fr)',
+								gap: 1.5,
+								mb: 3,
+							}}>
+							{EXPERIENCE_LEVELS.map((level, index) => {
+								const Icon = level.icon;
+								const isSelected = experienceLevel === level.id;
+								return (
+									<motion.div
+										key={level.id}
+										initial={{ opacity: 0, y: 10 }}
+										animate={{ opacity: 1, y: 0 }}
+										transition={{ delay: 0.1 + index * 0.05 }}>
+										<Box
+											onClick={() =>
+												setExperienceLevel(
+													isSelected ? undefined : level.id,
+												)
+											}
+											sx={{
+												p: 1.5,
+												borderRadius: 3,
+												border: `1px solid ${alpha(
+													isSelected
+														? level.color
+														: theme.palette.primary.light,
+													isSelected ? 0.6 : 0.15,
+												)}`,
+												background: isSelected
+													? alpha(level.color, 0.1)
+													: 'transparent',
+												cursor: 'pointer',
+												transition: 'all 0.2s ease',
+												textAlign: 'center',
+												'&:hover': {
+													borderColor: level.color,
+													background: alpha(level.color, 0.05),
+													transform: 'translateY(-2px)',
+												},
+											}}>
+											<Box
+												sx={{
+													width: 40,
+													height: 40,
+													borderRadius: 2,
+													display: 'flex',
+													alignItems: 'center',
+													justifyContent: 'center',
+													mx: 'auto',
+													mb: 0.5,
+													background: alpha(level.color, 0.15),
+													color: level.color,
+												}}>
+												<Icon size={20} />
+											</Box>
+											<Typography
+												variant='caption'
+												sx={{
+													fontWeight: 600,
+													display: 'block',
+												}}>
+												{level.title}
+											</Typography>
+										</Box>
+									</motion.div>
+								);
+							})}
+						</Box>
 
 						{(errorMessage || error) && (
 							<Typography variant='body2' sx={styles.errorText}>

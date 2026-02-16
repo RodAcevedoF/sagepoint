@@ -6,7 +6,7 @@ export interface RoadmapStep {
   dependsOn: string[]; // concept IDs
   learningObjective?: string;
   estimatedDuration?: number; // in minutes
-  difficulty?: 'beginner' | 'intermediate' | 'advanced';
+  difficulty?: 'beginner' | 'intermediate' | 'advanced' | 'expert';
   rationale?: string;
 }
 

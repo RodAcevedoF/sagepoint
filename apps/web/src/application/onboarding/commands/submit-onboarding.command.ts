@@ -16,7 +16,12 @@ export function useSubmitOnboardingCommand() {
       weeklyHours: data.weeklyHours,
       status: 'COMPLETED',
     }).unwrap();
-    router.push('/dashboard');
+
+    const params = new URLSearchParams();
+    if (data.goal) params.set('topic', data.goal);
+    if (data.experience) params.set('experience', data.experience);
+    params.set('from', 'onboarding');
+    router.push(`/roadmaps/create?${params.toString()}`);
   };
 
   return { execute, isLoading, error };

@@ -87,6 +87,10 @@ export interface GenerateRoadmapDto {
 export interface GenerateTopicRoadmapDto {
 	topic: string;
 	title?: string;
+	userContext?: {
+		experienceLevel?: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+		goal?: string;
+	};
 }
 
 export const roadmapApi = baseApi.injectEndpoints({

@@ -20,11 +20,7 @@ import { GetUserRoadmapsUseCase } from '@/features/roadmap/app/usecases/get-user
 import { Neo4jService } from '@sagepoint/graph';
 import { Neo4jConceptRepository } from './infra/driven/neo4j-concept.repository';
 import { GetGraphUseCase } from './app/usecases/get-graph.usecase';
-import {
-  OpenAiRoadmapGeneratorAdapter,
-  OpenAiTopicConceptGeneratorAdapter,
-  PerplexityResearchAdapter,
-} from '@sagepoint/ai';
+import { createAiAdapters } from '@sagepoint/ai';
 import { PrismaService } from '@/core/infra/database/prisma.service';
 import { PrismaResourceRepository } from './infra/driven/prisma-resource.repository';
 import { PrismaProgressRepository } from './infra/driven/prisma-progress.repository';
@@ -48,18 +44,14 @@ export function makeRoadmapDependencies(
   const resourceRepository = new PrismaResourceRepository(prismaService);
   const progressRepository = new PrismaProgressRepository(prismaService);
 
-  // Create AI adapters
-  const roadmapGenerationService = new OpenAiRoadmapGeneratorAdapter({
-    apiKey: process.env.OPENAI_API_KEY || '',
+  // Create AI adapters via centralized factory
+  const aiAdapters = createAiAdapters({
+    openAiApiKey: process.env.OPENAI_API_KEY || '',
+    perplexityApiKey: process.env.PERPLEXITY_API_KEY || '',
   });
-
-  const topicConceptGenerationService = new OpenAiTopicConceptGeneratorAdapter({
-    apiKey: process.env.OPENAI_API_KEY || '',
-  });
-
-  const resourceDiscoveryService = new PerplexityResearchAdapter({
-    apiKey: process.env.PERPLEXITY_API_KEY || '',
-  });
+  const roadmapGenerationService = aiAdapters.roadmapGenerator;
+  const topicConceptGenerationService = aiAdapters.topicConceptGenerator;
+  const resourceDiscoveryService = aiAdapters.resourceDiscovery;
 
   // Use cases
   const generateRoadmapUseCase = new GenerateRoadmapUseCase(

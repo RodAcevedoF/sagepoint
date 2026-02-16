@@ -1,4 +1,10 @@
-import { Roadmap, Concept, StepStatus, Resource } from '@sagepoint/domain';
+import {
+  Roadmap,
+  Concept,
+  StepStatus,
+  Resource,
+  UserContext,
+} from '@sagepoint/domain';
 import { UserRoadmapWithProgress } from '@/features/roadmap/app/usecases/get-user-roadmaps.usecase';
 import { UpdateStepProgressResult } from '@/features/roadmap/app/usecases/update-step-progress.usecase';
 import { RefreshResourcesResult } from '@/features/roadmap/app/usecases/refresh-resources.usecase';
@@ -15,6 +21,7 @@ export interface GenerateTopicRoadmapInput {
   topic: string;
   title?: string;
   userId?: string;
+  userContext?: UserContext;
 }
 
 export interface UpdateProgressInput {
