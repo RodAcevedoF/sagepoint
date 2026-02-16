@@ -8,4 +8,5 @@ coverage
 .DS_Store
 gcp-key*.json
 pnpm-debug.log*
-/pre-docs
+/tfg-docs
+
