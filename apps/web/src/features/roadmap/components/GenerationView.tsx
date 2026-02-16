@@ -114,9 +114,9 @@ export function GenerationView({
 	const [experienceLevel, setExperienceLevel] = useState<
 		ExperienceLevel | undefined
 	>(
-		EXPERIENCE_LEVELS.some((l) => l.id === initialExperience)
-			? (initialExperience as ExperienceLevel)
-			: undefined,
+		EXPERIENCE_LEVELS.some((l) => l.id === initialExperience) ?
+			(initialExperience as ExperienceLevel)
+		:	undefined,
 	);
 	const [phase, setPhase] = useState<'input' | 'generating'>('input');
 	const [activeStage, setActiveStage] = useState(0);
@@ -175,9 +175,7 @@ export function GenerationView({
 
 		try {
 			const roadmap = await execute(topic.trim(), title.trim() || undefined, {
-				userContext: experienceLevel
-					? { experienceLevel }
-					: undefined,
+				userContext: experienceLevel ? { experienceLevel } : undefined,
 			});
 			apiCompleteRef.current = roadmap.id;
 			// Jump to final stage — triggers the redirect effect
@@ -191,13 +189,15 @@ export function GenerationView({
 		}
 	};
 
-	const headingTitle = fromOnboarding
-		? "Let's create your first roadmap!"
-		: 'Create a Learning Roadmap';
+	const headingTitle =
+		fromOnboarding ?
+			"Let's create your first roadmap!"
+		:	'Create a Learning Roadmap';
 
-	const headingSubtitle = fromOnboarding
-		? "We've pre-filled your goal. Adjust if needed and hit generate!"
-		: 'Tell us what you want to learn and AI will build a personalized path.';
+	const headingSubtitle =
+		fromOnboarding ?
+			"We've pre-filled your goal. Adjust if needed and hit generate!"
+		:	'Tell us what you want to learn and AI will build a personalized path.';
 
 	return (
 		<AnimatePresence mode='wait'>
@@ -273,22 +273,19 @@ export function GenerationView({
 										transition={{ delay: 0.1 + index * 0.05 }}>
 										<Box
 											onClick={() =>
-												setExperienceLevel(
-													isSelected ? undefined : level.id,
-												)
+												setExperienceLevel(isSelected ? undefined : level.id)
 											}
 											sx={{
 												p: 1.5,
 												borderRadius: 3,
 												border: `1px solid ${alpha(
-													isSelected
-														? level.color
-														: theme.palette.primary.light,
+													isSelected ?
+														level.color
+													:	theme.palette.primary.light,
 													isSelected ? 0.6 : 0.15,
 												)}`,
-												background: isSelected
-													? alpha(level.color, 0.1)
-													: 'transparent',
+												background:
+													isSelected ? alpha(level.color, 0.1) : 'transparent',
 												cursor: 'pointer',
 												transition: 'all 0.2s ease',
 												textAlign: 'center',
