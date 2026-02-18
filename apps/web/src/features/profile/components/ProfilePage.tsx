@@ -3,7 +3,7 @@
 import { Container, Grid, Typography, Box } from "@mui/material";
 import { DashboardLayout } from "@/features/dashboard/components/DashboardLayout";
 import { useGetProfileQuery } from "@/application/profile/queries/get-profile.query";
-import { Loader, DashboardAppBar } from "@/common/components";
+import { Loader } from "@/common/components";
 import { ProfileHeader } from "./ProfileHeader";
 import { ProfileDetails } from "./ProfileDetails";
 import { ProfileLearning } from "./ProfileLearning";
@@ -66,7 +66,6 @@ export function ProfilePage() {
           </Grid>
         </Grid>
       </Container>
-      <DashboardAppBar />
     </DashboardLayout>
   );
 }

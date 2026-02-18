@@ -45,12 +45,12 @@ function getGreeting(): string {
 
 interface DashboardGreetingProps {
   userName: string;
-  streak?: number;
+  stepsCompleted?: number;
 }
 
 export function DashboardGreeting({
   userName,
-  streak = 0,
+  stepsCompleted = 0,
 }: DashboardGreetingProps) {
   const greeting = getGreeting();
   const firstName = userName.split(" ")[0];
@@ -61,10 +61,10 @@ export function DashboardGreeting({
         {greeting}, {firstName}!
       </Typography>
       <Typography variant="body1" sx={styles.subtitle}>
-        {streak > 0 ? (
+        {stepsCompleted > 0 ? (
           <>
             <Sparkles size={18} style={{ color: palette.primary.light }} />
-            You&apos;re on a {streak}-day learning streak. Keep it up!
+            You&apos;ve completed {stepsCompleted} steps so far. Keep it up!
           </>
         ) : (
           "Ready to continue your learning journey?"

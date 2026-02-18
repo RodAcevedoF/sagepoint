@@ -1,7 +1,7 @@
 "use client";
 
 import { Box, Typography, Grid } from "@mui/material";
-import { Clock, BookCheck, Flame, TrendingUp } from "lucide-react";
+import { Clock, BookCheck, Map, CheckCircle } from "lucide-react";
 import { Card } from "@/common/components";
 import { palette } from "@/common/theme";
 import type { UserMetrics } from "../types/dashboard.types";
@@ -23,14 +23,6 @@ const styles = {
     color: palette.text.secondary,
     fontSize: "0.875rem",
   },
-  trend: {
-    display: "flex",
-    alignItems: "center",
-    gap: 0.5,
-    mt: 1,
-    color: palette.success.main,
-    fontSize: "0.75rem",
-  },
 };
 
 // ============================================================================
@@ -43,28 +35,24 @@ const metricConfigs = [
     label: "Hours Learned",
     icon: Clock,
     format: (v: number) => `${v}h`,
-    trend: "+3h this week",
   },
   {
     key: "topicsCompleted",
     label: "Topics Completed",
     icon: BookCheck,
     format: (v: number) => v.toString(),
-    trend: "+2 this week",
   },
   {
-    key: "currentStreak",
-    label: "Day Streak",
-    icon: Flame,
+    key: "activeRoadmaps",
+    label: "Active Roadmaps",
+    icon: Map,
     format: (v: number) => v.toString(),
-    trend: "Personal best!",
   },
   {
-    key: "weeklyProgress",
-    label: "Weekly Goal",
-    icon: TrendingUp,
-    format: (v: number) => `${v}%`,
-    trend: "On track",
+    key: "totalStepsCompleted",
+    label: "Steps Completed",
+    icon: CheckCircle,
+    format: (v: number) => v.toString(),
   },
 ] as const;
 
@@ -97,10 +85,6 @@ export function DashboardMetrics({ metrics }: DashboardMetricsProps) {
                   <Typography sx={styles.metricLabel}>
                     {config.label}
                   </Typography>
-                  <Box sx={styles.trend}>
-                    <TrendingUp size={12} />
-                    {config.trend}
-                  </Box>
                 </Box>
               </Box>
             </Card>

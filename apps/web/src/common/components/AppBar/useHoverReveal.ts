@@ -24,7 +24,7 @@ export function useHoverReveal(
 	options: HoverRevealOptions = {},
 ): HoverRevealResult {
 	const { hideDelay = 400, disabled = false } = options;
-	const [isRevealed, setIsRevealed] = useState(false);
+	const [isRevealed, setIsRevealed] = useState(true);
 	const hideTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	const clearHideTimeout = () => {
@@ -40,6 +40,13 @@ export function useHoverReveal(
 			setIsRevealed(false);
 		}, hideDelay);
 	};
+
+	// Show briefly on mount, then auto-hide after 1.5s
+	useEffect(() => {
+		if (disabled) return;
+		const timer = setTimeout(() => setIsRevealed(false), 1500);
+		return () => clearTimeout(timer);
+	}, [disabled]);
 
 	// Cleanup on unmount
 	useEffect(() => () => clearHideTimeout(), []);

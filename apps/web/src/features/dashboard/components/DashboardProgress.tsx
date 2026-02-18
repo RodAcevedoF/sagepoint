@@ -1,61 +1,62 @@
-"use client";
+'use client';
 
-import { Box, Typography, alpha } from "@mui/material";
-import { Card } from "@/common/components";
-import { palette } from "@/common/theme";
-import type { ProgressData } from "../types/dashboard.types";
+import { Box, Typography, LinearProgress, Stack, alpha } from '@mui/material';
+import { useRouter } from 'next/navigation';
+import { Card } from '@/common/components';
+import { palette } from '@/common/theme';
+import type { RoadmapProgressItem } from '../types/dashboard.types';
 
 // ============================================================================
 // Styles
 // ============================================================================
 
 const styles = {
-  card: {
-    p: 3,
-    height: "100%",
-  },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    mb: 3,
-  },
-  title: {
-    fontWeight: 600,
-  },
-  subtitle: {
-    color: palette.text.secondary,
-    fontSize: "0.875rem",
-  },
-  chartContainer: {
-    display: "flex",
-    alignItems: "flex-end",
-    justifyContent: "space-between",
-    height: 160,
-    gap: 1,
-  },
-  barWrapper: {
-    display: "flex",
-    flexDirection: "column" as const,
-    alignItems: "center",
-    flex: 1,
-    gap: 1,
-  },
-  bar: {
-    width: "100%",
-    borderRadius: 1,
-    background: `linear-gradient(180deg, ${palette.primary.light} 0%, ${palette.primary.main} 100%)`,
-    transition: "height 0.3s ease",
-  },
-  barLabel: {
-    color: palette.text.secondary,
-    fontSize: "0.75rem",
-  },
-  barValue: {
-    color: palette.text.primary,
-    fontSize: "0.75rem",
-    fontWeight: 500,
-  },
+	card: {
+		p: 3,
+		height: '100%',
+	},
+	header: {
+		display: 'flex',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+		mb: 3,
+	},
+	title: {
+		fontWeight: 600,
+	},
+	subtitle: {
+		color: palette.text.secondary,
+		fontSize: '0.875rem',
+	},
+	item: {
+		cursor: 'pointer',
+		p: 1.5,
+		borderRadius: 2,
+		transition: 'all 0.2s ease',
+		'&:hover': {
+			bgcolor: alpha(palette.primary.light, 0.05),
+		},
+	},
+	itemTitle: {
+		fontWeight: 500,
+		fontSize: '0.875rem',
+		overflow: 'hidden',
+		textOverflow: 'ellipsis',
+		whiteSpace: 'nowrap',
+	},
+	itemMeta: {
+		color: palette.text.secondary,
+		fontSize: '0.75rem',
+	},
+	progressBar: {
+		height: 6,
+		borderRadius: 3,
+		bgcolor: alpha(palette.primary.light, 0.1),
+		'& .MuiLinearProgress-bar': {
+			borderRadius: 3,
+			background: `linear-gradient(90deg, ${palette.primary.main}, ${palette.primary.light})`,
+		},
+	},
 };
 
 // ============================================================================
@@ -63,59 +64,53 @@ const styles = {
 // ============================================================================
 
 interface DashboardProgressProps {
-  data: ProgressData[];
+	data: RoadmapProgressItem[];
 }
 
 export function DashboardProgress({ data }: DashboardProgressProps) {
-  const maxHours = Math.max(...data.map((d) => d.hours), 1);
-  const totalHours = data.reduce((sum, d) => sum + d.hours, 0);
+	const router = useRouter();
 
-  return (
-    <Card variant="glass" hoverable={false} sx={styles.card}>
-      <Box sx={styles.header}>
-        <Box>
-          <Typography variant="h6" sx={styles.title}>
-            Weekly Progress
-          </Typography>
-          <Typography sx={styles.subtitle}>
-            {totalHours.toFixed(1)} hours this week
-          </Typography>
-        </Box>
-      </Box>
+	return (
+		<Card variant='glass' hoverable={false} sx={styles.card}>
+			<Box sx={styles.header}>
+				<Box>
+					<Typography variant='h6' sx={styles.title}>
+						Roadmap Progress
+					</Typography>
+					<Typography sx={styles.subtitle}>
+						{data.length} roadmap{data.length !== 1 ? 's' : ''}
+					</Typography>
+				</Box>
+			</Box>
 
-      <Box sx={styles.chartContainer}>
-        {data.map((item) => {
-          const heightPercent = (item.hours / maxHours) * 100;
-          const isToday = item.day === new Date().toLocaleDateString("en-US", { weekday: "short" }).slice(0, 3);
-
-          return (
-            <Box key={item.day} sx={styles.barWrapper}>
-              <Typography sx={styles.barValue}>
-                {item.hours > 0 ? `${item.hours}h` : ""}
-              </Typography>
-              <Box
-                sx={{
-                  ...styles.bar,
-                  height: `${Math.max(heightPercent, 4)}%`,
-                  opacity: item.hours > 0 ? 1 : 0.2,
-                  boxShadow: isToday
-                    ? `0 0 12px ${alpha(palette.primary.light, 0.5)}`
-                    : "none",
-                }}
-              />
-              <Typography
-                sx={{
-                  ...styles.barLabel,
-                  color: isToday ? palette.primary.light : palette.text.secondary,
-                  fontWeight: isToday ? 600 : 400,
-                }}
-              >
-                {item.day}
-              </Typography>
-            </Box>
-          );
-        })}
-      </Box>
-    </Card>
-  );
+			<Stack spacing={1.5}>
+				{data.map((item) => (
+					<Box
+						key={item.id}
+						sx={styles.item}
+						onClick={() => router.push(`/roadmaps/${item.id}`)}>
+						<Box
+							sx={{
+								display: 'flex',
+								justifyContent: 'space-between',
+								mb: 0.5,
+							}}>
+							<Typography sx={styles.itemTitle}>{item.title}</Typography>
+							<Typography sx={styles.itemMeta}>
+								{item.progressPercentage}%
+							</Typography>
+						</Box>
+						<LinearProgress
+							variant='determinate'
+							value={item.progressPercentage}
+							sx={styles.progressBar}
+						/>
+						<Typography sx={{ ...styles.itemMeta, mt: 0.5 }}>
+							{item.completedSteps}/{item.totalSteps} steps
+						</Typography>
+					</Box>
+				))}
+			</Stack>
+		</Card>
+	);
 }

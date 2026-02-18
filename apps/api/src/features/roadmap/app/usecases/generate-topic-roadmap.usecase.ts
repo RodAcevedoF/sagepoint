@@ -44,7 +44,8 @@ export class GenerateTopicRoadmapUseCase {
         id: crypto.randomUUID(),
         title,
         userId: command.userId,
-        description: 'Could not generate concepts for this topic. Please try a more specific topic.',
+        description:
+          'Could not generate concepts for this topic. Please try a more specific topic.',
         steps: [],
         generationStatus: 'completed',
         createdAt: new Date(),

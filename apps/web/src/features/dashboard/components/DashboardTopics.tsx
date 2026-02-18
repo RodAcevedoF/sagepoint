@@ -81,7 +81,7 @@ export function DashboardTopics({ distribution }: DashboardTopicsProps) {
   return (
     <Card variant="glass" hoverable={false} sx={styles.card}>
       <Typography variant="h6" sx={styles.title}>
-        Topic Distribution
+        Difficulty Distribution
       </Typography>
 
       <Box sx={styles.ringContainer}>

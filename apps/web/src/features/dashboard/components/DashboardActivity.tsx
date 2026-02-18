@@ -1,10 +1,29 @@
 "use client";
 
 import { Box, Typography, LinearProgress, Stack, alpha } from "@mui/material";
-import { BookOpen, FileText, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Map, ArrowRight } from "lucide-react";
 import { Card } from "@/common/components";
 import { palette } from "@/common/theme";
-import type { RecentActivity } from "../types/dashboard.types";
+import type { UserRoadmapDto } from "@/infrastructure/api/roadmapApi";
+
+// ============================================================================
+// Helpers
+// ============================================================================
+
+function formatRelativeDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffHours < 1) return "Just now";
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  return date.toLocaleDateString();
+}
 
 // ============================================================================
 // Styles
@@ -64,14 +83,10 @@ const styles = {
       background: `linear-gradient(90deg, ${palette.primary.main}, ${palette.primary.light})`,
     },
   },
-  category: {
-    px: 1,
-    py: 0.25,
-    borderRadius: 1,
-    bgcolor: alpha(palette.primary.light, 0.1),
-    color: palette.primary.light,
-    fontSize: "0.7rem",
-    fontWeight: 500,
+  stepCount: {
+    color: palette.text.secondary,
+    fontSize: "0.75rem",
+    mt: 0.5,
   },
 };
 
@@ -80,69 +95,62 @@ const styles = {
 // ============================================================================
 
 interface DashboardActivityProps {
-  activities: RecentActivity[];
+  roadmaps: UserRoadmapDto[];
 }
 
-export function DashboardActivity({ activities }: DashboardActivityProps) {
+export function DashboardActivity({ roadmaps }: DashboardActivityProps) {
+  const router = useRouter();
+
+  const recentRoadmaps = [...roadmaps]
+    .sort((a, b) => new Date(b.roadmap.createdAt).getTime() - new Date(a.roadmap.createdAt).getTime())
+    .slice(0, 3);
+
   return (
     <Card variant="glass" hoverable={false} sx={styles.card}>
       <Box sx={styles.header}>
         <Typography variant="h6" sx={styles.title}>
-          Recent Activity
+          Recent Roadmaps
         </Typography>
-        <Typography sx={styles.viewAll}>
+        <Typography
+          sx={styles.viewAll}
+          onClick={() => router.push("/roadmaps")}
+        >
           View all <ArrowRight size={14} />
         </Typography>
       </Box>
 
       <Stack spacing={2}>
-        {activities.map((activity) => {
-          const Icon = activity.type === "topic" ? BookOpen : FileText;
-
-          return (
-            <Box key={activity.id} sx={styles.activityItem}>
-              <Box sx={{ display: "flex", gap: 2 }}>
-                <Box sx={styles.activityIcon}>
-                  <Icon size={20} />
+        {recentRoadmaps.map(({ roadmap, progress }) => (
+          <Box
+            key={roadmap.id}
+            sx={styles.activityItem}
+            onClick={() => router.push(`/roadmaps/${roadmap.id}`)}
+          >
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <Box sx={styles.activityIcon}>
+                <Map size={20} />
+              </Box>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography variant="subtitle2" fontWeight={600} noWrap>
+                  {roadmap.title}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {formatRelativeDate(roadmap.createdAt)}
+                </Typography>
+                <Box sx={{ mt: 1 }}>
+                  <LinearProgress
+                    variant="determinate"
+                    value={progress.progressPercentage}
+                    sx={styles.progress}
+                  />
                 </Box>
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                      mb: 0.5,
-                    }}
-                  >
-                    <Typography
-                      variant="subtitle2"
-                      fontWeight={600}
-                      noWrap
-                      sx={{ flex: 1 }}
-                    >
-                      {activity.title}
-                    </Typography>
-                    <Typography component="span" sx={styles.category}>
-                      {activity.category}
-                    </Typography>
-                  </Box>
-                  <Typography variant="caption" color="text.secondary">
-                    {activity.timestamp}
-                  </Typography>
-                  {activity.progress !== undefined && (
-                    <Box sx={{ mt: 1 }}>
-                      <LinearProgress
-                        variant="determinate"
-                        value={activity.progress}
-                        sx={styles.progress}
-                      />
-                    </Box>
-                  )}
-                </Box>
+                <Typography sx={styles.stepCount}>
+                  {progress.completedSteps}/{progress.totalSteps} steps completed
+                </Typography>
               </Box>
             </Box>
-          );
-        })}
+          </Box>
+        ))}
       </Stack>
     </Card>
   );
