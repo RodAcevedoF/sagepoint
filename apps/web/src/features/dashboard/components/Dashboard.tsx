@@ -6,8 +6,9 @@ import { Grid, Box, Button, CircularProgress, alpha } from "@mui/material";
 import { RotateCcw } from "lucide-react";
 import { useAppSelector } from "@/common/hooks";
 import { useSnackbar, Loader, EmptyState } from "@/common/components";
-import { useGetProfileQuery } from "@/infrastructure/api/authApi";
+import { useProfileQuery } from "@/application/auth/queries/get-profile.query";
 import { useUserRoadmapsQuery } from "@/application/roadmap/queries/get-user-roadmaps.query";
+import { useUserDocumentsQuery } from "@/application/document";
 import { palette } from "@/common/theme";
 
 import { DashboardLayout } from "./DashboardLayout";
@@ -15,12 +16,14 @@ import { DashboardGreeting } from "./DashboardGreeting";
 import { DashboardMetrics } from "./DashboardMetrics";
 import { DashboardProgress } from "./DashboardProgress";
 import { DashboardActivity } from "./DashboardActivity";
+import { DashboardRecentDocuments } from "./DashboardRecentDocuments";
 import { DashboardTopics } from "./DashboardTopics";
 import { DashboardQuickActions } from "./DashboardQuickActions";
 
 import {
   computeMetrics,
   computeRoadmapProgress,
+  computeRecentRoadmaps,
   computeDifficultyDistribution,
 } from "../utils/dashboard.utils";
 
@@ -36,10 +39,13 @@ export function Dashboard() {
   const [isResetting, setIsResetting] = useState(false);
 
   // Refetch profile to get latest onboarding status
-  const { isLoading: isLoadingProfile, refetch } = useGetProfileQuery();
+  const { isLoading: isLoadingProfile, refetch } = useProfileQuery();
 
   // Fetch real roadmap data
   const { data: roadmaps, isLoading: isLoadingRoadmaps } = useUserRoadmapsQuery();
+
+  // Fetch documents
+  const { data: documents, isLoading: isLoadingDocuments } = useUserDocumentsQuery();
 
   // Show login success toast (ref prevents double-firing in StrictMode)
   const toastShown = useRef(false);
@@ -82,7 +88,7 @@ export function Dashboard() {
     }
   }, [user, router, isLoadingProfile]);
 
-  if (isLoadingProfile || isLoadingRoadmaps) {
+  if (isLoadingProfile || isLoadingRoadmaps || isLoadingDocuments) {
     return (
       <DashboardLayout>
         <Loader variant="page" message="Loading" />
@@ -93,12 +99,15 @@ export function Dashboard() {
   const isDev = process.env.NODE_ENV === "development";
   const userName = user?.name || "Learner";
   const userRoadmaps = roadmaps ?? [];
+  const userDocuments = documents ?? [];
 
   const metrics = computeMetrics(userRoadmaps);
   const progressItems = computeRoadmapProgress(userRoadmaps);
+  const recentRoadmaps = computeRecentRoadmaps(userRoadmaps);
   const difficultyDistribution = computeDifficultyDistribution(userRoadmaps);
 
   const hasRoadmaps = userRoadmaps.length > 0;
+  const hasDocuments = userDocuments.length > 0;
 
   return (
     <DashboardLayout>
@@ -120,8 +129,13 @@ export function Dashboard() {
                 <DashboardProgress data={progressItems} />
               </Grid>
               <Grid size={{ xs: 12, md: 6 }}>
-                <DashboardActivity roadmaps={userRoadmaps} />
+                <DashboardActivity roadmaps={recentRoadmaps} />
               </Grid>
+              {hasDocuments && (
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <DashboardRecentDocuments documents={userDocuments} />
+                </Grid>
+              )}
             </Grid>
           </Grid>
 

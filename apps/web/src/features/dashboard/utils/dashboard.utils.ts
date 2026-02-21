@@ -1,7 +1,8 @@
-import type { UserRoadmapDto } from '@/infrastructure/api/roadmapApi';
 import type {
+  DashboardRoadmap,
   UserMetrics,
   RoadmapProgressItem,
+  RecentRoadmapItem,
   TopicDistribution,
 } from '../types/dashboard.types';
 
@@ -13,14 +14,13 @@ const DIFFICULTY_COLORS: Record<string, string> = {
   unknown: '#4a5568',
 };
 
-export function computeMetrics(roadmaps: UserRoadmapDto[]): UserMetrics {
+export function computeMetrics(roadmaps: DashboardRoadmap[]): UserMetrics {
   let totalHoursLearned = 0;
   let topicsCompleted = 0;
   let activeRoadmaps = 0;
   let totalStepsCompleted = 0;
 
   for (const { roadmap, progress } of roadmaps) {
-    // Sum estimated durations from completed steps (convert minutes to hours)
     for (const step of roadmap.steps) {
       if (step.estimatedDuration) {
         totalHoursLearned += step.estimatedDuration;
@@ -44,7 +44,7 @@ export function computeMetrics(roadmaps: UserRoadmapDto[]): UserMetrics {
 }
 
 export function computeRoadmapProgress(
-  roadmaps: UserRoadmapDto[],
+  roadmaps: DashboardRoadmap[],
   limit = 5,
 ): RoadmapProgressItem[] {
   return roadmaps
@@ -59,8 +59,25 @@ export function computeRoadmapProgress(
     .slice(0, limit);
 }
 
+export function computeRecentRoadmaps(
+  roadmaps: DashboardRoadmap[],
+  limit = 3,
+): RecentRoadmapItem[] {
+  return [...roadmaps]
+    .sort((a, b) => new Date(b.roadmap.createdAt).getTime() - new Date(a.roadmap.createdAt).getTime())
+    .slice(0, limit)
+    .map(({ roadmap, progress }) => ({
+      id: roadmap.id,
+      title: roadmap.title,
+      createdAt: roadmap.createdAt,
+      progressPercentage: progress.progressPercentage,
+      completedSteps: progress.completedSteps,
+      totalSteps: progress.totalSteps,
+    }));
+}
+
 export function computeDifficultyDistribution(
-  roadmaps: UserRoadmapDto[],
+  roadmaps: DashboardRoadmap[],
 ): TopicDistribution[] {
   const counts: Record<string, number> = {};
 

@@ -2,8 +2,9 @@
 
 import { Box, Typography, Stack, alpha } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { Plus, Map } from "lucide-react";
-import { Card } from "@/common/components";
+import { Plus, Map, FileUp } from "lucide-react";
+import { Card, useModal } from "@/common/components";
+import { UploadDocumentModal } from "@/features/document";
 import { palette } from "@/common/theme";
 
 // ============================================================================
@@ -45,6 +46,17 @@ const styles = {
     color: palette.primary.light,
     flexShrink: 0,
   },
+  uploadActionIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 2,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    bgcolor: alpha(palette.info.main, 0.15),
+    color: palette.info.light,
+    flexShrink: 0,
+  },
 };
 
 // ============================================================================
@@ -53,6 +65,15 @@ const styles = {
 
 export function DashboardQuickActions() {
   const router = useRouter();
+  const { openModal } = useModal();
+
+  const handleUpload = () => {
+    openModal(<UploadDocumentModal />, {
+      title: "Upload Document",
+      showCloseButton: true,
+      maxWidth: "sm",
+    });
+  };
 
   return (
     <Card variant="glass" hoverable={false} sx={styles.card}>
@@ -83,6 +104,19 @@ export function DashboardQuickActions() {
             </Typography>
             <Typography variant="caption" color="text.secondary">
               Browse and continue your learning paths
+            </Typography>
+          </Box>
+        </Box>
+        <Box sx={styles.action} onClick={handleUpload}>
+          <Box sx={styles.uploadActionIcon}>
+            <FileUp size={22} />
+          </Box>
+          <Box>
+            <Typography variant="subtitle2" fontWeight={600}>
+              Upload Document
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Analyze documents with AI
             </Typography>
           </Box>
         </Box>

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Map, ArrowRight } from "lucide-react";
 import { Card } from "@/common/components";
 import { palette } from "@/common/theme";
-import type { UserRoadmapDto } from "@/infrastructure/api/roadmapApi";
+import type { RecentRoadmapItem } from "../types/dashboard.types";
 
 // ============================================================================
 // Helpers
@@ -95,15 +95,11 @@ const styles = {
 // ============================================================================
 
 interface DashboardActivityProps {
-  roadmaps: UserRoadmapDto[];
+  roadmaps: RecentRoadmapItem[];
 }
 
 export function DashboardActivity({ roadmaps }: DashboardActivityProps) {
   const router = useRouter();
-
-  const recentRoadmaps = [...roadmaps]
-    .sort((a, b) => new Date(b.roadmap.createdAt).getTime() - new Date(a.roadmap.createdAt).getTime())
-    .slice(0, 3);
 
   return (
     <Card variant="glass" hoverable={false} sx={styles.card}>
@@ -120,11 +116,11 @@ export function DashboardActivity({ roadmaps }: DashboardActivityProps) {
       </Box>
 
       <Stack spacing={2}>
-        {recentRoadmaps.map(({ roadmap, progress }) => (
+        {roadmaps.map((item) => (
           <Box
-            key={roadmap.id}
+            key={item.id}
             sx={styles.activityItem}
-            onClick={() => router.push(`/roadmaps/${roadmap.id}`)}
+            onClick={() => router.push(`/roadmaps/${item.id}`)}
           >
             <Box sx={{ display: "flex", gap: 2 }}>
               <Box sx={styles.activityIcon}>
@@ -132,20 +128,20 @@ export function DashboardActivity({ roadmaps }: DashboardActivityProps) {
               </Box>
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Typography variant="subtitle2" fontWeight={600} noWrap>
-                  {roadmap.title}
+                  {item.title}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  {formatRelativeDate(roadmap.createdAt)}
+                  {formatRelativeDate(item.createdAt)}
                 </Typography>
                 <Box sx={{ mt: 1 }}>
                   <LinearProgress
                     variant="determinate"
-                    value={progress.progressPercentage}
+                    value={item.progressPercentage}
                     sx={styles.progress}
                   />
                 </Box>
                 <Typography sx={styles.stepCount}>
-                  {progress.completedSteps}/{progress.totalSteps} steps completed
+                  {item.completedSteps}/{item.totalSteps} steps completed
                 </Typography>
               </Box>
             </Box>
