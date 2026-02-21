@@ -45,7 +45,12 @@ export class UploadDocumentUseCase {
     await this.documentRepository.save(document);
 
     // 4. Trigger Processing
-    await this.processingQueue.add(document.id, storagePath, command.filename);
+    await this.processingQueue.add(
+      document.id,
+      storagePath,
+      command.filename,
+      command.mimeType,
+    );
 
     return document;
   }
