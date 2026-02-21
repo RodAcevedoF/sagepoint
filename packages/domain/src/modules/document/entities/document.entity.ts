@@ -5,6 +5,13 @@ export enum DocumentStatus {
   FAILED = 'FAILED',
 }
 
+export enum ProcessingStage {
+  UPLOADED = 'UPLOADED',
+  PARSING = 'PARSING',
+  ANALYZING = 'ANALYZING',
+  READY = 'READY',
+}
+
 export class Document {
   constructor(
     public readonly id: string,
@@ -16,6 +23,10 @@ export class Document {
     public readonly updatedAt: Date,
     public readonly errorMessage?: string,
     public readonly progress: number = 0,
+    public readonly processingStage?: ProcessingStage,
+    public readonly mimeType?: string,
+    public readonly fileSize?: number,
+    public readonly conceptCount?: number,
   ) {}
 
   static create(id: string, filename: string, storagePath: string, userId: string): Document {

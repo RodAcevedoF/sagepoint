@@ -43,6 +43,18 @@ enum StepStatus {
   SKIPPED
 }
 
+enum ProcessingStage {
+  UPLOADED
+  PARSING
+  ANALYZING
+  READY
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -108,21 +120,93 @@ model UserPreferences {
 }
 
 model Document {
-  id          String   @id @default(uuid())
-  filename    String
-  status      String
-  storagePath String
-  errorMessage String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  id              String           @id @default(uuid())
+  filename        String
+  status          String
+  storagePath     String
+  errorMessage    String?
+  processingStage ProcessingStage  @default(UPLOADED)
+  mimeType        String?
+  fileSize        Int?
+  conceptCount    Int?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 
-  roadmaps    Roadmap[]
+  userId          String
+  user            User             @relation(fields: [userId], references: [id])
+
+  roadmaps        Roadmap[]
+  summary         DocumentSummary?
+  quizzes         Quiz[]
 
   @@index([userId])
+  @@index([processingStage])
   @@map("documents")
+}
+
+model DocumentSummary {
+  id                String   @id @default(uuid())
+  documentId        String   @unique
+  document          Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  overview          String   @db.Text
+  keyPoints         Json
+  topicArea         String
+  difficulty        String
+  estimatedReadTime Int?
+  conceptCount      Int      @default(0)
+  createdAt         DateTime @default(now())
+
+  @@map("document_summaries")
+}
+
+model Quiz {
+  id            String        @id @default(uuid())
+  documentId    String
+  document      Document      @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  title         String
+  description   String?
+  questionCount Int           @default(0)
+  questions     Question[]
+  attempts      QuizAttempt[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([documentId])
+  @@map("quizzes")
+}
+
+model Question {
+  id         String       @id @default(uuid())
+  quizId     String
+  quiz       Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  type       QuestionType
+  text       String       @db.Text
+  options    Json
+  explanation String?
+  conceptId  String?
+  order      Int          @default(0)
+  difficulty String
+  createdAt  DateTime     @default(now())
+
+  @@index([quizId])
+  @@map("questions")
+}
+
+model QuizAttempt {
+  id             String    @id @default(uuid())
+  quizId         String
+  quiz           Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  userId         String
+  answers        Json
+  score          Float
+  totalQuestions  Int
+  correctAnswers Int
+  completedAt    DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([userId, quizId])
+  @@index([userId])
+  @@map("quiz_attempts")
 }
 
 model Category {
