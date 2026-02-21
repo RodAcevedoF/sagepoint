@@ -37,6 +37,7 @@ export interface RoadmapDto {
 	generationStatus: RoadmapGenerationStatus;
 	totalEstimatedDuration?: number;
 	recommendedPace?: string;
+	errorMessage?: string;
 	createdAt: string;
 }
 

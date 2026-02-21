@@ -23,6 +23,7 @@ export interface RoadmapProps {
   generationStatus?: RoadmapGenerationStatus;
   totalEstimatedDuration?: number; // in minutes
   recommendedPace?: string;
+  errorMessage?: string;
   createdAt: Date;
 }
 
@@ -37,6 +38,7 @@ export class Roadmap {
   readonly generationStatus: RoadmapGenerationStatus;
   readonly totalEstimatedDuration?: number;
   readonly recommendedPace?: string;
+  readonly errorMessage?: string;
   readonly createdAt: Date;
 
   constructor(props: RoadmapProps) {
@@ -50,6 +52,7 @@ export class Roadmap {
     this.generationStatus = props.generationStatus || 'pending';
     this.totalEstimatedDuration = props.totalEstimatedDuration;
     this.recommendedPace = props.recommendedPace;
+    this.errorMessage = props.errorMessage;
     this.createdAt = props.createdAt;
   }
 

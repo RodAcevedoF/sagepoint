@@ -244,6 +244,7 @@ model Roadmap {
   generationStatus   RoadmapGenerationStatus @default(PENDING)
   totalDuration      Int?     // Total estimated duration in minutes
   recommendedPace    String?  // e.g., "2-3 concepts per week"
+  errorMessage       String?
 
   resources   Resource[]
   progress    UserRoadmapProgress[]

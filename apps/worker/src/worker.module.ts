@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
 import { BullModule } from '@nestjs/bullmq';
 import { DocumentProcessorService } from './document-processor/document-processor.service';
+import { RoadmapProcessorService } from './roadmap-processor/roadmap-processor.service';
 
 import { ConfigModule } from '@nestjs/config';
 import { Neo4jModule } from '@sagepoint/graph';
@@ -25,9 +26,13 @@ import { ConfigService } from '@nestjs/config';
     BullModule.registerQueue({
       name: 'document-processing',
     }),
+    BullModule.registerQueue({
+      name: 'roadmap-generation',
+    }),
   ],
   providers: [
     DocumentProcessorService,
+    RoadmapProcessorService,
     {
       provide: 'FILE_STORAGE',
       useFactory: (configService: ConfigService) => {

@@ -31,6 +31,7 @@ export * from './modules/roadmap/ports/roadmap.repository';
 export * from './modules/roadmap/ports/concept.repository';
 export * from './modules/roadmap/ports/resource.repository';
 export * from './modules/roadmap/ports/progress.repository';
+export * from './modules/roadmap/ports/roadmap-generation-queue.port';
 
 // Shared Ports
 export * from './ports/file-storage.port';
