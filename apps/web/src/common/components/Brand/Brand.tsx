@@ -1,13 +1,6 @@
 'use client';
 
-import {
-	Typography,
-	Box,
-	SxProps,
-	Theme,
-	CardMedia,
-	alpha,
-} from '@mui/material';
+import { Typography, Box, CardMedia, alpha } from '@mui/material';
 import Link from 'next/link';
 import { palette } from '@/common/theme';
 import { mainLogo } from 'root/public';
