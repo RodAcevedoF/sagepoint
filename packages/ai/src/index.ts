@@ -4,3 +4,6 @@ export * from './openai-content-analysis.adapter';
 export * from './openai-roadmap-generator.adapter';
 export * from './openai-topic-concept-generator.adapter';
 export * from './perplexity-research.adapter';
+export * from './openai-vision-text-extractor.adapter';
+export * from './openai-document-analysis.adapter';
+export * from './openai-quiz-generation.adapter';
