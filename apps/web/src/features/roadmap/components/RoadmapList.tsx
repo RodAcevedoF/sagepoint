@@ -1,7 +1,7 @@
 'use client';
 
-import { Box, Grid, Typography, useTheme } from '@mui/material';
-import { BookOpen, Lightbulb, Rocket, Sparkles } from 'lucide-react';
+import { Box, Grid, Typography, useTheme, alpha, CircularProgress, Chip } from '@mui/material';
+import { BookOpen, Lightbulb, Rocket, Sparkles, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useUserRoadmapsQuery } from '@/application/roadmap';
@@ -11,6 +11,8 @@ import { RoadmapCard } from './RoadmapCard';
 import { RoadmapHero } from './RoadmapHero';
 import { RoadmapStats } from './RoadmapStats';
 import { makeStyles } from './RoadmapList.styles';
+
+import type { UserRoadmapDto } from '@/infrastructure/api/roadmapApi';
 
 const MotionGrid = motion.create(Grid);
 
@@ -77,10 +79,78 @@ function EmptyRoadmapState() {
 	);
 }
 
+function GeneratingCard({ data }: { data: UserRoadmapDto }) {
+	const theme = useTheme();
+	const { roadmap } = data;
+	const isFailed = roadmap.generationStatus === 'failed';
+
+	return (
+		<Box
+			sx={{
+				p: 3,
+				borderRadius: 3,
+				border: `1px solid ${alpha(
+					isFailed ? theme.palette.error.main : theme.palette.primary.main,
+					0.2,
+				)}`,
+				background: alpha(
+					isFailed ? theme.palette.error.main : theme.palette.primary.main,
+					0.04,
+				),
+				display: 'flex',
+				flexDirection: 'column',
+				alignItems: 'center',
+				gap: 1.5,
+				textAlign: 'center',
+			}}>
+			{isFailed ? (
+				<AlertCircle size={28} color={theme.palette.error.main} />
+			) : (
+				<CircularProgress size={28} thickness={3} />
+			)}
+			<Typography variant='subtitle2' sx={{ fontWeight: 600 }}>
+				{roadmap.title}
+			</Typography>
+			<Chip
+				size='small'
+				label={isFailed ? 'Failed' : 'Generating...'}
+				sx={{
+					bgcolor: alpha(
+						isFailed ? theme.palette.error.main : theme.palette.info.main,
+						0.1,
+					),
+					color: isFailed ? theme.palette.error.main : theme.palette.info.main,
+					fontWeight: 600,
+				}}
+			/>
+			{isFailed && roadmap.errorMessage && (
+				<Typography variant='caption' color='text.secondary'>
+					{roadmap.errorMessage}
+				</Typography>
+			)}
+		</Box>
+	);
+}
+
 export function RoadmapList() {
 	const { data: roadmaps, isLoading, error } = useUserRoadmapsQuery();
 
-	const hasRoadmaps = roadmaps && roadmaps.length > 0;
+	const completedRoadmaps = roadmaps?.filter(
+		(r) => r.roadmap.generationStatus === 'completed',
+	);
+	const generatingRoadmaps = roadmaps?.filter(
+		(r) =>
+			r.roadmap.generationStatus === 'pending' ||
+			r.roadmap.generationStatus === 'processing',
+	);
+	const failedRoadmaps = roadmaps?.filter(
+		(r) => r.roadmap.generationStatus === 'failed',
+	);
+
+	const hasCompleted = completedRoadmaps && completedRoadmaps.length > 0;
+	const hasGenerating = generatingRoadmaps && generatingRoadmaps.length > 0;
+	const hasFailed = failedRoadmaps && failedRoadmaps.length > 0;
+	const hasAny = roadmaps && roadmaps.length > 0;
 
 	return (
 		<Box>
@@ -100,12 +170,30 @@ export function RoadmapList() {
 			)}
 
 			{/* Empty state */}
-			{!isLoading && !error && !hasRoadmaps && <EmptyRoadmapState />}
+			{!isLoading && !error && !hasAny && <EmptyRoadmapState />}
 
-			{/* Stats + Grid */}
-			{!isLoading && !error && hasRoadmaps && (
+			{/* Generating roadmaps */}
+			{!isLoading && !error && (hasGenerating || hasFailed) && (
+				<Box sx={{ mb: 3 }}>
+					<Grid container spacing={2}>
+						{generatingRoadmaps?.map((item) => (
+							<Grid key={item.roadmap.id} size={{ xs: 12, sm: 6, lg: 4 }}>
+								<GeneratingCard data={item} />
+							</Grid>
+						))}
+						{failedRoadmaps?.map((item) => (
+							<Grid key={item.roadmap.id} size={{ xs: 12, sm: 6, lg: 4 }}>
+								<GeneratingCard data={item} />
+							</Grid>
+						))}
+					</Grid>
+				</Box>
+			)}
+
+			{/* Stats + Grid for completed */}
+			{!isLoading && !error && hasCompleted && (
 				<>
-					<RoadmapStats roadmaps={roadmaps} />
+					<RoadmapStats roadmaps={completedRoadmaps} />
 
 					<MotionGrid
 						container
@@ -113,7 +201,7 @@ export function RoadmapList() {
 						variants={staggerContainer}
 						initial='hidden'
 						animate='visible'>
-						{roadmaps.map((item) => (
+						{completedRoadmaps.map((item) => (
 							<Grid
 								key={item.roadmap.id}
 								size={{ xs: 12, sm: 6, lg: 4 }}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Box, TextField, Typography, useTheme, alpha } from '@mui/material';
 import {
 	Sparkles,
@@ -19,6 +19,8 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/common/components';
 import { ButtonTypes, ButtonIconPositions, ButtonSizes } from '@/common/types';
 import { useGenerateTopicRoadmapCommand } from '@/application/roadmap';
+import { useRoadmapEvents } from '@/common/hooks';
+import type { RoadmapEventStage } from '@/common/hooks/useRoadmapEvents';
 import {
 	GenerationStage,
 	type GenerationStageData,
@@ -85,9 +87,23 @@ const EXPERIENCE_LEVELS = [
 
 type ExperienceLevel = (typeof EXPERIENCE_LEVELS)[number]['id'];
 
-const STAGE_INTERVAL_MS = 4500;
 const DONE_DELAY_MS = 1500;
-const PAUSE_AT_STAGE = 3; // 0-indexed: pause at "Discovering resources..."
+
+/** Map SSE stage to UI stage index */
+function stageToIndex(stage: RoadmapEventStage): number {
+	switch (stage) {
+		case 'concepts':
+			return 1;
+		case 'learning-path':
+			return 2;
+		case 'resources':
+			return 3;
+		case 'done':
+			return 4;
+		default:
+			return 0;
+	}
+}
 
 function getStageState(stageIndex: number, activeStage: number): StageState {
 	if (stageIndex < activeStage) return 'completed';
@@ -119,75 +135,61 @@ export function GenerationView({
 		:	undefined,
 	);
 	const [phase, setPhase] = useState<'input' | 'generating'>('input');
-	const [activeStage, setActiveStage] = useState(0);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
+	const [roadmapId, setRoadmapId] = useState<string | null>(null);
 
 	const { execute, isLoading, error } = useGenerateTopicRoadmapCommand();
-	const apiCompleteRef = useRef<string | null>(null);
-	const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+	const { status: sseStatus, stage: sseStage, errorMessage: sseError } =
+		useRoadmapEvents(roadmapId);
 
-	const clearTimer = useCallback(() => {
-		if (timerRef.current) {
-			clearInterval(timerRef.current);
-			timerRef.current = null;
-		}
-	}, []);
+	// Derive active stage from SSE (no setState in effects)
+	const activeStage =
+		phase === 'generating' && sseStage ? stageToIndex(sseStage) : 0;
 
-	// Stage auto-advance timer
+	// Derive effective phase: SSE failure resets to input
+	const effectivePhase =
+		phase === 'generating' && sseStatus === 'failed' ? 'input' : phase;
+	const displayError =
+		sseStatus === 'failed'
+			? sseError || 'Something went wrong generating your roadmap. Please try again.'
+			: errorMessage;
+
+	// Handle SSE completed → redirect (setTimeout is async, not synchronous setState)
 	useEffect(() => {
-		if (phase !== 'generating') return;
-
-		timerRef.current = setInterval(() => {
-			setActiveStage((prev) => {
-				// Don't advance past PAUSE_AT_STAGE unless API is done
-				if (prev >= PAUSE_AT_STAGE && !apiCompleteRef.current) return prev;
-				// Don't advance past the final stage
-				if (prev >= GENERATION_STAGES.length - 1) return prev;
-				return prev + 1;
-			});
-		}, STAGE_INTERVAL_MS);
-
-		return clearTimer;
-	}, [phase, clearTimer]);
-
-	// When API completes, jump to final stage then redirect
-	useEffect(() => {
-		if (!apiCompleteRef.current || phase !== 'generating') return;
-
-		const roadmapId = apiCompleteRef.current;
-		clearTimer();
+		if (!roadmapId || sseStatus !== 'completed') return;
 
 		const timeout = setTimeout(() => {
 			router.push(`/roadmaps/${roadmapId}`);
 		}, DONE_DELAY_MS);
 
 		return () => clearTimeout(timeout);
-	}, [activeStage, phase, clearTimer, router]);
+	}, [sseStatus, roadmapId, router]);
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		if (!topic.trim()) return;
+	const handleSubmit = useCallback(
+		async (e: React.FormEvent) => {
+			e.preventDefault();
+			if (!topic.trim()) return;
 
-		setErrorMessage(null);
-		setPhase('generating');
-		setActiveStage(0);
-		apiCompleteRef.current = null;
+			setErrorMessage(null);
+			setPhase('generating');
+			setRoadmapId(null);
 
-		try {
-			const roadmap = await execute(topic.trim(), title.trim() || undefined, {
-				userContext: experienceLevel ? { experienceLevel } : undefined,
-			});
-			apiCompleteRef.current = roadmap.id;
-			// Jump to final stage — triggers the redirect effect
-			setActiveStage(GENERATION_STAGES.length - 1);
-		} catch {
-			clearTimer();
-			setPhase('input');
-			setErrorMessage(
-				'Something went wrong generating your roadmap. Please try again.',
-			);
-		}
-	};
+			try {
+				// Mutation returns immediately with skeleton roadmap
+				const roadmap = await execute(topic.trim(), title.trim() || undefined, {
+					userContext: experienceLevel ? { experienceLevel } : undefined,
+				});
+				// Start SSE subscription
+				setRoadmapId(roadmap.id);
+			} catch {
+				setPhase('input');
+				setErrorMessage(
+					'Something went wrong generating your roadmap. Please try again.',
+				);
+			}
+		},
+		[topic, title, experienceLevel, execute],
+	);
 
 	const headingTitle =
 		fromOnboarding ?
@@ -201,7 +203,7 @@ export function GenerationView({
 
 	return (
 		<AnimatePresence mode='wait'>
-			{phase === 'input' ?
+			{effectivePhase === 'input' ?
 				<MotionBox
 					key='input'
 					initial={{ opacity: 0, y: 20 }}
@@ -324,9 +326,9 @@ export function GenerationView({
 							})}
 						</Box>
 
-						{(errorMessage || error) && (
+						{(displayError || error) && (
 							<Typography variant='body2' sx={styles.errorText}>
-								{errorMessage || 'Something went wrong. Please try again.'}
+								{displayError || 'Something went wrong. Please try again.'}
 							</Typography>
 						)}
 

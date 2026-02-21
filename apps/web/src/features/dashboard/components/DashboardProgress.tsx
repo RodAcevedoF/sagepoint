@@ -1,6 +1,7 @@
 'use client';
 
-import { Box, Typography, LinearProgress, Stack, alpha } from '@mui/material';
+import { Box, Typography, Stack, alpha } from '@mui/material';
+import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/common/components';
 import { palette } from '@/common/theme';
@@ -49,15 +50,19 @@ const styles = {
 		fontSize: '0.75rem',
 	},
 	progressBar: {
-		height: 6,
-		borderRadius: 3,
-		bgcolor: alpha(palette.primary.light, 0.1),
-		'& .MuiLinearProgress-bar': {
-			borderRadius: 3,
-			background: `linear-gradient(90deg, ${palette.primary.main}, ${palette.primary.light})`,
-		},
+		height: 8,
+		borderRadius: 4,
+		bgcolor: alpha(palette.primary.light, 0.05),
 	},
 };
+
+const PROGRESS_COLORS = [
+	{ main: palette.primary.main, light: palette.primary.light },
+	{ main: palette.warning.main, light: palette.warning.light },
+	{ main: palette.info.main, light: palette.info.light },
+	{ main: palette.success.main, light: palette.success.light },
+	{ main: palette.error.main, light: palette.error.light },
+];
 
 // ============================================================================
 // Component
@@ -83,33 +88,59 @@ export function DashboardProgress({ data }: DashboardProgressProps) {
 				</Box>
 			</Box>
 
-			<Stack spacing={1.5}>
-				{data.map((item) => (
-					<Box
-						key={item.id}
-						sx={styles.item}
-						onClick={() => router.push(`/roadmaps/${item.id}`)}>
+			<Stack spacing={2.5}>
+				{data.map((item, index) => {
+					const color = PROGRESS_COLORS[index % PROGRESS_COLORS.length];
+					return (
 						<Box
-							sx={{
-								display: 'flex',
-								justifyContent: 'space-between',
-								mb: 0.5,
-							}}>
-							<Typography sx={styles.itemTitle}>{item.title}</Typography>
-							<Typography sx={styles.itemMeta}>
-								{item.progressPercentage}%
+							key={item.id}
+							sx={styles.item}
+							onClick={() => router.push(`/roadmaps/${item.id}`)}>
+							<Box
+								sx={{
+									display: 'flex',
+									justifyContent: 'space-between',
+									mb: 1,
+								}}>
+								<Typography sx={styles.itemTitle}>{item.title}</Typography>
+								<Typography
+									sx={{
+										...styles.itemMeta,
+										color: color.light,
+										fontWeight: 600,
+									}}>
+									{item.progressPercentage}%
+								</Typography>
+							</Box>
+							<Box
+								sx={{
+									...styles.progressBar,
+									position: 'relative',
+									overflow: 'hidden',
+								}}>
+								<motion.div
+									initial={{ scaleX: 0 }}
+									animate={{ scaleX: 1 }}
+									transition={{ duration: 1, delay: 0.2 + index * 0.1 }}
+									style={{
+										position: 'absolute',
+										top: 0,
+										left: 0,
+										bottom: 0,
+										width: `${item.progressPercentage}%`,
+										background: `linear-gradient(90deg, ${color.main}, ${color.light})`,
+										borderRadius: 4,
+										transformOrigin: 'left',
+										boxShadow: `0 0 10px ${alpha(color.main, 0.4)}`,
+									}}
+								/>
+							</Box>
+							<Typography sx={{ ...styles.itemMeta, mt: 0.75 }}>
+								{item.completedSteps}/{item.totalSteps} steps
 							</Typography>
 						</Box>
-						<LinearProgress
-							variant='determinate'
-							value={item.progressPercentage}
-							sx={styles.progressBar}
-						/>
-						<Typography sx={{ ...styles.itemMeta, mt: 0.5 }}>
-							{item.completedSteps}/{item.totalSteps} steps
-						</Typography>
-					</Box>
-				))}
+					);
+				})}
 			</Stack>
 		</Card>
 	);

@@ -20,12 +20,16 @@ import { ProcessingStatusBadge } from './ProcessingStatusBadge';
 import { makeStyles } from './DocumentCard.styles';
 import type { DocumentDetailDto } from '@/infrastructure/api/documentApi';
 
-const mimeIconMap: Array<{ test: (m: string) => boolean; icon: typeof File }> = [
-	{ test: (m) => m.includes('pdf'), icon: FileText },
-	{ test: (m) => m.includes('spreadsheet') || m.includes('xlsx'), icon: FileSpreadsheet },
-	{ test: (m) => m.startsWith('image/'), icon: FileImage },
-	{ test: (m) => m.includes('word') || m.includes('docx'), icon: FileType },
-];
+const mimeIconMap: Array<{ test: (m: string) => boolean; icon: typeof File }> =
+	[
+		{ test: (m) => m.includes('pdf'), icon: FileText },
+		{
+			test: (m) => m.includes('spreadsheet') || m.includes('xlsx'),
+			icon: FileSpreadsheet,
+		},
+		{ test: (m) => m.startsWith('image/'), icon: FileImage },
+		{ test: (m) => m.includes('word') || m.includes('docx'), icon: FileType },
+	];
 
 function formatFileSize(bytes?: number): string {
 	if (!bytes) return '';
@@ -74,8 +78,9 @@ export function DocumentCard({ document }: DocumentCardProps) {
 		primary: theme.palette.primary.light,
 	};
 	const stageColor =
-		colorKey === 'text.disabled' ? theme.palette.text.disabled
-		: paletteColors[colorKey] ?? theme.palette.primary.light;
+		colorKey === 'text.disabled' ?
+			alpha(theme.palette.text.secondary, 0.4)
+		:	(paletteColors[colorKey] ?? theme.palette.primary.light);
 
 	const styles = makeStyles(stageColor, theme);
 	const Icon = useMemo(() => {
@@ -100,7 +105,10 @@ export function DocumentCard({ document }: DocumentCardProps) {
 			onClick={() => router.push(`/documents/${document.id}`)}
 			sx={styles.card}>
 			<Card variant='glass' sx={{ position: 'relative' }}>
-				<IconButton size='small' onClick={handleDelete} sx={styles.deleteButton}>
+				<IconButton
+					size='small'
+					onClick={handleDelete}
+					sx={styles.deleteButton}>
 					<Trash2 size={16} />
 				</IconButton>
 
@@ -128,14 +136,16 @@ export function DocumentCard({ document }: DocumentCardProps) {
 								</Typography>
 							</Box>
 						)}
-						{stage === 'READY' && document.conceptCount && document.conceptCount > 0 && (
-							<Box sx={styles.statItem}>
-								<Layers size={14} color={theme.palette.text.secondary} />
-								<Typography variant='caption' sx={styles.statText}>
-									{document.conceptCount} concepts
-								</Typography>
-							</Box>
-						)}
+						{stage === 'READY' &&
+							document.conceptCount &&
+							document.conceptCount > 0 && (
+								<Box sx={styles.statItem}>
+									<Layers size={14} color={theme.palette.text.secondary} />
+									<Typography variant='caption' sx={styles.statText}>
+										{document.conceptCount} concepts
+									</Typography>
+								</Box>
+							)}
 					</Box>
 				</Card.Content>
 

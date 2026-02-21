@@ -3,9 +3,23 @@ import { createTheme } from '@mui/material';
 declare module '@mui/material/styles' {
 	interface Palette {
 		accent: string;
+		difficulty: {
+			beginner: string;
+			intermediate: string;
+			advanced: string;
+			expert: string;
+			unknown: string;
+		};
 	}
 	interface PaletteOptions {
 		accent?: string;
+		difficulty?: {
+			beginner?: string;
+			intermediate?: string;
+			advanced?: string;
+			expert?: string;
+			unknown?: string;
+		};
 	}
 }
 
@@ -50,6 +64,13 @@ export const palette = {
 		light: '#60a5fa',
 		dark: '#2563eb',
 	},
+	difficulty: {
+		beginner: '#10b981',
+		intermediate: '#3b82f6',
+		advanced: '#f59e0b',
+		expert: '#ef4444',
+		unknown: '#94a3b8',
+	},
 	accent: '#97FEED',
 	divider: 'rgba(151, 254, 237, 0.08)',
 	common: {
@@ -75,6 +96,7 @@ export const darkTheme = createTheme({
 		info: palette.info,
 		accent: palette.accent,
 		common: palette.common,
+		difficulty: palette.difficulty,
 	},
 	typography: {
 		fontFamily: 'var(--font-geist-sans), "Inter", "Roboto", sans-serif',
