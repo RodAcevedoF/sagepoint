@@ -52,6 +52,10 @@ export const palette = {
 	},
 	accent: '#97FEED',
 	divider: 'rgba(151, 254, 237, 0.08)',
+	common: {
+		white: '#ffffff',
+		black: '#000000',
+	},
 };
 
 export const darkTheme = createTheme({
@@ -70,6 +74,7 @@ export const darkTheme = createTheme({
 		success: palette.success,
 		info: palette.info,
 		accent: palette.accent,
+		common: palette.common,
 	},
 	typography: {
 		fontFamily: 'var(--font-geist-sans), "Inter", "Roboto", sans-serif',

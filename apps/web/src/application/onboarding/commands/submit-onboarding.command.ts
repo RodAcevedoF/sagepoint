@@ -2,10 +2,12 @@
 
 import { useRouter } from 'next/navigation';
 import { useSubmitOnboardingMutation } from '@/infrastructure/api/onboardingApi';
+import { useGenerateTopicRoadmapMutation } from '@/infrastructure/api/roadmapApi';
 import type { OnboardingData } from '@/features/onboarding/context/OnboardingContext';
 
 export function useSubmitOnboardingCommand() {
   const [submitMutation, { isLoading, error }] = useSubmitOnboardingMutation();
+  const [generateRoadmap] = useGenerateTopicRoadmapMutation();
   const router = useRouter();
 
   const execute = async (data: OnboardingData) => {
@@ -17,11 +19,20 @@ export function useSubmitOnboardingCommand() {
       status: 'COMPLETED',
     }).unwrap();
 
-    const params = new URLSearchParams();
-    if (data.goal) params.set('topic', data.goal);
-    if (data.experience) params.set('experience', data.experience);
-    params.set('from', 'onboarding');
-    router.push(`/roadmaps/create?${params.toString()}`);
+    // Generate first roadmap from user's goal (now async — returns skeleton immediately)
+    if (data.goal) {
+      const result = await generateRoadmap({
+        topic: data.goal,
+        userContext: data.experience
+          ? { experienceLevel: data.experience as 'beginner' | 'intermediate' | 'advanced' | 'expert' }
+          : undefined,
+      }).unwrap();
+
+      router.push(`/dashboard?creating=roadmap&roadmapId=${result.id}`);
+      return;
+    }
+
+    router.push('/dashboard?creating=roadmap');
   };
 
   return { execute, isLoading, error };

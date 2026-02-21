@@ -18,5 +18,6 @@ export { ErrorBoundary } from "./ErrorBoundary";
 export { Loader } from "./Loader";
 export { EmptyState, ErrorState } from "./States";
 export { SmartHomeButton, GoBackButton } from "./Navigation";
+export { LearningCTA } from "./CTA/LearningCTA";
 export { PublicLayout } from "./layouts";
 export { Antigravity } from "./animations/Antigravity";

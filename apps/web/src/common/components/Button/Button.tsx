@@ -66,6 +66,17 @@ const styles = {
 			bgcolor: palette.error.dark,
 		},
 	},
+	glass: {
+		bgcolor: 'rgba(53, 162, 159, 0.1)',
+		backdropFilter: 'blur(8px)',
+		color: palette.primary.light,
+		border: '1px solid',
+		borderColor: 'rgba(151, 254, 237, 0.15)',
+		'&:hover': {
+			bgcolor: 'rgba(53, 162, 159, 0.2)',
+			borderColor: palette.primary.light,
+		},
+	},
 	small: {
 		px: 2,
 		py: 0.75,
@@ -131,6 +142,8 @@ export function Button({
 				return styles.outlined;
 			case ButtonVariants.GHOST:
 				return styles.ghost;
+			case ButtonVariants.GLASS:
+				return styles.glass;
 			case ButtonVariants.DANGER:
 				return styles.danger;
 			default:
