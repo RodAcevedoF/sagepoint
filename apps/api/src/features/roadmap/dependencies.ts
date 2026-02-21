@@ -11,6 +11,7 @@ import { RoadmapService } from '@/features/roadmap/infra/driver/roadmap.service'
 import { PrismaRoadmapRepository } from '@/features/roadmap/infra/driven/prisma-roadmap.repository';
 import { GenerateRoadmapUseCase } from '@/features/roadmap/app/usecases/generate-roadmap.usecase';
 import { GenerateTopicRoadmapUseCase } from '@/features/roadmap/app/usecases/generate-topic-roadmap.usecase';
+import { EnqueueTopicRoadmapUseCase } from '@/features/roadmap/app/usecases/enqueue-topic-roadmap.usecase';
 import { GetRoadmapUseCase } from '@/features/roadmap/app/usecases/get-roadmap.usecase';
 import { DeleteRoadmapUseCase } from '@/features/roadmap/app/usecases/delete-roadmap.usecase';
 import { UpdateStepProgressUseCase } from '@/features/roadmap/app/usecases/update-step-progress.usecase';
@@ -24,6 +25,8 @@ import { createAiAdapters } from '@sagepoint/ai';
 import { PrismaService } from '@/core/infra/database/prisma.service';
 import { PrismaResourceRepository } from './infra/driven/prisma-resource.repository';
 import { PrismaProgressRepository } from './infra/driven/prisma-progress.repository';
+import { BullMqRoadmapGenerationQueue } from '@/core/infra/queue/bull-mq-roadmap.queue';
+import { Queue } from 'bullmq';
 
 export interface RoadmapDependencies {
   roadmapService: IRoadmapService;
@@ -53,6 +56,15 @@ export function makeRoadmapDependencies(
   const topicConceptGenerationService = aiAdapters.topicConceptGenerator;
   const resourceDiscoveryService = aiAdapters.resourceDiscovery;
 
+  // BullMQ queue for async roadmap generation
+  const roadmapQueue = new Queue('roadmap-generation', {
+    connection: {
+      host: process.env.REDIS_HOST || 'localhost',
+      port: parseInt(process.env.REDIS_PORT || '6379'),
+    },
+  });
+  const generationQueue = new BullMqRoadmapGenerationQueue(roadmapQueue);
+
   // Use cases
   const generateRoadmapUseCase = new GenerateRoadmapUseCase(
     roadmapRepository,
@@ -67,6 +79,10 @@ export function makeRoadmapDependencies(
     roadmapGenerationService,
     resourceDiscoveryService,
     resourceRepository,
+  );
+  const enqueueTopicRoadmapUseCase = new EnqueueTopicRoadmapUseCase(
+    roadmapRepository,
+    generationQueue,
   );
   const getRoadmapUseCase = new GetRoadmapUseCase(roadmapRepository);
   const deleteRoadmapUseCase = new DeleteRoadmapUseCase(roadmapRepository);
@@ -91,6 +107,7 @@ export function makeRoadmapDependencies(
   const roadmapService = new RoadmapService(
     generateRoadmapUseCase,
     generateTopicRoadmapUseCase,
+    enqueueTopicRoadmapUseCase,
     getRoadmapUseCase,
     deleteRoadmapUseCase,
     getGraphUseCase,

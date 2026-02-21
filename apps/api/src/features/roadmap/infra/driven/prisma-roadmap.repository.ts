@@ -43,6 +43,7 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
         generationStatus: this.mapStatusToPrisma(roadmap.generationStatus),
         totalDuration: roadmap.totalEstimatedDuration,
         recommendedPace: roadmap.recommendedPace,
+        errorMessage: roadmap.errorMessage ?? null,
         createdAt: roadmap.createdAt,
       },
       update: {
@@ -52,6 +53,7 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
         generationStatus: this.mapStatusToPrisma(roadmap.generationStatus),
         totalDuration: roadmap.totalEstimatedDuration,
         recommendedPace: roadmap.recommendedPace,
+        errorMessage: roadmap.errorMessage ?? null,
       },
     });
     return this.mapToDomain(data);
@@ -151,6 +153,7 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
       generationStatus: this.mapStatusToDomain(data.generationStatus),
       totalEstimatedDuration: data.totalDuration || undefined,
       recommendedPace: data.recommendedPace || undefined,
+      errorMessage: data.errorMessage || undefined,
       createdAt: data.createdAt,
     });
   }

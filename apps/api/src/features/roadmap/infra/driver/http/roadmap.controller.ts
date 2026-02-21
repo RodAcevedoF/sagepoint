@@ -9,7 +9,10 @@ import {
   Inject,
   NotFoundException,
   UseGuards,
+  Sse,
 } from '@nestjs/common';
+import { Observable } from 'rxjs';
+import { QueueEvents } from 'bullmq';
 import { JwtAuthGuard } from '@/features/auth/infra/guards/jwt-auth.guard';
 import { CurrentUser } from '@/features/auth/decorators/current-user.decorator';
 import type { RequestUser, UserContext } from '@sagepoint/domain';
@@ -38,11 +41,17 @@ interface RefreshResourcesDto {
   conceptIds?: string[];
 }
 
+interface SseEvent {
+  data: string;
+}
+
 @Controller('roadmaps')
 export class RoadmapController {
   constructor(
     @Inject(ROADMAP_SERVICE)
     private readonly roadmapService: IRoadmapService,
+    @Inject('ROADMAP_QUEUE_EVENTS')
+    private readonly queueEvents: QueueEvents,
   ) {}
 
   @Post()
@@ -71,6 +80,120 @@ export class RoadmapController {
       userContext: dto.userContext,
     });
     return roadmap;
+  }
+
+  @Sse(':id/events')
+  events(@Param('id') roadmapId: string): Observable<SseEvent> {
+    return new Observable<SseEvent>((subscriber) => {
+      let done = false;
+
+      const finish = () => {
+        if (done) return;
+        done = true;
+        cleanup();
+        subscriber.complete();
+      };
+
+      // 1. Subscribe to BullMQ events FIRST (so nothing is missed)
+      const onProgress = (args: { jobId: string; data: unknown }) => {
+        if (args.jobId === roadmapId) {
+          subscriber.next({
+            data: JSON.stringify({
+              type: 'progress',
+              ...(args.data as Record<string, unknown>),
+            }),
+          });
+        }
+      };
+
+      const onCompleted = (args: { jobId: string }) => {
+        if (args.jobId === roadmapId) {
+          subscriber.next({
+            data: JSON.stringify({ type: 'completed' }),
+          });
+          finish();
+        }
+      };
+
+      const onFailed = (args: { jobId: string; failedReason: string }) => {
+        if (args.jobId === roadmapId) {
+          subscriber.next({
+            data: JSON.stringify({
+              type: 'failed',
+              message: args.failedReason,
+            }),
+          });
+          finish();
+        }
+      };
+
+      this.queueEvents.on('progress', onProgress);
+      this.queueEvents.on('completed', onCompleted);
+      this.queueEvents.on('failed', onFailed);
+
+      const cleanup = () => {
+        this.queueEvents.off('progress', onProgress);
+        this.queueEvents.off('completed', onCompleted);
+        this.queueEvents.off('failed', onFailed);
+      };
+
+      // 2. THEN check DB for already-terminal state (handles race condition)
+      this.roadmapService
+        .findById(roadmapId)
+        .then((roadmap) => {
+          if (done) return;
+
+          if (!roadmap) {
+            subscriber.next({
+              data: JSON.stringify({
+                type: 'error',
+                message: 'Roadmap not found',
+              }),
+            });
+            finish();
+            return;
+          }
+
+          if (roadmap.generationStatus === 'completed') {
+            subscriber.next({
+              data: JSON.stringify({ type: 'completed' }),
+            });
+            finish();
+            return;
+          }
+
+          if (roadmap.generationStatus === 'failed') {
+            subscriber.next({
+              data: JSON.stringify({
+                type: 'failed',
+                message: roadmap.errorMessage || 'Generation failed',
+              }),
+            });
+            finish();
+            return;
+          }
+
+          // Still in progress — emit current status, keep stream open for live events
+          subscriber.next({
+            data: JSON.stringify({
+              type: 'status',
+              status: roadmap.generationStatus,
+            }),
+          });
+        })
+        .catch(() => {
+          subscriber.next({
+            data: JSON.stringify({
+              type: 'error',
+              message: 'Failed to check status',
+            }),
+          });
+          finish();
+        });
+
+      // Teardown on client disconnect
+      return cleanup;
+    });
   }
 
   @Get('user/me')

@@ -2,6 +2,7 @@ import { GetGraphUseCase } from '@/features/roadmap/app/usecases/get-graph.useca
 import { DeleteRoadmapUseCase } from '@/features/roadmap/app/usecases/delete-roadmap.usecase';
 import { GenerateRoadmapUseCase } from '@/features/roadmap/app/usecases/generate-roadmap.usecase';
 import { GenerateTopicRoadmapUseCase } from '@/features/roadmap/app/usecases/generate-topic-roadmap.usecase';
+import { EnqueueTopicRoadmapUseCase } from '@/features/roadmap/app/usecases/enqueue-topic-roadmap.usecase';
 import { GetRoadmapUseCase } from '@/features/roadmap/app/usecases/get-roadmap.usecase';
 import {
   UpdateStepProgressUseCase,
@@ -33,6 +34,7 @@ export class RoadmapService implements IRoadmapService {
   constructor(
     private readonly generateRoadmapUseCase: GenerateRoadmapUseCase,
     private readonly generateTopicRoadmapUseCase: GenerateTopicRoadmapUseCase,
+    private readonly enqueueTopicRoadmapUseCase: EnqueueTopicRoadmapUseCase,
     private readonly getRoadmapUseCase: GetRoadmapUseCase,
     private readonly deleteRoadmapUseCase: DeleteRoadmapUseCase,
     private readonly getGraphUseCase: GetGraphUseCase,
@@ -54,7 +56,13 @@ export class RoadmapService implements IRoadmapService {
   }
 
   async generateFromTopic(input: GenerateTopicRoadmapInput): Promise<Roadmap> {
-    return await this.generateTopicRoadmapUseCase.execute(input);
+    // Async: save skeleton + enqueue background job
+    return await this.enqueueTopicRoadmapUseCase.execute({
+      topic: input.topic,
+      title: input.title,
+      userId: input.userId!,
+      userContext: input.userContext,
+    });
   }
 
   async findById(id: string): Promise<Roadmap | null> {
