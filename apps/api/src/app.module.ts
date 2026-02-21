@@ -6,6 +6,7 @@ import { DocumentModule } from '@/features/document/document.module';
 import { UserModule } from '@/features/user/user.module';
 import { AuthModule } from '@/features/auth/auth.module';
 import { StorageModule } from '@/features/storage/storage.module';
+import { AdminModule } from '@/features/admin/admin.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { StorageModule } from '@/features/storage/storage.module';
     UserModule,
     AuthModule,
     StorageModule,
+    AdminModule,
   ],
 })
 export class AppModule {}
