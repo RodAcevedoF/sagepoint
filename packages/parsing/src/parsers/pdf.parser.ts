@@ -1,19 +1,31 @@
+import { PDFParse } from 'pdf-parse';
 import { DocumentParser, ParsedDocument } from '../interfaces/document-parser.interface';
 
 export class PdfParser implements DocumentParser {
-  parse(buffer: Buffer, mimeType: string): Promise<ParsedDocument> {
+  async parse(buffer: Buffer, mimeType: string): Promise<ParsedDocument> {
     if (!this.supports(mimeType)) {
       throw new Error(`Unsupported MIME type: ${mimeType}`);
     }
 
-    // TODO: Implement actual PDF parsing (e.g., using pdf-parse or similar)
-    return Promise.resolve({
-      text: "Simulated PDF content extraction...",
-      metadata: {
-        pageCount: 1,
-        author: "Unknown"
-      }
-    });
+    const pdf = new PDFParse({ data: new Uint8Array(buffer) });
+
+    try {
+      const [textResult, infoResult] = await Promise.all([
+        pdf.getText(),
+        pdf.getInfo(),
+      ]);
+
+      return {
+        text: textResult.text,
+        metadata: {
+          pageCount: infoResult.total,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          info: infoResult.info,
+        },
+      };
+    } finally {
+      await pdf.destroy();
+    }
   }
 
   supports(mimeType: string): boolean {
