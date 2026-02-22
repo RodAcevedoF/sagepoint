@@ -15,10 +15,14 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Card, useSnackbar } from '@/common/components';
+import { useDocumentEvents } from '@/common/hooks';
 import { useDeleteDocumentCommand } from '@/application/document';
+import { documentApi } from '@/infrastructure/api/documentApi';
+import { useAppDispatch } from '@/common/hooks';
 import { ProcessingStatusBadge } from './ProcessingStatusBadge';
 import { makeStyles } from './DocumentCard.styles';
 import type { DocumentDetailDto } from '@/infrastructure/api/documentApi';
+import { ProcessingStage } from '@sagepoint/domain';
 
 const mimeIconMap: Array<{ test: (m: string) => boolean; icon: typeof File }> =
 	[
@@ -63,13 +67,27 @@ interface DocumentCardProps {
 	document: DocumentDetailDto;
 }
 
+const sseStageMap: Record<string, ProcessingStage> = {
+	parsing: ProcessingStage.PARSING,
+	analyzing: ProcessingStage.ANALYZING,
+	ready: ProcessingStage.READY,
+};
+
 export function DocumentCard({ document }: DocumentCardProps) {
 	const theme = useTheme();
 	const router = useRouter();
+	const dispatch = useAppDispatch();
 	const { execute: deleteDocument } = useDeleteDocumentCommand();
 	const { showSnackbar } = useSnackbar();
 
-	const stage = document.processingStage;
+	const isProcessing = document.status !== 'COMPLETED' && document.status !== 'FAILED';
+	const { status: sseStatus, stage: sseStage } = useDocumentEvents(isProcessing ? document.id : null);
+
+	if (sseStatus === 'completed') {
+		dispatch(documentApi.util.invalidateTags([{ type: 'Document', id: 'LIST' }]));
+	}
+
+	const stage: ProcessingStage = (sseStage && sseStageMap[sseStage]) || document.processingStage;
 	const colorKey = stageColorMap[stage] ?? 'primary';
 	const paletteColors: Record<string, string> = {
 		info: theme.palette.info.light,

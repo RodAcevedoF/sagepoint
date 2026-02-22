@@ -51,6 +51,7 @@ export class DocumentProcessorService extends WorkerHost {
           processingStage: 'PARSING',
         },
       });
+      await job.updateProgress({ stage: 'parsing' });
 
       const buffer = await this.fileStorage.download(storagePath);
       const resolvedMime = mimeType || this.guessMimeType(filename);
@@ -67,6 +68,7 @@ export class DocumentProcessorService extends WorkerHost {
         where: { id: documentId },
         data: { processingStage: 'ANALYZING' },
       });
+      await job.updateProgress({ stage: 'analyzing' });
 
       // Limit text for AI calls
       const truncatedText = text.substring(0, 15000);
@@ -132,6 +134,7 @@ export class DocumentProcessorService extends WorkerHost {
           conceptCount: concepts.length,
         },
       });
+      await job.updateProgress({ stage: 'ready' });
 
       this.logger.log(
         `Document ${documentId} fully processed: ${concepts.length} concepts, summary saved, ${questions.length} quiz questions`,

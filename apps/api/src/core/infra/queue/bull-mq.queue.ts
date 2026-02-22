@@ -13,11 +13,10 @@ export class BullMqDocumentProcessingQueue implements IDocumentProcessingQueue {
     filename: string,
     mimeType: string,
   ): Promise<void> {
-    await this.queue.add('process-document', {
-      documentId,
-      storagePath,
-      filename,
-      mimeType,
-    });
+    await this.queue.add(
+      'process-document',
+      { documentId, storagePath, filename, mimeType },
+      { jobId: documentId },
+    );
   }
 }
