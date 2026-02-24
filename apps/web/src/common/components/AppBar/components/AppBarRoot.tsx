@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode } from 'react';
+import { type ReactNode, type CSSProperties } from 'react';
 import {
 	Box,
 	alpha,
@@ -9,7 +9,12 @@ import {
 	type SxProps,
 	type Theme,
 } from '@mui/material';
-import { motion, AnimatePresence, type Variants } from 'framer-motion';
+import {
+	motion,
+	AnimatePresence,
+	LayoutGroup,
+	type Variants,
+} from 'framer-motion';
 import { palette } from '@/common/theme';
 import { AppBarProvider } from '../AppBarContext';
 import { useHoverReveal } from '../useHoverReveal';
@@ -30,23 +35,26 @@ export interface AppBarProps {
 
 const containerVariants: Variants = {
 	hidden: {
+		x: '-50%',
 		y: 40,
 		opacity: 0,
 		scale: 0.9,
 	},
 	visible: {
+		x: '-50%',
 		y: 0,
 		opacity: 1,
 		scale: 1,
 		transition: {
 			type: 'spring',
-			stiffness: 400,
+			stiffness: 500,
 			damping: 30,
 			mass: 0.8,
-			staggerChildren: 0.05,
+			staggerChildren: 0.02,
 		},
 	},
 	exit: {
+		x: '-50%',
 		y: 40,
 		opacity: 0,
 		scale: 0.9,
@@ -57,10 +65,16 @@ const containerVariants: Variants = {
 	},
 };
 
+interface AppBarRootStyles {
+	trigger: SxProps<Theme>;
+	barWrapper: SxProps<Theme>;
+	nav: CSSProperties;
+}
+
 const makeStyles = (
 	isMobile: boolean,
 	shouldShow: boolean,
-): Record<string, SxProps<Theme>> => ({
+): AppBarRootStyles => ({
 	trigger: {
 		position: 'fixed',
 		bottom: 0,
@@ -71,7 +85,6 @@ const makeStyles = (
 		pointerEvents: shouldShow ? 'none' : 'auto',
 	},
 	barWrapper: {
-		transform: 'translateX(-50%)',
 		display: 'flex',
 		alignItems: 'center',
 		gap: { xs: 0.25, sm: 0.5 },
@@ -94,7 +107,13 @@ const makeStyles = (
       0 12px 32px -8px ${alpha('#000', 0.3)},
       0 8px 16px -4px ${alpha(palette.primary.dark, 0.15)}
     `,
-		transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+		transition: 'none',
+	},
+	nav: {
+		position: 'fixed',
+		bottom: isMobile ? 16 : 24,
+		left: '50%',
+		zIndex: 1300,
 	},
 });
 
@@ -120,29 +139,26 @@ export function AppBarRoot({
 
 	return (
 		<AppBarProvider defaultActive={defaultActive}>
-			{/* Invisible trigger zone at bottom (desktop only) */}
-			{revealOnHover && !alwaysVisible && !isMobile && (
-				<Box {...triggerProps} sx={styles.trigger} />
-			)}
-
-			<AnimatePresence>
-				{shouldShow && (
-					<motion.nav
-						variants={containerVariants}
-						initial='hidden'
-						animate='visible'
-						exit='exit'
-						{...barProps}
-						style={{
-							position: 'fixed' as const,
-							bottom: isMobile ? 16 : 24,
-							left: '50%',
-							zIndex: 1300,
-						}}>
-						<Box sx={styles.barWrapper}>{children}</Box>
-					</motion.nav>
+			<LayoutGroup id='navbar-items'>
+				{/* Invisible trigger zone at bottom (desktop only) */}
+				{revealOnHover && !alwaysVisible && !isMobile && (
+					<Box {...triggerProps} sx={styles.trigger} />
 				)}
-			</AnimatePresence>
+
+				<AnimatePresence>
+					{shouldShow && (
+						<motion.nav
+							variants={containerVariants}
+							initial='hidden'
+							animate='visible'
+							exit='exit'
+							{...barProps}
+							style={styles.nav}>
+							<Box sx={styles.barWrapper}>{children}</Box>
+						</motion.nav>
+					)}
+				</AnimatePresence>
+			</LayoutGroup>
 		</AppBarProvider>
 	);
 }

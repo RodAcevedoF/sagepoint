@@ -1,4 +1,4 @@
-import { type ComponentType, useMemo } from 'react';
+import { type ComponentType, type CSSProperties, useMemo } from 'react';
 import {
 	Box,
 	alpha,
@@ -52,16 +52,25 @@ const getEffectiveColor = (color?: string): string => {
 	return color;
 };
 
+interface AppBarItemStyles {
+	button: CSSProperties;
+	activeBg: SxProps<Theme>;
+	indicator: CSSProperties;
+	iconContainer: SxProps<Theme>;
+	label: SxProps<Theme>;
+	badge: SxProps<Theme>;
+}
+
 const makeStyles = (
 	isMobile: boolean,
 	isActive: boolean,
 	disabled: boolean,
 	effectiveColor: string,
-) => ({
+): AppBarItemStyles => ({
 	button: {
-		position: 'relative' as const,
+		position: 'relative',
 		display: 'flex',
-		flexDirection: 'column' as const,
+		flexDirection: 'column',
 		alignItems: 'center',
 		justifyContent: 'center',
 		gap: isMobile ? 0 : 4,
@@ -72,8 +81,7 @@ const makeStyles = (
 		cursor: disabled ? 'not-allowed' : 'pointer',
 		opacity: disabled ? 0.35 : 1,
 		outline: 'none',
-		borderRadius: isMobile ? 14 : 24, // slightly more rounded
-		transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+		borderRadius: isMobile ? 14 : 24,
 	},
 	activeBg: {
 		position: 'absolute',
@@ -83,10 +91,9 @@ const makeStyles = (
 		zIndex: -1,
 	},
 	indicator: {
-		position: 'absolute' as const,
+		position: 'absolute',
 		bottom: isMobile ? -4 : -6,
 		left: '50%',
-		transform: 'translateX(-50%)',
 		height: 4,
 		borderRadius: '2px 2px 0 0',
 		backgroundColor: effectiveColor,
@@ -95,20 +102,20 @@ const makeStyles = (
 	iconContainer: {
 		position: 'relative',
 		color: isActive ? effectiveColor : alpha(effectiveColor, 0.4),
-		transition: 'color 0.2s ease',
+		transition: 'color 0.15s ease',
 		display: 'flex',
 		alignItems: 'center',
 		justifyContent: 'center',
 	},
 	label: {
 		fontSize: '0.75rem',
-		fontWeight: isActive ? 700 : 500,
+		fontWeight: 600,
 		color: isActive ? effectiveColor : alpha(effectiveColor, 0.5),
-		letterSpacing: isActive ? '0.02em' : '0.01em',
+		letterSpacing: '0.01em',
 		whiteSpace: 'nowrap',
-		transition: 'all 0.3s ease',
+		transition: 'all 0.15s ease',
 		mt: 0.5,
-	} as SxProps<Theme>,
+	},
 	badge: {
 		position: 'absolute',
 		top: -6,
@@ -125,21 +132,26 @@ const makeStyles = (
 		alignItems: 'center',
 		justifyContent: 'center',
 		boxShadow: `0 2px 8px ${alpha(palette.error.main, 0.4)}`,
-	} as SxProps<Theme>,
+	},
 });
 
 const itemVariants: Variants = {
 	idle: { scale: 1, y: 0 },
-	hover: { scale: 1.05, y: -2 },
+	hover: {
+		scale: 1.05,
+		y: -2,
+		transition: { duration: 0.15, ease: 'easeOut' },
+	},
 	tap: { scale: 0.95 },
 	active: { scale: 1, y: 0 },
 };
 
 const glowVariants: Variants = {
-	idle: { opacity: 0, width: 0 },
+	idle: { opacity: 0, width: 0, x: '-50%' },
 	active: {
 		opacity: 1,
 		width: 28,
+		x: '-50%',
 		transition: { duration: 0.25, ease: 'easeOut' },
 	},
 };
@@ -192,6 +204,12 @@ export function AppBarItem({
 				<Box
 					component={motion.div}
 					layoutId='navbar-active-bg'
+					transition={{
+						type: 'spring',
+						stiffness: 500,
+						damping: 40,
+						mass: 0.6,
+					}}
 					sx={styles.activeBg}
 				/>
 			)}

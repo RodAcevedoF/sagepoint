@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Map, FileText, User, Plus, Shield } from 'lucide-react';
+import { Home, Map, FileText, User, Shield } from 'lucide-react';
 import { useAppSelector } from '@/common/hooks';
 import { AppBar } from './AppBar';
 
@@ -39,15 +39,6 @@ export function DashboardAppBar() {
 					color='warning'
 				/>
 			</AppBar.Group>
-
-			<AppBar.Divider />
-
-			<AppBar.Action
-				icon={Plus}
-				label='Create new'
-				variant='glow'
-				onClick={() => router.push('/roadmaps/create')}
-			/>
 
 			<AppBar.Divider />
 

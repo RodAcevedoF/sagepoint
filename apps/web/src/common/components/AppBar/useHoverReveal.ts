@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 
 interface HoverRevealOptions {
 	/** Delay in ms before hiding after mouse leaves (default: 400ms) */
@@ -12,7 +12,10 @@ interface HoverRevealOptions {
 interface HoverRevealResult {
 	isRevealed: boolean;
 	/** Spread onto the invisible trigger zone element */
-	triggerProps: { onMouseEnter?: () => void };
+	triggerProps: {
+		onMouseEnter?: () => void;
+		onMouseLeave?: () => void;
+	};
 	/** Spread onto the bar element */
 	barProps: {
 		onMouseEnter?: () => void;
@@ -27,53 +30,53 @@ export function useHoverReveal(
 	const [isRevealed, setIsRevealed] = useState(true);
 	const hideTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-	const clearHideTimeout = () => {
+	const clearHideTimeout = useCallback(() => {
 		if (hideTimeout.current) {
 			clearTimeout(hideTimeout.current);
 			hideTimeout.current = null;
 		}
-	};
+	}, []);
 
-	const scheduleHide = () => {
+	const scheduleHide = useCallback(() => {
 		clearHideTimeout();
 		hideTimeout.current = setTimeout(() => {
 			setIsRevealed(false);
 		}, hideDelay);
-	};
+	}, [clearHideTimeout, hideDelay]);
 
-	// Show briefly on mount, then auto-hide after 1.5s
+	// Show briefly on mount, then auto-hide after 1s
 	useEffect(() => {
 		if (disabled) return;
-		const timer = setTimeout(() => setIsRevealed(false), 1500);
+		const timer = setTimeout(() => setIsRevealed(false), 1000);
 		return () => clearTimeout(timer);
 	}, [disabled]);
 
 	// Cleanup on unmount
-	useEffect(() => () => clearHideTimeout(), []);
+	useEffect(() => () => clearHideTimeout(), [clearHideTimeout]);
 
 	const triggerProps = useMemo(
 		() =>
-			disabled
-				? {}
-				: {
-						onMouseEnter: () => {
-							clearHideTimeout();
-							setIsRevealed(true);
-						},
+			disabled ?
+				{}
+			:	{
+					onMouseEnter: () => {
+						clearHideTimeout();
+						setIsRevealed(true);
 					},
-		[disabled],
+					onMouseLeave: () => scheduleHide(),
+				},
+		[disabled, clearHideTimeout, scheduleHide],
 	);
 
 	const barProps = useMemo(
 		() =>
-			disabled
-				? {}
-				: {
-						onMouseEnter: () => clearHideTimeout(),
-						onMouseLeave: () => scheduleHide(),
-					},
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[disabled, hideDelay],
+			disabled ?
+				{}
+			:	{
+					onMouseEnter: () => clearHideTimeout(),
+					onMouseLeave: () => scheduleHide(),
+				},
+		[disabled, clearHideTimeout, scheduleHide],
 	);
 
 	return {

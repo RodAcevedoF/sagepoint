@@ -1,5 +1,5 @@
 'use client';
-import { type ComponentType } from 'react';
+import { type ComponentType, type CSSProperties } from 'react';
 import {
 	Box,
 	alpha,
@@ -22,10 +22,13 @@ export interface AppBarActionProps {
 	variant?: 'default' | 'primary' | 'glow';
 }
 
-const makeStyles = (
-	size: number,
-	variant: string,
-): Record<string, SxProps<Theme>> => ({
+interface AppBarActionStyles {
+	container: SxProps<Theme>;
+	pulseRing: SxProps<Theme>;
+	button: CSSProperties;
+}
+
+const makeStyles = (size: number, variant: string): AppBarActionStyles => ({
 	container: {
 		position: 'relative',
 		mx: { xs: 0.5, sm: 1 },
@@ -42,7 +45,7 @@ const makeStyles = (
 		},
 	},
 	button: {
-		position: 'relative' as const,
+		position: 'relative',
 		display: 'flex',
 		alignItems: 'center',
 		justifyContent: 'center',
@@ -66,7 +69,6 @@ const makeStyles = (
 			: variant === 'primary' ?
 				`0 6px 16px ${alpha(palette.primary.main, 0.35)}`
 			:	`0 2px 8px ${alpha('#000', 0.1)}`,
-		transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
 	},
 });
 
@@ -90,11 +92,15 @@ export function AppBarAction({
 			{/* Pulse ring for glow variant */}
 			{variant === 'glow' && <Box sx={styles.pulseRing} />}
 			<motion.button
-				whileHover={{ scale: 1.08, y: -2 }}
+				whileHover={{
+					scale: 1.08,
+					y: -2,
+					transition: { duration: 0.15, ease: 'easeOut' },
+				}}
 				whileTap={{ scale: 0.95 }}
 				onClick={onClick}
 				aria-label={label}
-				style={styles.button as React.CSSProperties}>
+				style={styles.button}>
 				<Icon size={isMobile ? 20 : 22} strokeWidth={2.5} />
 			</motion.button>
 		</Box>
