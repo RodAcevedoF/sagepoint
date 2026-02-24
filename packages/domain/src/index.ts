@@ -32,6 +32,8 @@ export * from './modules/roadmap/ports/concept.repository';
 export * from './modules/roadmap/ports/resource.repository';
 export * from './modules/roadmap/ports/progress.repository';
 export * from './modules/roadmap/ports/roadmap-generation-queue.port';
+export * from './modules/roadmap/entities/step-quiz-attempt.entity';
+export * from './modules/roadmap/ports/step-quiz-attempt.repository';
 
 // Shared Ports
 export * from './ports/file-storage.port';
@@ -41,3 +43,4 @@ export * from './ports/resource-discovery.port';
 export * from './ports/document-analysis.port';
 export * from './ports/quiz-generation.port';
 export * from './ports/image-text-extraction.port';
+export * from './ports/concept-expansion.port';

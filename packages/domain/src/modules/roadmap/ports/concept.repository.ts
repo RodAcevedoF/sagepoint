@@ -9,4 +9,9 @@ export interface IConceptRepository {
   // Graph operations
   addRelation(fromId: string, toId: string, type: 'DEPENDS_ON' | 'NEXT_STEP'): Promise<void>;
   getGraphByDocumentId(documentId: string): Promise<{ nodes: Concept[]; edges: { from: string; to: string; type: string }[] }>;
+  // Sub-concept operations
+  addSubConceptRelation(parentId: string, childId: string): Promise<void>;
+  getSubConcepts(parentId: string): Promise<Concept[]>;
+  // Related concept discovery
+  findRelatedNotInSet(conceptIds: string[]): Promise<Concept[]>;
 }

@@ -246,8 +246,9 @@ model Roadmap {
   recommendedPace    String?  // e.g., "2-3 concepts per week"
   errorMessage       String?
 
-  resources   Resource[]
-  progress    UserRoadmapProgress[]
+  resources         Resource[]
+  progress          UserRoadmapProgress[]
+  stepQuizAttempts  StepQuizAttempt[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -297,4 +298,25 @@ model UserRoadmapProgress {
   @@index([roadmapId])
   @@index([userId, roadmapId])  // Composite for efficient user+roadmap queries
   @@map("user_roadmap_progress")
+}
+
+model StepQuizAttempt {
+  id             String    @id @default(uuid())
+  userId         String
+  roadmapId      String
+  conceptId      String
+  questions      Json      // StepQuizQuestion[] with isCorrect flags
+  answers        Json?     // User answers, null until submitted
+  score          Float     @default(0)
+  totalQuestions  Int       @default(3)
+  correctAnswers Int       @default(0)
+  passed         Boolean   @default(false)
+  completedAt    DateTime?
+  createdAt      DateTime  @default(now())
+
+  roadmap        Roadmap   @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+
+  @@index([userId, roadmapId, conceptId])
+  @@index([userId])
+  @@map("step_quiz_attempts")
 }

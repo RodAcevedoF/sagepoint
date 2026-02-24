@@ -10,10 +10,8 @@ export class PdfParser implements DocumentParser {
     const pdf = new PDFParse({ data: new Uint8Array(buffer) });
 
     try {
-      const [textResult, infoResult] = await Promise.all([
-        pdf.getText(),
-        pdf.getInfo(),
-      ]);
+      const textResult = await pdf.getText();
+      const infoResult = await pdf.getInfo();
 
       return {
         text: textResult.text,

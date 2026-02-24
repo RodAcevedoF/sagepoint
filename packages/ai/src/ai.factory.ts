@@ -5,6 +5,7 @@ import {
   IDocumentAnalysisService,
   IQuizGenerationService,
   IImageTextExtractionService,
+  IConceptExpansionService,
 } from '@sagepoint/domain';
 import { OpenAiRoadmapGeneratorAdapter } from './openai-roadmap-generator.adapter';
 import { OpenAiTopicConceptGeneratorAdapter } from './openai-topic-concept-generator.adapter';
@@ -12,6 +13,7 @@ import { PerplexityResearchAdapter } from './perplexity-research.adapter';
 import { OpenAiDocumentAnalysisAdapter } from './openai-document-analysis.adapter';
 import { OpenAiQuizGenerationAdapter } from './openai-quiz-generation.adapter';
 import { OpenAiVisionTextExtractorAdapter } from './openai-vision-text-extractor.adapter';
+import { OpenAiConceptExpansionAdapter } from './openai-concept-expansion.adapter';
 
 export interface AiConfig {
   openAiApiKey: string;
@@ -25,6 +27,7 @@ export interface AiAdapters {
   documentAnalysis: IDocumentAnalysisService;
   quizGeneration: IQuizGenerationService;
   imageTextExtraction: IImageTextExtractionService;
+  conceptExpansion: IConceptExpansionService;
 }
 
 export function createAiAdapters(config: AiConfig): AiAdapters {
@@ -45,6 +48,9 @@ export function createAiAdapters(config: AiConfig): AiAdapters {
       apiKey: config.openAiApiKey,
     }),
     imageTextExtraction: new OpenAiVisionTextExtractorAdapter({
+      apiKey: config.openAiApiKey,
+    }),
+    conceptExpansion: new OpenAiConceptExpansionAdapter({
       apiKey: config.openAiApiKey,
     }),
   };
