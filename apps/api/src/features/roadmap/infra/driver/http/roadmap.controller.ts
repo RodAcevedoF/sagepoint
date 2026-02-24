@@ -24,7 +24,8 @@ import {
 
 interface GenerateRoadmapDto {
   documentId: string;
-  title: string;
+  title?: string;
+  userContext?: UserContext;
 }
 
 interface GenerateTopicRoadmapDto {
@@ -39,6 +40,10 @@ interface UpdateStepProgressDto {
 
 interface RefreshResourcesDto {
   conceptIds?: string[];
+}
+
+interface SubmitStepQuizDto {
+  answers: Record<number, string>;
 }
 
 interface SseEvent {
@@ -260,6 +265,48 @@ export class RoadmapController {
       roadmapId,
       conceptIds: dto.conceptIds,
     });
+  }
+
+  @Post(':id/steps/:conceptId/quiz')
+  @UseGuards(JwtAuthGuard)
+  async generateStepQuiz(
+    @Param('id') roadmapId: string,
+    @Param('conceptId') conceptId: string,
+    @CurrentUser() user: RequestUser,
+  ) {
+    return this.roadmapService.generateStepQuiz({
+      userId: user.id,
+      roadmapId,
+      conceptId,
+    });
+  }
+
+  @Post(':id/quiz/:attemptId/submit')
+  @UseGuards(JwtAuthGuard)
+  async submitStepQuiz(
+    @Param('attemptId') attemptId: string,
+    @Body() dto: SubmitStepQuizDto,
+    @CurrentUser() user: RequestUser,
+  ) {
+    return this.roadmapService.submitStepQuiz({
+      userId: user.id,
+      attemptId,
+      answers: dto.answers,
+    });
+  }
+
+  @Post(':id/steps/:conceptId/expand')
+  @UseGuards(JwtAuthGuard)
+  async expandConcept(
+    @Param('id') roadmapId: string,
+    @Param('conceptId') conceptId: string,
+  ) {
+    return this.roadmapService.expandConcept({ roadmapId, conceptId });
+  }
+
+  @Get(':id/suggestions')
+  async getSuggestions(@Param('id') id: string) {
+    return this.roadmapService.getSuggestions(id);
   }
 
   @Delete(':id')

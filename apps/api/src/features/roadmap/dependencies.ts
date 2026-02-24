@@ -17,6 +17,11 @@ import { DeleteRoadmapUseCase } from '@/features/roadmap/app/usecases/delete-roa
 import { UpdateStepProgressUseCase } from '@/features/roadmap/app/usecases/update-step-progress.usecase';
 import { RefreshResourcesUseCase } from '@/features/roadmap/app/usecases/refresh-resources.usecase';
 import { GetUserRoadmapsUseCase } from '@/features/roadmap/app/usecases/get-user-roadmaps.usecase';
+import { ExpandConceptUseCase } from '@/features/roadmap/app/usecases/expand-concept.usecase';
+import { SuggestRelatedTopicsUseCase } from '@/features/roadmap/app/usecases/suggest-related-topics.usecase';
+import { GenerateStepQuizUseCase } from '@/features/roadmap/app/usecases/generate-step-quiz.usecase';
+import { SubmitStepQuizUseCase } from '@/features/roadmap/app/usecases/submit-step-quiz.usecase';
+import { PrismaStepQuizAttemptRepository } from './infra/driven/prisma-step-quiz-attempt.repository';
 
 import { Neo4jService } from '@sagepoint/graph';
 import { Neo4jConceptRepository } from './infra/driven/neo4j-concept.repository';
@@ -104,6 +109,33 @@ export function makeRoadmapDependencies(
     resourceRepository,
   );
 
+  // Step quiz
+  const stepQuizAttemptRepository = new PrismaStepQuizAttemptRepository(
+    prismaService,
+  );
+  const generateStepQuizUseCase = new GenerateStepQuizUseCase(
+    roadmapRepository,
+    aiAdapters.quizGeneration,
+    stepQuizAttemptRepository,
+  );
+  const submitStepQuizUseCase = new SubmitStepQuizUseCase(
+    stepQuizAttemptRepository,
+    updateStepProgressUseCase,
+  );
+
+  // Concept expansion & suggestions
+  const expandConceptUseCase = new ExpandConceptUseCase(
+    roadmapRepository,
+    conceptRepository,
+    aiAdapters.conceptExpansion,
+    resourceDiscoveryService,
+    resourceRepository,
+  );
+  const suggestRelatedTopicsUseCase = new SuggestRelatedTopicsUseCase(
+    roadmapRepository,
+    conceptRepository,
+  );
+
   const roadmapService = new RoadmapService(
     generateRoadmapUseCase,
     generateTopicRoadmapUseCase,
@@ -115,6 +147,10 @@ export function makeRoadmapDependencies(
     refreshResourcesUseCase,
     getUserRoadmapsUseCase,
     resourceRepository,
+    expandConceptUseCase,
+    suggestRelatedTopicsUseCase,
+    generateStepQuizUseCase,
+    submitStepQuizUseCase,
   );
 
   return {

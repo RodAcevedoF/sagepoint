@@ -108,6 +108,45 @@ export class Neo4jConceptRepository implements IConceptRepository {
     return { nodes, edges };
   }
 
+  async addSubConceptRelation(
+    parentId: string,
+    childId: string,
+  ): Promise<void> {
+    const cypher = `
+      MATCH (parent:Concept {id: $parentId})
+      MATCH (child:Concept {id: $childId})
+      MERGE (parent)-[:HAS_SUBCONCEPT]->(child)
+    `;
+    await this.neo4j.write(cypher, { parentId, childId });
+  }
+
+  async getSubConcepts(parentId: string): Promise<Concept[]> {
+    const cypher = `
+      MATCH (p:Concept {id: $parentId})-[:HAS_SUBCONCEPT]->(c:Concept)
+      RETURN c
+      ORDER BY c.name
+    `;
+    const result = await this.neo4j.read(cypher, { parentId });
+    return result.records.map((r) => {
+      const node = this.extractConceptNode(r);
+      return new Concept(node.id, node.name, node.documentId, node.description);
+    });
+  }
+
+  async findRelatedNotInSet(conceptIds: string[]): Promise<Concept[]> {
+    const cypher = `
+      MATCH (c:Concept)-[:RELATED_TO|DEPENDS_ON]-(n:Concept)
+      WHERE c.id IN $ids AND NOT n.id IN $ids
+      RETURN DISTINCT n AS c
+      LIMIT 10
+    `;
+    const result = await this.neo4j.read(cypher, { ids: conceptIds });
+    return result.records.map((r) => {
+      const node = this.extractConceptNode(r);
+      return new Concept(node.id, node.name, node.documentId, node.description);
+    });
+  }
+
   private extractConceptNode(record: Neo4jRecord): ConceptNode {
     const node = record.get('c') as Node;
     const props = node.properties as Neo4jConceptProperties;

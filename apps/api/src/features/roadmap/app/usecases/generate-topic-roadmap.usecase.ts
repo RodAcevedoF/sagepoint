@@ -95,6 +95,11 @@ export class GenerateTopicRoadmapUseCase {
 
     // 4. Create and save roadmap
     const roadmapId = crypto.randomUUID();
+    // Compute total duration from individual step durations (more reliable than AI aggregate)
+    const stepDurationSum = steps.reduce(
+      (sum, s) => sum + (s.estimatedDuration ?? 0),
+      0,
+    );
     const roadmap = new Roadmap({
       id: roadmapId,
       title,
@@ -102,7 +107,7 @@ export class GenerateTopicRoadmapUseCase {
       description: learningPath.description,
       steps,
       generationStatus: 'completed',
-      totalEstimatedDuration: learningPath.totalEstimatedDuration,
+      totalEstimatedDuration: stepDurationSum > 0 ? stepDurationSum : undefined,
       recommendedPace: learningPath.recommendedPace,
       createdAt: new Date(),
     });

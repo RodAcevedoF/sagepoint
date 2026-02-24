@@ -12,7 +12,7 @@ import {
 
 export interface GenerateRoadmapCommand {
   documentId: string;
-  title: string;
+  title?: string;
   userId?: string;
   userContext?: UserContext;
   discoverResources?: boolean; // defaults to true
@@ -35,11 +35,20 @@ export class GenerateRoadmapUseCase {
       command.documentId,
     );
 
+    // Auto-generate title from graph concepts if not provided
+    const title =
+      command.title ||
+      'Learning Path: ' +
+        graph.nodes
+          .slice(0, 3)
+          .map((n) => n.name)
+          .join(', ');
+
     if (graph.nodes.length === 0) {
       // No concepts found - return empty roadmap
       const emptyRoadmap = new Roadmap({
         id: crypto.randomUUID(),
-        title: command.title,
+        title,
         documentId: command.documentId,
         userId: command.userId,
         description:
@@ -100,15 +109,23 @@ export class GenerateRoadmapUseCase {
 
     // 5. Create the roadmap (generate ID first for resource association)
     const roadmapId = crypto.randomUUID();
+    // Compute total duration from individual step durations (more reliable than AI aggregate)
+    const stepDurationSum = steps.reduce(
+      (sum, s) => sum + (s.estimatedDuration ?? 0),
+      0,
+    );
+    const totalEstimatedDuration =
+      stepDurationSum > 0 ? stepDurationSum : undefined;
+
     const roadmap = new Roadmap({
       id: roadmapId,
-      title: command.title,
+      title,
       documentId: command.documentId,
       userId: command.userId,
       description: learningPath.description,
       steps,
       generationStatus: 'completed',
-      totalEstimatedDuration: learningPath.totalEstimatedDuration,
+      totalEstimatedDuration,
       recommendedPace: learningPath.recommendedPace,
       createdAt: new Date(),
     });

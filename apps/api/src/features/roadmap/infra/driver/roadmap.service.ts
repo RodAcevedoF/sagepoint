@@ -16,6 +16,19 @@ import {
   GetUserRoadmapsUseCase,
   UserRoadmapWithProgress,
 } from '@/features/roadmap/app/usecases/get-user-roadmaps.usecase';
+import { ExpandConceptUseCase } from '@/features/roadmap/app/usecases/expand-concept.usecase';
+import {
+  SuggestRelatedTopicsUseCase,
+  SuggestedTopic,
+} from '@/features/roadmap/app/usecases/suggest-related-topics.usecase';
+import {
+  GenerateStepQuizUseCase,
+  GenerateStepQuizResult,
+} from '@/features/roadmap/app/usecases/generate-step-quiz.usecase';
+import {
+  SubmitStepQuizUseCase,
+  SubmitStepQuizResult,
+} from '@/features/roadmap/app/usecases/submit-step-quiz.usecase';
 import {
   Roadmap,
   Concept,
@@ -27,6 +40,9 @@ import {
   GenerateTopicRoadmapInput,
   UpdateProgressInput,
   RefreshResourcesInput,
+  ExpandConceptInput,
+  GenerateStepQuizInput,
+  SubmitStepQuizInput,
   IRoadmapService,
 } from '@/features/roadmap/domain/inbound/roadmap.service';
 
@@ -42,6 +58,10 @@ export class RoadmapService implements IRoadmapService {
     private readonly refreshResourcesUseCase: RefreshResourcesUseCase,
     private readonly getUserRoadmapsUseCase: GetUserRoadmapsUseCase,
     private readonly resourceRepository: IResourceRepository,
+    private readonly expandConceptUseCase?: ExpandConceptUseCase,
+    private readonly suggestRelatedTopicsUseCase?: SuggestRelatedTopicsUseCase,
+    private readonly generateStepQuizUseCase?: GenerateStepQuizUseCase,
+    private readonly submitStepQuizUseCase?: SubmitStepQuizUseCase,
   ) {}
 
   async getGraph(documentId: string): Promise<{
@@ -107,5 +127,39 @@ export class RoadmapService implements IRoadmapService {
 
   async getResourcesByRoadmap(roadmapId: string): Promise<Resource[]> {
     return await this.resourceRepository.findByRoadmapId(roadmapId);
+  }
+
+  // Concept expansion & suggestions
+  async expandConcept(input: ExpandConceptInput): Promise<Roadmap> {
+    if (!this.expandConceptUseCase) {
+      throw new Error('Concept expansion is not available');
+    }
+    return await this.expandConceptUseCase.execute(input);
+  }
+
+  async getSuggestions(roadmapId: string): Promise<SuggestedTopic[]> {
+    if (!this.suggestRelatedTopicsUseCase) {
+      return [];
+    }
+    return await this.suggestRelatedTopicsUseCase.execute(roadmapId);
+  }
+
+  // Step quiz
+  async generateStepQuiz(
+    input: GenerateStepQuizInput,
+  ): Promise<GenerateStepQuizResult> {
+    if (!this.generateStepQuizUseCase) {
+      throw new Error('Step quiz generation is not available');
+    }
+    return await this.generateStepQuizUseCase.execute(input);
+  }
+
+  async submitStepQuiz(
+    input: SubmitStepQuizInput,
+  ): Promise<SubmitStepQuizResult> {
+    if (!this.submitStepQuizUseCase) {
+      throw new Error('Step quiz submission is not available');
+    }
+    return await this.submitStepQuizUseCase.execute(input);
   }
 }
