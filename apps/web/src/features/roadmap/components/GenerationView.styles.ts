@@ -1,6 +1,6 @@
-import { type Theme, alpha, type SxProps } from '@mui/material';
+import { type Theme, alpha } from '@mui/material';
 
-export const makeStyles = (theme: Theme): Record<string, SxProps<Theme>> => ({
+export const makeStyles = (theme: Theme) => ({
 	inputCard: {
 		position: 'relative',
 		overflow: 'hidden',

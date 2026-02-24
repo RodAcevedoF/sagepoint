@@ -1,26 +1,6 @@
-import { type Theme, alpha, type SxProps } from '@mui/material';
+import { type Theme, alpha } from '@mui/material';
 
-export const makeStyles = (
-	theme: Theme,
-): {
-	container: SxProps<Theme>;
-	headerCard: SxProps<Theme>;
-	accentBar: SxProps<Theme>;
-	headerContent: SxProps<Theme>;
-	title: SxProps<Theme>;
-	description: SxProps<Theme>;
-	metaRow: SxProps<Theme>;
-	metaItem: SxProps<Theme>;
-	metaValue: SxProps<Theme>;
-	paceChip: SxProps<Theme>;
-	progressCircleContainer: SxProps<Theme>;
-	progressCircleBackground: SxProps<Theme>;
-	progressCircleForeground: (percentage: number) => SxProps<Theme>;
-	progressLabelContainer: SxProps<Theme>;
-	progressPercentage: SxProps<Theme>;
-	progressLabel: SxProps<Theme>;
-	timelineContainer: SxProps<Theme>;
-} => ({
+export const makeStyles = (theme: Theme) => ({
 	container: {
 		pb: 8,
 	},
@@ -51,10 +31,12 @@ export const makeStyles = (
 	title: {
 		fontWeight: 700,
 		mb: 1,
-		background: `linear-gradient(135deg, ${theme.palette.primary.light}, ${theme.palette.primary.light})`,
+		background: `linear-gradient(135deg, ${theme.palette.common.white} 0%, ${theme.palette.primary.light} 100%)`,
 		backgroundClip: 'text',
 		WebkitBackgroundClip: 'text',
 		WebkitTextFillColor: 'transparent',
+		fontSize: { xs: '1.75rem', sm: '2.25rem' },
+		lineHeight: 1.2,
 	},
 	description: {
 		color: theme.palette.text.secondary,

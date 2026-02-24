@@ -1,14 +1,6 @@
-import { type Theme, alpha, type SxProps } from '@mui/material';
+import { type Theme, alpha } from '@mui/material';
 
-export const makeStyles = (
-	theme: Theme,
-): {
-	container: SxProps<Theme>;
-	card: (color: string) => SxProps<Theme>;
-	iconContainer: (color: string) => SxProps<Theme>;
-	value: (color: string) => SxProps<Theme>;
-	label: SxProps<Theme>;
-} => {
+export const makeStyles = (theme: Theme) => {
 	return {
 		container: {
 			display: 'grid',

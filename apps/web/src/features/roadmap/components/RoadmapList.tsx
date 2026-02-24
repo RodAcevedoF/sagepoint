@@ -5,9 +5,10 @@ import { BookOpen, Lightbulb, Rocket, Sparkles, AlertCircle } from 'lucide-react
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useUserRoadmapsQuery } from '@/application/roadmap';
-import { ErrorState, Loader, Button } from '@/common/components';
+import { ErrorState, Button } from '@/common/components';
 import { ButtonIconPositions, ButtonSizes } from '@/common/types';
 import { RoadmapCard } from './RoadmapCard';
+import { RoadmapCardSkeleton } from './RoadmapCardSkeleton';
 import { RoadmapHero } from './RoadmapHero';
 import { RoadmapStats } from './RoadmapStats';
 import { makeStyles } from './RoadmapList.styles';
@@ -158,7 +159,15 @@ export function RoadmapList() {
 			<RoadmapHero />
 
 			{/* Loading */}
-			{isLoading && <Loader variant='page' message='Loading roadmaps' />}
+			{isLoading && (
+				<Grid container spacing={3}>
+					{Array.from({ length: 6 }).map((_, i) => (
+						<Grid key={i} size={{ xs: 12, sm: 6, lg: 4 }}>
+							<RoadmapCardSkeleton />
+						</Grid>
+					))}
+				</Grid>
+			)}
 
 			{/* Error */}
 			{!isLoading && error && (

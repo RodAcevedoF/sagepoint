@@ -16,6 +16,7 @@ import { useRoadmapWithProgressQuery } from '@/application/roadmap';
 import { EmptyState, ErrorState, Loader, Button } from '@/common/components';
 import { ButtonVariants, ButtonIconPositions } from '@/common/types';
 import { TimelineStep } from './TimelineStep/TimelineStep';
+import { SuggestionsPanel } from './SuggestionsPanel';
 import { makeStyles } from './RoadmapDetail.styles';
 
 const MotionBox = motion.create(Box);
@@ -194,10 +195,14 @@ export function RoadmapDetail({ roadmapId }: RoadmapDetailProps) {
 							resourcesLoading={false}
 							isLast={index === orderedSteps.length - 1}
 							index={index}
+							parentDocumentId={roadmap.documentId}
 						/>
 					))}
 				</Box>
 			}
+
+			{/* Related topic suggestions */}
+			<SuggestionsPanel roadmapId={roadmapId} />
 		</Box>
 	);
 }

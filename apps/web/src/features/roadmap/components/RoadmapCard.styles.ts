@@ -1,12 +1,10 @@
-import { Theme, SxProps, alpha } from '@mui/material';
+import { Theme, alpha } from '@mui/material';
 
-export const makeStyles = (
-	statusColor: string,
-	theme: Theme,
-): Record<string, SxProps<Theme>> => ({
+export const makeStyles = (statusColor: string, theme: Theme) => ({
 	card: {
 		cursor: 'pointer',
-		transition: 'transform 0.2s, box-shadow 0.2s',
+		transition:
+			'transform 0.15s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.15s cubic-bezier(0.2, 0, 0, 1)',
 		'&:hover': {
 			transform: 'translateY(-3px)',
 			boxShadow: `0 4px 20px ${alpha(statusColor, 0.1)}`,

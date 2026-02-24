@@ -1,21 +1,6 @@
-import { type Theme, alpha, type SxProps } from '@mui/material';
+import { type Theme, alpha } from '@mui/material';
 
-export const makeStyles = (
-	theme: Theme,
-): {
-	container: (isPending: boolean) => SxProps<Theme>;
-	timelineColumn: SxProps<Theme>;
-	dotContainer: SxProps<Theme>;
-	activePulse: (color: string) => SxProps<Theme>;
-	dot: (
-		state: 'pending' | 'active' | 'completed',
-		color: string,
-	) => SxProps<Theme>;
-	connectorLine: (isCompleted: boolean) => SxProps<Theme>;
-	labelColumn: (isLast: boolean) => SxProps<Theme>;
-	label: (color: string) => SxProps<Theme>;
-	description: SxProps<Theme>;
-} => ({
+export const makeStyles = (theme: Theme) => ({
 	container: (isPending: boolean) => ({
 		display: 'flex',
 		gap: 2.5,
