@@ -6,6 +6,7 @@ import { Grid, Box, Button, CircularProgress, alpha } from '@mui/material';
 import { RotateCcw } from 'lucide-react';
 import { useAppSelector, useRoadmapEvents } from '@/common/hooks';
 import { useSnackbar, Loader, EmptyState } from '@/common/components';
+import { DashboardSkeleton } from './DashboardSkeleton';
 import { useProfileQuery } from '@/application/auth/queries/get-profile.query';
 import { useUserRoadmapsQuery } from '@/application/roadmap/queries/get-user-roadmaps.query';
 import { useUserDocumentsQuery } from '@/application/document';
@@ -143,7 +144,7 @@ export function Dashboard() {
 	if (isLoadingProfile || isLoadingRoadmaps || isLoadingDocuments) {
 		return (
 			<DashboardLayout>
-				<Loader variant='page' message='Loading' />
+				<DashboardSkeleton />
 			</DashboardLayout>
 		);
 	}

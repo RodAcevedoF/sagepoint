@@ -5,4 +5,4 @@ export const useAppDispatch = () => useDispatch<AppDispatch>();
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
 export { useRoadmapEvents } from './useRoadmapEvents';
-export { useDocumentEvents } from './useDocumentEvents';
+export { useDocumentEvents, type DocumentEventStage } from './useDocumentEvents';

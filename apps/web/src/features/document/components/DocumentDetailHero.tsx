@@ -1,13 +1,14 @@
 'use client';
 
 import { Box, Typography, alpha, useTheme, Chip } from '@mui/material';
-import { Map, Trash2 } from 'lucide-react';
+import { Map, Trash2, Layers } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { Button, useSnackbar } from '@/common/components';
+import { Button, useSnackbar, useModal } from '@/common/components';
 import { ButtonVariants, ButtonSizes, ButtonIconPositions } from '@/common/types';
 import { useDeleteDocumentCommand } from '@/application/document';
 import { ProcessingStatusBadge } from './ProcessingStatusBadge';
+import { GenerateFromDocumentModal } from './GenerateFromDocumentModal';
 import type { DocumentDetailDto, DocumentSummaryDto } from '@/infrastructure/api/documentApi';
 
 const MotionBox = motion.create(Box);
@@ -20,6 +21,7 @@ interface DocumentDetailHeroProps {
 export function DocumentDetailHero({ document, summary }: DocumentDetailHeroProps) {
 	const theme = useTheme();
 	const router = useRouter();
+	const { openModal } = useModal();
 	const { execute: deleteDocument } = useDeleteDocumentCommand();
 	const { showSnackbar } = useSnackbar();
 
@@ -37,8 +39,10 @@ export function DocumentDetailHero({ document, summary }: DocumentDetailHeroProp
 	};
 
 	const handleGenerateRoadmap = () => {
-		const topic = summary?.topicArea ?? document.filename;
-		router.push(`/roadmaps/create?topic=${encodeURIComponent(topic)}&from=document`);
+		openModal(
+			<GenerateFromDocumentModal documentId={document.id} documentName={document.filename} />,
+			{ title: 'Generate Roadmap', maxWidth: 'sm' },
+		);
 	};
 
 	return (
@@ -109,6 +113,19 @@ export function DocumentDetailHero({ document, summary }: DocumentDetailHeroProp
 								borderColor: alpha(theme.palette.warning.main, 0.3),
 								color: theme.palette.warning.light,
 								fontSize: '0.7rem',
+							}}
+						/>
+					)}
+					{isReady && document.conceptCount != null && document.conceptCount > 0 && (
+						<Chip
+							icon={<Layers size={12} />}
+							label={`${document.conceptCount} concepts`}
+							size='small'
+							sx={{
+								bgcolor: alpha(theme.palette.info.main, 0.1),
+								color: theme.palette.info.light,
+								fontWeight: 500,
+								'& .MuiChip-icon': { color: 'inherit' },
 							}}
 						/>
 					)}

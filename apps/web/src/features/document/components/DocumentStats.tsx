@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, Typography, useTheme } from '@mui/material';
-import { FileText, CheckCircle, Brain } from 'lucide-react';
+import { FileText, CheckCircle, Brain, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { alpha, type SxProps, type Theme } from '@mui/material';
 import type { LucideIcon } from 'lucide-react';
@@ -20,7 +20,7 @@ const makeStyles = (
 } => ({
 	container: {
 		display: 'grid',
-		gridTemplateColumns: { xs: 'repeat(3, 1fr)' },
+		gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' },
 		gap: 2.5,
 		mb: 5,
 	},
@@ -92,6 +92,9 @@ export function DocumentStats({ documents }: DocumentStatsProps) {
 
 	const total = documents.length;
 	const ready = documents.filter((d) => d.processingStage === 'READY').length;
+	const processing = documents.filter(
+		(d) => d.status !== 'COMPLETED' && d.status !== 'FAILED',
+	).length;
 	const withQuizzes = documents.filter(
 		(d) => d.processingStage === 'READY' && d.conceptCount && d.conceptCount > 0,
 	).length;
@@ -104,6 +107,12 @@ export function DocumentStats({ documents }: DocumentStatsProps) {
 			color: theme.palette.primary.light,
 		},
 		{
+			icon: Loader2,
+			label: 'Processing',
+			value: processing,
+			color: theme.palette.warning.light,
+		},
+		{
 			icon: CheckCircle,
 			label: 'Analyzed',
 			value: ready,
@@ -111,7 +120,7 @@ export function DocumentStats({ documents }: DocumentStatsProps) {
 		},
 		{
 			icon: Brain,
-			label: 'Quizzes Available',
+			label: 'With Concepts',
 			value: withQuizzes,
 			color: theme.palette.info.light,
 		},

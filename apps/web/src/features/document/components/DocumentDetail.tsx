@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { Box, Typography } from '@mui/material';
 import { Brain } from 'lucide-react';
 import { Loader, EmptyState } from '@/common/components';
@@ -11,6 +12,7 @@ import {
 import { useGetDocumentByIdQuery, documentApi } from '@/infrastructure/api/documentApi';
 import { DocumentDetailHero } from './DocumentDetailHero';
 import { DocumentSummaryView } from './DocumentSummaryView';
+import { DocumentProcessingView } from './DocumentProcessingView';
 import { QuizCard } from './QuizCard';
 
 interface DocumentDetailProps {
@@ -25,14 +27,18 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
 
 	const isProcessing = document ? document.status !== 'COMPLETED' && document.status !== 'FAILED' : false;
 	const { status: sseStatus } = useDocumentEvents(isProcessing ? documentId : null);
+	const hasInvalidated = useRef(false);
 
-	if (sseStatus === 'completed') {
-		dispatch(documentApi.util.invalidateTags([
-			{ type: 'Document', id: documentId },
-			{ type: 'DocumentSummary', id: documentId },
-			{ type: 'Quiz', id: documentId },
-		]));
-	}
+	useEffect(() => {
+		if (sseStatus === 'completed' && !hasInvalidated.current) {
+			hasInvalidated.current = true;
+			dispatch(documentApi.util.invalidateTags([
+				{ type: 'Document', id: documentId },
+				{ type: 'DocumentSummary', id: documentId },
+				{ type: 'Quiz', id: documentId },
+			]));
+		}
+	}, [sseStatus, dispatch, documentId]);
 
 	if (docLoading) {
 		return <Loader variant='page' message='Loading document' />;
@@ -46,37 +52,43 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
 		<Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
 			<DocumentDetailHero document={document} summary={summary} />
 
-			{summaryLoading ? (
-				<Loader variant='circular' />
-			) : summary ? (
-				<DocumentSummaryView summary={summary} />
+			{isProcessing ? (
+				<DocumentProcessingView documentId={documentId} />
 			) : (
-				<EmptyState
-					title='No summary yet'
-					description='The summary will appear once the document is fully analyzed.'
-				/>
-			)}
+				<>
+					{summaryLoading ? (
+						<Loader variant='circular' />
+					) : summary ? (
+						<DocumentSummaryView summary={summary} />
+					) : (
+						<EmptyState
+							title='No summary yet'
+							description='The summary will appear once the document is fully analyzed.'
+						/>
+					)}
 
-			<Box>
-				<Typography variant='h6' sx={{ fontWeight: 600, mb: 2 }}>
-					Quizzes
-				</Typography>
-				{quizzesLoading ? (
-					<Loader variant='circular' />
-				) : quizzes && quizzes.length > 0 ? (
-					<Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-						{quizzes.map((quiz) => (
-							<QuizCard key={quiz.id} documentId={documentId} quiz={quiz} />
-						))}
+					<Box>
+						<Typography variant='h6' sx={{ fontWeight: 600, mb: 2 }}>
+							Quizzes
+						</Typography>
+						{quizzesLoading ? (
+							<Loader variant='circular' />
+						) : quizzes && quizzes.length > 0 ? (
+							<Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+								{quizzes.map((quiz) => (
+									<QuizCard key={quiz.id} documentId={documentId} quiz={quiz} />
+								))}
+							</Box>
+						) : (
+							<EmptyState
+								title='No quizzes yet'
+								description='Quizzes will be generated once the document is fully analyzed.'
+								icon={Brain}
+							/>
+						)}
 					</Box>
-				) : (
-					<EmptyState
-						title='No quizzes yet'
-						description='Quizzes will be generated once the document is fully analyzed.'
-						icon={Brain}
-					/>
-				)}
-			</Box>
+				</>
+			)}
 		</Box>
 	);
 }

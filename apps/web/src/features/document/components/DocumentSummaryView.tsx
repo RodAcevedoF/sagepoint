@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, Typography, Chip, alpha, useTheme } from '@mui/material';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Lightbulb } from 'lucide-react';
 import { Card } from '@/common/components';
 import type { DocumentSummaryDto } from '@/infrastructure/api/documentApi';
 
@@ -23,24 +23,25 @@ export function DocumentSummaryView({ summary }: DocumentSummaryViewProps) {
 				</Typography>
 			</Card.Header>
 			<Card.Content>
-				<Typography variant='body1' sx={{ mb: 2 }}>
-					{summary.overview}
-				</Typography>
-
-				<Typography variant='subtitle2' sx={{ fontWeight: 600, mb: 1 }}>
-					Key Points
-				</Typography>
-				<Box component='ul' sx={{ pl: 2, mb: 2 }}>
-					{summary.keyPoints.map((point, i) => (
-						<Typography key={i} component='li' variant='body2' color='text.secondary'>
-							{point}
-						</Typography>
-					))}
-				</Box>
-
-				<Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-					<Chip label={summary.topicArea} size='small' color='primary' variant='outlined' />
-					<Chip label={summary.difficulty} size='small' variant='outlined' />
+				<Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2.5 }}>
+					<Chip
+						label={summary.topicArea}
+						size='small'
+						sx={{
+							bgcolor: alpha(theme.palette.primary.main, 0.1),
+							color: theme.palette.primary.light,
+							fontWeight: 600,
+						}}
+					/>
+					<Chip
+						label={summary.difficulty}
+						size='small'
+						sx={{
+							bgcolor: alpha(theme.palette.warning.main, 0.1),
+							color: theme.palette.warning.light,
+							fontWeight: 500,
+						}}
+					/>
 					{summary.estimatedReadTime && (
 						<Chip
 							label={`${summary.estimatedReadTime} min read`}
@@ -49,6 +50,40 @@ export function DocumentSummaryView({ summary }: DocumentSummaryViewProps) {
 							sx={{ color: alpha(theme.palette.text.secondary, 0.8) }}
 						/>
 					)}
+				</Box>
+
+				<Typography variant='body1' sx={{ mb: 3 }}>
+					{summary.overview}
+				</Typography>
+
+				<Typography variant='subtitle2' sx={{ fontWeight: 600, mb: 1.5 }}>
+					Key Points
+				</Typography>
+				<Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+					{summary.keyPoints.map((point, i) => (
+						<Box
+							key={i}
+							sx={{
+								display: 'flex',
+								gap: 1.5,
+								alignItems: 'flex-start',
+								p: 1.5,
+								borderRadius: 2.5,
+								background: alpha(theme.palette.info.main, 0.04),
+								border: `1px solid ${alpha(theme.palette.info.main, 0.12)}`,
+							}}>
+							<Box sx={{
+								mt: 0.25,
+								color: theme.palette.info.light,
+								flexShrink: 0,
+							}}>
+								<Lightbulb size={16} />
+							</Box>
+							<Typography variant='body2' sx={{ color: 'text.secondary' }}>
+								{point}
+							</Typography>
+						</Box>
+					))}
 				</Box>
 			</Card.Content>
 		</Card>
