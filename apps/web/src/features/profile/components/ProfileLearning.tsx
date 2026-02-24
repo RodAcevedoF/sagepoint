@@ -1,181 +1,140 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useState } from 'react';
 import {
-  Box,
-  Typography,
-  TextField,
-  Button,
-  Chip,
-  Stack,
-  alpha,
-} from "@mui/material";
-import { Target, Sparkles, Pencil } from "lucide-react";
-import { Card, useSnackbar } from "@/common/components";
-import { palette } from "@/common/theme";
-import { UserDto } from "@/infrastructure/api/authApi";
-import { useUpdateProfileCommand } from "@/application/profile/commands/update-profile.command";
+	Box,
+	Typography,
+	TextField,
+	Button,
+	Stack,
+	alpha,
+	useTheme,
+} from '@mui/material';
+import { Target, Rocket } from 'lucide-react';
+import { Card, useSnackbar } from '@/common/components';
+import { UserDto } from '@/infrastructure/api/authApi';
+import { useUpdateProfileCommand } from '@/application/profile/commands/update-profile.command';
+import { makeStyles } from './Profile.styles';
 
 interface ProfileLearningProps {
-  user: UserDto;
+	user: UserDto;
 }
 
 export function ProfileLearning({ user }: ProfileLearningProps) {
-  const [isEditingGoal, setIsEditingGoal] = useState(false);
-  const [goalValue, setGoalValue] = useState(user.learningGoal || "");
-  const { execute: updateProfile, isLoading } = useUpdateProfileCommand();
-  const { showSnackbar } = useSnackbar();
+	const [isEditingGoal, setIsEditingGoal] = useState(false);
+	const [goalValue, setGoalValue] = useState(user.learningGoal || '');
+	const { execute: updateProfile, isLoading } = useUpdateProfileCommand();
+	const { showSnackbar } = useSnackbar();
+	const theme = useTheme();
+	const styles = makeStyles(theme);
 
-  const handleSaveGoal = async () => {
-    try {
-      await updateProfile({ learningGoal: goalValue });
-      showSnackbar("Learning goal updated", { severity: "success" });
-      setIsEditingGoal(false);
-    } catch {
-      showSnackbar("Failed to update learning goal", { severity: "error" });
-    }
-  };
+	const handleSaveGoal = async () => {
+		try {
+			await updateProfile({ learningGoal: goalValue });
+			showSnackbar('Learning goal updated', { severity: 'success' });
+			setIsEditingGoal(false);
+		} catch {
+			showSnackbar('Failed to update learning goal', { severity: 'error' });
+		}
+	};
 
-  return (
-    <Card variant="glass" hoverable={false}>
-      <Card.Content>
-        <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
-          Learning Preferences
-        </Typography>
+	return (
+		<Card variant='glass' sx={styles.profileCard} hoverable={false}>
+			<Card.Content sx={{ p: { xs: 2.5, md: 4 } }}>
+				<Typography variant='h6' sx={styles.sectionTitle}>
+					<Rocket size={20} />
+					Learning Journey
+				</Typography>
 
-        {/* Learning Goal */}
-        <Box sx={{ mb: 4 }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-            <Box
-              sx={{
-                width: 32,
-                height: 32,
-                borderRadius: 1.5,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                bgcolor: alpha(palette.primary.main, 0.1),
-                color: palette.primary.light,
-              }}
-            >
-              <Target size={18} />
-            </Box>
-            <Typography variant="subtitle2" sx={{ fontWeight: 600, flex: 1 }}>
-              Learning Goal
-            </Typography>
-            {!isEditingGoal && (
-              <Button
-                size="small"
-                startIcon={<Pencil size={14} />}
-                onClick={() => setIsEditingGoal(true)}
-              >
-                Edit
-              </Button>
-            )}
-          </Box>
+				{/* Learning Goal */}
+				<Box sx={styles.goalBox}>
+					<Stack
+						direction={{ xs: 'column', sm: 'row' }}
+						alignItems={{ xs: 'flex-start', sm: 'center' }}
+						spacing={2}
+						sx={{ mb: 3 }}>
+						<Box sx={styles.iconBox(theme.palette.secondary.light)}>
+							<Target size={22} />
+						</Box>
+						<Box sx={{ flex: 1 }}>
+							<Typography
+								variant='subtitle1'
+								sx={{ fontWeight: 700, letterSpacing: '-0.01em' }}>
+								Your Primary Goal
+							</Typography>
+							<Typography variant='caption' color='text.secondary'>
+								This helps our AI personalize your roadmaps
+							</Typography>
+						</Box>
+						{!isEditingGoal && (
+							<Button
+								variant='outlined'
+								onClick={() => setIsEditingGoal(true)}
+								sx={styles.actionButton}>
+								Change
+							</Button>
+						)}
+					</Stack>
 
-          {isEditingGoal ? (
-            <Box>
-              <TextField
-                fullWidth
-                multiline
-                rows={3}
-                value={goalValue}
-                onChange={(e) => setGoalValue(e.target.value)}
-                placeholder="What do you want to learn?"
-                sx={{ mb: 2 }}
-              />
-              <Stack direction="row" spacing={1}>
-                <Button
-                  variant="contained"
-                  size="small"
-                  onClick={handleSaveGoal}
-                  disabled={isLoading}
-                >
-                  Save
-                </Button>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  onClick={() => {
-                    setGoalValue(user.learningGoal || "");
-                    setIsEditingGoal(false);
-                  }}
-                  disabled={isLoading}
-                >
-                  Cancel
-                </Button>
-              </Stack>
-            </Box>
-          ) : (
-            <Typography
-              variant="body2"
-              color={user.learningGoal ? "text.primary" : "text.secondary"}
-              sx={{
-                p: 2,
-                borderRadius: 2,
-                bgcolor: alpha(palette.primary.main, 0.03),
-                fontStyle: user.learningGoal ? "normal" : "italic",
-              }}
-            >
-              {user.learningGoal || "No learning goal set yet"}
-            </Typography>
-          )}
-        </Box>
-
-        {/* Interests */}
-        <Box>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-            <Box
-              sx={{
-                width: 32,
-                height: 32,
-                borderRadius: 1.5,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                bgcolor: alpha(palette.primary.main, 0.1),
-                color: palette.primary.light,
-              }}
-            >
-              <Sparkles size={18} />
-            </Box>
-            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-              Interests
-            </Typography>
-          </Box>
-
-          {user.interests && user.interests.length > 0 ? (
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-              {user.interests.map((interest) => (
-                <Chip
-                  key={interest.id}
-                  label={interest.name}
-                  size="small"
-                  sx={{
-                    bgcolor: alpha(palette.primary.main, 0.1),
-                    color: palette.primary.light,
-                    fontWeight: 500,
-                  }}
-                />
-              ))}
-            </Box>
-          ) : (
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{
-                p: 2,
-                borderRadius: 2,
-                bgcolor: alpha(palette.primary.main, 0.03),
-                fontStyle: "italic",
-              }}
-            >
-              No interests selected yet
-            </Typography>
-          )}
-        </Box>
-      </Card.Content>
-    </Card>
-  );
+					{isEditingGoal ?
+						<Box sx={{ mt: 2 }}>
+							<TextField
+								fullWidth
+								multiline
+								rows={4}
+								value={goalValue}
+								onChange={(e) => setGoalValue(e.target.value)}
+								placeholder='Ex: I want to become a Senior Frontend Engineer by mastering React and System Design...'
+								sx={{
+									bgcolor: alpha(theme.palette.background.paper, 0.5),
+									'& .MuiOutlinedInput-root': {
+										borderRadius: 3,
+									},
+								}}
+							/>
+							<Stack
+								direction='row'
+								spacing={1.5}
+								sx={{ mt: 2, justifyContent: 'flex-end' }}>
+								<Button
+									variant='contained'
+									onClick={handleSaveGoal}
+									disabled={isLoading}
+									sx={styles.actionButton}>
+									Save Goal
+								</Button>
+								<Button
+									variant='outlined'
+									onClick={() => {
+										setGoalValue(user.learningGoal || '');
+										setIsEditingGoal(false);
+									}}
+									sx={styles.actionButton}>
+									Cancel
+								</Button>
+							</Stack>
+						</Box>
+					:	<Box
+							sx={{
+								p: 2.5,
+								borderRadius: 3,
+								bgcolor: alpha(theme.palette.common.white, 0.03),
+								border: `1px solid ${alpha(theme.palette.common.white, 0.05)}`,
+							}}>
+							<Typography
+								variant='body1'
+								sx={{
+									fontStyle: goalValue ? 'normal' : 'italic',
+									color: goalValue ? 'text.primary' : 'text.disabled',
+									lineHeight: 1.6,
+								}}>
+								{goalValue ||
+									'No learning goal set yet. Add one to get better roadmap suggestions!'}
+							</Typography>
+						</Box>
+					}
+				</Box>
+			</Card.Content>
+		</Card>
+	);
 }

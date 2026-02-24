@@ -1,143 +1,158 @@
-"use client";
-
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Box, Typography, Button, alpha } from "@mui/material";
-import { LogOut, RotateCcw, Trash2 } from "lucide-react";
-import { Card, useSnackbar, useModal } from "@/common/components";
-import { palette } from "@/common/theme";
-import { logoutAction } from "@/app/actions/auth";
+import { Typography, Button, Stack, useTheme, alpha, Box } from '@mui/material';
+import { LogOut, Trash2, ShieldAlert, RotateCcw } from 'lucide-react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Card } from '@/common/components';
+import { useLogoutCommand } from '@/application/auth/commands/logout.command';
+import { makeStyles } from './Profile.styles';
+import { useProfileQuery } from '@/application/auth/queries/get-profile.query';
 
 export function ProfileActions() {
-  const router = useRouter();
-  const { showSnackbar } = useSnackbar();
-  const { openModal, closeModal } = useModal();
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
+	const { execute: logout } = useLogoutCommand();
+	const router = useRouter();
+	const theme = useTheme();
+	const styles = makeStyles(theme);
+	const [isResetting, setIsResetting] = useState(false);
+	const { refetch } = useProfileQuery();
 
-  const handleLogout = async () => {
-    setIsLoggingOut(true);
-    try {
-      await logoutAction();
-    } catch {
-      showSnackbar("Failed to logout", { severity: "error" });
-      setIsLoggingOut(false);
-    }
-  };
+	const handleResetOnboarding = async () => {
+		setIsResetting(true);
+		try {
+			await fetch(
+				`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/users/me/onboarding`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					credentials: 'include',
+					body: JSON.stringify({ status: 'PENDING' }),
+				},
+			);
+			await refetch();
+			router.push('/onboarding');
+		} catch (error) {
+			console.error('Failed to reset onboarding:', error);
+		} finally {
+			setIsResetting(false);
+		}
+	};
 
-  const handleResetOnboarding = async () => {
-    try {
-      await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/users/me/onboarding`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ status: "PENDING" }),
-        }
-      );
-      showSnackbar("Onboarding reset. Redirecting...", { severity: "success" });
-      router.push("/onboarding");
-    } catch {
-      showSnackbar("Failed to reset onboarding", { severity: "error" });
-    }
-  };
+	return (
+		<Card variant='glass' sx={styles.profileCard} hoverable={false}>
+			<Card.Content sx={{ p: { xs: 2.5, md: 4 } }}>
+				<Typography variant='h6' sx={styles.sectionTitle}>
+					<ShieldAlert size={20} />
+					Account & Security
+				</Typography>
 
-  const confirmDeleteAccount = () => {
-    openModal(
-      <Box sx={{ textAlign: "center", py: 2 }}>
-        <Box
-          sx={{
-            width: 64,
-            height: 64,
-            borderRadius: 3,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            bgcolor: alpha(palette.error.main, 0.1),
-            color: palette.error.light,
-            mx: "auto",
-            mb: 3,
-          }}
-        >
-          <Trash2 size={28} />
-        </Box>
-        <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-          Delete Account?
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          This action cannot be undone. All your data will be permanently removed.
-        </Typography>
-        <Box sx={{ display: "flex", gap: 2, justifyContent: "center" }}>
-          <Button variant="outlined" onClick={closeModal}>
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            color="error"
-            onClick={() => {
-              closeModal();
-              showSnackbar("Account deletion not implemented yet", {
-                severity: "info",
-              });
-            }}
-          >
-            Delete Account
-          </Button>
-        </Box>
-      </Box>,
-      { maxWidth: "xs", showCloseButton: false }
-    );
-  };
+				<Stack spacing={2}>
+					<Stack
+						direction={{ xs: 'column', sm: 'row' }}
+						alignItems={{ xs: 'flex-start', sm: 'center' }}
+						justifyContent='space-between'
+						spacing={2}
+						sx={{
+							p: 2,
+							borderRadius: 3,
+							bgcolor: alpha(theme.palette.warning.main, 0.03),
+							border: `1px solid ${alpha(theme.palette.warning.main, 0.1)}`,
+						}}>
+						<Box>
+							<Typography
+								variant='subtitle2'
+								sx={{ fontWeight: 700, color: 'warning.main' }}>
+								Onboarding Status
+							</Typography>
+							<Typography
+								variant='caption'
+								color='warning.main'
+								sx={{ opacity: 0.8 }}>
+								Reset your profile preferences and restart onboarding
+							</Typography>
+						</Box>
+						<Button
+							variant='outlined'
+							color='warning'
+							startIcon={<RotateCcw size={16} />}
+							onClick={handleResetOnboarding}
+							disabled={isResetting}
+							sx={styles.actionButton}>
+							{isResetting ? 'Resetting...' : 'Reset Onboarding'}
+						</Button>
+					</Stack>
 
-  const isDev = process.env.NODE_ENV === "development";
+					<Stack
+						direction={{ xs: 'column', sm: 'row' }}
+						alignItems={{ xs: 'flex-start', sm: 'center' }}
+						justifyContent='space-between'
+						spacing={2}
+						sx={{
+							p: 2,
+							borderRadius: 3,
+							bgcolor: alpha(theme.palette.info.main, 0.03),
+							border: `1px solid ${alpha(theme.palette.info.main, 0.1)}`,
+						}}>
+						<Box>
+							<Typography
+								variant='subtitle2'
+								sx={{ fontWeight: 700, color: 'info.main' }}>
+								Session Management
+							</Typography>
+							<Typography
+								variant='caption'
+								color='info.main'
+								sx={{ opacity: 0.8 }}>
+								Securely sign out from this device
+							</Typography>
+						</Box>
+						<Button
+							variant='outlined'
+							color='info'
+							startIcon={<LogOut size={16} />}
+							onClick={() => logout()}
+							sx={styles.actionButton}>
+							Sign Out
+						</Button>
+					</Stack>
 
-  return (
-    <Card variant="glass" hoverable={false}>
-      <Card.Content>
-        <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
-          Account Actions
-        </Typography>
-
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          {/* Logout */}
-          <Button
-            variant="outlined"
-            startIcon={<LogOut size={18} />}
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-            fullWidth
-            sx={{ justifyContent: "flex-start", py: 1.5 }}
-          >
-            {isLoggingOut ? "Logging out..." : "Sign Out"}
-          </Button>
-
-          {/* Reset Onboarding (Dev only) */}
-          {isDev && (
-            <Button
-              variant="outlined"
-              color="warning"
-              startIcon={<RotateCcw size={18} />}
-              onClick={handleResetOnboarding}
-              fullWidth
-              sx={{ justifyContent: "flex-start", py: 1.5 }}
-            >
-              Reset Onboarding (Dev)
-            </Button>
-          )}
-
-          {/* Delete Account */}
-          <Button
-            variant="outlined"
-            color="error"
-            startIcon={<Trash2 size={18} />}
-            onClick={confirmDeleteAccount}
-            fullWidth
-            sx={{ justifyContent: "flex-start", py: 1.5 }}
-          >
-            Delete Account
-          </Button>
-        </Box>
-      </Card.Content>
-    </Card>
-  );
+					<Stack
+						direction={{ xs: 'column', sm: 'row' }}
+						alignItems={{ xs: 'flex-start', sm: 'center' }}
+						justifyContent='space-between'
+						spacing={2}
+						sx={{
+							p: 2.5,
+							borderRadius: 3,
+							bgcolor: alpha(theme.palette.error.main, 0.03),
+							border: `1px solid ${alpha(theme.palette.error.main, 0.1)}`,
+						}}>
+						<Box>
+							<Typography
+								variant='subtitle2'
+								sx={{ fontWeight: 700, color: 'error.main' }}>
+								Danger Zone
+							</Typography>
+							<Typography
+								variant='caption'
+								color='error.main'
+								sx={{ opacity: 0.8 }}>
+								Permanently delete your account and data
+							</Typography>
+						</Box>
+						<Button
+							variant='contained'
+							color='error'
+							startIcon={<Trash2 size={16} />}
+							sx={{
+								...styles.actionButton,
+								boxShadow: `0 4px 12px ${alpha(theme.palette.error.main, 0.2)}`,
+							}}>
+							Delete Account
+						</Button>
+					</Stack>
+				</Stack>
+			</Card.Content>
+		</Card>
+	);
 }
