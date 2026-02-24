@@ -137,13 +137,17 @@ export class RoadmapProcessorService extends WorkerHost {
 				rationale: step.rationale,
 			}));
 
+			// Compute total duration from individual step durations (more reliable than AI aggregate)
+			const stepDurationSum = steps.reduce((sum, s) => sum + (s.estimatedDuration ?? 0), 0);
+			const totalDuration = stepDurationSum > 0 ? stepDurationSum : null;
+
 			await this.prisma.roadmap.update({
 				where: { id: roadmapId },
 				data: {
 					generationStatus: 'COMPLETED',
 					description: learningPath.description,
 					steps: serializedSteps,
-					totalDuration: learningPath.totalEstimatedDuration,
+					totalDuration,
 					recommendedPace: learningPath.recommendedPace,
 				},
 			});

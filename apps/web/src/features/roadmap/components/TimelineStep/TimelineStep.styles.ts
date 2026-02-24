@@ -1,40 +1,16 @@
 import { alpha, type SxProps } from '@mui/material';
 import type { Theme } from '@mui/material';
 
-export const makeStyles = (
-	theme: Theme,
-	statusColor: string,
-): {
-	container: SxProps<Theme>;
-	indicatorColumn: SxProps<Theme>;
-	dotContainer: SxProps<Theme>;
-	pulseRing: SxProps<Theme>;
-	dot: (isCompleted: boolean) => SxProps<Theme>;
-	connector: (isCompleted: boolean) => SxProps<Theme>;
-	card: SxProps<Theme>;
-	header: SxProps<Theme>;
-	titleRow: SxProps<Theme>;
-	title: SxProps<Theme>;
-	stepChip: SxProps<Theme>;
-	description: (expanded: boolean) => SxProps<Theme>;
-	metaRow: SxProps<Theme>;
-	statusChip: (color: string) => SxProps<Theme>;
-	actionsContainer: SxProps<Theme>;
-	actionButton: SxProps<Theme>;
-	skipButton: SxProps<Theme>;
-	expandedContent: SxProps<Theme>;
-	infoBox: (color: string) => SxProps<Theme>;
-	infoLabel: (color: string) => SxProps<Theme>;
-} => ({
+export const makeStyles = (theme: Theme, statusColor: string) => ({
 	container: {
 		display: 'flex',
-		gap: 2.5,
+		gap: { xs: 1.5, sm: 2.5 },
 	},
 	indicatorColumn: {
 		display: 'flex',
 		flexDirection: 'column',
 		alignItems: 'center',
-		pt: 2.5,
+		pt: { xs: 1.5, sm: 2.5 },
 	},
 	dotContainer: {
 		position: 'relative',
@@ -44,14 +20,14 @@ export const makeStyles = (
 	},
 	pulseRing: {
 		position: 'absolute',
-		width: 40,
-		height: 40,
+		width: { xs: 32, sm: 40 },
+		height: { xs: 32, sm: 40 },
 		borderRadius: '50%',
 		bgcolor: alpha(statusColor, 0.3),
 	},
 	dot: (isCompleted: boolean) => ({
-		width: 40,
-		height: 40,
+		width: { xs: 32, sm: 40 },
+		height: { xs: 32, sm: 40 },
 		borderRadius: '50%',
 		display: 'flex',
 		alignItems: 'center',
@@ -60,6 +36,7 @@ export const makeStyles = (
 		color: isCompleted ? theme.palette.background.default : statusColor,
 		transition: 'all 0.3s ease',
 		zIndex: 1,
+		fontSize: { xs: '0.8rem', sm: '1rem' },
 	}),
 	connector: (isCompleted: boolean) => ({
 		flex: 1,
@@ -84,7 +61,7 @@ export const makeStyles = (
 		},
 	},
 	header: {
-		p: 2.5,
+		p: { xs: 1.5, sm: 2.5 },
 		cursor: 'pointer',
 		display: 'flex',
 		alignItems: 'flex-start',
@@ -101,16 +78,21 @@ export const makeStyles = (
 	title: {
 		fontWeight: 600,
 		color: theme.palette.text.primary,
+		fontSize: { xs: '1.05rem', sm: '1.25rem' },
+		lineHeight: 1.3,
 	},
 	stepChip: {
-		height: 22,
-		fontSize: '0.65rem',
+		height: 24,
+		fontSize: '0.7rem',
+		fontWeight: 600,
 		bgcolor: alpha(theme.palette.primary.main, 0.1),
 		color: theme.palette.primary.light,
 	},
 	description: (expanded: boolean) => ({
 		color: theme.palette.text.secondary,
-		mb: 1,
+		mb: 1.5,
+		fontSize: { xs: '0.9rem', sm: '0.95rem' },
+		lineHeight: 1.5,
 		display: '-webkit-box',
 		WebkitLineClamp: expanded ? 999 : 2,
 		WebkitBoxOrient: 'vertical',
@@ -118,14 +100,14 @@ export const makeStyles = (
 	}),
 	metaRow: {
 		display: 'flex',
-		gap: 1.5,
+		gap: 2,
 		alignItems: 'center',
 		flexWrap: 'wrap',
 	},
 	statusChip: (color: string) => ({
-		height: 22,
-		fontSize: '0.65rem',
-		fontWeight: 600,
+		height: 24,
+		fontSize: '0.7rem',
+		fontWeight: 700,
 		bgcolor: alpha(color, 0.12),
 		color: color,
 	}),
@@ -134,22 +116,25 @@ export const makeStyles = (
 		alignItems: 'center',
 		gap: 0.5,
 		flexShrink: 0,
+		pt: 0.5,
 	},
 	actionButton: {
 		color: theme.palette.primary.light,
+		padding: { xs: 0.5, sm: 1 },
 		'&:hover': {
 			bgcolor: alpha(theme.palette.primary.main, 0.1),
 		},
 	},
 	skipButton: {
 		color: theme.palette.text.secondary,
+		padding: { xs: 0.5, sm: 1 },
 		'&:hover': {
 			bgcolor: alpha(theme.palette.text.secondary, 0.1),
 		},
 	},
 	expandedContent: {
-		px: 2.5,
-		pb: 2.5,
+		px: { xs: 1.5, sm: 2.5 },
+		pb: { xs: 1.5, sm: 2.5 },
 		display: 'flex',
 		flexDirection: 'column',
 		gap: 2,
@@ -158,15 +143,19 @@ export const makeStyles = (
 		display: 'flex',
 		alignItems: 'flex-start',
 		gap: 1.5,
-		p: 2,
+		p: { xs: 1.5, sm: 2 },
 		borderRadius: 3,
 		bgcolor: alpha(color, 0.06),
 		border: `1px solid ${alpha(color, 0.12)}`,
+		mt: { xs: 1, sm: 0 },
 	}),
 	infoLabel: (color: string) => ({
-		fontWeight: 600,
+		fontWeight: 700,
 		color: color,
 		display: 'block',
 		mb: 0.5,
+		fontSize: '0.85rem',
+		textTransform: 'uppercase',
+		letterSpacing: '0.05em',
 	}),
 });

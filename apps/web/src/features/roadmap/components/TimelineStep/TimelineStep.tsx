@@ -1,15 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { Box, alpha, useTheme } from '@mui/material';
+import { Box, alpha, useTheme, useMediaQuery } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StepStatus, type RoadmapStep } from '@sagepoint/domain';
-import { useUpdateProgressCommand } from '@/application/roadmap';
+import {
+	useUpdateProgressCommand,
+	useExpandConceptCommand,
+} from '@/application/roadmap';
+import { useModal } from '@/common/components';
 import type { ResourceDto } from '@/infrastructure/api/roadmapApi';
 import { makeStyles } from './TimelineStep.styles';
 import { StepIndicator } from './StepIndicator';
 import { StepHeader } from './StepHeader';
 import { StepContent } from './StepContent';
+import { StepQuizModal } from '../StepQuizModal';
 
 const MotionBox = motion.create(Box);
 
@@ -21,6 +26,7 @@ interface TimelineStepProps {
 	resourcesLoading?: boolean;
 	isLast?: boolean;
 	index: number;
+	parentDocumentId?: string;
 }
 
 export function TimelineStep({
@@ -31,10 +37,24 @@ export function TimelineStep({
 	resourcesLoading,
 	isLast = false,
 	index,
+	parentDocumentId,
 }: TimelineStepProps) {
 	const theme = useTheme();
+	const isMobile = useMediaQuery('(max-width:625px)');
+	const { openModal, closeModal } = useModal();
+
 	const [expanded, setExpanded] = useState(false);
 	const { execute: updateProgress, isLoading } = useUpdateProgressCommand();
+	const { execute: expandConcept, isLoading: expandLoading } =
+		useExpandConceptCommand();
+
+	const handleExpand = async () => {
+		try {
+			await expandConcept(roadmapId, step.concept.id);
+		} catch (error) {
+			console.error('Failed to expand concept:', error);
+		}
+	};
 
 	const STATUS_DOT_COLORS: Record<StepStatus, string> = {
 		[StepStatus.NOT_STARTED]: theme.palette.text.secondary,
@@ -47,10 +67,53 @@ export function TimelineStep({
 	const styles = makeStyles(theme, dotColor);
 
 	const handleStatusChange = async (newStatus: StepStatus) => {
+		// Intercept completion: require quiz pass
+		if (newStatus === StepStatus.COMPLETED && status === StepStatus.IN_PROGRESS) {
+			openModal(
+				<StepQuizModal
+					roadmapId={roadmapId}
+					conceptId={step.concept.id}
+					conceptName={step.concept.name}
+					onClose={() => closeModal()}
+				/>,
+				{
+					title: `Quiz: ${step.concept.name}`,
+					maxWidth: 'sm',
+					showCloseButton: true,
+					closeOnOverlay: false,
+				},
+			);
+			return;
+		}
+
 		try {
 			await updateProgress(roadmapId, step.concept.id, newStatus);
 		} catch (error) {
 			console.error('Failed to update progress:', error);
+		}
+	};
+
+	const handleToggle = () => {
+		if (isMobile) {
+			openModal(
+				<Box sx={{ p: { xs: 0, sm: 1 } }}>
+					<StepContent
+						step={step}
+						resources={resources}
+						resourcesLoading={resourcesLoading}
+						statusColor={dotColor}
+						onExpand={handleExpand}
+						expandLoading={expandLoading}
+					/>
+				</Box>,
+				{
+					title: step.concept.name,
+					maxWidth: 'lg',
+					showCloseButton: true,
+				},
+			);
+		} else {
+			setExpanded((prev) => !prev);
 		}
 	};
 
@@ -74,14 +137,15 @@ export function TimelineStep({
 						step={step}
 						status={status}
 						expanded={expanded}
-						onToggle={() => setExpanded((prev) => !prev)}
+						onToggle={handleToggle}
 						onStatusChange={handleStatusChange}
 						isLoading={isLoading}
 						statusColor={dotColor}
+						parentDocumentId={parentDocumentId}
 					/>
 
 					<AnimatePresence>
-						{expanded && (
+						{expanded && !isMobile && (
 							<MotionBox
 								initial={{ height: 0, opacity: 0 }}
 								animate={{ height: 'auto', opacity: 1 }}
@@ -93,6 +157,8 @@ export function TimelineStep({
 									resources={resources}
 									resourcesLoading={resourcesLoading}
 									statusColor={dotColor}
+									onExpand={handleExpand}
+									expandLoading={expandLoading}
 								/>
 							</MotionBox>
 						)}

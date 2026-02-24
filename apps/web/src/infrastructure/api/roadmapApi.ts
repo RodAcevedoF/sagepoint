@@ -76,6 +76,8 @@ export interface UpdateProgressDto {
 
 export interface GenerateRoadmapDto {
 	documentId: string;
+	title?: string;
+	userContext?: GenerateTopicRoadmapDto['userContext'];
 }
 
 export interface GenerateTopicRoadmapDto {
@@ -85,6 +87,42 @@ export interface GenerateTopicRoadmapDto {
 		experienceLevel?: 'beginner' | 'intermediate' | 'advanced' | 'expert';
 		goal?: string;
 	};
+}
+
+export interface SuggestedTopicDto {
+	concept: { id: string; name: string; description?: string };
+	relevance: string;
+}
+
+// Step Quiz DTOs
+export interface StepQuizQuestionDto {
+	index: number;
+	text: string;
+	type: string;
+	options: { label: string; text: string }[];
+	difficulty: string;
+}
+
+export interface GenerateStepQuizResponseDto {
+	attemptId: string;
+	questions: StepQuizQuestionDto[];
+}
+
+export interface QuestionResultDto {
+	index: number;
+	text: string;
+	selectedAnswer: string;
+	correctAnswer: string;
+	isCorrect: boolean;
+	explanation?: string;
+}
+
+export interface SubmitStepQuizResponseDto {
+	passed: boolean;
+	score: number;
+	totalQuestions: number;
+	correctAnswers: number;
+	results: QuestionResultDto[];
 }
 
 export const roadmapApi = baseApi.injectEndpoints({
@@ -162,6 +200,45 @@ export const roadmapApi = baseApi.injectEndpoints({
 				{ type: 'Resource', id: roadmapId },
 			],
 		}),
+		expandConcept: builder.mutation<RoadmapDto, { roadmapId: string; conceptId: string }>({
+			query: ({ roadmapId, conceptId }) => ({
+				url: `/roadmaps/${roadmapId}/steps/${conceptId}/expand`,
+				method: 'POST',
+			}),
+			invalidatesTags: (_result, _error, { roadmapId }) => [
+				{ type: 'Roadmap', id: roadmapId },
+				{ type: 'RoadmapProgress', id: roadmapId },
+			],
+		}),
+		getSuggestions: builder.query<SuggestedTopicDto[], string>({
+			query: (roadmapId) => `/roadmaps/${roadmapId}/suggestions`,
+			providesTags: (_result, _error, id) => [{ type: 'Roadmap', id }],
+		}),
+
+		// Step Quiz
+		generateStepQuiz: builder.mutation<
+			GenerateStepQuizResponseDto,
+			{ roadmapId: string; conceptId: string }
+		>({
+			query: ({ roadmapId, conceptId }) => ({
+				url: `/roadmaps/${roadmapId}/steps/${conceptId}/quiz`,
+				method: 'POST',
+			}),
+		}),
+		submitStepQuiz: builder.mutation<
+			SubmitStepQuizResponseDto,
+			{ roadmapId: string; attemptId: string; answers: Record<number, string> }
+		>({
+			query: ({ roadmapId, attemptId, answers }) => ({
+				url: `/roadmaps/${roadmapId}/quiz/${attemptId}/submit`,
+				method: 'POST',
+				body: { answers },
+			}),
+			invalidatesTags: (_result, _error, { roadmapId }) => [
+				{ type: 'RoadmapProgress', id: roadmapId },
+				{ type: 'Roadmap', id: 'LIST' },
+			],
+		}),
 	}),
 });
 
@@ -177,4 +254,8 @@ export const {
 	useGenerateTopicRoadmapMutation,
 	useUpdateStepProgressMutation,
 	useRefreshResourcesMutation,
+	useExpandConceptMutation,
+	useGetSuggestionsQuery,
+	useGenerateStepQuizMutation,
+	useSubmitStepQuizMutation,
 } = roadmapApi;
