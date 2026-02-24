@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import {
 	Box,
 	Typography,
@@ -7,6 +8,10 @@ import {
 	Chip,
 	CircularProgress,
 	useTheme,
+	useMediaQuery,
+	IconButton,
+	Tooltip,
+	alpha,
 } from '@mui/material';
 import {
 	ExternalLink,
@@ -29,6 +34,10 @@ interface StepResourcesProps {
 export function StepResources({ resources, isLoading }: StepResourcesProps) {
 	const theme = useTheme();
 	const styles = makeStyles(theme);
+	const isMobile = useMediaQuery('(max-width:625px)');
+	const [expandedResourceId, setExpandedResourceId] = useState<string | null>(
+		null,
+	);
 
 	const RESOURCE_TYPE_CONFIG: Record<
 		ResourceType,
@@ -67,32 +76,85 @@ export function StepResources({ resources, isLoading }: StepResourcesProps) {
 				{resources.map((resource) => {
 					const config = RESOURCE_TYPE_CONFIG[resource.type];
 					const Icon = config.icon;
+					const isExpanded = isMobile && expandedResourceId === resource.id;
+
 					return (
-						<Link
+						<Box
 							key={resource.id}
-							href={resource.url}
-							target='_blank'
-							rel='noopener noreferrer'
-							underline='none'
+							component={isMobile ? 'div' : Link}
+							href={isMobile ? undefined : resource.url}
+							target={isMobile ? undefined : '_blank'}
+							rel={isMobile ? undefined : 'noopener noreferrer'}
+							onClick={() => {
+								if (isMobile) {
+									setExpandedResourceId(isExpanded ? null : resource.id);
+								}
+							}}
 							sx={styles.resourceLink}>
 							<Box sx={styles.iconContainer(config.color)}>
 								<Icon size={16} />
 							</Box>
+
 							<Box sx={{ flex: 1, minWidth: 0 }}>
-								<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-									<Typography variant='body2' sx={styles.resourceTitle}>
+								<Box
+									sx={{
+										display: 'flex',
+										alignItems: isExpanded ? 'flex-start' : 'center',
+										gap: 1,
+										justifyContent: 'space-between',
+									}}>
+									<Typography
+										variant='body2'
+										sx={{
+											...styles.resourceTitle,
+											...(isExpanded ?
+												{}
+											:	{
+													overflow: 'hidden',
+													textOverflow: 'ellipsis',
+													whiteSpace: 'nowrap',
+												}),
+										}}>
 										{resource.title}
 									</Typography>
-									<ExternalLink
-										size={12}
-										color={theme.palette.text.secondary}
-									/>
+
+									{isMobile ?
+										<Tooltip title='Open Resource'>
+											<IconButton
+												size='small'
+												href={resource.url}
+												target='_blank'
+												rel='noopener noreferrer'
+												onClick={(e) => e.stopPropagation()}
+												sx={{
+													color: theme.palette.primary.light,
+													bgcolor: alpha(theme.palette.primary.main, 0.08),
+													p: 0.5,
+													'&:hover': {
+														bgcolor: alpha(theme.palette.primary.main, 0.15),
+													},
+												}}>
+												<ExternalLink size={14} />
+											</IconButton>
+										</Tooltip>
+									:	<ExternalLink
+											size={12}
+											color={theme.palette.text.secondary}
+										/>
+									}
 								</Box>
+
 								{resource.description && (
-									<Typography variant='caption' sx={styles.description}>
+									<Typography
+										variant='caption'
+										sx={{
+											...styles.description,
+											...(isExpanded ? { WebkitLineClamp: 'unset' } : {}),
+										}}>
 										{resource.description}
 									</Typography>
 								)}
+
 								<Box sx={styles.chipRow}>
 									{resource.provider && (
 										<Chip
@@ -110,7 +172,7 @@ export function StepResources({ resources, isLoading }: StepResourcesProps) {
 									)}
 								</Box>
 							</Box>
-						</Link>
+						</Box>
 					);
 				})}
 			</Box>

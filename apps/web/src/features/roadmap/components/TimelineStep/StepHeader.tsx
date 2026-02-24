@@ -14,6 +14,7 @@ import {
 	PlayCircle,
 	CheckCircle2,
 	SkipForward,
+	FileText,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { StepStatus, type RoadmapStep } from '@sagepoint/domain';
@@ -29,6 +30,7 @@ interface StepHeaderProps {
 	onStatusChange: (status: StepStatus) => void;
 	isLoading: boolean;
 	statusColor: string;
+	parentDocumentId?: string;
 }
 
 function formatDuration(minutes?: number): string {
@@ -50,7 +52,7 @@ function getNextAction(status: StepStatus) {
 		case StepStatus.IN_PROGRESS:
 			return {
 				status: StepStatus.COMPLETED,
-				label: 'Complete',
+				label: 'Take quiz to complete',
 				icon: CheckCircle2,
 			};
 		case StepStatus.SKIPPED:
@@ -72,6 +74,7 @@ export function StepHeader({
 	onStatusChange,
 	isLoading,
 	statusColor,
+	parentDocumentId,
 }: StepHeaderProps) {
 	const theme = useTheme();
 	const styles = makeStyles(theme, statusColor);
@@ -105,6 +108,10 @@ export function StepHeader({
 	const nextAction = getNextAction(status);
 	const canSkip =
 		status !== StepStatus.SKIPPED && status !== StepStatus.COMPLETED;
+	const isExternal =
+		parentDocumentId &&
+		step.concept.documentId &&
+		step.concept.documentId !== parentDocumentId;
 
 	return (
 		<Box onClick={onToggle} sx={styles.header}>
@@ -113,7 +120,37 @@ export function StepHeader({
 					<Typography variant='subtitle1' sx={styles.title}>
 						{step.concept.name}
 					</Typography>
-					<Chip size='small' label={`Step ${step.order}`} sx={styles.stepChip} />
+					<Typography
+						variant='caption'
+						sx={{
+							fontFamily: 'monospace',
+							color: alpha(theme.palette.text.secondary, 0.5),
+							fontSize: '0.7rem',
+							letterSpacing: '0.05em',
+							mt: 0.25,
+						}}>
+						#{step.concept.id.split('-')[0]}
+					</Typography>
+					<Chip
+						size='small'
+						label={`Step ${step.order}`}
+						sx={styles.stepChip}
+					/>
+					{isExternal && (
+						<Chip
+							size='small'
+							icon={<FileText size={12} />}
+							label='External Source'
+							sx={{
+								height: 22,
+								fontSize: '0.65rem',
+								bgcolor: alpha(theme.palette.info.main, 0.1),
+								color: theme.palette.info.light,
+								'& .MuiChip-icon': { color: 'inherit' },
+							}}
+						/>
+					)}
+
 					{step.difficulty && (
 						<Chip
 							size='small'

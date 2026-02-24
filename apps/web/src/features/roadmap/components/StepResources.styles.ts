@@ -1,20 +1,6 @@
 import { type Theme, alpha, type SxProps } from '@mui/material';
 
-export const makeStyles = (
-	theme: Theme,
-): {
-	loadingContainer: SxProps<Theme>;
-	emptyText: SxProps<Theme>;
-	sectionTitle: SxProps<Theme>;
-	resourcesList: SxProps<Theme>;
-	resourceLink: SxProps<Theme>;
-	iconContainer: (color: string) => SxProps<Theme>;
-	resourceTitle: SxProps<Theme>;
-	description: SxProps<Theme>;
-	chipRow: SxProps<Theme>;
-	providerChip: SxProps<Theme>;
-	difficultyChip: (color: string) => SxProps<Theme>;
-} => ({
+export const makeStyles = (theme: Theme) => ({
 	loadingContainer: {
 		display: 'flex',
 		justifyContent: 'center',
@@ -41,22 +27,24 @@ export const makeStyles = (
 	resourceLink: {
 		display: 'flex',
 		alignItems: 'flex-start',
-		gap: 1.5,
-		p: 1.5,
-		borderRadius: 2.5,
+		gap: { xs: 1, sm: 1.5 },
+		p: { xs: 1.25, sm: 1.75 },
+		borderRadius: 3,
 		bgcolor: alpha(theme.palette.background.paper, 0.5),
 		border: `1px solid ${alpha(theme.palette.divider, 0.3)}`,
 		transition: 'all 0.2s ease',
+		cursor: 'pointer',
+		textDecoration: 'none',
 		'&:hover': {
 			bgcolor: alpha(theme.palette.primary.main, 0.06),
 			borderColor: alpha(theme.palette.primary.main, 0.2),
-			transform: 'translateX(4px)',
+			transform: { xs: 'none', sm: 'translateX(4px)' },
 		},
 	},
 	iconContainer: (color: string) => ({
-		width: 32,
-		height: 32,
-		borderRadius: 1.5,
+		width: { xs: 32, sm: 36 },
+		height: { xs: 32, sm: 36 },
+		borderRadius: 2,
 		display: 'flex',
 		alignItems: 'center',
 		justifyContent: 'center',
@@ -66,22 +54,25 @@ export const makeStyles = (
 	}),
 	resourceTitle: {
 		color: theme.palette.text.primary,
-		fontWeight: 500,
-		overflow: 'hidden',
-		textOverflow: 'ellipsis',
-		whiteSpace: 'nowrap',
+		fontWeight: 600,
+		fontSize: { xs: '0.9rem', sm: '1rem' },
+		lineHeight: 1.3,
 	},
 	description: {
 		color: theme.palette.text.secondary,
+		fontSize: '0.85rem',
+		lineHeight: 1.5,
 		display: '-webkit-box',
 		WebkitLineClamp: 2,
 		WebkitBoxOrient: 'vertical',
 		overflow: 'hidden',
+		mt: 0.25,
 	},
 	chipRow: {
 		display: 'flex',
-		gap: 1,
-		mt: 0.5,
+		gap: 0.75,
+		mt: 1,
+		flexWrap: 'wrap',
 	},
 	providerChip: {
 		height: 20,
