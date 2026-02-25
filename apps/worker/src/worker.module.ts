@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
 import { BullModule } from '@nestjs/bullmq';
+import { LoggerModule } from 'nestjs-pino';
 import { DocumentProcessorService } from './document-processor/document-processor.service';
 import { RoadmapProcessorService } from './roadmap-processor/roadmap-processor.service';
 
@@ -11,9 +12,22 @@ import { AiModule } from '@sagepoint/ai';
 import { GCSStorage } from '@sagepoint/storage';
 import { ConfigService } from '@nestjs/config';
 
+const isDev = process.env.NODE_ENV !== 'production';
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    LoggerModule.forRoot({
+      pinoHttp: {
+        level: isDev ? 'debug' : 'info',
+        ...(isDev && {
+          transport: {
+            target: 'pino-pretty',
+            options: { colorize: true, singleLine: true },
+          },
+        }),
+      },
+    }),
     Neo4jModule,
     AiModule,
     ScheduleModule.forRoot(),

@@ -1,6 +1,6 @@
 import { IConceptRepository, Concept } from '@sagepoint/domain';
 import { Neo4jService } from '@sagepoint/graph';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import type { Record as Neo4jRecord, Node } from 'neo4j-driver';
 
 interface ConceptNode {
@@ -19,6 +19,8 @@ interface Neo4jConceptProperties {
 
 @Injectable()
 export class Neo4jConceptRepository implements IConceptRepository {
+  private readonly logger = new Logger(Neo4jConceptRepository.name);
+
   constructor(private readonly neo4j: Neo4jService) {}
 
   async save(concept: Concept): Promise<void> {
@@ -78,14 +80,14 @@ export class Neo4jConceptRepository implements IConceptRepository {
     nodes: Concept[];
     edges: { from: string; to: string; type: string }[];
   }> {
-    console.log(`[Neo4jRepo] Fetching graph for documentId: ${documentId}`);
+    this.logger.debug(`Fetching graph for documentId: ${documentId}`);
 
     const nodesResult = await this.neo4j.read(
       `MATCH (c:Concept {documentId: $documentId}) RETURN c`,
       { documentId },
     );
 
-    console.log(`[Neo4jRepo] Found ${nodesResult.records.length} nodes`);
+    this.logger.debug(`Found ${nodesResult.records.length} nodes`);
 
     const nodes = nodesResult.records.map((r) => {
       const node = this.extractConceptNode(r);
@@ -97,7 +99,7 @@ export class Neo4jConceptRepository implements IConceptRepository {
       { documentId },
     );
 
-    console.log(`[Neo4jRepo] Found ${edgesResult.records.length} edges`);
+    this.logger.debug(`Found ${edgesResult.records.length} edges`);
 
     const edges = edgesResult.records.map((r) => ({
       from: r.get('from') as string,

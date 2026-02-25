@@ -1,5 +1,5 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Logger } from '@nestjs/common';
+import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { Job } from 'bullmq';
 import { PrismaClient } from '@sagepoint/database';
 import { RoadmapStep, Concept, Resource } from '@sagepoint/domain';
@@ -19,10 +19,11 @@ interface JobData {
 
 @Processor('roadmap-generation')
 export class RoadmapProcessorService extends WorkerHost {
-	private readonly logger = new Logger(RoadmapProcessorService.name);
 	private readonly prisma = new PrismaClient();
 
 	constructor(
+		@InjectPinoLogger(RoadmapProcessorService.name)
+		private readonly logger: PinoLogger,
 		private readonly topicConceptGenerator: OpenAiTopicConceptGeneratorAdapter,
 		private readonly roadmapGenerator: OpenAiRoadmapGeneratorAdapter,
 		private readonly resourceDiscovery: PerplexityResearchAdapter,
@@ -32,7 +33,7 @@ export class RoadmapProcessorService extends WorkerHost {
 
 	async process(job: Job<JobData>) {
 		const { roadmapId, topic, userContext } = job.data;
-		this.logger.log(`Processing roadmap generation: ${roadmapId} (${topic})`);
+		this.logger.info({ jobId: job.id, roadmapId, topic, stage: 'concepts' }, 'Processing roadmap generation');
 
 		try {
 			// 1. Mark as PROCESSING
@@ -152,8 +153,9 @@ export class RoadmapProcessorService extends WorkerHost {
 				},
 			});
 
-			this.logger.log(
-				`Roadmap ${roadmapId} generation complete (${steps.length} steps)`,
+			this.logger.info(
+				{ jobId: job.id, roadmapId, stepCount: steps.length, stage: 'completed' },
+				'Roadmap generation complete',
 			);
 
 			// 6. Discover resources (after marking completed so roadmap is usable)
@@ -161,9 +163,10 @@ export class RoadmapProcessorService extends WorkerHost {
 			await this.discoverAndSaveResources(roadmapId, steps);
 
 			await job.updateProgress({ stage: 'done' });
-			this.logger.log(`Roadmap ${roadmapId} resources discovered`);
+			this.logger.info({ jobId: job.id, roadmapId, stage: 'done' }, 'Roadmap resources discovered');
 		} catch (error) {
-			this.logger.error(`Roadmap generation failed for ${roadmapId}`, error);
+			const err = error instanceof Error ? error : new Error(String(error));
+			this.logger.error({ jobId: job.id, roadmapId, err }, 'Roadmap generation failed');
 			const errorMsg = error instanceof Error ? error.message : 'Unknown error';
 			await this.prisma.roadmap.update({
 				where: { id: roadmapId },
@@ -226,14 +229,16 @@ export class RoadmapProcessorService extends WorkerHost {
 				});
 			}
 
-			this.logger.log(
-				`Saved ${allResources.length} resources for roadmap ${roadmapId}`,
+			this.logger.info(
+				{ roadmapId, resourceCount: allResources.length },
+				'Saved resources for roadmap',
 			);
 		} catch (error) {
 			// Don't fail the job for resource discovery errors
+			const err = error instanceof Error ? error : new Error(String(error));
 			this.logger.warn(
-				`Resource discovery failed for roadmap ${roadmapId}`,
-				error,
+				{ roadmapId, err },
+				'Resource discovery failed for roadmap',
 			);
 		}
 	}

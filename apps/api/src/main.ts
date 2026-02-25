@@ -1,9 +1,9 @@
 import 'dotenv/config';
 import { execSync } from 'child_process';
 import { NestFactory } from '@nestjs/core';
+import { Logger } from 'nestjs-pino';
 import { bootstrap as initDependencies } from '@/core/bootstrap';
 import { AppModule } from './app.module';
-import { DomainExceptionFilter } from '@/core/filters/domain-exception.filter';
 
 import cookieParser from 'cookie-parser';
 
@@ -22,7 +22,6 @@ function killPort(port: number) {
     for (const pid of pids) {
       try {
         execSync(`taskkill /F /PID ${pid}`, { stdio: 'ignore' });
-        console.log(`Killed zombie process (PID ${pid}) on port ${port}`);
       } catch {
         // already exited
       }
@@ -37,8 +36,9 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 async function main() {
   initDependencies();
 
-  const app = await NestFactory.create(AppModule);
-  app.useGlobalFilters(new DomainExceptionFilter());
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const logger = app.get(Logger);
+  app.useLogger(logger);
   app.use(cookieParser());
   app.enableCors({
     origin: ['http://localhost:3000', 'http://localhost:3001'],
@@ -52,7 +52,7 @@ async function main() {
     await app.listen(port);
   } catch (err: unknown) {
     if (err instanceof Error && 'code' in err && err.code === 'EADDRINUSE') {
-      console.log(`Port ${port} in use — killing zombie and retrying...`);
+      logger.warn(`Port ${port} in use — killing zombie and retrying...`);
       killPort(port);
       await sleep(1000);
       await app.listen(port);

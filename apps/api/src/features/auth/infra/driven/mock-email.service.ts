@@ -1,15 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import type { IEmailService } from '@/features/auth/domain/outbound/email.service.port';
 
 @Injectable()
 export class MockEmailService implements IEmailService {
+  private readonly logger = new Logger(MockEmailService.name);
   private readonly logs: string[] = [];
 
   sendVerificationEmail(email: string, token: string): Promise<void> {
     const url = `http://localhost:3000/auth/verify?token=${token}`;
-    const logMessage = `[MOCK EMAIL] To: ${email}, Link: ${url}`;
+    const logMessage = `To: ${email}, Link: ${url}`;
     this.logs.push(logMessage);
-    console.log(logMessage);
+    this.logger.log(logMessage);
     return Promise.resolve();
   }
 

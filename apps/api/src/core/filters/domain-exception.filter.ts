@@ -4,9 +4,9 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
-  Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { UserAlreadyExistsError } from '@/features/auth/app/usecases/register.usecase';
 import {
   InvalidVerificationTokenError,
@@ -17,7 +17,10 @@ import { InvalidRefreshTokenError } from '@/features/auth/app/usecases/refresh-t
 
 @Catch()
 export class DomainExceptionFilter implements ExceptionFilter {
-  private readonly logger = new Logger(DomainExceptionFilter.name);
+  constructor(
+    @InjectPinoLogger(DomainExceptionFilter.name)
+    private readonly logger: PinoLogger,
+  ) {}
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -52,7 +55,7 @@ export class DomainExceptionFilter implements ExceptionFilter {
     }
 
     // Default 500
-    this.logger.error(exception);
+    this.logger.error({ err: exception }, 'Unhandled exception');
     return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       message: 'Internal server error',

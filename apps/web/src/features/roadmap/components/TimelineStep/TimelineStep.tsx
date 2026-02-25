@@ -8,7 +8,7 @@ import {
 	useUpdateProgressCommand,
 	useExpandConceptCommand,
 } from '@/application/roadmap';
-import { useModal } from '@/common/components';
+import { useModal, useSnackbar } from '@/common/components';
 import type { ResourceDto } from '@/infrastructure/api/roadmapApi';
 import { makeStyles } from './TimelineStep.styles';
 import { StepIndicator } from './StepIndicator';
@@ -42,6 +42,7 @@ export function TimelineStep({
 	const theme = useTheme();
 	const isMobile = useMediaQuery('(max-width:625px)');
 	const { openModal, closeModal } = useModal();
+	const { showSnackbar } = useSnackbar();
 
 	const [expanded, setExpanded] = useState(false);
 	const { execute: updateProgress, isLoading } = useUpdateProgressCommand();
@@ -51,8 +52,9 @@ export function TimelineStep({
 	const handleExpand = async () => {
 		try {
 			await expandConcept(roadmapId, step.concept.id);
-		} catch (error) {
-			console.error('Failed to expand concept:', error);
+			showSnackbar('Sub-concepts added to your roadmap', { severity: 'success' });
+		} catch {
+			showSnackbar('Failed to expand concept', { severity: 'error' });
 		}
 	};
 

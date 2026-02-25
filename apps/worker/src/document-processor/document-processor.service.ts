@@ -1,5 +1,6 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Logger, Inject } from '@nestjs/common';
+import { Inject } from '@nestjs/common';
+import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { Job } from 'bullmq';
 import { PrismaClient, Prisma } from '@sagepoint/database';
 import { CompositeDocumentParser } from '@sagepoint/parsing';
@@ -23,11 +24,12 @@ interface JobData {
 
 @Processor('document-processing')
 export class DocumentProcessorService extends WorkerHost {
-  private readonly logger = new Logger(DocumentProcessorService.name);
   private readonly prisma = new PrismaClient();
   private readonly parser = new CompositeDocumentParser();
 
   constructor(
+    @InjectPinoLogger(DocumentProcessorService.name)
+    private readonly logger: PinoLogger,
     private readonly neo4jService: Neo4jService,
     private readonly contentAnalysis: OpenAiContentAnalysisAdapter,
     private readonly documentAnalysis: OpenAiDocumentAnalysisAdapter,
@@ -40,7 +42,10 @@ export class DocumentProcessorService extends WorkerHost {
 
   async process(job: Job<JobData>) {
     const { documentId, storagePath, filename, mimeType } = job.data;
-    this.logger.log(`Processing document: ${documentId} (${filename}, ${mimeType ?? 'unknown'})`);
+    this.logger.info(
+      { jobId: job.id, documentId, filename, mimeType },
+      'Processing document',
+    );
 
     try {
       // 1. PARSING stage
@@ -61,7 +66,10 @@ export class DocumentProcessorService extends WorkerHost {
         throw new Error('No text could be extracted from the document');
       }
 
-      this.logger.log(`Extracted ${text.length} chars from document`);
+      this.logger.info(
+        { jobId: job.id, documentId, charCount: text.length },
+        'Text extracted from document',
+      );
 
       // 2. ANALYZING stage
       await this.prisma.document.update({
@@ -136,11 +144,13 @@ export class DocumentProcessorService extends WorkerHost {
       });
       await job.updateProgress({ stage: 'ready' });
 
-      this.logger.log(
-        `Document ${documentId} fully processed: ${concepts.length} concepts, summary saved, ${questions.length} quiz questions`,
+      this.logger.info(
+        { jobId: job.id, documentId, conceptCount: concepts.length, questionCount: questions.length, stage: 'ready' },
+        'Document fully processed',
       );
     } catch (error) {
-      this.logger.error(`Job failed for ${documentId}`, error);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error({ jobId: job.id, documentId, err }, 'Document processing failed');
       await this.prisma.document.update({
         where: { id: documentId },
         data: {
@@ -170,7 +180,7 @@ export class DocumentProcessorService extends WorkerHost {
     }
 
     // Fallback: try as text
-    this.logger.warn(`Unknown MIME type "${mimeType}", attempting text decode`);
+    this.logger.warn({ mimeType }, 'Unknown MIME type, attempting text decode');
     return buffer.toString('utf-8');
   }
 
@@ -244,8 +254,9 @@ export class DocumentProcessorService extends WorkerHost {
         }
       }
 
-      this.logger.log(
-        `Saved ${concepts.length} concepts to Neo4j for document ${documentId}`,
+      this.logger.info(
+        { documentId, conceptCount: concepts.length },
+        'Saved concepts to Neo4j',
       );
     } finally {
       await session.close();
