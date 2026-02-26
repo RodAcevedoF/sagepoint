@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import * as Sentry from "@sentry/nextjs";
 import { Box, Button, Container, Typography, alpha } from "@mui/material";
 import { RefreshCw, AlertTriangle } from "lucide-react";
 import { palette } from "@/common/theme";
@@ -75,6 +76,7 @@ interface ErrorPageProps {
 
 export default function ErrorPage({ error, reset }: ErrorPageProps) {
   useEffect(() => {
+    Sentry.captureException(error);
     console.error("Route error:", error);
   }, [error]);
 

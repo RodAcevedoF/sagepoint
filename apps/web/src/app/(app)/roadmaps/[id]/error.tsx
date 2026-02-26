@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import * as Sentry from '@sentry/nextjs';
 import { Box, Container } from '@mui/material';
 import { ErrorState } from '@/common/components';
 
@@ -11,6 +12,7 @@ interface ErrorProps {
 
 export default function RoadmapDetailError({ error, reset }: ErrorProps) {
 	useEffect(() => {
+		Sentry.captureException(error);
 		console.error('Roadmap detail error:', error);
 	}, [error]);
 
