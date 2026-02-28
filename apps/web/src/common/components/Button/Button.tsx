@@ -52,11 +52,17 @@ const styles = {
 		},
 	},
 	ghost: {
-		bgcolor: 'transparent',
+		bgcolor: 'rgba(151, 254, 237, 0.07)',
 		color: palette.text.secondary,
+		borderRadius: '12px',
+		transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
 		'&:hover': {
-			bgcolor: 'rgba(151, 254, 237, 0.08)',
-			color: palette.text.primary,
+			bgcolor: 'rgba(151, 254, 237, 0.22)',
+			color: palette.primary.light,
+			transform: 'translateX(-4px)',
+			'& .button-icon': {
+				transform: 'scale(1.1)',
+			},
 		},
 	},
 	danger: {
@@ -179,7 +185,7 @@ export function Button({
 			type={type}
 			sx={buttonStyles}>
 			{iconPos === ButtonIconPositions.START && Icon && (
-				<Icon size={18} style={iconSx} />
+				<Icon className='button-icon' size={18} style={iconSx} />
 			)}
 			{loading && <CircularProgress size={18} sx={{ color: 'inherit' }} />}
 			{loading ?
@@ -188,7 +194,7 @@ export function Button({
 				</Typography>
 			:	label}
 			{iconPos === ButtonIconPositions.END && Icon && (
-				<Icon size={18} style={iconSx} />
+				<Icon className='button-icon' size={18} style={iconSx} />
 			)}
 		</MuiButton>
 	);

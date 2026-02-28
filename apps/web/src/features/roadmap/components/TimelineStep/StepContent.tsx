@@ -1,4 +1,10 @@
-import { Box, Typography, useTheme, alpha, CircularProgress } from '@mui/material';
+import {
+	Box,
+	Typography,
+	useTheme,
+	alpha,
+	CircularProgress,
+} from '@mui/material';
 import { Target, Lightbulb, GitBranch } from 'lucide-react';
 import type { RoadmapStep } from '@sagepoint/domain';
 import type { ResourceDto } from '@/infrastructure/api/roadmapApi';
@@ -41,8 +47,8 @@ export function StepContent({
 							Learning Objective
 						</Typography>
 						<Typography
-							variant='body2'
-							sx={{ color: theme.palette.text.secondary }}>
+							variant='body1'
+							sx={{ color: theme.palette.text.primary }}>
 							{step.learningObjective}
 						</Typography>
 					</Box>
@@ -63,8 +69,8 @@ export function StepContent({
 							Why this step?
 						</Typography>
 						<Typography
-							variant='body2'
-							sx={{ color: theme.palette.text.secondary }}>
+							variant='body1'
+							sx={{ color: theme.palette.text.primary }}>
 							{step.rationale}
 						</Typography>
 					</Box>
@@ -89,16 +95,17 @@ export function StepContent({
 						cursor: expandLoading ? 'default' : 'pointer',
 						opacity: expandLoading ? 0.6 : 1,
 						transition: 'all 0.2s ease',
-						'&:hover': expandLoading ? {} : {
-							borderColor: theme.palette.secondary.main,
-							bgcolor: alpha(theme.palette.secondary.main, 0.08),
-						},
+						'&:hover':
+							expandLoading ?
+								{}
+							:	{
+									borderColor: theme.palette.secondary.main,
+									bgcolor: alpha(theme.palette.secondary.main, 0.08),
+								},
 					}}>
-					{expandLoading ? (
+					{expandLoading ?
 						<CircularProgress size={14} sx={{ color: 'inherit' }} />
-					) : (
-						<GitBranch size={14} />
-					)}
+					:	<GitBranch size={14} />}
 					<Typography variant='caption' sx={{ fontWeight: 600 }}>
 						{expandLoading ? 'Expanding...' : 'Expand Sub-concepts'}
 					</Typography>
