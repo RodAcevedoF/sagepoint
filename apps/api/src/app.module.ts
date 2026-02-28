@@ -10,6 +10,7 @@ import { UserModule } from '@/features/user/user.module';
 import { AuthModule } from '@/features/auth/auth.module';
 import { StorageModule } from '@/features/storage/storage.module';
 import { AdminModule } from '@/features/admin/admin.module';
+import { HealthModule } from '@/features/health/health.module';
 import { DomainExceptionFilter } from '@/core/filters/domain-exception.filter';
 
 const isDev = process.env.NODE_ENV !== 'production';
@@ -52,6 +53,7 @@ const isDev = process.env.NODE_ENV !== 'production';
     AuthModule,
     StorageModule,
     AdminModule,
+    HealthModule,
   ],
   providers: [{ provide: APP_FILTER, useClass: DomainExceptionFilter }],
 })

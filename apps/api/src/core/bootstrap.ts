@@ -24,6 +24,7 @@ export interface AppDependencies {
   user: UserDependencies;
   storage: StorageDependencies;
   fileStorage: IFileStorage;
+  neo4jService: Neo4jService;
 }
 
 let dependencies: AppDependencies | null = null;
@@ -56,6 +57,7 @@ export function bootstrap(): AppDependencies {
     user: userDeps,
     storage: makeStorageDependencies(fileStorage),
     fileStorage,
+    neo4jService,
   };
 
   return dependencies;

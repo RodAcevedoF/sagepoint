@@ -2,9 +2,14 @@ import 'dotenv/config';
 import { execSync } from 'child_process';
 import { NestFactory } from '@nestjs/core';
 import { Logger } from 'nestjs-pino';
+import { createBullBoard } from '@bull-board/api';
+import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
+import { ExpressAdapter } from '@bull-board/express';
+import { Queue } from 'bullmq';
 import { bootstrap as initDependencies } from '@/core/bootstrap';
 import { AppModule } from './app.module';
 
+import type { Request, Response, NextFunction } from 'express';
 import cookieParser from 'cookie-parser';
 
 function killPort(port: number) {
@@ -45,6 +50,45 @@ async function main() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
+
+  // bull-board setup
+  const redisConnection = {
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT || '6379'),
+  };
+  const serverAdapter = new ExpressAdapter();
+  serverAdapter.setBasePath('/admin/queues');
+  createBullBoard({
+    queues: [
+      new BullMQAdapter(
+        new Queue('document-processing', { connection: redisConnection }),
+      ),
+      new BullMQAdapter(
+        new Queue('roadmap-generation', { connection: redisConnection }),
+      ),
+    ],
+    serverAdapter,
+  });
+
+  const bullUser = process.env.BULL_BOARD_USER || 'admin';
+  const bullPass = process.env.BULL_BOARD_PASS || 'admin';
+  app.use(
+    '/admin/queues',
+    (req: Request, res: Response, next: NextFunction) => {
+      const auth = req.headers.authorization;
+      if (auth) {
+        const [, encoded] = auth.split(' ');
+        const decoded = Buffer.from(encoded || '', 'base64').toString();
+        const [user, pass] = decoded.split(':');
+        if (user === bullUser && pass === bullPass) {
+          return next();
+        }
+      }
+      res.setHeader('WWW-Authenticate', 'Basic realm="Bull Board"');
+      res.status(401).send('Authentication required');
+    },
+    serverAdapter.getRouter(),
+  );
 
   const port = Number(process.env.PORT ?? 3333);
 

@@ -14,7 +14,7 @@ import { makeStyles } from './TimelineStep.styles';
 import { StepIndicator } from './StepIndicator';
 import { StepHeader } from './StepHeader';
 import { StepContent } from './StepContent';
-import { StepQuizModal } from '../StepQuizModal';
+import { StepQuizModal } from '../StepQuizModal/StepQuizModal';
 
 const MotionBox = motion.create(Box);
 
@@ -52,7 +52,9 @@ export function TimelineStep({
 	const handleExpand = async () => {
 		try {
 			await expandConcept(roadmapId, step.concept.id);
-			showSnackbar('Sub-concepts added to your roadmap', { severity: 'success' });
+			showSnackbar('Sub-concepts added to your roadmap', {
+				severity: 'success',
+			});
 		} catch {
 			showSnackbar('Failed to expand concept', { severity: 'error' });
 		}
@@ -70,7 +72,10 @@ export function TimelineStep({
 
 	const handleStatusChange = async (newStatus: StepStatus) => {
 		// Intercept completion: require quiz pass
-		if (newStatus === StepStatus.COMPLETED && status === StepStatus.IN_PROGRESS) {
+		if (
+			newStatus === StepStatus.COMPLETED &&
+			status === StepStatus.IN_PROGRESS
+		) {
 			openModal(
 				<StepQuizModal
 					roadmapId={roadmapId}

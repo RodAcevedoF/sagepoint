@@ -17,6 +17,35 @@ export interface AdminUserDto {
 	onboardingStatus: string;
 }
 
+export interface HealthCheckResult {
+	status: string;
+	info: Record<string, { status: string }>;
+	error: Record<string, { status: string; message?: string }>;
+	details: Record<string, { status: string; message?: string }>;
+}
+
+export interface QueueInfo {
+	name: string;
+	counts: {
+		waiting: number;
+		active: number;
+		completed: number;
+		failed: number;
+		delayed: number;
+	};
+	recentFailures: Array<{
+		id: string | undefined;
+		name: string;
+		failedReason: string | undefined;
+		timestamp: number;
+	}>;
+}
+
+export interface QueueStatsResponse {
+	documentQueue: QueueInfo;
+	roadmapQueue: QueueInfo;
+}
+
 export const adminApi = baseApi.injectEndpoints({
 	endpoints: (builder) => ({
 		getAdminStats: builder.query<AdminStatsDto, void>({
@@ -27,7 +56,18 @@ export const adminApi = baseApi.injectEndpoints({
 			query: () => '/admin/users',
 			providesTags: ['AdminStats'],
 		}),
+		getHealthCheck: builder.query<HealthCheckResult, void>({
+			query: () => '/health',
+		}),
+		getQueueStats: builder.query<QueueStatsResponse, void>({
+			query: () => '/admin/queue-stats',
+		}),
 	}),
 });
 
-export const { useGetAdminStatsQuery, useGetAdminUsersQuery } = adminApi;
+export const {
+	useGetAdminStatsQuery,
+	useGetAdminUsersQuery,
+	useGetHealthCheckQuery,
+	useGetQueueStatsQuery,
+} = adminApi;

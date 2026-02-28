@@ -5,9 +5,16 @@ import { useRouter } from 'next/navigation';
 import { Box } from '@mui/material';
 import { useAppSelector } from '@/common/hooks';
 import { Loader, ErrorState } from '@/common/components';
-import { useAdminStatsQuery, useAdminUsersQuery } from '@/application/admin';
+import {
+	useAdminStatsQuery,
+	useAdminUsersQuery,
+	useHealthCheckQuery,
+	useQueueStatsQuery,
+} from '@/application/admin';
 import { AdminStatsCards } from './AdminStatsCards';
 import { AdminUsersTable } from './AdminUsersTable';
+import { AdminSystemHealth } from './AdminSystemHealth';
+import { AdminQueueStats } from './AdminQueueStats';
 import { AdminHero } from './AdminHero';
 import { AdminFooter } from './AdminFooter';
 
@@ -25,6 +32,14 @@ export function AdminDashboard() {
 		isLoading: usersLoading,
 		isError: usersError,
 	} = useAdminUsersQuery();
+	const {
+		data: health,
+		isLoading: healthLoading,
+	} = useHealthCheckQuery();
+	const {
+		data: queueStats,
+		isLoading: queueLoading,
+	} = useQueueStatsQuery();
 
 	// Redirect non-admins
 	useEffect(() => {
@@ -55,6 +70,8 @@ export function AdminDashboard() {
 			<AdminHero />
 
 			{stats && <AdminStatsCards stats={stats} />}
+			<AdminSystemHealth data={health} isLoading={healthLoading} />
+			<AdminQueueStats data={queueStats} isLoading={queueLoading} />
 			{users && <AdminUsersTable users={users} />}
 
 			<AdminFooter />

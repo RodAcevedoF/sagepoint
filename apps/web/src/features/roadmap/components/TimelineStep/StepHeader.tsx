@@ -193,6 +193,18 @@ export function StepHeader({
 							</Typography>
 						</Box>
 					)}
+					{/* 		{step.quizReady && (
+						<Chip
+							size='small'
+							label='Quiz Ready'
+							sx={{
+								height: 22,
+								fontSize: '0.65rem',
+								bgcolor: alpha(theme.palette.success.main, 0.1),
+								color: theme.palette.success.light,
+							}}
+						/>
+					)} */}
 				</Box>
 			</Box>
 

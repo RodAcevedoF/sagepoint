@@ -16,6 +16,11 @@ export class AdminController {
     return this.adminService.getStats();
   }
 
+  @Get('queue-stats')
+  async getQueueStats() {
+    return this.adminService.getQueueStats();
+  }
+
   @Get('users')
   async getUsers() {
     return this.adminService.getUsers();
