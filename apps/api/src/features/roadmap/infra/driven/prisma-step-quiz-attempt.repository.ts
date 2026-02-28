@@ -38,6 +38,18 @@ export class PrismaStepQuizAttemptRepository implements IStepQuizAttemptReposito
     return data ? this.mapToDomain(data) : null;
   }
 
+  async findPendingByUserAndConcept(
+    userId: string,
+    roadmapId: string,
+    conceptId: string,
+  ): Promise<StepQuizAttempt | null> {
+    const data = await this.prisma.stepQuizAttempt.findFirst({
+      where: { userId, roadmapId, conceptId, completedAt: null },
+      orderBy: { createdAt: 'desc' },
+    });
+    return data ? this.mapToDomain(data) : null;
+  }
+
   async update(attempt: StepQuizAttempt): Promise<StepQuizAttempt> {
     const data = await this.prisma.stepQuizAttempt.update({
       where: { id: attempt.id },

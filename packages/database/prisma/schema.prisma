@@ -47,6 +47,7 @@ enum ProcessingStage {
   UPLOADED
   PARSING
   ANALYZING
+  SUMMARIZED
   READY
 }
 

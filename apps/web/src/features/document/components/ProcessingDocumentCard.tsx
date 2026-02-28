@@ -12,13 +12,15 @@ import type { DocumentEventStage } from '@/common/hooks';
 const STAGE_LABELS: Record<string, string> = {
 	parsing: 'Parsing document...',
 	analyzing: 'Analyzing content...',
+	summarized: 'Summary ready, generating quiz...',
 	ready: 'Ready',
 };
 
 function stageProgress(stage: DocumentEventStage): number {
 	switch (stage) {
-		case 'parsing': return 33;
-		case 'analyzing': return 66;
+		case 'parsing': return 25;
+		case 'analyzing': return 50;
+		case 'summarized': return 75;
 		case 'ready': return 100;
 		default: return 10;
 	}

@@ -62,16 +62,16 @@ export function RoadmapCard({ data }: RoadmapCardProps) {
 						<CircularProgress
 							variant='determinate'
 							value={100}
-							size={52}
-							thickness={3}
+							size={64}
+							thickness={4}
 							sx={styles.progressTrack}
 						/>
 						{/* Value */}
 						<CircularProgress
 							variant='determinate'
 							value={progress.progressPercentage}
-							size={52}
-							thickness={3}
+							size={64}
+							thickness={4}
 							sx={styles.progressValue}
 						/>
 						<Box sx={styles.progressCenter}>
@@ -90,13 +90,13 @@ export function RoadmapCard({ data }: RoadmapCardProps) {
 				{/* Stats row */}
 				<Box sx={styles.statsRow}>
 					<Box sx={styles.statItem}>
-						<BookOpen size={14} color={theme.palette.text.secondary} />
+						<BookOpen size={18} color={theme.palette.text.secondary} />
 						<Typography variant='caption' sx={styles.statText}>
 							{progress.completedSteps}/{progress.totalSteps} steps
 						</Typography>
 					</Box>
 					<Box sx={styles.statItem}>
-						<Clock size={14} color={theme.palette.text.secondary} />
+						<Clock size={18} color={theme.palette.text.secondary} />
 						<Typography variant='caption' sx={styles.statText}>
 							{formatDuration(roadmap.totalEstimatedDuration)}
 						</Typography>
@@ -142,7 +142,7 @@ export function RoadmapCard({ data }: RoadmapCardProps) {
 							{formatRelativeTime(roadmap.createdAt)}
 						</Typography>
 					</Box>
-					<ArrowRight size={16} color={theme.palette.text.secondary} />
+					<ArrowRight size={20} className='arrow-icon' />
 				</Box>
 			</Card.Footer>
 		</Card>

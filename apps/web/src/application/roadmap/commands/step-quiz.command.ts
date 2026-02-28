@@ -4,12 +4,24 @@ import {
 	useGenerateStepQuizMutation,
 	useSubmitStepQuizMutation,
 } from '@/infrastructure/api/roadmapApi';
+import type {
+	StepQuizQuestionDto,
+	GenerateStepQuizResponseDto,
+} from '@/infrastructure/api/roadmapApi';
+
+export interface PreGeneratedQuiz {
+	attemptId: string;
+	questions: StepQuizQuestionDto[];
+}
 
 export function useStepQuizCommand() {
 	const [generateMutation, { isLoading: isGenerating }] = useGenerateStepQuizMutation();
 	const [submitMutation, { isLoading: isSubmitting }] = useSubmitStepQuizMutation();
 
-	const generate = async (roadmapId: string, conceptId: string) => {
+	const generate = async (
+		roadmapId: string,
+		conceptId: string,
+	): Promise<GenerateStepQuizResponseDto> => {
 		return generateMutation({ roadmapId, conceptId }).unwrap();
 	};
 

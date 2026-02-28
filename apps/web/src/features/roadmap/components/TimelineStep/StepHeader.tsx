@@ -31,6 +31,7 @@ interface StepHeaderProps {
 	isLoading: boolean;
 	statusColor: string;
 	parentDocumentId?: string;
+	quizReady?: boolean;
 }
 
 function formatDuration(minutes?: number): string {
@@ -75,6 +76,7 @@ export function StepHeader({
 	isLoading,
 	statusColor,
 	parentDocumentId,
+	quizReady,
 }: StepHeaderProps) {
 	const theme = useTheme();
 	const styles = makeStyles(theme, statusColor);
@@ -193,7 +195,7 @@ export function StepHeader({
 							</Typography>
 						</Box>
 					)}
-					{/* 		{step.quizReady && (
+					{quizReady && status === StepStatus.IN_PROGRESS && (
 						<Chip
 							size='small'
 							label='Quiz Ready'
@@ -204,7 +206,7 @@ export function StepHeader({
 								color: theme.palette.success.light,
 							}}
 						/>
-					)} */}
+					)}
 				</Box>
 			</Box>
 

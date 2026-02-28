@@ -26,19 +26,30 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
 	const { data: quizzes, isLoading: quizzesLoading } = useDocumentQuizzesQuery(documentId);
 
 	const isProcessing = document ? document.status !== 'COMPLETED' && document.status !== 'FAILED' : false;
-	const { status: sseStatus } = useDocumentEvents(isProcessing ? documentId : null);
-	const hasInvalidated = useRef(false);
+	const isSummarized = document?.processingStage === 'SUMMARIZED';
+	const isFullyProcessing = isProcessing && !isSummarized;
+
+	const { status: sseStatus, stage: sseStage } = useDocumentEvents(isProcessing ? documentId : null);
+	const hasSummaryInvalidated = useRef(false);
+	const hasCompletedInvalidated = useRef(false);
 
 	useEffect(() => {
-		if (sseStatus === 'completed' && !hasInvalidated.current) {
-			hasInvalidated.current = true;
+		if (sseStage === 'summarized' && !hasSummaryInvalidated.current) {
+			hasSummaryInvalidated.current = true;
+			dispatch(documentApi.util.invalidateTags([
+				{ type: 'Document', id: documentId },
+				{ type: 'DocumentSummary', id: documentId },
+			]));
+		}
+		if (sseStatus === 'completed' && !hasCompletedInvalidated.current) {
+			hasCompletedInvalidated.current = true;
 			dispatch(documentApi.util.invalidateTags([
 				{ type: 'Document', id: documentId },
 				{ type: 'DocumentSummary', id: documentId },
 				{ type: 'Quiz', id: documentId },
 			]));
 		}
-	}, [sseStatus, dispatch, documentId]);
+	}, [sseStatus, sseStage, dispatch, documentId]);
 
 	if (docLoading) {
 		return <Loader variant='page' message='Loading document' />;
@@ -52,7 +63,7 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
 		<Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
 			<DocumentDetailHero document={document} summary={summary} />
 
-			{isProcessing ? (
+			{isFullyProcessing ? (
 				<DocumentProcessingView documentId={documentId} />
 			) : (
 				<>
@@ -71,7 +82,9 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
 						<Typography variant='h6' sx={{ fontWeight: 600, mb: 2 }}>
 							Quizzes
 						</Typography>
-						{quizzesLoading ? (
+						{isProcessing ? (
+							<Loader variant='circular' message='Generating quiz questions...' />
+						) : quizzesLoading ? (
 							<Loader variant='circular' />
 						) : quizzes && quizzes.length > 0 ? (
 							<Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

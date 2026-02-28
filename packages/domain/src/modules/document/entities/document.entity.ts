@@ -9,6 +9,7 @@ export enum ProcessingStage {
   UPLOADED = 'UPLOADED',
   PARSING = 'PARSING',
   ANALYZING = 'ANALYZING',
+  SUMMARIZED = 'SUMMARIZED',
   READY = 'READY',
 }
 

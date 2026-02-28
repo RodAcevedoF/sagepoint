@@ -4,7 +4,7 @@ import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { Job } from 'bullmq';
 import { PrismaClient, Prisma } from '@sagepoint/database';
 import { CompositeDocumentParser } from '@sagepoint/parsing';
-import { DocumentStatus, Concept } from '@sagepoint/domain';
+import { DocumentStatus, Concept, QuestionType } from '@sagepoint/domain';
 import type { IFileStorage, ExtractedConcept } from '@sagepoint/domain';
 import {
   OpenAiContentAnalysisAdapter,
@@ -81,71 +81,75 @@ export class DocumentProcessorService extends WorkerHost {
       // Limit text for AI calls
       const truncatedText = text.substring(0, 15000);
 
-      // 3. Parallel AI processing
-      const [extracted, analysis, questions] = await Promise.all([
-        this.contentAnalysis.extractConcepts(truncatedText),
-        this.documentAnalysis.analyzeDocument(truncatedText),
-        this.quizGeneration.generateQuiz(truncatedText, [], { questionCount: 10 }),
-      ]);
+      // 3. Fire all AI calls in parallel
+      const summaryP = this.documentAnalysis.analyzeDocument(truncatedText);
+      const conceptsP = this.contentAnalysis.extractConcepts(truncatedText);
+      const quizP = this.quizGeneration.generateQuiz(truncatedText, [], { questionCount: 10 });
 
-      // 4. Save concepts to Neo4j
-      const concepts = extracted.map((e) =>
-        Concept.create(randomUUID(), e.name, documentId, e.description),
+      // Phase 1: Summary (typically fastest) — save immediately
+      const analysis = await summaryP;
+      await this.saveSummary(documentId, analysis);
+      await this.prisma.document.update({
+        where: { id: documentId },
+        data: { processingStage: 'SUMMARIZED' },
+      });
+      await job.updateProgress({ stage: 'summarized' });
+
+      this.logger.info(
+        { jobId: job.id, documentId, stage: 'summarized' },
+        'Summary saved, awaiting concepts + quiz',
       );
-      await this.saveConcepts(concepts, extracted, documentId);
 
-      // 5. Save DocumentSummary
-      await this.prisma.documentSummary.create({
-        data: {
-          id: randomUUID(),
-          documentId,
-          overview: analysis.overview,
-          keyPoints: analysis.keyPoints,
-          topicArea: analysis.topicArea,
-          difficulty: analysis.difficulty,
-          conceptCount: concepts.length,
-        },
-      });
+      // Phase 2: Concepts + Quiz — wait for both, handle partial failures
+      const [conceptsResult, quizResult] = await Promise.allSettled([conceptsP, quizP]);
 
-      // 6. Save Quiz + Questions
-      const quizId = randomUUID();
-      await this.prisma.quiz.create({
-        data: {
-          id: quizId,
-          documentId,
-          title: `${analysis.topicArea} Quiz`,
-          questionCount: questions.length,
-        },
-      });
+      let conceptCount = 0;
 
-      if (questions.length > 0) {
-        await this.prisma.question.createMany({
-          data: questions.map((q, index) => ({
-            id: randomUUID(),
-            quizId,
-            type: q.type,
-            text: q.text,
-            options: q.options as unknown as Prisma.InputJsonValue,
-            explanation: q.explanation,
-            difficulty: q.difficulty,
-            order: index,
-          })),
+      if (conceptsResult.status === 'fulfilled') {
+        const concepts = conceptsResult.value.map((e) =>
+          Concept.create(randomUUID(), e.name, documentId, e.description),
+        );
+        await this.saveConcepts(concepts, conceptsResult.value, documentId);
+        conceptCount = concepts.length;
+        // Update conceptCount on summary
+        await this.prisma.documentSummary.updateMany({
+          where: { documentId },
+          data: { conceptCount },
         });
+      } else {
+        this.logger.warn(
+          { jobId: job.id, documentId, err: String(conceptsResult.reason) },
+          'Concept extraction failed, continuing with partial results',
+        );
       }
 
-      // 7. Mark READY
+      if (quizResult.status === 'fulfilled') {
+        await this.saveQuiz(documentId, analysis.topicArea, quizResult.value);
+      } else {
+        this.logger.warn(
+          { jobId: job.id, documentId, err: String(quizResult.reason) },
+          'Quiz generation failed, continuing with partial results',
+        );
+      }
+
+      // If both failed, throw so the job is marked as failed
+      if (conceptsResult.status === 'rejected' && quizResult.status === 'rejected') {
+        throw new Error('Both concept extraction and quiz generation failed');
+      }
+
+      // Phase 3: Finalize
       await this.prisma.document.update({
         where: { id: documentId },
         data: {
           status: DocumentStatus.COMPLETED,
           processingStage: 'READY',
-          conceptCount: concepts.length,
+          conceptCount,
         },
       });
       await job.updateProgress({ stage: 'ready' });
 
       this.logger.info(
-        { jobId: job.id, documentId, conceptCount: concepts.length, questionCount: questions.length, stage: 'ready' },
+        { jobId: job.id, documentId, conceptCount, stage: 'ready' },
         'Document fully processed',
       );
     } catch (error) {
@@ -198,6 +202,54 @@ export class DocumentProcessorService extends WorkerHost {
       webp: 'image/webp',
     };
     return mimeMap[ext || ''] || 'application/octet-stream';
+  }
+
+  private async saveSummary(
+    documentId: string,
+    analysis: { overview: string; keyPoints: string[]; topicArea: string; difficulty: string },
+  ) {
+    await this.prisma.documentSummary.create({
+      data: {
+        id: randomUUID(),
+        documentId,
+        overview: analysis.overview,
+        keyPoints: analysis.keyPoints,
+        topicArea: analysis.topicArea,
+        difficulty: analysis.difficulty,
+        conceptCount: 0,
+      },
+    });
+  }
+
+  private async saveQuiz(
+    documentId: string,
+    topicArea: string,
+    questions: { type: QuestionType; text: string; options: unknown[]; explanation?: string; difficulty: string }[],
+  ) {
+    const quizId = randomUUID();
+    await this.prisma.quiz.create({
+      data: {
+        id: quizId,
+        documentId,
+        title: `${topicArea} Quiz`,
+        questionCount: questions.length,
+      },
+    });
+
+    if (questions.length > 0) {
+      await this.prisma.question.createMany({
+        data: questions.map((q, index) => ({
+          id: randomUUID(),
+          quizId,
+          type: q.type,
+          text: q.text,
+          options: q.options as unknown as Prisma.InputJsonValue,
+          explanation: q.explanation,
+          difficulty: q.difficulty,
+          order: index,
+        })),
+      });
+    }
   }
 
   private async saveConcepts(

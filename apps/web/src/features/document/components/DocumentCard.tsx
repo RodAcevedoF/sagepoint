@@ -70,6 +70,7 @@ interface DocumentCardProps {
 const sseStageMap: Record<string, ProcessingStage> = {
 	parsing: ProcessingStage.PARSING,
 	analyzing: ProcessingStage.ANALYZING,
+	summarized: ProcessingStage.SUMMARIZED,
 	ready: ProcessingStage.READY,
 };
 

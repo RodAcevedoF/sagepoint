@@ -12,6 +12,7 @@ export type DocumentEventStatus =
 export type DocumentEventStage =
   | 'parsing'
   | 'analyzing'
+  | 'summarized'
   | 'ready'
   | null;
 

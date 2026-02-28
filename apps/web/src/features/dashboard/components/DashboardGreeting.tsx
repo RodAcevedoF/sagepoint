@@ -1,31 +1,22 @@
-"use client";
+'use client';
 
-import { Box, Typography } from "@mui/material";
-import { Sparkles } from "lucide-react";
-import { palette } from "@/common/theme";
+import { Box, Typography } from '@mui/material';
+import { Sparkles } from 'lucide-react';
+import { palette } from '@/common/theme';
+import { SectionTitle } from '@/common/components';
 
 // ============================================================================
 // Styles
 // ============================================================================
 
 const styles = {
-  root: {
-    mb: 4,
-  },
-  greeting: {
-    fontWeight: 700,
-    mb: 1,
-    background: `linear-gradient(135deg, ${palette.text.primary} 0%, ${palette.primary.light} 100%)`,
-    backgroundClip: "text",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-  },
-  subtitle: {
-    color: palette.text.secondary,
-    display: "flex",
-    alignItems: "center",
-    gap: 1,
-  },
+	subtitleRow: {
+		display: 'flex',
+		alignItems: 'center',
+		gap: 1.5,
+		color: 'text.secondary',
+		opacity: 0.8,
+	},
 };
 
 // ============================================================================
@@ -33,10 +24,10 @@ const styles = {
 // ============================================================================
 
 function getGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 18) return "Good afternoon";
-  return "Good evening";
+	const hour = new Date().getHours();
+	if (hour < 12) return 'Good morning';
+	if (hour < 18) return 'Good afternoon';
+	return 'Good evening';
 }
 
 // ============================================================================
@@ -44,32 +35,40 @@ function getGreeting(): string {
 // ============================================================================
 
 interface DashboardGreetingProps {
-  userName: string;
-  stepsCompleted?: number;
+	userName: string;
+	stepsCompleted?: number;
 }
 
 export function DashboardGreeting({
-  userName,
-  stepsCompleted = 0,
+	userName,
+	stepsCompleted = 0,
 }: DashboardGreetingProps) {
-  const greeting = getGreeting();
-  const firstName = userName.split(" ")[0];
+	const greeting = getGreeting();
+	const firstName = userName.split(' ')[0];
 
-  return (
-    <Box sx={styles.root}>
-      <Typography variant="h3" sx={styles.greeting}>
-        {greeting}, {firstName}!
-      </Typography>
-      <Typography variant="body1" sx={styles.subtitle}>
-        {stepsCompleted > 0 ? (
-          <>
-            <Sparkles size={18} style={{ color: palette.primary.light }} />
-            You&apos;ve completed {stepsCompleted} steps so far. Keep it up!
-          </>
-        ) : (
-          "Ready to continue your learning journey?"
-        )}
-      </Typography>
-    </Box>
-  );
+	const subtitle = (
+		<Box sx={styles.subtitleRow}>
+			{stepsCompleted > 0 ?
+				<>
+					<Sparkles size={18} style={{ color: palette.primary.light }} />
+					<Typography variant='body1'>
+						You&apos;ve completed {stepsCompleted} steps so far. Keep it up!
+					</Typography>
+				</>
+			:	<Typography variant='body1'>
+					Ready to continue your learning journey?
+				</Typography>
+			}
+		</Box>
+	);
+
+	return (
+		<SectionTitle
+			variant='h3'
+			showBar={false}
+			subtitle={subtitle}
+			sx={{ mb: 6 }}>
+			{greeting}, {firstName}!
+		</SectionTitle>
+	);
 }

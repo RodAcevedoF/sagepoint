@@ -7,7 +7,9 @@ import { StepStatus, type RoadmapStep } from '@sagepoint/domain';
 import {
 	useUpdateProgressCommand,
 	useExpandConceptCommand,
+	useStepQuizCommand,
 } from '@/application/roadmap';
+import type { PreGeneratedQuiz } from '@/application/roadmap/commands/step-quiz.command';
 import { useModal, useSnackbar } from '@/common/components';
 import type { ResourceDto } from '@/infrastructure/api/roadmapApi';
 import { makeStyles } from './TimelineStep.styles';
@@ -45,9 +47,13 @@ export function TimelineStep({
 	const { showSnackbar } = useSnackbar();
 
 	const [expanded, setExpanded] = useState(false);
+	const [preGeneratedQuiz, setPreGeneratedQuiz] =
+		useState<PreGeneratedQuiz | null>(null);
+	const [quizReady, setQuizReady] = useState(false);
 	const { execute: updateProgress, isLoading } = useUpdateProgressCommand();
 	const { execute: expandConcept, isLoading: expandLoading } =
 		useExpandConceptCommand();
+	const { generate } = useStepQuizCommand();
 
 	const handleExpand = async () => {
 		try {
@@ -81,7 +87,12 @@ export function TimelineStep({
 					roadmapId={roadmapId}
 					conceptId={step.concept.id}
 					conceptName={step.concept.name}
-					onClose={() => closeModal()}
+					preGeneratedQuiz={preGeneratedQuiz}
+					onClose={() => {
+						setPreGeneratedQuiz(null);
+						setQuizReady(false);
+						closeModal();
+					}}
 				/>,
 				{
 					title: `Quiz: ${step.concept.name}`,
@@ -95,6 +106,18 @@ export function TimelineStep({
 
 		try {
 			await updateProgress(roadmapId, step.concept.id, newStatus);
+
+			// Pre-generate quiz when starting a step (fire-and-forget)
+			if (newStatus === StepStatus.IN_PROGRESS) {
+				generate(roadmapId, step.concept.id)
+					.then((data) => {
+						setPreGeneratedQuiz(data);
+						setQuizReady(true);
+					})
+					.catch((err: unknown) => {
+						console.warn('Quiz pre-generation failed, will generate on demand:', err);
+					});
+			}
 		} catch (error) {
 			console.error('Failed to update progress:', error);
 		}
@@ -149,6 +172,7 @@ export function TimelineStep({
 						isLoading={isLoading}
 						statusColor={dotColor}
 						parentDocumentId={parentDocumentId}
+						quizReady={quizReady}
 					/>
 
 					<AnimatePresence>

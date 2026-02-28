@@ -7,6 +7,7 @@ const stageConfig: Record<ProcessingStage, { label: string; color: 'default' | '
 	UPLOADED: { label: 'Uploaded', color: 'default' },
 	PARSING: { label: 'Parsing', color: 'info' },
 	ANALYZING: { label: 'Analyzing', color: 'warning' },
+	SUMMARIZED: { label: 'Summarized', color: 'info' },
 	READY: { label: 'Ready', color: 'success' },
 };
 

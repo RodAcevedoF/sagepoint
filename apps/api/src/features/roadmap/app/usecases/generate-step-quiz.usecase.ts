@@ -47,6 +47,26 @@ export class GenerateStepQuizUseCase {
       );
     }
 
+    // Return existing pending attempt if one exists (idempotency)
+    const pending =
+      await this.stepQuizAttemptRepository.findPendingByUserAndConcept(
+        command.userId,
+        command.roadmapId,
+        command.conceptId,
+      );
+
+    if (pending) {
+      const clientQuestions: StepQuizQuestionForClient[] =
+        pending.questions.map((q, i) => ({
+          index: i,
+          text: q.text,
+          type: q.type,
+          options: q.options.map((o) => ({ label: o.label, text: o.text })),
+          difficulty: q.difficulty,
+        }));
+      return { attemptId: pending.id, questions: clientQuestions };
+    }
+
     // Build context text for quiz generation
     const contextParts = [step.concept.name];
     if (step.concept.description) contextParts.push(step.concept.description);

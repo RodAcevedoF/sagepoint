@@ -33,6 +33,16 @@ const isDev = process.env.NODE_ENV !== 'production';
             return ['/health', '/favicon.ico'].includes(r.url ?? '');
           },
         },
+        serializers: {
+          req: (req: Record<string, unknown>) => ({
+            method: req['method'],
+            url: req['url'],
+            id: req['id'],
+          }),
+          res: (res: Record<string, unknown>) => ({
+            statusCode: res['statusCode'],
+          }),
+        },
         ...(isDev && {
           transport: {
             target: 'pino-pretty',

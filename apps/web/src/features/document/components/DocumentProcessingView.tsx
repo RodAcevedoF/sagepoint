@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, Typography, useTheme, alpha } from '@mui/material';
-import { FileText, Brain, CheckCircle2, Check } from 'lucide-react';
+import { FileText, Brain, BookOpen, CheckCircle2, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
 import { useDocumentEvents, type DocumentEventStage } from '@/common/hooks';
@@ -16,7 +16,8 @@ interface StageInfo {
 
 const STAGES: StageInfo[] = [
 	{ icon: FileText, label: 'Parsing document', description: 'Extracting text and structure from your file' },
-	{ icon: Brain, label: 'Analyzing content', description: 'Identifying key concepts and relationships' },
+	{ icon: Brain, label: 'Generating summary', description: 'Analyzing content and key points' },
+	{ icon: BookOpen, label: 'Processing quiz & concepts', description: 'Building quiz questions and knowledge graph' },
 	{ icon: CheckCircle2, label: 'Ready', description: 'Document analysis complete' },
 ];
 
@@ -24,7 +25,8 @@ function stageToIndex(stage: DocumentEventStage): number {
 	switch (stage) {
 		case 'parsing': return 0;
 		case 'analyzing': return 1;
-		case 'ready': return 2;
+		case 'summarized': return 2;
+		case 'ready': return 3;
 		default: return 0;
 	}
 }

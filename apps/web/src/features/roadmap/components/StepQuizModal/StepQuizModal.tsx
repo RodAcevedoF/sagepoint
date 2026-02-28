@@ -13,10 +13,16 @@ import { QuizResults } from './QuizResults';
 
 type Phase = 'loading' | 'quiz' | 'results';
 
+interface PreGeneratedQuiz {
+	attemptId: string;
+	questions: StepQuizQuestionDto[];
+}
+
 interface StepQuizModalProps {
 	roadmapId: string;
 	conceptId: string;
 	conceptName: string;
+	preGeneratedQuiz?: PreGeneratedQuiz | null;
 	onClose: () => void;
 }
 
@@ -46,6 +52,7 @@ export function StepQuizModal({
 	roadmapId,
 	conceptId,
 	conceptName,
+	preGeneratedQuiz,
 	onClose,
 }: StepQuizModalProps) {
 	const theme = useTheme();
@@ -53,7 +60,16 @@ export function StepQuizModal({
 	const { generate, submit, isGenerating, isSubmitting } =
 		useStepQuizCommand();
 
-	const [state, setState] = useState<QuizState>(INITIAL_STATE);
+	const [state, setState] = useState<QuizState>(() =>
+		preGeneratedQuiz
+			? {
+					...INITIAL_STATE,
+					phase: 'quiz',
+					attemptId: preGeneratedQuiz.attemptId,
+					questions: preGeneratedQuiz.questions,
+				}
+			: INITIAL_STATE,
+	);
 
 	const loadQuiz = useCallback(async () => {
 		setState((prev) => ({
@@ -81,10 +97,13 @@ export function StepQuizModal({
 	}, [generate, roadmapId, conceptId]);
 
 	// Auto-load quiz on first render (ref avoids double-fire in StrictMode)
+	// Skip if pre-generated quiz was provided
 	const initRef = useRef<boolean | null>(null);
 	if (initRef.current === null) {
 		initRef.current = true;
-		loadQuiz();
+		if (!preGeneratedQuiz) {
+			loadQuiz();
+		}
 	}
 
 	const handleSelectAnswer = (questionIndex: number, label: string) => {
