@@ -6,6 +6,7 @@ import { z } from 'zod';
 
 export interface OpenAiDocumentAnalysisConfig {
   apiKey: string;
+  modelName?: string;
 }
 
 @Injectable()
@@ -15,11 +16,14 @@ export class OpenAiDocumentAnalysisAdapter implements IDocumentAnalysisService {
 
   constructor(@Optional() @Inject(ConfigService) configOrService?: ConfigService | OpenAiDocumentAnalysisConfig) {
     let apiKey: string | undefined;
+    let modelName: string | undefined;
 
     if (configOrService && 'apiKey' in configOrService) {
       apiKey = configOrService.apiKey;
+      modelName = configOrService.modelName;
     } else if (configOrService && 'get' in configOrService) {
       apiKey = configOrService.get<string>('OPENAI_API_KEY');
+      modelName = configOrService.get<string>('MODEL_DOCUMENT_ANALYSIS');
     } else {
       apiKey = process.env.OPENAI_API_KEY;
     }
@@ -30,7 +34,7 @@ export class OpenAiDocumentAnalysisAdapter implements IDocumentAnalysisService {
 
     this.model = new ChatOpenAI({
       apiKey,
-      modelName: 'gpt-4o-mini',
+      modelName: modelName || 'gpt-4o-mini',
       temperature: 0,
     });
   }

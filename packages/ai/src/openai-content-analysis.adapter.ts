@@ -1,23 +1,40 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { IContentAnalysisService, ExtractedConcept } from '@sagepoint/domain';
 import { ChatOpenAI } from '@langchain/openai';
 import { z } from 'zod';
+
+export interface OpenAiContentAnalysisConfig {
+  apiKey: string;
+  modelName?: string;
+}
 
 @Injectable()
 export class OpenAiContentAnalysisAdapter implements IContentAnalysisService {
   private readonly model: ChatOpenAI;
   private readonly logger = new Logger(OpenAiContentAnalysisAdapter.name);
 
-  constructor(private readonly configService: ConfigService) {
-    const apiKey = this.configService.get<string>('OPENAI_API_KEY');
+  constructor(@Optional() @Inject(ConfigService) configOrService?: ConfigService | OpenAiContentAnalysisConfig) {
+    let apiKey: string | undefined;
+    let modelName: string | undefined;
+
+    if (configOrService && 'apiKey' in configOrService) {
+      apiKey = configOrService.apiKey;
+      modelName = configOrService.modelName;
+    } else if (configOrService && 'get' in configOrService) {
+      apiKey = configOrService.get<string>('OPENAI_API_KEY');
+      modelName = configOrService.get<string>('MODEL_CONTENT_ANALYSIS');
+    } else {
+      apiKey = process.env.OPENAI_API_KEY;
+    }
+
     if (!apiKey) {
       this.logger.warn('OPENAI_API_KEY is not set. AI features will fail.');
     }
-    
+
     this.model = new ChatOpenAI({
       apiKey,
-      modelName: 'gpt-4o-mini', 
+      modelName: modelName || 'gpt-4o-mini',
       temperature: 0,
     });
   }
@@ -47,7 +64,7 @@ export class OpenAiContentAnalysisAdapter implements IContentAnalysisService {
         {
             role: "system",
             content: `You are an expert educational content analyzer. Extract key learning concepts from the provided text to build a knowledge graph.
-            
+
             Guidelines:
             1. Identify core concepts, topics, or skills.
             2. Extract relationships between them:
@@ -64,10 +81,10 @@ export class OpenAiContentAnalysisAdapter implements IContentAnalysisService {
         description: c.description,
         relationships: c.relationships || []
       }));
-      
+
     } catch (error) {
       this.logger.error('Failed to extract concepts via LangChain', error);
-      throw error; 
+      throw error;
     }
   }
 }

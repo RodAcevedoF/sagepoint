@@ -56,6 +56,15 @@ export function makeRoadmapDependencies(
   const aiAdapters = createAiAdapters({
     openAiApiKey: process.env.OPENAI_API_KEY || '',
     perplexityApiKey: process.env.PERPLEXITY_API_KEY || '',
+    models: {
+      roadmapGeneration: process.env.MODEL_ROADMAP_GENERATION,
+      topicConceptGeneration: process.env.MODEL_TOPIC_CONCEPT_GENERATION,
+      quizGeneration: process.env.MODEL_QUIZ_GENERATION,
+      documentAnalysis: process.env.MODEL_DOCUMENT_ANALYSIS,
+      contentAnalysis: process.env.MODEL_CONTENT_ANALYSIS,
+      visionTextExtraction: process.env.MODEL_VISION_TEXT_EXTRACTION,
+      conceptExpansion: process.env.MODEL_CONCEPT_EXPANSION,
+    },
   });
   const roadmapGenerationService = aiAdapters.roadmapGenerator;
   const topicConceptGenerationService = aiAdapters.topicConceptGenerator;

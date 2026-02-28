@@ -6,6 +6,7 @@ import { HumanMessage } from '@langchain/core/messages';
 
 export interface OpenAiVisionTextExtractorConfig {
   apiKey: string;
+  modelName?: string;
 }
 
 @Injectable()
@@ -15,11 +16,14 @@ export class OpenAiVisionTextExtractorAdapter implements IImageTextExtractionSer
 
   constructor(@Optional() @Inject(ConfigService) configOrService?: ConfigService | OpenAiVisionTextExtractorConfig) {
     let apiKey: string | undefined;
+    let modelName: string | undefined;
 
     if (configOrService && 'apiKey' in configOrService) {
       apiKey = configOrService.apiKey;
+      modelName = configOrService.modelName;
     } else if (configOrService && 'get' in configOrService) {
       apiKey = configOrService.get<string>('OPENAI_API_KEY');
+      modelName = configOrService.get<string>('MODEL_VISION_TEXT_EXTRACTION');
     } else {
       apiKey = process.env.OPENAI_API_KEY;
     }
@@ -30,7 +34,7 @@ export class OpenAiVisionTextExtractorAdapter implements IImageTextExtractionSer
 
     this.model = new ChatOpenAI({
       apiKey,
-      modelName: 'gpt-4o-mini',
+      modelName: modelName || 'gpt-4o-mini',
       temperature: 0,
     });
   }

@@ -12,6 +12,7 @@ import { z } from 'zod';
 
 export interface OpenAiRoadmapGeneratorConfig {
   apiKey: string;
+  modelName?: string;
 }
 
 @Injectable()
@@ -21,15 +22,15 @@ export class OpenAiRoadmapGeneratorAdapter implements IRoadmapGenerationService 
 
   constructor(@Optional() @Inject(ConfigService) configOrService?: ConfigService | OpenAiRoadmapGeneratorConfig) {
     let apiKey: string | undefined;
+    let modelName: string | undefined;
 
     if (configOrService && 'apiKey' in configOrService) {
-      // Direct config object
       apiKey = configOrService.apiKey;
+      modelName = configOrService.modelName;
     } else if (configOrService && 'get' in configOrService) {
-      // NestJS ConfigService
       apiKey = configOrService.get<string>('OPENAI_API_KEY');
+      modelName = configOrService.get<string>('MODEL_ROADMAP_GENERATION');
     } else {
-      // Fallback to env
       apiKey = process.env.OPENAI_API_KEY;
     }
 
@@ -39,7 +40,7 @@ export class OpenAiRoadmapGeneratorAdapter implements IRoadmapGenerationService 
 
     this.model = new ChatOpenAI({
       apiKey,
-      modelName: 'gpt-4o-mini',
+      modelName: modelName || 'gpt-4o',
       temperature: 0.3,
     });
   }

@@ -11,6 +11,7 @@ import { z } from 'zod';
 
 export interface OpenAiQuizGenerationConfig {
   apiKey: string;
+  modelName?: string;
 }
 
 @Injectable()
@@ -20,11 +21,14 @@ export class OpenAiQuizGenerationAdapter implements IQuizGenerationService {
 
   constructor(@Optional() @Inject(ConfigService) configOrService?: ConfigService | OpenAiQuizGenerationConfig) {
     let apiKey: string | undefined;
+    let modelName: string | undefined;
 
     if (configOrService && 'apiKey' in configOrService) {
       apiKey = configOrService.apiKey;
+      modelName = configOrService.modelName;
     } else if (configOrService && 'get' in configOrService) {
       apiKey = configOrService.get<string>('OPENAI_API_KEY');
+      modelName = configOrService.get<string>('MODEL_QUIZ_GENERATION');
     } else {
       apiKey = process.env.OPENAI_API_KEY;
     }
@@ -35,7 +39,7 @@ export class OpenAiQuizGenerationAdapter implements IQuizGenerationService {
 
     this.model = new ChatOpenAI({
       apiKey,
-      modelName: 'gpt-4o-mini',
+      modelName: modelName || 'gpt-4o-mini',
       temperature: 0.3,
     });
   }

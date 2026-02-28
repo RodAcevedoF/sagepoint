@@ -18,6 +18,15 @@ import { OpenAiConceptExpansionAdapter } from './openai-concept-expansion.adapte
 export interface AiConfig {
   openAiApiKey: string;
   perplexityApiKey: string;
+  models?: {
+    roadmapGeneration?: string;
+    topicConceptGeneration?: string;
+    quizGeneration?: string;
+    documentAnalysis?: string;
+    contentAnalysis?: string;
+    visionTextExtraction?: string;
+    conceptExpansion?: string;
+  };
 }
 
 export interface AiAdapters {
@@ -34,24 +43,30 @@ export function createAiAdapters(config: AiConfig): AiAdapters {
   return {
     roadmapGenerator: new OpenAiRoadmapGeneratorAdapter({
       apiKey: config.openAiApiKey,
+      modelName: config.models?.roadmapGeneration,
     }),
     topicConceptGenerator: new OpenAiTopicConceptGeneratorAdapter({
       apiKey: config.openAiApiKey,
+      modelName: config.models?.topicConceptGeneration,
     }),
     resourceDiscovery: new PerplexityResearchAdapter({
       apiKey: config.perplexityApiKey,
     }),
     documentAnalysis: new OpenAiDocumentAnalysisAdapter({
       apiKey: config.openAiApiKey,
+      modelName: config.models?.documentAnalysis,
     }),
     quizGeneration: new OpenAiQuizGenerationAdapter({
       apiKey: config.openAiApiKey,
+      modelName: config.models?.quizGeneration,
     }),
     imageTextExtraction: new OpenAiVisionTextExtractorAdapter({
       apiKey: config.openAiApiKey,
+      modelName: config.models?.visionTextExtraction,
     }),
     conceptExpansion: new OpenAiConceptExpansionAdapter({
       apiKey: config.openAiApiKey,
+      modelName: config.models?.conceptExpansion,
     }),
   };
 }
