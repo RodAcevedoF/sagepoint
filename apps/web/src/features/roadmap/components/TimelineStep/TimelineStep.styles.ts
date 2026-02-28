@@ -1,4 +1,4 @@
-import { alpha, type SxProps } from '@mui/material';
+import { alpha } from '@mui/material';
 import type { Theme } from '@mui/material';
 
 export const makeStyles = (theme: Theme, statusColor: string) => ({
@@ -78,26 +78,46 @@ export const makeStyles = (theme: Theme, statusColor: string) => ({
 	title: {
 		fontWeight: 600,
 		color: theme.palette.text.primary,
-		fontSize: { xs: '1.05rem', sm: '1.25rem' },
+		fontSize: { xs: '1.25rem', sm: '1.5rem' },
 		lineHeight: 1.3,
 	},
 	stepChip: {
 		height: 24,
-		fontSize: '0.7rem',
+		fontSize: '0.875rem',
 		fontWeight: 600,
 		bgcolor: alpha(theme.palette.primary.main, 0.1),
 		color: theme.palette.primary.light,
 	},
 	description: (expanded: boolean) => ({
-		color: theme.palette.text.secondary,
-		mb: 1.5,
-		fontSize: { xs: '0.9rem', sm: '0.95rem' },
-		lineHeight: 1.5,
+		color: 'text.secondary',
+		fontSize: { xs: '0.95rem', sm: '1.05rem' },
+		lineHeight: 1.6,
 		display: '-webkit-box',
-		WebkitLineClamp: expanded ? 999 : 2,
+		WebkitLineClamp: expanded ? 999 : 3,
 		WebkitBoxOrient: 'vertical',
 		overflow: 'hidden',
+		fontWeight: 400,
 	}),
+	descriptionWrapper: {
+		mb: 2.5,
+		position: 'relative',
+		pl: 3,
+		'&::before': {
+			content: '""',
+			position: 'absolute',
+			left: 0,
+			top: 8,
+			bottom: 8,
+			width: 3,
+			borderRadius: 1,
+			bgcolor: alpha(theme.palette.primary.light, 0.3),
+			boxShadow: `0 0 12px ${alpha(theme.palette.primary.main, 0.2)}`,
+		},
+		transition: 'all 0.3s ease',
+		'&:hover::before': {
+			bgcolor: theme.palette.primary.light,
+		},
+	},
 	metaRow: {
 		display: 'flex',
 		gap: 2,
@@ -106,7 +126,7 @@ export const makeStyles = (theme: Theme, statusColor: string) => ({
 	},
 	statusChip: (color: string) => ({
 		height: 24,
-		fontSize: '0.7rem',
+		fontSize: '0.875rem',
 		fontWeight: 700,
 		bgcolor: alpha(color, 0.12),
 		color: color,
@@ -131,6 +151,46 @@ export const makeStyles = (theme: Theme, statusColor: string) => ({
 		'&:hover': {
 			bgcolor: alpha(theme.palette.text.secondary, 0.1),
 		},
+	},
+	stepId: {
+		fontFamily: 'monospace',
+		color: alpha(theme.palette.text.secondary, 0.5),
+		fontSize: '0.875rem',
+		letterSpacing: '0.05em',
+		mt: 0.25,
+	},
+	externalSourceChip: {
+		height: 22,
+		fontSize: '0.875rem',
+		bgcolor: alpha(theme.palette.info.main, 0.1),
+		color: theme.palette.info.light,
+		'& .MuiChip-icon': { color: 'inherit' },
+	},
+	difficultyChip: (color: string) => ({
+		height: 22,
+		fontSize: '0.875rem',
+		bgcolor: alpha(color, 0.1),
+		color: color,
+	}),
+	durationContainer: {
+		display: 'flex',
+		alignItems: 'center',
+		gap: 0.5,
+	},
+	durationText: {
+		color: theme.palette.text.secondary,
+	},
+	quizReadyChip: {
+		height: 22,
+		fontSize: '0.66rem',
+		fontWeight: 600,
+		bgcolor: alpha(theme.palette.accent, 0.1),
+		color: theme.palette.accent,
+		border: `1px solid ${alpha(theme.palette.accent, 0.2)}`,
+	},
+	chevronContainer: {
+		display: 'flex',
+		color: theme.palette.text.secondary,
 	},
 	expandedContent: {
 		px: { xs: 1.5, sm: 2.5 },

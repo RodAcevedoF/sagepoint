@@ -5,7 +5,6 @@ import {
 	Chip,
 	Tooltip,
 	CircularProgress,
-	alpha,
 	useTheme,
 } from '@mui/material';
 import {
@@ -88,7 +87,7 @@ export function StepHeader({
 		},
 		[StepStatus.IN_PROGRESS]: {
 			label: 'In Progress',
-			color: theme.palette.warning.light,
+			color: theme.palette.info.light,
 		},
 		[StepStatus.NOT_STARTED]: {
 			label: 'New',
@@ -101,9 +100,10 @@ export function StepHeader({
 	};
 
 	const DIFFICULTY_COLORS: Record<string, string> = {
-		beginner: theme.palette.success.light,
-		intermediate: theme.palette.warning.light,
-		advanced: theme.palette.error.light,
+		beginner: theme.palette.difficulty.beginner,
+		intermediate: theme.palette.difficulty.intermediate,
+		advanced: theme.palette.difficulty.advanced,
+		expert: theme.palette.difficulty.expert,
 	};
 
 	const statusInfo = STATUS_LABELS[status];
@@ -122,15 +122,7 @@ export function StepHeader({
 					<Typography variant='subtitle1' sx={styles.title}>
 						{step.concept.name}
 					</Typography>
-					<Typography
-						variant='caption'
-						sx={{
-							fontFamily: 'monospace',
-							color: alpha(theme.palette.text.secondary, 0.5),
-							fontSize: '0.7rem',
-							letterSpacing: '0.05em',
-							mt: 0.25,
-						}}>
+					<Typography sx={styles.stepId}>
 						#{step.concept.id.split('-')[0]}
 					</Typography>
 					<Chip
@@ -143,13 +135,7 @@ export function StepHeader({
 							size='small'
 							icon={<FileText size={12} />}
 							label='External Source'
-							sx={{
-								height: 22,
-								fontSize: '0.65rem',
-								bgcolor: alpha(theme.palette.info.main, 0.1),
-								color: theme.palette.info.light,
-								'& .MuiChip-icon': { color: 'inherit' },
-							}}
+							sx={styles.externalSourceChip}
 						/>
 					)}
 
@@ -157,26 +143,20 @@ export function StepHeader({
 						<Chip
 							size='small'
 							label={step.difficulty}
-							sx={{
-								height: 22,
-								fontSize: '0.65rem',
-								bgcolor: alpha(
-									DIFFICULTY_COLORS[step.difficulty] ||
-										theme.palette.text.secondary,
-									0.1,
-								),
-								color:
-									DIFFICULTY_COLORS[step.difficulty] ||
+							sx={styles.difficultyChip(
+								DIFFICULTY_COLORS[step.difficulty] ||
 									theme.palette.text.secondary,
-							}}
+							)}
 						/>
 					)}
 				</Box>
 
 				{step.concept.description && (
-					<Typography variant='body2' sx={styles.description(expanded)}>
-						{step.concept.description}
-					</Typography>
+					<Box sx={styles.descriptionWrapper}>
+						<Typography sx={styles.description(expanded)}>
+							{step.concept.description}
+						</Typography>
+					</Box>
 				)}
 
 				<Box sx={styles.metaRow}>
@@ -186,26 +166,15 @@ export function StepHeader({
 						sx={styles.statusChip(statusInfo.color)}
 					/>
 					{step.estimatedDuration && (
-						<Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+						<Box sx={styles.durationContainer}>
 							<Clock size={12} color={theme.palette.text.secondary} />
-							<Typography
-								variant='caption'
-								sx={{ color: theme.palette.text.secondary }}>
+							<Typography variant='subtitle2' sx={styles.durationText}>
 								{formatDuration(step.estimatedDuration)}
 							</Typography>
 						</Box>
 					)}
 					{quizReady && status === StepStatus.IN_PROGRESS && (
-						<Chip
-							size='small'
-							label='Quiz Ready'
-							sx={{
-								height: 22,
-								fontSize: '0.65rem',
-								bgcolor: alpha(theme.palette.success.main, 0.1),
-								color: theme.palette.success.light,
-							}}
-						/>
+						<Chip size='small' label='Quiz Ready' sx={styles.quizReadyChip} />
 					)}
 				</Box>
 			</Box>
@@ -245,7 +214,7 @@ export function StepHeader({
 				<MotionBox
 					animate={{ rotate: expanded ? 180 : 0 }}
 					transition={{ duration: 0.25 }}
-					sx={{ display: 'flex', color: theme.palette.text.secondary }}>
+					sx={styles.chevronContainer}>
 					<ChevronDown size={18} />
 				</MotionBox>
 			</Box>
