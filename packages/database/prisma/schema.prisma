@@ -246,6 +246,7 @@ model Roadmap {
   totalDuration      Int?     // Total estimated duration in minutes
   recommendedPace    String?  // e.g., "2-3 concepts per week"
   errorMessage       String?
+  isFeatured         Boolean @default(false)
 
   resources         Resource[]
   progress          UserRoadmapProgress[]
@@ -258,6 +259,7 @@ model Roadmap {
   @@index([documentId])
   @@index([categoryId])
   @@index([generationStatus])
+  @@index([isFeatured])
   @@map("roadmaps")
 }
 

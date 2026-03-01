@@ -24,6 +24,7 @@ export interface RoadmapProps {
   totalEstimatedDuration?: number; // in minutes
   recommendedPace?: string;
   errorMessage?: string;
+  isFeatured?: boolean;
   createdAt: Date;
 }
 
@@ -39,6 +40,7 @@ export class Roadmap {
   readonly totalEstimatedDuration?: number;
   readonly recommendedPace?: string;
   readonly errorMessage?: string;
+  readonly isFeatured: boolean;
   readonly createdAt: Date;
 
   constructor(props: RoadmapProps) {
@@ -53,6 +55,7 @@ export class Roadmap {
     this.totalEstimatedDuration = props.totalEstimatedDuration;
     this.recommendedPace = props.recommendedPace;
     this.errorMessage = props.errorMessage;
+    this.isFeatured = props.isFeatured ?? false;
     this.createdAt = props.createdAt;
   }
 
