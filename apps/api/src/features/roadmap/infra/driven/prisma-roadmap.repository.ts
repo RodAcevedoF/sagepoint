@@ -44,6 +44,7 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
         totalDuration: roadmap.totalEstimatedDuration,
         recommendedPace: roadmap.recommendedPace,
         errorMessage: roadmap.errorMessage ?? null,
+        isFeatured: roadmap.isFeatured,
         createdAt: roadmap.createdAt,
       },
       update: {
@@ -154,6 +155,7 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
       totalEstimatedDuration: data.totalDuration || undefined,
       recommendedPace: data.recommendedPace || undefined,
       errorMessage: data.errorMessage || undefined,
+      isFeatured: data.isFeatured,
       createdAt: data.createdAt,
     });
   }
