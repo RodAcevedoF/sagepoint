@@ -1,11 +1,14 @@
-import { Box, Typography, Button, Chip, useTheme } from '@mui/material';
+import { Box, Typography, Chip, useTheme } from '@mui/material';
 import {
 	CheckCircle2,
 	XCircle,
 	Trophy,
 	RotateCcw,
 	Lightbulb,
+	X,
 } from 'lucide-react';
+import { Button } from '@/common/components';
+import { ButtonVariants, ButtonSizes, ButtonIconPositions } from '@/common/types';
 import type {
 	StepQuizQuestionDto,
 	QuestionResultDto,
@@ -34,26 +37,25 @@ export function QuizResults({
 	styles,
 }: QuizResultsProps) {
 	const theme = useTheme();
+	const correctCount = results.filter((r) => r.isCorrect).length;
 
 	return (
 		<Box sx={{ py: 1 }}>
 			<Box sx={styles.resultsBanner(passed)}>
 				{passed ?
-					<Trophy size={40} color={theme.palette.success.light} />
-				:	<XCircle size={40} color={theme.palette.error.light} />}
+					<Trophy size={44} color={theme.palette.success.light} />
+				:	<XCircle size={44} color={theme.palette.error.light} />}
 				<Typography variant='h6' sx={{ mt: 1, fontWeight: 700 }}>
 					{passed ? 'Quiz Passed!' : 'Not Quite...'}
 				</Typography>
-				<Typography
-					variant='body2'
-					sx={{ color: theme.palette.text.secondary }}>
-					Score: {score}% ({results.filter((r) => r.isCorrect).length}/
-					{results.length} correct)
+				<Typography variant='h4' sx={styles.resultScore}>
+					{score}%
+				</Typography>
+				<Typography variant='body2' sx={styles.resultSubtext}>
+					{correctCount}/{results.length} correct
 				</Typography>
 				{passed && (
-					<Typography
-						variant='body2'
-						sx={{ color: theme.palette.success.light, mt: 0.5 }}>
+					<Typography variant='body2' sx={styles.resultPassedNote}>
 						Step marked as completed
 					</Typography>
 				)}
@@ -163,16 +165,23 @@ export function QuizResults({
 				sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 3 }}>
 				{!passed && (
 					<Button
-						variant='outlined'
-						startIcon={<RotateCcw size={16} />}
+						label='Try Again'
+						icon={RotateCcw}
+						iconPos={ButtonIconPositions.START}
+						variant={ButtonVariants.OUTLINED}
+						size={ButtonSizes.MEDIUM}
 						onClick={onRetry}
-						disabled={isGenerating}>
-						Try Again
-					</Button>
+						disabled={isGenerating}
+						loading={isGenerating}
+					/>
 				)}
-				<Button variant='contained' onClick={onClose}>
-					Close
-				</Button>
+				<Button
+					label='Close'
+					icon={X}
+					iconPos={ButtonIconPositions.START}
+					size={ButtonSizes.MEDIUM}
+					onClick={onClose}
+				/>
 			</Box>
 		</Box>
 	);

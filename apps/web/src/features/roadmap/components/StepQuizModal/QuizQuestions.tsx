@@ -1,13 +1,13 @@
 import {
 	Box,
 	Typography,
-	CircularProgress,
-	Button,
 	Chip,
 	alpha,
 	useTheme,
 } from '@mui/material';
-import { CheckCircle2, Circle } from 'lucide-react';
+import { CheckCircle2, Circle, Info, Send, X } from 'lucide-react';
+import { Button } from '@/common/components';
+import { ButtonVariants, ButtonSizes, ButtonIconPositions } from '@/common/types';
 import type { StepQuizQuestionDto } from '@/infrastructure/api/roadmapApi';
 import type { Styles } from './StepQuizModal.styles';
 
@@ -35,14 +35,24 @@ export function QuizQuestions({
 	styles,
 }: QuizQuestionsProps) {
 	const theme = useTheme();
+	const answeredCount = Object.keys(answers).length;
 
 	return (
 		<Box sx={{ py: 1 }}>
-			<Typography
-				variant='body2'
-				sx={{ color: theme.palette.text.secondary, mb: 3 }}>
-				Answer at least 2 out of 3 questions correctly to complete this step.
-			</Typography>
+			{/* Info callout with progress */}
+			<Box sx={styles.infoCallout}>
+				<Box sx={styles.infoCalloutText}>
+					<Info size={16} color={theme.palette.info.light} style={{ flexShrink: 0 }} />
+					<Typography variant='body2' sx={{ color: theme.palette.text.secondary }}>
+						Answer at least 2 out of 3 correctly to complete this step.
+					</Typography>
+				</Box>
+				<Chip
+					label={`${answeredCount}/${questions.length}`}
+					size='small'
+					sx={styles.progressChip}
+				/>
+			</Box>
 
 			{error && (
 				<Typography color='error' sx={{ mb: 2, textAlign: 'center' }}>
@@ -51,10 +61,15 @@ export function QuizQuestions({
 			)}
 
 			{questions.map((q, qi) => (
-				<Box key={qi} sx={{ mb: 3 }}>
-					<Typography variant='body2' sx={{ fontWeight: 600, mb: 1.5 }}>
-						{qi + 1}. {q.text}
-					</Typography>
+				<Box key={qi} sx={styles.questionWrapper}>
+					<Box sx={styles.questionHeader}>
+						<Box sx={styles.questionBadge}>
+							{qi + 1}
+						</Box>
+						<Typography variant='body2' sx={{ fontWeight: 600, flex: 1, pt: 0.25 }}>
+							{q.text}
+						</Typography>
+					</Box>
 
 					<Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
 						{q.options.map((opt) => {
@@ -90,17 +105,24 @@ export function QuizQuestions({
 			))}
 
 			<Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 2 }}>
-				<Button variant='outlined' onClick={onClose} disabled={isSubmitting}>
-					Cancel
-				</Button>
 				<Button
-					variant='contained'
+					label='Cancel'
+					icon={X}
+					iconPos={ButtonIconPositions.START}
+					variant={ButtonVariants.OUTLINED}
+					size={ButtonSizes.MEDIUM}
+					onClick={onClose}
+					disabled={isSubmitting}
+				/>
+				<Button
+					label={isSubmitting ? 'Submitting...' : 'Submit'}
+					icon={Send}
+					iconPos={ButtonIconPositions.START}
+					size={ButtonSizes.MEDIUM}
 					onClick={onSubmit}
-					disabled={!allAnswered || isSubmitting}>
-					{isSubmitting ?
-						<CircularProgress size={20} color='inherit' />
-					:	'Submit'}
-				</Button>
+					disabled={!allAnswered || isSubmitting}
+					loading={isSubmitting}
+				/>
 			</Box>
 		</Box>
 	);
