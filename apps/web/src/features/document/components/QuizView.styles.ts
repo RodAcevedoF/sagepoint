@@ -1,0 +1,67 @@
+import { type Theme, alpha } from '@mui/material';
+
+export const makeStyles = (theme: Theme) => ({
+	heroCard: {
+		position: 'relative',
+		overflow: 'hidden',
+		borderRadius: 6,
+		p: { xs: 3, md: 4 },
+		background: alpha(theme.palette.background.paper, 0.4),
+		backdropFilter: 'blur(12px)',
+		border: `1px solid ${alpha(theme.palette.info.light, 0.1)}`,
+	},
+	accentBar: {
+		position: 'absolute',
+		top: 0,
+		left: 0,
+		right: 0,
+		height: 4,
+		background: `linear-gradient(90deg, ${theme.palette.info.main}, ${theme.palette.secondary.main}, ${theme.palette.primary.main})`,
+	},
+	orb: {
+		position: 'absolute',
+		top: -60,
+		right: -60,
+		width: 200,
+		height: 200,
+		borderRadius: '50%',
+		background: `radial-gradient(circle, ${alpha(theme.palette.info.main, 0.15)} 0%, transparent 70%)`,
+		pointerEvents: 'none',
+	},
+	title: {
+		fontWeight: 900,
+		fontSize: { xs: '1.5rem', sm: '2rem' },
+		lineHeight: 1.2,
+		mb: 1,
+		background: `linear-gradient(135deg, ${theme.palette.info.light} 0%, ${theme.palette.secondary.main} 50%, ${theme.palette.primary.light} 100%)`,
+		backgroundClip: 'text',
+		WebkitBackgroundClip: 'text',
+		WebkitTextFillColor: 'transparent',
+	},
+	metaRow: {
+		display: 'flex',
+		gap: 2,
+		flexWrap: 'wrap',
+		alignItems: 'center',
+		mt: 2,
+	},
+	metaItem: {
+		display: 'flex',
+		alignItems: 'center',
+		gap: 1,
+	},
+	progressBarTrack: {
+		flex: 1,
+		height: 6,
+		borderRadius: 3,
+		bgcolor: alpha(theme.palette.info.main, 0.1),
+		overflow: 'hidden',
+	},
+	progressBarFill: (percentage: number) => ({
+		height: '100%',
+		borderRadius: 3,
+		background: `linear-gradient(90deg, ${theme.palette.info.main}, ${theme.palette.primary.main})`,
+		width: `${percentage}%`,
+		transition: 'width 0.4s ease',
+	}),
+});

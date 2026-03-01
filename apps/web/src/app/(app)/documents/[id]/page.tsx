@@ -8,7 +8,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
   const { id } = use(params);
 
   return (
-    <Box sx={{ minHeight: '100vh', pt: 2, pb: 12 }}>
+    <Box sx={{ minHeight: '100vh', py: 4 }}>
       <Container maxWidth='lg'>
         <DocumentDetail documentId={id} />
       </Container>

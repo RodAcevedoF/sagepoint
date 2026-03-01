@@ -1,7 +1,7 @@
 'use client';
 
-import { Box, Typography, alpha, useTheme, Chip } from '@mui/material';
-import { Map, Trash2, Layers } from 'lucide-react';
+import { Box, Typography, useTheme, Chip } from '@mui/material';
+import { Map, Trash2, Layers, HardDrive, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Button, useSnackbar, useModal } from '@/common/components';
@@ -9,9 +9,31 @@ import { ButtonVariants, ButtonSizes, ButtonIconPositions } from '@/common/types
 import { useDeleteDocumentCommand } from '@/application/document';
 import { ProcessingStatusBadge } from './ProcessingStatusBadge';
 import { GenerateFromDocumentModal } from './GenerateFromDocumentModal';
+import { makeStyles } from './DocumentDetailHero.styles';
 import type { DocumentDetailDto, DocumentSummaryDto } from '@/infrastructure/api/documentApi';
 
 const MotionBox = motion.create(Box);
+
+function formatFileSize(bytes?: number): string {
+	if (!bytes) return '';
+	if (bytes < 1024) return `${bytes} B`;
+	if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+	return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function formatRelativeDate(dateStr: string): string {
+	const date = new Date(dateStr);
+	const now = new Date();
+	const diffMs = now.getTime() - date.getTime();
+	const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+	const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+	if (diffHours < 1) return 'Just now';
+	if (diffHours < 24) return `${diffHours}h ago`;
+	if (diffDays === 1) return 'Yesterday';
+	if (diffDays < 7) return `${diffDays} days ago`;
+	return date.toLocaleDateString();
+}
 
 interface DocumentDetailHeroProps {
 	document: DocumentDetailDto;
@@ -24,8 +46,10 @@ export function DocumentDetailHero({ document, summary }: DocumentDetailHeroProp
 	const { openModal } = useModal();
 	const { execute: deleteDocument } = useDeleteDocumentCommand();
 	const { showSnackbar } = useSnackbar();
+	const styles = makeStyles(theme);
 
 	const isReady = document.processingStage === 'READY';
+	const fileSize = formatFileSize(document.fileSize);
 
 	const handleDelete = async () => {
 		if (!window.confirm(`Delete "${document.filename}"?`)) return;
@@ -50,58 +74,26 @@ export function DocumentDetailHero({ document, summary }: DocumentDetailHeroProp
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: 0.5, ease: 'easeOut' }}
-			sx={{ mb: 4 }}>
-			<Box
-				sx={{
-					position: 'relative',
-					overflow: 'hidden',
-					borderRadius: 6,
-					p: { xs: 4, md: 6 },
-					background: alpha(theme.palette.background.paper, 0.4),
-					backdropFilter: 'blur(12px)',
-					border: `1px solid ${alpha(theme.palette.info.light, 0.1)}`,
-				}}>
-				{/* Decorative gradient orb */}
-				<Box
-					sx={{
-						position: 'absolute',
-						top: -80,
-						right: -80,
-						width: 260,
-						height: 260,
-						borderRadius: '50%',
-						background: `radial-gradient(circle, ${alpha(theme.palette.info.main, 0.2)} 0%, transparent 70%)`,
-						pointerEvents: 'none',
-					}}
-				/>
+			sx={styles.wrapper}>
+			<Box sx={styles.card}>
+				{/* Gradient accent bar */}
+				<Box sx={styles.accentBar} />
 
-				<Typography
-					variant='h3'
-					sx={{
-						fontWeight: 800,
-						mb: 1.5,
-						background: `linear-gradient(135deg, ${theme.palette.info.light} 0%, ${theme.palette.secondary.main} 50%, ${theme.palette.primary.light} 100%)`,
-						backgroundClip: 'text',
-						WebkitBackgroundClip: 'text',
-						WebkitTextFillColor: 'transparent',
-						overflow: 'hidden',
-						textOverflow: 'ellipsis',
-						whiteSpace: 'nowrap',
-					}}>
+				{/* Decorative gradient orbs */}
+				<Box sx={styles.orbTopRight} />
+				<Box sx={styles.orbBottomLeft} />
+
+				<Typography variant='h3' sx={styles.title}>
 					{document.filename}
 				</Typography>
 
-				<Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3, flexWrap: 'wrap' }}>
+				<Box sx={styles.chipRow}>
 					<ProcessingStatusBadge stage={document.processingStage} />
 					{summary?.topicArea && (
 						<Chip
 							label={summary.topicArea}
 							size='small'
-							sx={{
-								bgcolor: alpha(theme.palette.primary.main, 0.1),
-								color: theme.palette.primary.light,
-								fontWeight: 500,
-							}}
+							sx={styles.topicChip}
 						/>
 					)}
 					{summary?.difficulty && (
@@ -109,11 +101,7 @@ export function DocumentDetailHero({ document, summary }: DocumentDetailHeroProp
 							label={summary.difficulty}
 							size='small'
 							variant='outlined'
-							sx={{
-								borderColor: alpha(theme.palette.warning.main, 0.3),
-								color: theme.palette.warning.light,
-								fontSize: '0.7rem',
-							}}
+							sx={styles.difficultyChip}
 						/>
 					)}
 					{isReady && document.conceptCount != null && document.conceptCount > 0 && (
@@ -121,17 +109,30 @@ export function DocumentDetailHero({ document, summary }: DocumentDetailHeroProp
 							icon={<Layers size={12} />}
 							label={`${document.conceptCount} concepts`}
 							size='small'
-							sx={{
-								bgcolor: alpha(theme.palette.info.main, 0.1),
-								color: theme.palette.info.light,
-								fontWeight: 500,
-								'& .MuiChip-icon': { color: 'inherit' },
-							}}
+							sx={styles.conceptChip}
 						/>
 					)}
 				</Box>
 
-				<Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+				{/* Metadata row */}
+				<Box sx={styles.metaRow}>
+					{fileSize && (
+						<Box sx={styles.metaItem}>
+							<HardDrive size={16} color={theme.palette.text.secondary} />
+							<Typography variant='body2' sx={{ color: theme.palette.text.secondary }}>
+								{fileSize}
+							</Typography>
+						</Box>
+					)}
+					<Box sx={styles.metaItem}>
+						<Calendar size={16} color={theme.palette.text.secondary} />
+						<Typography variant='body2' sx={{ color: theme.palette.text.secondary }}>
+							Uploaded {formatRelativeDate(document.createdAt)}
+						</Typography>
+					</Box>
+				</Box>
+
+				<Box sx={styles.actionRow}>
 					{isReady && (
 						<Button
 							label='Generate Roadmap'

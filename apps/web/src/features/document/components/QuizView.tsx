@@ -1,14 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import { Box, Typography } from '@mui/material';
-import { Send } from 'lucide-react';
+import { Box, Typography, useTheme } from '@mui/material';
+import { Send, ArrowLeft, Brain, HelpCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { Loader, EmptyState, Button } from '@/common/components';
-import { ButtonSizes, ButtonIconPositions } from '@/common/types';
+import { ButtonVariants, ButtonSizes, ButtonIconPositions } from '@/common/types';
 import { useQuizQuestionsQuery, useSubmitQuizAttemptCommand } from '@/application/document';
 import { QuestionCard } from './QuestionCard';
 import { QuizResults } from './QuizResults';
+import { makeStyles } from './QuizView.styles';
 import type { QuizAttemptDto } from '@/infrastructure/api/documentApi';
+
+const MotionBox = motion.create(Box);
 
 interface QuizViewProps {
 	documentId: string;
@@ -16,6 +21,9 @@ interface QuizViewProps {
 }
 
 export function QuizView({ documentId, quizId }: QuizViewProps) {
+	const theme = useTheme();
+	const router = useRouter();
+	const styles = makeStyles(theme);
 	const { data, isLoading } = useQuizQuestionsQuery(documentId, quizId);
 	const { execute: submitAttempt, isLoading: submitting } = useSubmitQuizAttemptCommand();
 	const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -48,34 +56,94 @@ export function QuizView({ documentId, quizId }: QuizViewProps) {
 	}
 
 	const { quiz, questions } = data;
-	const allAnswered = questions.length > 0 && questions.every((q) => answers[q.id]);
+	const answeredCount = Object.keys(answers).length;
+	const totalCount = questions.length;
+	const allAnswered = totalCount > 0 && answeredCount === totalCount;
+	const progressPercentage = totalCount > 0 ? Math.round((answeredCount / totalCount) * 100) : 0;
 
 	return (
 		<Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-			<Typography variant='h4' sx={{ fontWeight: 700 }}>
-				{quiz.title}
-			</Typography>
-			{quiz.description && (
-				<Typography variant='body1' color='text.secondary'>
-					{quiz.description}
+			{/* Back Button */}
+			<Box>
+				<Button
+					label='Back to Document'
+					icon={ArrowLeft}
+					iconPos={ButtonIconPositions.START}
+					variant={ButtonVariants.GHOST}
+					onClick={() => router.push(`/documents/${documentId}`)}
+				/>
+			</Box>
+
+			{/* Hero Header */}
+			<MotionBox
+				initial={{ opacity: 0, y: 20 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{ duration: 0.5, ease: 'easeOut' }}
+				sx={styles.heroCard}>
+				<Box sx={styles.accentBar} />
+				<Box sx={styles.orb} />
+
+				<Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+					<Brain size={24} color={theme.palette.info.light} />
+					<Typography variant='overline' sx={{ color: theme.palette.info.light, fontWeight: 600 }}>
+						Quiz
+					</Typography>
+				</Box>
+
+				<Typography variant='h4' sx={styles.title}>
+					{quiz.title}
 				</Typography>
-			)}
+
+				{quiz.description && (
+					<Typography variant='body1' sx={{ color: theme.palette.text.secondary, mb: 1 }}>
+						{quiz.description}
+					</Typography>
+				)}
+
+				{!result && (
+					<Box sx={styles.metaRow}>
+						<Box sx={styles.metaItem}>
+							<HelpCircle size={16} color={theme.palette.text.secondary} />
+							<Typography variant='body2' sx={{ color: theme.palette.text.secondary }}>
+								{answeredCount}/{totalCount} answered
+							</Typography>
+						</Box>
+						<Box sx={{ ...styles.progressBarTrack }}>
+							<Box sx={styles.progressBarFill(progressPercentage)} />
+						</Box>
+					</Box>
+				)}
+			</MotionBox>
 
 			{result ? (
-				<QuizResults attempt={result} onRetry={handleRetry} />
+				<MotionBox
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.4 }}>
+					<QuizResults attempt={result} onRetry={handleRetry} />
+				</MotionBox>
 			) : (
 				<>
-					{questions.map((question) => (
-						<QuestionCard
+					{questions.map((question, index) => (
+						<MotionBox
 							key={question.id}
-							question={question}
-							selectedAnswer={answers[question.id]}
-							onAnswer={handleAnswer}
-						/>
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ duration: 0.4, delay: 0.15 + index * 0.08 }}>
+							<QuestionCard
+								question={question}
+								selectedAnswer={answers[question.id]}
+								onAnswer={handleAnswer}
+							/>
+						</MotionBox>
 					))}
 
-					{questions.length > 0 && (
-						<Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+					{totalCount > 0 && (
+						<MotionBox
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ duration: 0.4, delay: 0.15 + totalCount * 0.08 }}
+							sx={{ display: 'flex', justifyContent: 'flex-end', mb: 8 }}>
 							<Button
 								label={submitting ? 'Submitting...' : 'Submit Answers'}
 								icon={Send}
@@ -84,7 +152,7 @@ export function QuizView({ documentId, quizId }: QuizViewProps) {
 								onClick={handleSubmit}
 								disabled={!allAnswered || submitting}
 							/>
-						</Box>
+						</MotionBox>
 					)}
 				</>
 			)}

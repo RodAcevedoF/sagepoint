@@ -8,7 +8,7 @@ export default function QuizPage({ params }: { params: Promise<{ id: string; qui
   const { id, quizId } = use(params);
 
   return (
-    <Box sx={{ minHeight: '100vh', pt: 2, pb: 12 }}>
+    <Box sx={{ minHeight: '100vh', py: 4 }}>
       <Container maxWidth='md'>
         <QuizView documentId={id} quizId={quizId} />
       </Container>
