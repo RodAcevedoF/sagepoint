@@ -14,16 +14,16 @@ const styles = {
 	},
 	sectionTitle: {
 		fontWeight: 800,
-		fontSize: '1.1rem',
+		fontSize: '1.25rem',
 		mb: 2.5,
 		color: palette.text.primary,
 	},
 	serviceName: {
 		fontWeight: 700,
-		fontSize: '0.95rem',
+		fontSize: '1.05rem',
 	},
 	statusText: {
-		fontSize: '0.75rem',
+		fontSize: '0.85rem',
 		fontWeight: 600,
 		textTransform: 'uppercase',
 		letterSpacing: '0.5px',

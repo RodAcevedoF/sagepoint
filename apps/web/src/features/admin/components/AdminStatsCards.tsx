@@ -20,7 +20,7 @@ const styles = {
 	},
 	metricLabel: {
 		color: palette.text.secondary,
-		fontSize: '0.8rem',
+		fontSize: '0.9rem',
 		fontWeight: 700,
 		textTransform: 'uppercase',
 		letterSpacing: '1px',
@@ -106,7 +106,7 @@ export function AdminStatsCards({ stats }: AdminStatsCardsProps) {
 													color: palette.success.main,
 													display: 'flex',
 													alignItems: 'center',
-													fontSize: '0.75rem',
+													fontSize: '0.85rem',
 													fontWeight: 700,
 													mb: 0.8,
 												}}>

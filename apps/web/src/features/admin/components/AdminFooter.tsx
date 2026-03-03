@@ -121,7 +121,7 @@ export function AdminFooter() {
 						variant='caption'
 						sx={{
 							color: alpha(palette.text.secondary, 0.4),
-							fontSize: '0.65rem',
+							fontSize: '0.8rem',
 						}}>
 						v1.0.4-stable • Build 2D3F4 • Secure SSL Session
 					</Typography>

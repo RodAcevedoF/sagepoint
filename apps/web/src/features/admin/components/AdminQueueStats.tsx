@@ -15,13 +15,13 @@ const styles = {
 	},
 	sectionTitle: {
 		fontWeight: 800,
-		fontSize: '1.1rem',
+		fontSize: '1.25rem',
 		mb: 2.5,
 		color: palette.text.primary,
 	},
 	queueName: {
 		fontWeight: 700,
-		fontSize: '0.95rem',
+		fontSize: '1.05rem',
 		mb: 1.5,
 	},
 	countRow: {
@@ -31,7 +31,7 @@ const styles = {
 		mb: 0.75,
 	},
 	countLabel: {
-		fontSize: '0.8rem',
+		fontSize: '0.9rem',
 		color: palette.text.secondary,
 		flex: 1,
 	},
@@ -43,7 +43,7 @@ const styles = {
 		mb: 1,
 	},
 	failureReason: {
-		fontSize: '0.75rem',
+		fontSize: '0.85rem',
 		color: palette.error.light,
 		wordBreak: 'break-word',
 	},
@@ -81,7 +81,8 @@ function QueueCard({ queue, icon: Icon, label, color, index }: {
 		<motion.div
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.5, delay: index * 0.1 }}>
+			transition={{ duration: 0.5, delay: index * 0.1 }}
+			style={{ height: '100%' }}>
 			<Card variant='glass' hoverable={true} sx={styles.card}>
 				<Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
 					<Box
@@ -102,7 +103,7 @@ function QueueCard({ queue, icon: Icon, label, color, index }: {
 				</Box>
 
 				{!queue ? (
-					<Typography sx={{ fontSize: '0.8rem', color: palette.text.secondary }}>
+					<Typography sx={{ fontSize: '0.9rem', color: palette.text.secondary }}>
 						No data available
 					</Typography>
 				) : (
@@ -119,7 +120,7 @@ function QueueCard({ queue, icon: Icon, label, color, index }: {
 										size='small'
 										sx={{
 											height: 22,
-											fontSize: '0.75rem',
+											fontSize: '0.85rem',
 											fontWeight: 700,
 											bgcolor: alpha(config.color, 0.12),
 											color: config.color,
@@ -140,7 +141,7 @@ function QueueCard({ queue, icon: Icon, label, color, index }: {
 										gap: 0.5,
 										cursor: 'pointer',
 										color: palette.error.light,
-										fontSize: '0.8rem',
+										fontSize: '0.9rem',
 										fontWeight: 600,
 										'&:hover': { opacity: 0.8 },
 									}}>

@@ -7,12 +7,10 @@ import { useAppSelector } from '@/common/hooks';
 import { Loader, ErrorState } from '@/common/components';
 import {
 	useAdminStatsQuery,
-	useAdminUsersQuery,
 	useHealthCheckQuery,
 	useQueueStatsQuery,
 } from '@/application/admin';
 import { AdminStatsCards } from './AdminStatsCards';
-import { AdminUsersTable } from './AdminUsersTable';
 import { AdminSystemHealth } from './AdminSystemHealth';
 import { AdminQueueStats } from './AdminQueueStats';
 import { AdminHero } from './AdminHero';
@@ -27,11 +25,6 @@ export function AdminDashboard() {
 		isLoading: statsLoading,
 		isError: statsError,
 	} = useAdminStatsQuery();
-	const {
-		data: users,
-		isLoading: usersLoading,
-		isError: usersError,
-	} = useAdminUsersQuery();
 	const {
 		data: health,
 		isLoading: healthLoading,
@@ -52,11 +45,11 @@ export function AdminDashboard() {
 		return <Loader variant='page' message='Checking permissions' />;
 	}
 
-	if (statsLoading || usersLoading) {
+	if (statsLoading) {
 		return <Loader variant='page' message='Loading admin dashboard' />;
 	}
 
-	if (statsError || usersError) {
+	if (statsError) {
 		return (
 			<ErrorState
 				title='Failed to load admin data'
@@ -72,7 +65,6 @@ export function AdminDashboard() {
 			{stats && <AdminStatsCards stats={stats} />}
 			<AdminSystemHealth data={health} isLoading={healthLoading} />
 			<AdminQueueStats data={queueStats} isLoading={queueLoading} />
-			{users && <AdminUsersTable users={users} />}
 
 			<AdminFooter />
 		</Box>
