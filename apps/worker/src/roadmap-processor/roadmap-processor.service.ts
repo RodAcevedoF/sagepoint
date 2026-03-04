@@ -6,8 +6,8 @@ import { RoadmapStep, Concept, Resource } from '@sagepoint/domain';
 import {
 	OpenAiTopicConceptGeneratorAdapter,
 	OpenAiRoadmapGeneratorAdapter,
-	PerplexityResearchAdapter,
 } from '@sagepoint/ai';
+import { CachedResourceDiscoveryAdapter } from '../infra/cached-resource-discovery.adapter';
 
 interface JobData {
 	roadmapId: string;
@@ -26,7 +26,7 @@ export class RoadmapProcessorService extends WorkerHost {
 		private readonly logger: PinoLogger,
 		private readonly topicConceptGenerator: OpenAiTopicConceptGeneratorAdapter,
 		private readonly roadmapGenerator: OpenAiRoadmapGeneratorAdapter,
-		private readonly resourceDiscovery: PerplexityResearchAdapter,
+		private readonly resourceDiscovery: CachedResourceDiscoveryAdapter,
 	) {
 		super();
 	}

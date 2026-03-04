@@ -44,3 +44,4 @@ export * from './ports/document-analysis.port';
 export * from './ports/quiz-generation.port';
 export * from './ports/image-text-extraction.port';
 export * from './ports/concept-expansion.port';
+export * from './ports/cache.port';

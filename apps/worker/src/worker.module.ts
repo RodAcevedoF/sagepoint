@@ -7,10 +7,39 @@ import { RoadmapProcessorService } from './roadmap-processor/roadmap-processor.s
 
 import { ConfigModule } from '@nestjs/config';
 import { Neo4jModule } from '@sagepoint/graph';
-import { AiModule } from '@sagepoint/ai';
+import { AiModule, PerplexityResearchAdapter } from '@sagepoint/ai';
 
 import { GCSStorage } from '@sagepoint/storage';
 import { ConfigService } from '@nestjs/config';
+import Redis from 'ioredis';
+import type { ICacheService } from '@sagepoint/domain';
+import { CachedResourceDiscoveryAdapter } from './infra/cached-resource-discovery.adapter';
+
+function createRedisCacheService(keyPrefix: string): ICacheService {
+  const redis = new Redis({
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT || '6379'),
+    keyPrefix,
+  });
+
+  return {
+    async get<T>(key: string): Promise<T | null> {
+      const raw = await redis.get(key);
+      if (!raw) return null;
+      return JSON.parse(raw) as T;
+    },
+    async set<T>(key: string, value: T, ttlSeconds: number): Promise<void> {
+      await redis.set(key, JSON.stringify(value), 'EX', ttlSeconds);
+    },
+    async del(key: string): Promise<void> {
+      await redis.del(key);
+    },
+    async delByPattern(pattern: string): Promise<void> {
+      const keys = await redis.keys(pattern);
+      if (keys.length > 0) await redis.del(...keys);
+    },
+  };
+}
 
 const isDev = process.env.NODE_ENV !== 'production';
 
@@ -58,7 +87,21 @@ const isDev = process.env.NODE_ENV !== 'production';
         });
       },
       inject: [ConfigService],
-    }
+    },
+    {
+      provide: 'WORKER_CACHE',
+      useFactory: () => createRedisCacheService('cache:'),
+    },
+    {
+      provide: 'INNER_RESOURCE_DISCOVERY',
+      useExisting: PerplexityResearchAdapter,
+    },
+    {
+      provide: CachedResourceDiscoveryAdapter,
+      useFactory: (inner: PerplexityResearchAdapter, cache: ICacheService) =>
+        new CachedResourceDiscoveryAdapter(inner, cache),
+      inject: ['INNER_RESOURCE_DISCOVERY', 'WORKER_CACHE'],
+    },
   ],
 })
 export class WorkerModule {}
