@@ -6,6 +6,7 @@ import type {
   IResourceDiscoveryService,
   IResourceRepository,
   IProgressRepository,
+  ICacheService,
 } from '@sagepoint/domain';
 import { RoadmapService } from '@/features/roadmap/infra/driver/roadmap.service';
 import { PrismaRoadmapRepository } from '@/features/roadmap/infra/driven/prisma-roadmap.repository';
@@ -45,12 +46,16 @@ export interface RoadmapDependencies {
 
 export function makeRoadmapDependencies(
   neo4jService: Neo4jService,
+  cacheService?: ICacheService,
 ): RoadmapDependencies {
   const prismaService = new PrismaService();
   const roadmapRepository = new PrismaRoadmapRepository(prismaService);
   const conceptRepository = new Neo4jConceptRepository(neo4jService);
   const resourceRepository = new PrismaResourceRepository(prismaService);
-  const progressRepository = new PrismaProgressRepository(prismaService);
+  const progressRepository = new PrismaProgressRepository(
+    prismaService,
+    cacheService,
+  );
 
   // Create AI adapters via centralized factory
   const aiAdapters = createAiAdapters({

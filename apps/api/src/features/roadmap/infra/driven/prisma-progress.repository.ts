@@ -3,6 +3,7 @@ import {
   UserRoadmapProgress,
   RoadmapProgressSummary,
   StepStatus,
+  type ICacheService,
 } from '@sagepoint/domain';
 import type { UserRoadmapProgress as PrismaProgress } from '@sagepoint/database';
 import { PrismaService } from '@/core/infra/database/prisma.service';
@@ -11,8 +12,13 @@ interface SerializedStep {
   concept: { id: string };
 }
 
+const TTL_SECONDS = 600; // 10 minutes
+
 export class PrismaProgressRepository implements IProgressRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cache?: ICacheService,
+  ) {}
 
   async upsert(progress: UserRoadmapProgress): Promise<UserRoadmapProgress> {
     const data = await this.prisma.userRoadmapProgress.upsert({
@@ -35,6 +41,9 @@ export class PrismaProgressRepository implements IProgressRepository {
         completedAt: progress.completedAt,
       },
     });
+
+    await this.invalidateCache(progress.userId, progress.roadmapId);
+
     return this.mapToDomain(data);
   }
 
@@ -91,6 +100,16 @@ export class PrismaProgressRepository implements IProgressRepository {
       ),
     );
 
+    // Invalidate cache for all affected user+roadmap pairs
+    const seen = new Set<string>();
+    for (const p of progressList) {
+      const key = `${p.userId}:${p.roadmapId}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        await this.invalidateCache(p.userId, p.roadmapId);
+      }
+    }
+
     return results.map((r) => this.mapToDomain(r));
   }
 
@@ -98,6 +117,13 @@ export class PrismaProgressRepository implements IProgressRepository {
     userId: string,
     roadmapId: string,
   ): Promise<RoadmapProgressSummary | null> {
+    const cacheKey = `progress:${userId}:${roadmapId}`;
+
+    if (this.cache) {
+      const cached = await this.cache.get<RoadmapProgressSummary>(cacheKey);
+      if (cached) return cached;
+    }
+
     const roadmap = await this.prisma.roadmap.findUnique({
       where: { id: roadmapId },
       select: { steps: true },
@@ -136,7 +162,7 @@ export class PrismaProgressRepository implements IProgressRepository {
     const inProgressSteps = statusCounts['IN_PROGRESS'] || 0;
     const skippedSteps = statusCounts['SKIPPED'] || 0;
 
-    return {
+    const summary: RoadmapProgressSummary = {
       roadmapId,
       totalSteps,
       completedSteps,
@@ -144,11 +170,24 @@ export class PrismaProgressRepository implements IProgressRepository {
       skippedSteps,
       progressPercentage: Math.round((completedSteps / totalSteps) * 100),
     };
+
+    if (this.cache) {
+      await this.cache.set(cacheKey, summary, TTL_SECONDS);
+    }
+
+    return summary;
   }
 
   async getProgressSummariesForUser(
     userId: string,
   ): Promise<RoadmapProgressSummary[]> {
+    const cacheKey = `progress:user:${userId}`;
+
+    if (this.cache) {
+      const cached = await this.cache.get<RoadmapProgressSummary[]>(cacheKey);
+      if (cached) return cached;
+    }
+
     const roadmaps = await this.prisma.roadmap.findMany({
       where: { userId },
       select: {
@@ -161,7 +200,7 @@ export class PrismaProgressRepository implements IProgressRepository {
       },
     });
 
-    return roadmaps.map((roadmap) => {
+    const summaries = roadmaps.map((roadmap) => {
       const steps = Array.isArray(roadmap.steps)
         ? (roadmap.steps as unknown as SerializedStep[])
         : [];
@@ -189,6 +228,12 @@ export class PrismaProgressRepository implements IProgressRepository {
           totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0,
       };
     });
+
+    if (this.cache) {
+      await this.cache.set(cacheKey, summaries, TTL_SECONDS);
+    }
+
+    return summaries;
   }
 
   async getCompletedConceptIds(
@@ -219,6 +264,19 @@ export class PrismaProgressRepository implements IProgressRepository {
     await this.prisma.userRoadmapProgress.deleteMany({
       where: { userId, roadmapId },
     });
+
+    await this.invalidateCache(userId, roadmapId);
+  }
+
+  private async invalidateCache(
+    userId: string,
+    roadmapId: string,
+  ): Promise<void> {
+    if (!this.cache) return;
+    await Promise.all([
+      this.cache.del(`progress:${userId}:${roadmapId}`),
+      this.cache.del(`progress:user:${userId}`),
+    ]);
   }
 
   private mapToDomain(data: PrismaProgress): UserRoadmapProgress {

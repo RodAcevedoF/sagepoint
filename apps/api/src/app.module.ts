@@ -11,6 +11,7 @@ import { AuthModule } from '@/features/auth/auth.module';
 import { StorageModule } from '@/features/storage/storage.module';
 import { AdminModule } from '@/features/admin/admin.module';
 import { HealthModule } from '@/features/health/health.module';
+import { CacheModule } from '@/core/infra/cache/cache.module';
 import { DomainExceptionFilter } from '@/core/filters/domain-exception.filter';
 
 const isDev = process.env.NODE_ENV !== 'production';
@@ -57,6 +58,7 @@ const isDev = process.env.NODE_ENV !== 'production';
         port: parseInt(process.env.REDIS_PORT || '6379'),
       },
     }),
+    CacheModule,
     RoadmapModule,
     DocumentModule,
     UserModule,

@@ -7,6 +7,7 @@ import {
   type ICategoryRepository,
 } from '@sagepoint/domain';
 import { PrismaService } from '@/core/infra/database/prisma.service';
+import { RedisCacheService } from '@/core/infra/cache/redis-cache.service';
 
 @Module({
   controllers: [CategoryController],
@@ -18,8 +19,9 @@ import { PrismaService } from '@/core/infra/database/prisma.service';
     },
     {
       provide: 'GetCategoriesUseCase',
-      useFactory: (repo: ICategoryRepository) => new GetCategoriesUseCase(repo),
-      inject: [CATEGORY_REPOSITORY],
+      useFactory: (repo: ICategoryRepository, cache: RedisCacheService) =>
+        new GetCategoriesUseCase(repo, cache),
+      inject: [CATEGORY_REPOSITORY, RedisCacheService],
     },
   ],
   exports: [CATEGORY_REPOSITORY],

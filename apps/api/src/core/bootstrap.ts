@@ -17,6 +17,8 @@ import {
 } from '@/features/storage/dependencies';
 import { GCSStorage } from '@sagepoint/storage';
 import { IFileStorage } from '@sagepoint/domain';
+import Redis from 'ioredis';
+import { RedisCacheService } from '@/core/infra/cache/redis-cache.service';
 
 export interface AppDependencies {
   roadmap: RoadmapDependencies;
@@ -51,8 +53,16 @@ export function bootstrap(): AppDependencies {
     encrypted: process.env.NEO4J_ENCRYPTION || 'ENCRYPTION_OFF',
   });
 
+  // Cache service for progress repository
+  const cacheRedis = new Redis({
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT || '6379'),
+    keyPrefix: 'cache:',
+  });
+  const cacheService = new RedisCacheService(cacheRedis);
+
   dependencies = {
-    roadmap: makeRoadmapDependencies(neo4jService),
+    roadmap: makeRoadmapDependencies(neo4jService, cacheService),
     document: makeDocumentDependencies(fileStorage),
     user: userDeps,
     storage: makeStorageDependencies(fileStorage),
