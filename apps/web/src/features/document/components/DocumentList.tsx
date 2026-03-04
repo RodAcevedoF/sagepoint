@@ -1,17 +1,20 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { lazy, Suspense, useState, useMemo } from 'react';
 import { Box, Grid, TextField, Chip, Typography, alpha, useTheme, InputAdornment } from '@mui/material';
 import { FileText, Upload, Search } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { EmptyState, ErrorState, useModal } from '@/common/components';
+import { EmptyState, ErrorState, Loader, useModal } from '@/common/components';
 import { useUserDocumentsQuery } from '@/application/document';
 import { DocumentHero } from './DocumentHero';
 import { DocumentStats } from './DocumentStats';
 import { DocumentCard } from './DocumentCard';
 import { DocumentCardSkeleton } from './DocumentCardSkeleton';
 import { ProcessingDocumentCard } from './ProcessingDocumentCard';
-import { UploadDocumentModal } from './UploadDocumentModal';
+
+const LazyUploadDocumentModal = lazy(() =>
+	import('./UploadDocumentModal').then((m) => ({ default: m.UploadDocumentModal }))
+);
 
 const MotionBox = motion.create(Box);
 
@@ -25,11 +28,16 @@ export function DocumentList() {
 	const [stageFilter, setStageFilter] = useState<StageFilter>('all');
 
 	const handleUpload = () => {
-		openModal(<UploadDocumentModal />, {
-			title: 'Upload Document',
-			showCloseButton: true,
-			maxWidth: 'sm',
-		});
+		openModal(
+			<Suspense fallback={<Loader />}>
+				<LazyUploadDocumentModal />
+			</Suspense>,
+			{
+				title: 'Upload Document',
+				showCloseButton: true,
+				maxWidth: 'sm',
+			},
+		);
 	};
 
 	const { processingDocs, completedDocs } = useMemo(() => {

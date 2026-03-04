@@ -1,6 +1,12 @@
 'use client';
 
-import { AdminAnalytics } from '@/features/admin';
+import dynamic from 'next/dynamic';
+import { Loader } from '@/common/components';
+
+const AdminAnalytics = dynamic(
+	() => import('@/features/admin/components/AdminAnalytics').then((m) => m.AdminAnalytics),
+	{ loading: () => <Loader /> }
+);
 
 export default function AdminAnalyticsPage() {
 	return <AdminAnalytics />;

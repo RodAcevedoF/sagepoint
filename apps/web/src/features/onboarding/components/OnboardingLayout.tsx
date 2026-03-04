@@ -1,12 +1,21 @@
 "use client";
 
 import { type ReactNode } from "react";
+import dynamic from "next/dynamic";
 import { Container, Box, Toolbar } from "@mui/material";
 import { AnimatePresence } from "framer-motion";
-import { PublicLayout, Antigravity } from "@/common/components";
+import { PublicLayout } from "@/common/components";
 import { palette } from "@/common/theme";
 import { OnboardingProvider } from "../context/OnboardingContext";
 import { AuthGuard } from "@/features/auth/components";
+
+const Antigravity = dynamic(
+  () =>
+    import("@/common/components/animations/Antigravity").then(
+      (m) => m.Antigravity
+    ),
+  { ssr: false }
+);
 
 // ============================================================================
 // Styles

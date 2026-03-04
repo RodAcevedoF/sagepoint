@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { Box, alpha, useTheme, useMediaQuery } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StepStatus, type RoadmapStep } from '@sagepoint/domain';
@@ -10,13 +10,16 @@ import {
 	useStepQuizCommand,
 } from '@/application/roadmap';
 import type { PreGeneratedQuiz } from '@/application/roadmap/commands/step-quiz.command';
-import { useModal, useSnackbar } from '@/common/components';
+import { useModal, useSnackbar, Loader } from '@/common/components';
 import type { ResourceDto } from '@/infrastructure/api/roadmapApi';
 import { makeStyles } from './TimelineStep.styles';
 import { StepIndicator } from './StepIndicator';
 import { StepHeader } from './StepHeader';
 import { StepContent } from './StepContent';
-import { StepQuizModal } from '../StepQuizModal/StepQuizModal';
+
+const LazyStepQuizModal = lazy(() =>
+	import('../StepQuizModal/StepQuizModal').then((m) => ({ default: m.StepQuizModal }))
+);
 
 const MotionBox = motion.create(Box);
 
@@ -83,17 +86,19 @@ export function TimelineStep({
 			status === StepStatus.IN_PROGRESS
 		) {
 			openModal(
-				<StepQuizModal
-					roadmapId={roadmapId}
-					conceptId={step.concept.id}
-					conceptName={step.concept.name}
-					preGeneratedQuiz={preGeneratedQuiz}
-					onClose={() => {
-						setPreGeneratedQuiz(null);
-						setQuizReady(false);
-						closeModal();
-					}}
-				/>,
+				<Suspense fallback={<Loader />}>
+					<LazyStepQuizModal
+						roadmapId={roadmapId}
+						conceptId={step.concept.id}
+						conceptName={step.concept.name}
+						preGeneratedQuiz={preGeneratedQuiz}
+						onClose={() => {
+							setPreGeneratedQuiz(null);
+							setQuizReady(false);
+							closeModal();
+						}}
+					/>
+				</Suspense>,
 				{
 					title: `Quiz: ${step.concept.name}`,
 					maxWidth: 'sm',

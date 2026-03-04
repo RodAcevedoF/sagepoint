@@ -1,9 +1,18 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { Container, Box, Toolbar } from "@mui/material";
-import { PublicLayout, Antigravity } from "@/common/components";
+import { PublicLayout } from "@/common/components";
 import { palette } from "@/common/theme";
 import { LoginForm } from "./LoginForm";
+
+const Antigravity = dynamic(
+  () =>
+    import("@/common/components/animations/Antigravity").then(
+      (m) => m.Antigravity
+    ),
+  { ssr: false }
+);
 
 export function LoginPage() {
   return (

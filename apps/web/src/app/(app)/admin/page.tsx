@@ -1,6 +1,12 @@
 'use client';
 
-import { AdminDashboard } from '@/features/admin';
+import dynamic from 'next/dynamic';
+import { Loader } from '@/common/components';
+
+const AdminDashboard = dynamic(
+  () => import('@/features/admin/components/AdminDashboard').then((m) => m.AdminDashboard),
+  { loading: () => <Loader /> }
+);
 
 export default function AdminPage() {
   return <AdminDashboard />;

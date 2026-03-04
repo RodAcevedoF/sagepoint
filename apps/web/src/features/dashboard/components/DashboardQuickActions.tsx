@@ -1,11 +1,15 @@
 'use client';
 
+import { lazy, Suspense } from 'react';
 import { Box, Typography, Stack, alpha } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { Plus, Map, FileUp, ArrowUpRight } from 'lucide-react';
-import { useModal, SectionTitle } from '@/common/components';
-import { UploadDocumentModal } from '@/features/document';
+import { useModal, Loader, SectionTitle } from '@/common/components';
 import { palette } from '@/common/theme';
+
+const LazyUploadDocumentModal = lazy(() =>
+	import('@/features/document/components/UploadDocumentModal').then((m) => ({ default: m.UploadDocumentModal }))
+);
 
 // ============================================================================
 // Styles
@@ -143,11 +147,16 @@ export function DashboardQuickActions() {
 	const { openModal } = useModal();
 
 	const handleUpload = () => {
-		openModal(<UploadDocumentModal />, {
-			title: 'Upload Document',
-			showCloseButton: true,
-			maxWidth: 'sm',
-		});
+		openModal(
+			<Suspense fallback={<Loader />}>
+				<LazyUploadDocumentModal />
+			</Suspense>,
+			{
+				title: 'Upload Document',
+				showCloseButton: true,
+				maxWidth: 'sm',
+			},
+		);
 	};
 
 	return (

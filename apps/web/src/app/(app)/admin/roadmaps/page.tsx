@@ -1,6 +1,12 @@
 'use client';
 
-import { AdminRoadmapsTable } from '@/features/admin';
+import dynamic from 'next/dynamic';
+import { Loader } from '@/common/components';
+
+const AdminRoadmapsTable = dynamic(
+	() => import('@/features/admin/components/AdminRoadmapsTable').then((m) => m.AdminRoadmapsTable),
+	{ loading: () => <Loader /> }
+);
 
 export default function AdminRoadmapsPage() {
 	return <AdminRoadmapsTable />;

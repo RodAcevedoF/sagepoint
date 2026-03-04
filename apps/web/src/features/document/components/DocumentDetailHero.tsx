@@ -1,16 +1,20 @@
 'use client';
 
+import { lazy, Suspense } from 'react';
 import { Box, Typography, useTheme, Chip } from '@mui/material';
 import { Map, Trash2, Layers, HardDrive, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { Button, useSnackbar, useModal } from '@/common/components';
+import { Button, Loader, useSnackbar, useModal } from '@/common/components';
 import { ButtonVariants, ButtonSizes, ButtonIconPositions } from '@/common/types';
 import { useDeleteDocumentCommand } from '@/application/document';
 import { ProcessingStatusBadge } from './ProcessingStatusBadge';
-import { GenerateFromDocumentModal } from './GenerateFromDocumentModal';
 import { makeStyles } from './DocumentDetailHero.styles';
 import type { DocumentDetailDto, DocumentSummaryDto } from '@/infrastructure/api/documentApi';
+
+const LazyGenerateFromDocumentModal = lazy(() =>
+	import('./GenerateFromDocumentModal').then((m) => ({ default: m.GenerateFromDocumentModal }))
+);
 
 const MotionBox = motion.create(Box);
 
@@ -64,7 +68,9 @@ export function DocumentDetailHero({ document, summary }: DocumentDetailHeroProp
 
 	const handleGenerateRoadmap = () => {
 		openModal(
-			<GenerateFromDocumentModal documentId={document.id} documentName={document.filename} />,
+			<Suspense fallback={<Loader />}>
+				<LazyGenerateFromDocumentModal documentId={document.id} documentName={document.filename} />
+			</Suspense>,
 			{ title: 'Generate Roadmap', maxWidth: 'sm' },
 		);
 	};
