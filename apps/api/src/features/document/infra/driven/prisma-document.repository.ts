@@ -4,6 +4,10 @@ import {
   DocumentStatus,
   ProcessingStage,
 } from '@sagepoint/domain';
+import type {
+  CursorPaginationParams,
+  CursorPaginatedResult,
+} from '@sagepoint/domain';
 import type { Document as PrismaDocument } from '@sagepoint/database';
 import { PrismaService } from '@/core/infra/database/prisma.service';
 
@@ -56,6 +60,36 @@ export class PrismaDocumentRepository implements IDocumentRepository {
       orderBy: { createdAt: 'desc' },
     });
     return data.map((d) => this.mapToDomain(d));
+  }
+
+  async findByUserIdCursor(
+    userId: string,
+    params: CursorPaginationParams,
+  ): Promise<CursorPaginatedResult<Document>> {
+    const where = { userId };
+    const cursorClause = params.cursor
+      ? { createdAt: { lt: new Date(params.cursor) } }
+      : {};
+
+    const [rows, total] = await Promise.all([
+      this.prisma.document.findMany({
+        where: { ...where, ...cursorClause },
+        orderBy: { createdAt: 'desc' },
+        take: params.limit + 1,
+      }),
+      this.prisma.document.count({ where }),
+    ]);
+
+    const hasMore = rows.length > params.limit;
+    const data = hasMore ? rows.slice(0, params.limit) : rows;
+    const lastItem = data[data.length - 1];
+
+    return {
+      data: data.map((d) => this.mapToDomain(d)),
+      nextCursor: hasMore && lastItem ? lastItem.createdAt.toISOString() : null,
+      hasMore,
+      total,
+    };
   }
 
   async delete(id: string): Promise<void> {

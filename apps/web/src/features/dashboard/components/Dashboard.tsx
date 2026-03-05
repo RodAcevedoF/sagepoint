@@ -152,7 +152,7 @@ export function Dashboard() {
 	const isDev = process.env.NODE_ENV === 'development';
 	const userName = user?.name || 'Learner';
 	const userRoadmaps = roadmaps ?? [];
-	const userDocuments = documents ?? [];
+	const userDocuments = documents?.data ?? [];
 
 	const metrics = computeMetrics(userRoadmaps);
 	const progressItems = computeRoadmapProgress(userRoadmaps);

@@ -2,6 +2,6 @@
 
 import { useGetUserDocumentsQuery } from '@/infrastructure/api/documentApi';
 
-export function useUserDocumentsQuery() {
-  return useGetUserDocumentsQuery();
+export function useUserDocumentsQuery(params?: { limit?: number; cursor?: string }) {
+  return useGetUserDocumentsQuery(params ?? undefined);
 }

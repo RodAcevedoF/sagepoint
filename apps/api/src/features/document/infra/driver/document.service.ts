@@ -12,6 +12,8 @@ import type {
   DocumentSummary,
   Quiz,
   QuizAttempt,
+  CursorPaginationParams,
+  CursorPaginatedResult,
 } from '@sagepoint/domain';
 import type { QuizWithQuestions } from '@/features/document/app/usecases/get-quiz-questions.usecase';
 import {
@@ -53,6 +55,13 @@ export class DocumentService implements IDocumentService {
 
   async getUserDocuments(userId: string): Promise<Document[]> {
     return await this.getUserDocumentsUseCase.execute(userId);
+  }
+
+  async getUserDocumentsCursor(
+    userId: string,
+    params: CursorPaginationParams,
+  ): Promise<CursorPaginatedResult<Document>> {
+    return await this.getUserDocumentsUseCase.executeCursor(userId, params);
   }
 
   async delete(id: string, userId: string): Promise<void> {

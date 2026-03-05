@@ -5,6 +5,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   Inject,
   NotFoundException,
   UseInterceptors,
@@ -20,11 +21,12 @@ import {
   DOCUMENT_SERVICE,
   type IDocumentService,
 } from '@/features/document/domain/inbound/document.service';
-import type { Express } from 'express';
+import 'multer';
 import { DocumentStatus } from '@sagepoint/domain';
 import { CurrentUser } from '@/features/auth/decorators/current-user.decorator';
 import type { RequestUser } from '@/features/auth/domain/request-user';
 import { JwtAuthGuard } from '@/features/auth/infra/guards/jwt-auth.guard';
+import { GetUserDocumentsDto } from './get-user-documents.dto';
 
 interface SseEvent {
   data: string;
@@ -65,8 +67,14 @@ export class DocumentController {
   }
 
   @Get('user/me')
-  async getUserDocuments(@CurrentUser() user: RequestUser) {
-    return await this.documentService.getUserDocuments(user.id);
+  async getUserDocuments(
+    @CurrentUser() user: RequestUser,
+    @Query() query: GetUserDocumentsDto,
+  ) {
+    return await this.documentService.getUserDocumentsCursor(user.id, {
+      limit: query.limit ?? 12,
+      cursor: query.cursor,
+    });
   }
 
   @Sse(':id/events')

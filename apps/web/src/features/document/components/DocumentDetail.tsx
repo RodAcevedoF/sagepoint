@@ -20,6 +20,7 @@ import { DocumentDetailHero } from './DocumentDetailHero';
 import { DocumentSummaryView } from './DocumentSummaryView';
 import { DocumentProcessingView } from './DocumentProcessingView';
 import { QuizCard } from './QuizCard';
+import { isDocumentProcessing } from '../utils';
 
 const MotionBox = motion.create(Box);
 
@@ -37,10 +38,7 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
 	const { data: quizzes, isLoading: quizzesLoading } =
 		useDocumentQuizzesQuery(documentId);
 
-	const isProcessing =
-		document ?
-			document.status !== 'COMPLETED' && document.status !== 'FAILED'
-		:	false;
+	const isProcessing = document ? isDocumentProcessing(document.status) : false;
 	const isSummarized = document?.processingStage === 'SUMMARIZED';
 	const isFullyProcessing = isProcessing && !isSummarized;
 

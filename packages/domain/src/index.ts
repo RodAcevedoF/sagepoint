@@ -35,6 +35,9 @@ export * from './modules/roadmap/ports/roadmap-generation-queue.port';
 export * from './modules/roadmap/entities/step-quiz-attempt.entity';
 export * from './modules/roadmap/ports/step-quiz-attempt.repository';
 
+// Common
+export * from './common/pagination';
+
 // Shared Ports
 export * from './ports/file-storage.port';
 export * from './ports/content-analysis.port';

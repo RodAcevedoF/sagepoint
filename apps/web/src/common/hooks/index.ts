@@ -6,3 +6,4 @@ export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
 export { useRoadmapEvents } from './useRoadmapEvents';
 export { useDocumentEvents, type DocumentEventStage } from './useDocumentEvents';
+export { useInfiniteScroll } from './useInfiniteScroll';

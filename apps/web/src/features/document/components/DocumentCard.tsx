@@ -23,6 +23,7 @@ import { ProcessingStatusBadge } from './ProcessingStatusBadge';
 import { makeStyles } from './DocumentCard.styles';
 import type { DocumentDetailDto } from '@/infrastructure/api/documentApi';
 import { ProcessingStage } from '@sagepoint/domain';
+import { isDocumentProcessing } from '../utils';
 
 const mimeIconMap: Array<{ test: (m: string) => boolean; icon: typeof File }> =
 	[
@@ -81,7 +82,7 @@ export function DocumentCard({ document }: DocumentCardProps) {
 	const { execute: deleteDocument } = useDeleteDocumentCommand();
 	const { showSnackbar } = useSnackbar();
 
-	const isProcessing = document.status !== 'COMPLETED' && document.status !== 'FAILED';
+	const isProcessing = isDocumentProcessing(document.status);
 	const { status: sseStatus, stage: sseStage } = useDocumentEvents(isProcessing ? document.id : null);
 
 	if (sseStatus === 'completed') {

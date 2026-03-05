@@ -1,31 +1,60 @@
 'use client';
 
 import { lazy, Suspense, useState, useMemo } from 'react';
-import { Box, Grid, TextField, Chip, Typography, alpha, useTheme, InputAdornment } from '@mui/material';
+import {
+	Box,
+	Grid,
+	TextField,
+	Chip,
+	Typography,
+	alpha,
+	useTheme,
+	InputAdornment,
+	CircularProgress,
+} from '@mui/material';
 import { FileText, Upload, Search } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { EmptyState, ErrorState, Loader, useModal } from '@/common/components';
+import { useInfiniteScroll } from '@/common/hooks';
 import { useUserDocumentsQuery } from '@/application/document';
 import { DocumentHero } from './DocumentHero';
 import { DocumentStats } from './DocumentStats';
 import { DocumentCard } from './DocumentCard';
 import { DocumentCardSkeleton } from './DocumentCardSkeleton';
 import { ProcessingDocumentCard } from './ProcessingDocumentCard';
+import { filterAndPartitionDocuments, type StageFilter } from '../utils';
 
 const LazyUploadDocumentModal = lazy(() =>
-	import('./UploadDocumentModal').then((m) => ({ default: m.UploadDocumentModal }))
+	import('./UploadDocumentModal').then((m) => ({
+		default: m.UploadDocumentModal,
+	})),
 );
 
 const MotionBox = motion.create(Box);
 
-type StageFilter = 'all' | 'processing' | 'ready';
+const PAGE_SIZE = 12;
 
 export function DocumentList() {
-	const { data: documents, isLoading, isError, refetch } = useUserDocumentsQuery();
+	const [cursor, setCursor] = useState<string | undefined>();
+	const {
+		data: response,
+		isLoading,
+		isError,
+		refetch,
+		isFetching,
+	} = useUserDocumentsQuery({ limit: PAGE_SIZE, cursor });
 	const { openModal } = useModal();
 	const theme = useTheme();
 	const [searchQuery, setSearchQuery] = useState('');
 	const [stageFilter, setStageFilter] = useState<StageFilter>('all');
+
+	// RTK Query `merge` accumulates pages in the cache — data comes pre-merged
+	const documents = useMemo(() => response?.data ?? [], [response]);
+	const hasMore = response?.hasMore ?? false;
+
+	const sentinelRef = useInfiniteScroll(() => {
+		if (!isFetching && response?.nextCursor) setCursor(response.nextCursor);
+	}, hasMore && !isFetching);
 
 	const handleUpload = () => {
 		openModal(
@@ -40,24 +69,10 @@ export function DocumentList() {
 		);
 	};
 
-	const { processingDocs, completedDocs } = useMemo(() => {
-		if (!documents) return { processingDocs: [], completedDocs: [] };
-
-		const filtered = documents.filter((doc) => {
-			const matchesSearch = !searchQuery || doc.filename.toLowerCase().includes(searchQuery.toLowerCase());
-			const isDocProcessing = doc.status !== 'COMPLETED' && doc.status !== 'FAILED';
-			const matchesFilter =
-				stageFilter === 'all' ||
-				(stageFilter === 'processing' && isDocProcessing) ||
-				(stageFilter === 'ready' && !isDocProcessing);
-			return matchesSearch && matchesFilter;
-		});
-
-		return {
-			processingDocs: filtered.filter((d) => d.status !== 'COMPLETED' && d.status !== 'FAILED'),
-			completedDocs: filtered.filter((d) => d.status === 'COMPLETED' || d.status === 'FAILED'),
-		};
-	}, [documents, searchQuery, stageFilter]);
+	const { processingDocs, completedDocs } = useMemo(
+		() => filterAndPartitionDocuments(documents, searchQuery, stageFilter),
+		[documents, searchQuery, stageFilter],
+	);
 
 	if (isLoading) {
 		return (
@@ -94,7 +109,7 @@ export function DocumentList() {
 		<>
 			<DocumentHero onUpload={handleUpload} />
 
-			{!documents || documents.length === 0 ? (
+			{documents.length === 0 && !response?.total ?
 				<EmptyState
 					title='No documents yet'
 					description='Upload your first document to get started with AI-powered analysis.'
@@ -103,12 +118,18 @@ export function DocumentList() {
 					actionIcon={Upload}
 					onAction={handleUpload}
 				/>
-			) : (
-				<>
+			:	<>
 					<DocumentStats documents={documents} />
 
 					{/* Filter bar */}
-					<Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap', alignItems: 'center' }}>
+					<Box
+						sx={{
+							display: 'flex',
+							gap: 2,
+							mb: 3,
+							flexWrap: 'wrap',
+							alignItems: 'center',
+						}}>
 						<TextField
 							size='small'
 							placeholder='Search documents...'
@@ -134,13 +155,23 @@ export function DocumentList() {
 									onClick={() => setStageFilter(chip.value)}
 									sx={{
 										fontWeight: 500,
-										bgcolor: stageFilter === chip.value ? alpha(theme.palette.primary.main, 0.15) : 'transparent',
-										color: stageFilter === chip.value ? theme.palette.primary.light : theme.palette.text.secondary,
+										bgcolor:
+											stageFilter === chip.value ?
+												alpha(theme.palette.primary.main, 0.15)
+											:	'transparent',
+										color:
+											stageFilter === chip.value ?
+												theme.palette.primary.light
+											:	theme.palette.text.secondary,
 										border: `1px solid ${alpha(
-											stageFilter === chip.value ? theme.palette.primary.main : theme.palette.text.secondary,
+											stageFilter === chip.value ?
+												theme.palette.primary.main
+											:	theme.palette.text.secondary,
 											stageFilter === chip.value ? 0.3 : 0.15,
 										)}`,
-										'&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.1) },
+										'&:hover': {
+											bgcolor: alpha(theme.palette.primary.main, 0.1),
+										},
 									}}
 								/>
 							))}
@@ -150,7 +181,9 @@ export function DocumentList() {
 					{/* Processing section */}
 					{processingDocs.length > 0 && (
 						<Box sx={{ mb: 4 }}>
-							<Typography variant='subtitle2' sx={{ color: 'text.secondary', mb: 2, fontWeight: 600 }}>
+							<Typography
+								variant='subtitle2'
+								sx={{ color: 'text.secondary', mb: 2, fontWeight: 600 }}>
 								Processing ({processingDocs.length})
 							</Typography>
 							<Grid container spacing={3}>
@@ -169,10 +202,12 @@ export function DocumentList() {
 					)}
 
 					{/* Completed section */}
-					{completedDocs.length > 0 ? (
+					{completedDocs.length > 0 ?
 						<>
 							{processingDocs.length > 0 && (
-								<Typography variant='subtitle2' sx={{ color: 'text.secondary', mb: 2, fontWeight: 600 }}>
+								<Typography
+									variant='subtitle2'
+									sx={{ color: 'text.secondary', mb: 2, fontWeight: 600 }}>
 									Completed ({completedDocs.length})
 								</Typography>
 							)}
@@ -182,21 +217,35 @@ export function DocumentList() {
 										<MotionBox
 											initial={{ opacity: 0, y: 20 }}
 											animate={{ opacity: 1, y: 0 }}
-											transition={{ duration: 0.4, delay: 0.3 + index * 0.08, ease: [0.25, 0.1, 0.25, 1] }}>
+											transition={{
+												duration: 0.4,
+												delay: 0.3 + index * 0.08,
+												ease: [0.25, 0.1, 0.25, 1],
+											}}>
 											<DocumentCard document={doc} />
 										</MotionBox>
 									</Grid>
 								))}
 							</Grid>
 						</>
-					) : processingDocs.length === 0 && (
-						<EmptyState
-							title='No matching documents'
-							description='Try adjusting your search or filter.'
-						/>
+					:	processingDocs.length === 0 && (
+							<EmptyState
+								title='No matching documents'
+								description='Try adjusting your search or filter.'
+							/>
+						)
+					}
+
+					{/* Infinite scroll sentinel */}
+					{hasMore && (
+						<Box
+							ref={sentinelRef}
+							sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+							{isFetching && <CircularProgress size={28} />}
+						</Box>
 					)}
 				</>
-			)}
+			}
 		</>
 	);
 }

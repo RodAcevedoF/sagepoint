@@ -1,4 +1,5 @@
 import type { ProcessingStage, QuestionType } from '@sagepoint/domain';
+import type { CursorPaginatedResult } from '@sagepoint/domain';
 import { baseApi } from './baseApi';
 
 // DTOs
@@ -80,12 +81,31 @@ export interface SubmitQuizAttemptDto {
 
 export const documentApi = baseApi.injectEndpoints({
 	endpoints: (builder) => ({
-		getUserDocuments: builder.query<DocumentDetailDto[], void>({
-			query: () => '/documents/user/me',
+		getUserDocuments: builder.query<
+			CursorPaginatedResult<DocumentDetailDto>,
+			{ limit?: number; cursor?: string } | void
+		>({
+			query: (params) => ({
+				url: '/documents/user/me',
+				params: params || undefined,
+			}),
+			serializeQueryArgs: ({ endpointName }) => endpointName,
+			merge: (current, incoming) => {
+				if (!incoming.nextCursor && !current.data.length) return incoming;
+				if (!incoming.data.length) return current;
+				const existingIds = new Set(current.data.map((d) => d.id));
+				const newDocs = incoming.data.filter((d) => !existingIds.has(d.id));
+				if (!newDocs.length) return current;
+				current.data.push(...newDocs);
+				current.nextCursor = incoming.nextCursor;
+				current.hasMore = incoming.hasMore;
+				current.total = incoming.total;
+			},
+			forceRefetch: ({ currentArg, previousArg }) => currentArg !== previousArg,
 			providesTags: (result) =>
 				result ?
 					[
-						...result.map(({ id }) => ({
+						...result.data.map(({ id }) => ({
 							type: 'Document' as const,
 							id,
 						})),

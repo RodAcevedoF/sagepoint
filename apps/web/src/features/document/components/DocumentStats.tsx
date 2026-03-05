@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { alpha, type SxProps, type Theme } from '@mui/material';
 import type { LucideIcon } from 'lucide-react';
 import type { DocumentDetailDto } from '@/infrastructure/api/documentApi';
+import { isDocumentProcessing } from '../utils';
 
 const MotionBox = motion.create(Box);
 
@@ -93,7 +94,7 @@ export function DocumentStats({ documents }: DocumentStatsProps) {
 	const total = documents.length;
 	const ready = documents.filter((d) => d.processingStage === 'READY').length;
 	const processing = documents.filter(
-		(d) => d.status !== 'COMPLETED' && d.status !== 'FAILED',
+		(d) => isDocumentProcessing(d.status),
 	).length;
 	const withQuizzes = documents.filter(
 		(d) => d.processingStage === 'READY' && d.conceptCount && d.conceptCount > 0,
