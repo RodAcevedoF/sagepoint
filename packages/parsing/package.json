@@ -1,25 +1,25 @@
 {
-  "name": "@sagepoint/parsing",
-  "version": "0.0.1",
-  "private": true,
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsc",
-    "lint": "eslint \"src/**/*.ts\"",
-    "typecheck": "tsc --noEmit"
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.39.2",
-    "@types/pdf-parse": "^1.1.5",
-    "eslint": "^9.39.2",
-    "globals": "^16.5.0",
-    "typescript": "^5.7.3",
-    "typescript-eslint": "^8.52.0"
-  },
-  "dependencies": {
-    "mammoth": "^1.11.0",
-    "pdf-parse": "^2.4.5",
-    "xlsx": "^0.18.5"
-  }
+	"name": "@sagepoint/parsing",
+	"version": "0.0.1",
+	"private": true,
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"scripts": {
+		"build": "tsc",
+		"lint": "eslint \"src/**/*.ts\"",
+		"typecheck": "tsc --noEmit"
+	},
+	"devDependencies": {
+		"@eslint/js": "^9.39.2",
+		"@types/pdf-parse": "^1.1.5",
+		"eslint": "^9.39.2",
+		"globals": "^16.5.0",
+		"typescript": "5.9.3",
+		"typescript-eslint": "^8.52.0"
+	},
+	"dependencies": {
+		"mammoth": "^1.11.0",
+		"pdf-parse": "^2.4.5",
+		"xlsx": "^0.18.5"
+	}
 }
