@@ -9,6 +9,8 @@ export interface ExtractedConcept {
   relationships: ConceptRelationship[];
 }
 
+export const CONTENT_ANALYSIS_SERVICE = Symbol('CONTENT_ANALYSIS_SERVICE');
+
 export interface IContentAnalysisService {
   extractConcepts(text: string): Promise<ExtractedConcept[]>;
 }

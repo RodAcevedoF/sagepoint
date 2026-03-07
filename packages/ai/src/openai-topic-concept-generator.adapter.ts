@@ -75,6 +75,7 @@ export class OpenAiTopicConceptGeneratorAdapter implements ITopicConceptGenerati
   async generateConceptsFromTopic(
     topic: string,
     userContext?: UserContext,
+    existingOntologyContext?: string,
   ): Promise<{
     concepts: ConceptForOrdering[];
     relationships: ConceptRelationshipForOrdering[];
@@ -114,6 +115,10 @@ User Context:
         userContext?.experienceLevel,
       );
 
+      const ontologyInfo = existingOntologyContext
+        ? `\n\nExisting Knowledge Graph Context (concepts already known in the system — reuse and build upon these where relevant, ensure consistency with existing terminology):\n${existingOntologyContext}`
+        : '';
+
       const result = await structuredModel.invoke([
         {
           role: 'system',
@@ -125,12 +130,13 @@ ${experienceGuidelines}
 - Use DEPENDS_ON when one concept requires understanding of another first.
 - Use NEXT_STEP for natural progression between concepts.
 - Use RELATED_TO for concepts that are related but don't have a strict dependency.
-- Consider the user's context if provided to tailor the concepts appropriately.`,
+- Consider the user's context if provided to tailor the concepts appropriately.
+- If existing ontology context is provided, leverage it to create more precise and consistent concepts. Reuse concept names where they match, and add RELATED_TO relationships to relevant existing concepts.`,
         },
         {
           role: 'user',
           content: `Identify key concepts and their relationships for learning about: "${topic}"
-${userContextInfo}
+${userContextInfo}${ontologyInfo}
 
 Return a structured list of concepts with their relationships.`,
         },

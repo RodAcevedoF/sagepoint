@@ -1,6 +1,16 @@
 import { type Theme, alpha } from '@mui/material';
 
-export const makeStyles = (theme: Theme) => ({
+import type { CSSProperties } from 'react';
+
+interface Styles {
+	emptyStateContainer: Record<string, unknown>;
+	emptyStateTitle: Record<string, unknown>;
+	emptyStateSubtitle: Record<string, unknown>;
+	floatingIcon: CSSProperties;
+	generatingSection: Record<string, unknown>;
+}
+
+export const makeStyles = (theme: Theme): Styles => ({
 	emptyStateContainer: {
 		position: 'relative',
 		py: 8,
@@ -25,5 +35,9 @@ export const makeStyles = (theme: Theme) => ({
 	},
 	floatingIcon: {
 		position: 'absolute',
+		color: theme.palette.primary.light,
+	},
+	generatingSection: {
+		mb: 3,
 	},
 });

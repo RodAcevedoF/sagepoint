@@ -6,13 +6,18 @@ import { DocumentProcessorService } from './document-processor/document-processo
 import { RoadmapProcessorService } from './roadmap-processor/roadmap-processor.service';
 
 import { ConfigModule } from '@nestjs/config';
-import { Neo4jModule } from '@sagepoint/graph';
-import { AiModule, PerplexityResearchAdapter } from '@sagepoint/ai';
+import { Neo4jModule, Neo4jService, Neo4jConceptRepository } from '@sagepoint/graph';
+import { AiModule } from '@sagepoint/ai';
 
 import { GCSStorage } from '@sagepoint/storage';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
-import type { ICacheService } from '@sagepoint/domain';
+import {
+  CONCEPT_REPOSITORY,
+  FILE_STORAGE,
+  RESOURCE_DISCOVERY_SERVICE,
+} from '@sagepoint/domain';
+import type { ICacheService, IResourceDiscoveryService } from '@sagepoint/domain';
 import { CachedResourceDiscoveryAdapter } from './infra/cached-resource-discovery.adapter';
 
 function createRedisCacheService(keyPrefix: string): ICacheService {
@@ -77,9 +82,8 @@ const isDev = process.env.NODE_ENV !== 'production';
     DocumentProcessorService,
     RoadmapProcessorService,
     {
-      provide: 'FILE_STORAGE',
+      provide: FILE_STORAGE,
       useFactory: (configService: ConfigService) => {
-        // TODO: Consider adding local/supabase fallbacks if needed for dev
         return new GCSStorage({
           projectId: configService.getOrThrow<string>('GCP_PROJECT_ID'),
           bucketName: configService.getOrThrow<string>('GCS_BUCKET_NAME'),
@@ -94,13 +98,19 @@ const isDev = process.env.NODE_ENV !== 'production';
     },
     {
       provide: 'INNER_RESOURCE_DISCOVERY',
-      useExisting: PerplexityResearchAdapter,
+      useExisting: RESOURCE_DISCOVERY_SERVICE,
     },
     {
       provide: CachedResourceDiscoveryAdapter,
-      useFactory: (inner: PerplexityResearchAdapter, cache: ICacheService) =>
+      useFactory: (inner: IResourceDiscoveryService, cache: ICacheService) =>
         new CachedResourceDiscoveryAdapter(inner, cache),
       inject: ['INNER_RESOURCE_DISCOVERY', 'WORKER_CACHE'],
+    },
+    {
+      provide: CONCEPT_REPOSITORY,
+      useFactory: (neo4jService: Neo4jService) =>
+        new Neo4jConceptRepository(neo4jService),
+      inject: [Neo4jService],
     },
   ],
 })

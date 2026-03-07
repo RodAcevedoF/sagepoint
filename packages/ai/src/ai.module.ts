@@ -1,5 +1,14 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import {
+  CONTENT_ANALYSIS_SERVICE,
+  DOCUMENT_ANALYSIS_SERVICE,
+  QUIZ_GENERATION_SERVICE,
+  IMAGE_TEXT_EXTRACTION_SERVICE,
+  ROADMAP_GENERATION_SERVICE,
+  TOPIC_CONCEPT_GENERATION_SERVICE,
+  RESOURCE_DISCOVERY_SERVICE,
+} from '@sagepoint/domain';
 import { OpenAiContentAnalysisAdapter } from './openai-content-analysis.adapter';
 import { OpenAiRoadmapGeneratorAdapter } from './openai-roadmap-generator.adapter';
 import { OpenAiTopicConceptGeneratorAdapter } from './openai-topic-concept-generator.adapter';
@@ -12,7 +21,7 @@ import { OpenAiQuizGenerationAdapter } from './openai-quiz-generation.adapter';
   imports: [ConfigModule],
   providers: [
     {
-      provide: OpenAiContentAnalysisAdapter,
+      provide: CONTENT_ANALYSIS_SERVICE,
       useFactory: (config: ConfigService) =>
         new OpenAiContentAnalysisAdapter({
           apiKey: config.get('OPENAI_API_KEY') ?? '',
@@ -21,7 +30,7 @@ import { OpenAiQuizGenerationAdapter } from './openai-quiz-generation.adapter';
       inject: [ConfigService],
     },
     {
-      provide: OpenAiRoadmapGeneratorAdapter,
+      provide: ROADMAP_GENERATION_SERVICE,
       useFactory: (config: ConfigService) =>
         new OpenAiRoadmapGeneratorAdapter({
           apiKey: config.get('OPENAI_API_KEY') ?? '',
@@ -30,7 +39,7 @@ import { OpenAiQuizGenerationAdapter } from './openai-quiz-generation.adapter';
       inject: [ConfigService],
     },
     {
-      provide: OpenAiTopicConceptGeneratorAdapter,
+      provide: TOPIC_CONCEPT_GENERATION_SERVICE,
       useFactory: (config: ConfigService) =>
         new OpenAiTopicConceptGeneratorAdapter({
           apiKey: config.get('OPENAI_API_KEY') ?? '',
@@ -38,9 +47,12 @@ import { OpenAiQuizGenerationAdapter } from './openai-quiz-generation.adapter';
         }),
       inject: [ConfigService],
     },
-    PerplexityResearchAdapter,
     {
-      provide: OpenAiVisionTextExtractorAdapter,
+      provide: RESOURCE_DISCOVERY_SERVICE,
+      useClass: PerplexityResearchAdapter,
+    },
+    {
+      provide: IMAGE_TEXT_EXTRACTION_SERVICE,
       useFactory: (config: ConfigService) =>
         new OpenAiVisionTextExtractorAdapter({
           apiKey: config.get('OPENAI_API_KEY') ?? '',
@@ -49,7 +61,7 @@ import { OpenAiQuizGenerationAdapter } from './openai-quiz-generation.adapter';
       inject: [ConfigService],
     },
     {
-      provide: OpenAiDocumentAnalysisAdapter,
+      provide: DOCUMENT_ANALYSIS_SERVICE,
       useFactory: (config: ConfigService) =>
         new OpenAiDocumentAnalysisAdapter({
           apiKey: config.get('OPENAI_API_KEY') ?? '',
@@ -58,7 +70,7 @@ import { OpenAiQuizGenerationAdapter } from './openai-quiz-generation.adapter';
       inject: [ConfigService],
     },
     {
-      provide: OpenAiQuizGenerationAdapter,
+      provide: QUIZ_GENERATION_SERVICE,
       useFactory: (config: ConfigService) =>
         new OpenAiQuizGenerationAdapter({
           apiKey: config.get('OPENAI_API_KEY') ?? '',
@@ -68,13 +80,13 @@ import { OpenAiQuizGenerationAdapter } from './openai-quiz-generation.adapter';
     },
   ],
   exports: [
-    OpenAiContentAnalysisAdapter,
-    OpenAiRoadmapGeneratorAdapter,
-    OpenAiTopicConceptGeneratorAdapter,
-    PerplexityResearchAdapter,
-    OpenAiVisionTextExtractorAdapter,
-    OpenAiDocumentAnalysisAdapter,
-    OpenAiQuizGenerationAdapter,
+    CONTENT_ANALYSIS_SERVICE,
+    ROADMAP_GENERATION_SERVICE,
+    TOPIC_CONCEPT_GENERATION_SERVICE,
+    RESOURCE_DISCOVERY_SERVICE,
+    IMAGE_TEXT_EXTRACTION_SERVICE,
+    DOCUMENT_ANALYSIS_SERVICE,
+    QUIZ_GENERATION_SERVICE,
   ],
 })
 export class AiModule {}

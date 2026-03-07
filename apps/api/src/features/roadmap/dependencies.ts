@@ -24,8 +24,7 @@ import { GenerateStepQuizUseCase } from '@/features/roadmap/app/usecases/generat
 import { SubmitStepQuizUseCase } from '@/features/roadmap/app/usecases/submit-step-quiz.usecase';
 import { PrismaStepQuizAttemptRepository } from './infra/driven/prisma-step-quiz-attempt.repository';
 
-import { Neo4jService } from '@sagepoint/graph';
-import { Neo4jConceptRepository } from './infra/driven/neo4j-concept.repository';
+import { Neo4jService, Neo4jConceptRepository } from '@sagepoint/graph';
 import { GetGraphUseCase } from './app/usecases/get-graph.usecase';
 import { createAiAdapters } from '@sagepoint/ai';
 import { PrismaService } from '@/core/infra/database/prisma.service';
