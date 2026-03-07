@@ -135,6 +135,7 @@ export class AdminService {
           title: true,
           generationStatus: true,
           isFeatured: true,
+          visibility: true,
           createdAt: true,
           user: { select: { id: true, name: true, email: true } },
           category: { select: { id: true, name: true } },

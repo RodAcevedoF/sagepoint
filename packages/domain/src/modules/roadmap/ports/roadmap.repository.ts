@@ -1,4 +1,5 @@
 import type { Roadmap } from '../entities/roadmap.entity';
+import { type RoadmapVisibility } from '../entities/roadmap.entity';
 import type { Concept } from '../entities/concept.entity';
 
 export const ROADMAP_REPOSITORY = Symbol('ROADMAP_REPOSITORY');
@@ -8,6 +9,8 @@ export interface IRoadmapRepository {
   findById(id: string): Promise<Roadmap | null>;
   findByDocumentId(documentId: string): Promise<Roadmap[]>;
   findByUserId(userId: string): Promise<Roadmap[]>;
+  findPublic(): Promise<Roadmap[]>;
+  updateVisibility(id: string, visibility: RoadmapVisibility): Promise<Roadmap>;
   delete(id: string): Promise<void>;
 
   saveConcept(concept: Concept): Promise<Concept>;

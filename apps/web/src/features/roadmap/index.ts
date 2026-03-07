@@ -8,3 +8,4 @@ export { RoadmapStats } from './components/RoadmapStats';
 export { TimelineStep } from './components/TimelineStep/TimelineStep';
 export { GenerationStage } from './components/GenerationStage';
 export { GenerationView } from './components/GenerationView';
+export { ExploreRoadmaps } from './components/ExploreRoadmaps';

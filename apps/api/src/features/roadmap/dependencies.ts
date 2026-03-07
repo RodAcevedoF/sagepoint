@@ -22,6 +22,8 @@ import { ExpandConceptUseCase } from '@/features/roadmap/app/usecases/expand-con
 import { SuggestRelatedTopicsUseCase } from '@/features/roadmap/app/usecases/suggest-related-topics.usecase';
 import { GenerateStepQuizUseCase } from '@/features/roadmap/app/usecases/generate-step-quiz.usecase';
 import { SubmitStepQuizUseCase } from '@/features/roadmap/app/usecases/submit-step-quiz.usecase';
+import { UpdateVisibilityUseCase } from '@/features/roadmap/app/usecases/update-visibility.usecase';
+import { GetPublicRoadmapsUseCase } from '@/features/roadmap/app/usecases/get-public-roadmaps.usecase';
 import { PrismaStepQuizAttemptRepository } from './infra/driven/prisma-step-quiz-attempt.repository';
 
 import { Neo4jService, Neo4jConceptRepository } from '@sagepoint/graph';
@@ -149,6 +151,14 @@ export function makeRoadmapDependencies(
     conceptRepository,
   );
 
+  // Visibility
+  const updateVisibilityUseCase = new UpdateVisibilityUseCase(
+    roadmapRepository,
+  );
+  const getPublicRoadmapsUseCase = new GetPublicRoadmapsUseCase(
+    roadmapRepository,
+  );
+
   const roadmapService = new RoadmapService(
     generateRoadmapUseCase,
     generateTopicRoadmapUseCase,
@@ -164,6 +174,8 @@ export function makeRoadmapDependencies(
     suggestRelatedTopicsUseCase,
     generateStepQuizUseCase,
     submitStepQuizUseCase,
+    updateVisibilityUseCase,
+    getPublicRoadmapsUseCase,
   );
 
   return {

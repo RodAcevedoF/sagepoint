@@ -1,5 +1,10 @@
 import { Concept } from './concept.entity';
 
+export enum RoadmapVisibility {
+  PRIVATE = 'private',
+  PUBLIC = 'public',
+}
+
 export interface RoadmapStep {
   concept: Concept;
   order: number;
@@ -25,6 +30,7 @@ export interface RoadmapProps {
   recommendedPace?: string;
   errorMessage?: string;
   isFeatured?: boolean;
+  visibility?: RoadmapVisibility;
   createdAt: Date;
 }
 
@@ -41,6 +47,7 @@ export class Roadmap {
   readonly recommendedPace?: string;
   readonly errorMessage?: string;
   readonly isFeatured: boolean;
+  readonly visibility: RoadmapVisibility;
   readonly createdAt: Date;
 
   constructor(props: RoadmapProps) {
@@ -56,6 +63,7 @@ export class Roadmap {
     this.recommendedPace = props.recommendedPace;
     this.errorMessage = props.errorMessage;
     this.isFeatured = props.isFeatured ?? false;
+    this.visibility = props.visibility ?? RoadmapVisibility.PRIVATE;
     this.createdAt = props.createdAt;
   }
 

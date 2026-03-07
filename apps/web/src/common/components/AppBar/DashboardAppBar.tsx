@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Map, FileText, User, Shield } from 'lucide-react';
+import { Home, Map, Compass, FileText, User, Shield } from 'lucide-react';
 import { useAppSelector } from '@/common/hooks';
 import { AppBar } from './AppBar';
 
@@ -15,6 +15,7 @@ export function DashboardAppBar() {
 	const getActiveItem = () => {
 		if (pathname === '/dashboard') return 'home';
 		if (pathname.startsWith('/roadmaps')) return 'roadmaps';
+		if (pathname.startsWith('/explore')) return 'explore';
 		if (pathname.startsWith('/documents')) return 'documents';
 		if (pathname.startsWith('/admin')) return 'admin';
 		if (pathname.startsWith('/profile')) return 'profile';
@@ -37,6 +38,13 @@ export function DashboardAppBar() {
 					label='Roadmaps'
 					onClick={() => router.push('/roadmaps')}
 					color='warning'
+				/>
+				<AppBar.Item
+					id='explore'
+					icon={Compass}
+					label='Explore'
+					onClick={() => router.push('/explore')}
+					color='secondary'
 				/>
 			</AppBar.Group>
 

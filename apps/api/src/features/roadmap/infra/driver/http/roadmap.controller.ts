@@ -15,7 +15,11 @@ import { Observable } from 'rxjs';
 import { QueueEvents } from 'bullmq';
 import { JwtAuthGuard } from '@/features/auth/infra/guards/jwt-auth.guard';
 import { CurrentUser } from '@/features/auth/decorators/current-user.decorator';
-import type { RequestUser, UserContext } from '@sagepoint/domain';
+import type {
+  RequestUser,
+  UserContext,
+  RoadmapVisibility,
+} from '@sagepoint/domain';
 import { StepStatus } from '@sagepoint/domain';
 import {
   ROADMAP_SERVICE,
@@ -36,6 +40,10 @@ interface GenerateTopicRoadmapDto {
 
 interface UpdateStepProgressDto {
   status: StepStatus;
+}
+
+interface UpdateVisibilityDto {
+  visibility: RoadmapVisibility;
 }
 
 interface RefreshResourcesDto {
@@ -201,6 +209,11 @@ export class RoadmapController {
     });
   }
 
+  @Get('public')
+  async getPublicRoadmaps() {
+    return this.roadmapService.getPublicRoadmaps();
+  }
+
   @Get('user/me')
   @UseGuards(JwtAuthGuard)
   async getUserRoadmaps(@CurrentUser() user: RequestUser) {
@@ -307,6 +320,16 @@ export class RoadmapController {
   @Get(':id/suggestions')
   async getSuggestions(@Param('id') id: string) {
     return this.roadmapService.getSuggestions(id);
+  }
+
+  @Patch(':id/visibility')
+  @UseGuards(JwtAuthGuard)
+  async updateVisibility(
+    @Param('id') id: string,
+    @Body() dto: UpdateVisibilityDto,
+    @CurrentUser() user: RequestUser,
+  ) {
+    return this.roadmapService.updateVisibility(id, user.id, dto.visibility);
   }
 
   @Delete(':id')

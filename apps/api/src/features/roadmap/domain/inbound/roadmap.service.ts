@@ -4,6 +4,7 @@ import {
   StepStatus,
   Resource,
   UserContext,
+  RoadmapVisibility,
 } from '@sagepoint/domain';
 import { UserRoadmapWithProgress } from '@/features/roadmap/app/usecases/get-user-roadmaps.usecase';
 import { UpdateStepProgressResult } from '@/features/roadmap/app/usecases/update-step-progress.usecase';
@@ -89,6 +90,14 @@ export interface IRoadmapService {
   // Concept expansion & suggestions
   expandConcept(input: ExpandConceptInput): Promise<Roadmap>;
   getSuggestions(roadmapId: string): Promise<SuggestedTopic[]>;
+
+  // Visibility
+  updateVisibility(
+    id: string,
+    userId: string,
+    visibility: RoadmapVisibility,
+  ): Promise<Roadmap>;
+  getPublicRoadmaps(): Promise<Roadmap[]>;
 
   // Step quiz
   generateStepQuiz(

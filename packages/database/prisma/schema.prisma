@@ -51,6 +51,11 @@ enum ProcessingStage {
   READY
 }
 
+enum RoadmapVisibility {
+  PRIVATE
+  PUBLIC
+}
+
 enum QuestionType {
   MULTIPLE_CHOICE
   TRUE_FALSE
@@ -247,6 +252,7 @@ model Roadmap {
   recommendedPace    String?  // e.g., "2-3 concepts per week"
   errorMessage       String?
   isFeatured         Boolean @default(false)
+  visibility         RoadmapVisibility @default(PRIVATE)
 
   resources         Resource[]
   progress          UserRoadmapProgress[]
@@ -260,6 +266,7 @@ model Roadmap {
   @@index([categoryId])
   @@index([generationStatus])
   @@index([isFeatured])
+  @@index([visibility])
   @@map("roadmaps")
 }
 

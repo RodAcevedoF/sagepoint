@@ -34,7 +34,10 @@ import {
   Concept,
   Resource,
   IResourceRepository,
+  RoadmapVisibility,
 } from '@sagepoint/domain';
+import { UpdateVisibilityUseCase } from '@/features/roadmap/app/usecases/update-visibility.usecase';
+import { GetPublicRoadmapsUseCase } from '@/features/roadmap/app/usecases/get-public-roadmaps.usecase';
 import {
   GenerateRoadmapInput,
   GenerateTopicRoadmapInput,
@@ -62,6 +65,8 @@ export class RoadmapService implements IRoadmapService {
     private readonly suggestRelatedTopicsUseCase?: SuggestRelatedTopicsUseCase,
     private readonly generateStepQuizUseCase?: GenerateStepQuizUseCase,
     private readonly submitStepQuizUseCase?: SubmitStepQuizUseCase,
+    private readonly updateVisibilityUseCase?: UpdateVisibilityUseCase,
+    private readonly getPublicRoadmapsUseCase?: GetPublicRoadmapsUseCase,
   ) {}
 
   async getGraph(documentId: string): Promise<{
@@ -161,5 +166,24 @@ export class RoadmapService implements IRoadmapService {
       throw new Error('Step quiz submission is not available');
     }
     return await this.submitStepQuizUseCase.execute(input);
+  }
+
+  // Visibility
+  async updateVisibility(
+    id: string,
+    userId: string,
+    visibility: RoadmapVisibility,
+  ): Promise<Roadmap> {
+    if (!this.updateVisibilityUseCase) {
+      throw new Error('Visibility update is not available');
+    }
+    return await this.updateVisibilityUseCase.execute(id, userId, visibility);
+  }
+
+  async getPublicRoadmaps(): Promise<Roadmap[]> {
+    if (!this.getPublicRoadmapsUseCase) {
+      throw new Error('Public roadmaps is not available');
+    }
+    return await this.getPublicRoadmapsUseCase.execute();
   }
 }

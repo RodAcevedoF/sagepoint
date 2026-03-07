@@ -6,9 +6,13 @@ import {
 	Chip,
 	alpha,
 	CircularProgress,
+	IconButton,
+	Tooltip,
 	useTheme,
 } from '@mui/material';
-import { Clock, BookOpen, ArrowRight } from 'lucide-react';
+import { Clock, BookOpen, ArrowRight, Globe, Lock } from 'lucide-react';
+import { RoadmapVisibility } from '@sagepoint/domain';
+import { useUpdateVisibilityCommand } from '@/application/roadmap';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/common/components';
 import { makeStyles } from './RoadmapCard.styles';
@@ -32,6 +36,16 @@ export function RoadmapCard({ data }: RoadmapCardProps) {
 	const { roadmap, progress } = data;
 	const status = getStatus(progress);
 	const difficultyDist = getDifficultyDistribution(roadmap.steps);
+	const { execute: updateVisibility } = useUpdateVisibilityCommand();
+	const isPublic = roadmap.visibility === RoadmapVisibility.PUBLIC;
+
+	const handleToggleVisibility = (e: React.MouseEvent) => {
+		e.stopPropagation();
+		updateVisibility(
+			roadmap.id,
+			isPublic ? RoadmapVisibility.PRIVATE : RoadmapVisibility.PUBLIC,
+		);
+	};
 
 	const styles = makeStyles(status.color, theme);
 
@@ -131,6 +145,15 @@ export function RoadmapCard({ data }: RoadmapCardProps) {
 			<Card.Footer>
 				<Box sx={styles.footerContent}>
 					<Box sx={styles.footerInfo}>
+						<Tooltip title={isPublic ? 'Public — click to make private' : 'Private — click to share publicly'}>
+							<IconButton size='small' onClick={handleToggleVisibility} sx={{ p: 0.5 }}>
+								{isPublic ? (
+									<Globe size={16} color={theme.palette.success.main} />
+								) : (
+									<Lock size={16} color={theme.palette.text.secondary} />
+								)}
+							</IconButton>
+						</Tooltip>
 						{roadmap.recommendedPace && (
 							<Chip
 								size='small'

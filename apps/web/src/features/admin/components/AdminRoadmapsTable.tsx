@@ -22,7 +22,8 @@ import {
 import { Card, Loader, ErrorState } from '@/common/components';
 import { palette } from '@/common/theme';
 import { motion } from 'framer-motion';
-import { Map, Trash2, Star } from 'lucide-react';
+import { Map, Trash2, Star, Globe, Lock } from 'lucide-react';
+import { RoadmapVisibility } from '@sagepoint/domain';
 import {
 	useAdminRoadmapsQuery,
 	useDeleteAdminRoadmapMutation,
@@ -136,7 +137,7 @@ export function AdminRoadmapsTable() {
 							<Table>
 								<TableHead>
 									<TableRow>
-										{['Title', 'User', 'Category', 'Status', 'Featured', 'Created', 'Actions'].map(
+										{['Title', 'User', 'Category', 'Status', 'Visibility', 'Featured', 'Created', 'Actions'].map(
 											(header) => (
 												<TableCell key={header} sx={adminTableStyles.headerCell}>
 													{header}
@@ -173,6 +174,23 @@ export function AdminRoadmapsTable() {
 												<StatusChip
 													label={roadmap.generationStatus}
 													colorMap={statusColors}
+												/>
+											</TableCell>
+											<TableCell>
+												<Chip
+													size='small'
+													icon={roadmap.visibility.toLowerCase() === RoadmapVisibility.PUBLIC ? <Globe size={14} /> : <Lock size={14} />}
+													label={roadmap.visibility.toLowerCase() === RoadmapVisibility.PUBLIC ? 'Public' : 'Private'}
+													sx={{
+														fontWeight: 600,
+														fontSize: '0.8rem',
+														bgcolor: alpha(
+															roadmap.visibility.toLowerCase() === RoadmapVisibility.PUBLIC ? palette.success.main : palette.text.secondary,
+															0.1,
+														),
+														color: roadmap.visibility.toLowerCase() === RoadmapVisibility.PUBLIC ? palette.success.main : palette.text.secondary,
+														border: 'none',
+													}}
 												/>
 											</TableCell>
 											<TableCell>

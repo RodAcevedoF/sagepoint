@@ -53,6 +53,7 @@ export interface AdminRoadmapDto {
 	title: string;
 	generationStatus: string;
 	isFeatured: boolean;
+	visibility: string;
 	createdAt: string;
 	user: { id: string; name: string; email: string };
 	category: { id: string; name: string } | null;

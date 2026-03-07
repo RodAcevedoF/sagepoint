@@ -4,10 +4,12 @@ import {
   IRoadmapRepository,
   RoadmapStep,
   RoadmapGenerationStatus,
+  RoadmapVisibility,
 } from '@sagepoint/domain';
 import type {
   Roadmap as PrismaRoadmap,
   RoadmapGenerationStatus as PrismaGenStatus,
+  RoadmapVisibility as PrismaVisibility,
 } from '@sagepoint/database';
 import { PrismaService } from '@/core/infra/database/prisma.service';
 
@@ -45,6 +47,7 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
         recommendedPace: roadmap.recommendedPace,
         errorMessage: roadmap.errorMessage ?? null,
         isFeatured: roadmap.isFeatured,
+        visibility: this.mapVisibilityToPrisma(roadmap.visibility),
         createdAt: roadmap.createdAt,
       },
       update: {
@@ -79,6 +82,25 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
       orderBy: { createdAt: 'desc' },
     });
     return data.map((r) => this.mapToDomain(r));
+  }
+
+  async findPublic(): Promise<Roadmap[]> {
+    const data = await this.prisma.roadmap.findMany({
+      where: { visibility: 'PUBLIC', generationStatus: 'COMPLETED' },
+      orderBy: { createdAt: 'desc' },
+    });
+    return data.map((r) => this.mapToDomain(r));
+  }
+
+  async updateVisibility(
+    id: string,
+    visibility: RoadmapVisibility,
+  ): Promise<Roadmap> {
+    const data = await this.prisma.roadmap.update({
+      where: { id },
+      data: { visibility: this.mapVisibilityToPrisma(visibility) },
+    });
+    return this.mapToDomain(data);
   }
 
   async delete(id: string): Promise<void> {
@@ -142,6 +164,26 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
     return status.toLowerCase() as RoadmapGenerationStatus;
   }
 
+  private mapVisibilityToPrisma(
+    visibility: RoadmapVisibility,
+  ): PrismaVisibility {
+    const map: Record<RoadmapVisibility, PrismaVisibility> = {
+      [RoadmapVisibility.PRIVATE]: 'PRIVATE',
+      [RoadmapVisibility.PUBLIC]: 'PUBLIC',
+    };
+    return map[visibility];
+  }
+
+  private mapVisibilityToDomain(
+    visibility: PrismaVisibility,
+  ): RoadmapVisibility {
+    const map: Record<PrismaVisibility, RoadmapVisibility> = {
+      PRIVATE: RoadmapVisibility.PRIVATE,
+      PUBLIC: RoadmapVisibility.PUBLIC,
+    };
+    return map[visibility];
+  }
+
   private mapToDomain(data: PrismaRoadmap): Roadmap {
     return new Roadmap({
       id: data.id,
@@ -156,6 +198,7 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
       recommendedPace: data.recommendedPace || undefined,
       errorMessage: data.errorMessage || undefined,
       isFeatured: data.isFeatured,
+      visibility: this.mapVisibilityToDomain(data.visibility),
       createdAt: data.createdAt,
     });
   }

@@ -9,4 +9,4 @@ coverage
 gcp-key*.json
 pnpm-debug.log*
 /tfg-docs
-/docs
+/t-docs

@@ -1,6 +1,7 @@
 import type {
 	RoadmapStep,
 	RoadmapGenerationStatus,
+	RoadmapVisibility,
 	StepStatus,
 	ResourceType,
 	RoadmapProgressSummary,
@@ -38,6 +39,7 @@ export interface RoadmapDto {
 	totalEstimatedDuration?: number;
 	recommendedPace?: string;
 	errorMessage?: string;
+	visibility: RoadmapVisibility;
 	createdAt: string;
 }
 
@@ -130,6 +132,29 @@ export const roadmapApi = baseApi.injectEndpoints({
 		getGraph: builder.query<GraphDataDto, string>({
 			query: (documentId) => `/roadmaps/graph/${documentId}`,
 			providesTags: ['Graph'],
+		}),
+
+		// Public roadmaps
+		getPublicRoadmaps: builder.query<RoadmapDto[], void>({
+			query: () => '/roadmaps/public',
+			providesTags: [{ type: 'Roadmap', id: 'PUBLIC' }],
+		}),
+
+		// Visibility
+		updateVisibility: builder.mutation<
+			RoadmapDto,
+			{ roadmapId: string; visibility: RoadmapVisibility }
+		>({
+			query: ({ roadmapId, visibility }) => ({
+				url: `/roadmaps/${roadmapId}/visibility`,
+				method: 'PATCH',
+				body: { visibility },
+			}),
+			invalidatesTags: (_result, _error, { roadmapId }) => [
+				{ type: 'Roadmap', id: roadmapId },
+				{ type: 'Roadmap', id: 'LIST' },
+				{ type: 'Roadmap', id: 'PUBLIC' },
+			],
 		}),
 
 		// Roadmap endpoints
@@ -244,6 +269,9 @@ export const roadmapApi = baseApi.injectEndpoints({
 
 export const {
 	useLazyGetGraphQuery,
+	// Public & Visibility
+	useGetPublicRoadmapsQuery,
+	useUpdateVisibilityMutation,
 	// Roadmap
 	useGetUserRoadmapsQuery,
 	useGetRoadmapByIdQuery,
