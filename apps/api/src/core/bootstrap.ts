@@ -16,7 +16,7 @@ import {
   type StorageDependencies,
 } from '@/features/storage/dependencies';
 import { GCSStorage } from '@sagepoint/storage';
-import { TheNewsApiAdapter } from '@sagepoint/ai';
+import { NewsdataApiAdapter } from '@sagepoint/ai';
 import type { IFileStorage, INewsService } from '@sagepoint/domain';
 import Redis from 'ioredis';
 import { RedisCacheService } from '@/core/infra/cache/redis-cache.service';
@@ -63,9 +63,8 @@ export function bootstrap(): AppDependencies {
   });
   const cacheService = new RedisCacheService(cacheRedis);
 
-  const newsService: INewsService = new TheNewsApiAdapter({
-    apiKey: process.env.THE_NEWS_API_KEY ?? '',
-    baseUrl: process.env.THE_NEWS_API_URL,
+  const newsService: INewsService = new NewsdataApiAdapter({
+    apiKey: process.env.NEWSDATAIO_API_KEY ?? '',
   });
 
   dependencies = {

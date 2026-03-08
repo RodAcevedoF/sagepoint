@@ -20,7 +20,7 @@ import { DashboardActivity } from './DashboardActivity';
 import { DashboardRecentDocuments } from './DashboardRecentDocuments';
 import { DashboardTopics } from './DashboardTopics';
 import { DashboardQuickActions } from './DashboardQuickActions';
-import { DashboardNews } from './DashboardNews';
+import { DashboardNews } from './DahsboardNews';
 
 import {
 	computeMetrics,

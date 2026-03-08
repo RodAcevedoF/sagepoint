@@ -5,7 +5,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { DocumentProcessorService } from './document-processor/document-processor.service';
 import { RoadmapProcessorService } from './roadmap-processor/roadmap-processor.service';
 import { InsightsRefreshService } from './insights-refresh/insights-refresh.service';
-import { TheNewsApiAdapter } from '@sagepoint/ai';
+import { NewsdataApiAdapter } from '@sagepoint/ai';
 
 import { ConfigModule } from '@nestjs/config';
 import { Neo4jModule, Neo4jService, Neo4jConceptRepository } from '@sagepoint/graph';
@@ -117,9 +117,8 @@ const isDev = process.env.NODE_ENV !== 'production';
     {
       provide: NEWS_SERVICE,
       useFactory: (configService: ConfigService): INewsService =>
-        new TheNewsApiAdapter({
-          apiKey: configService.get<string>('THE_NEWS_API_KEY') ?? '',
-          baseUrl: configService.get<string>('THE_NEWS_API_URL'),
+        new NewsdataApiAdapter({
+          apiKey: configService.get<string>('NEWSDATAIO_API_KEY') ?? '',
         }),
       inject: [ConfigService],
     },

@@ -11,3 +11,4 @@ gcp-key*.json
 pnpm-debug.log*
 /tfg-docs
 /t-docs
+packages/ai/example.json
