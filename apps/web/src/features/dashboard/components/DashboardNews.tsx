@@ -1,36 +1,30 @@
 'use client';
 
-import { Box, Typography, Stack, alpha } from '@mui/material';
-import { Newspaper, ArrowRight, Lightbulb, BookOpen } from 'lucide-react';
-import { Card } from '@/common/components';
+import { Box, Typography, Stack, Skeleton, alpha } from '@mui/material';
+import { Newspaper, ArrowRight, ExternalLink } from 'lucide-react';
+import { Card, EmptyState } from '@/common/components';
 import { palette } from '@/common/theme';
+import { useInsightsQuery } from '@/application/insights/queries/get-insights.query';
 
-// ============================================================================
-// Constants & Types
-// ============================================================================
+const CATEGORY_COLORS: Record<string, string> = {
+	'web-development': palette.info.main,
+	'mobile-development': palette.success.main,
+	'machine-learning': palette.warning.main,
+	'data-science': palette.secondary.main,
+	devops: palette.error.main,
+	cybersecurity: palette.error.dark,
+	'cloud-computing': palette.info.dark,
+	databases: palette.success.dark,
+	'programming-languages': palette.warning.dark,
+	'system-design': palette.primary.main,
+};
 
-const NEWS_ITEMS = [
-	{
-		id: 1,
-		title: 'Mastering the Pomodoro Technique for Complex Study',
-		category: 'Productivity',
-		icon: Lightbulb,
-		color: palette.warning.main,
-		readTime: '5 min read',
-		description:
-			'Boost your focus by breaking down complex theoretical topics into smaller chunks.',
-	},
-	{
-		id: 2,
-		title: 'Leveraging AI for Your Learning Journey',
-		category: 'Technology',
-		icon: BookOpen,
-		color: palette.info.main,
-		readTime: '8 min read',
-		description:
-			'Discover how to use LLMs to explain concepts in different difficulty levels.',
-	},
-];
+function formatSlug(slug: string): string {
+	return slug
+		.split('-')
+		.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+		.join(' ');
+}
 
 const styles = {
 	card: {
@@ -99,7 +93,37 @@ const styles = {
 // Component
 // ============================================================================
 
+function NewsSkeleton() {
+	return (
+		<Stack direction={{ xs: 'column', sm: 'row' }} spacing={2.5} sx={{ flex: 1 }}>
+			{[0, 1].map((i) => (
+				<Box
+					key={i}
+					sx={{
+						p: 2.5,
+						borderRadius: 3,
+						bgcolor: alpha(palette.text.primary, 0.02),
+						border: `1px solid ${alpha(palette.text.primary, 0.05)}`,
+						flex: 1,
+						display: 'flex',
+						flexDirection: 'column',
+						gap: 1.5,
+					}}>
+					<Skeleton variant='rounded' width={44} height={44} sx={{ borderRadius: 2 }} animation='wave' />
+					<Skeleton variant='text' width='40%' height={16} animation='wave' />
+					<Skeleton variant='text' width='90%' height={20} animation='wave' />
+					<Skeleton variant='text' width='100%' height={16} animation='wave' />
+					<Skeleton variant='text' width='70%' height={16} animation='wave' />
+				</Box>
+			))}
+		</Stack>
+	);
+}
+
 export function DashboardNews() {
+	const { data: articles, isLoading } = useInsightsQuery();
+	const displayItems = (articles ?? []).slice(0, 4);
+
 	return (
 		<Card sx={styles.card} variant='glass'>
 			<Box sx={styles.header}>
@@ -131,84 +155,106 @@ export function DashboardNews() {
 				</Typography>
 			</Box>
 
-			<Stack
-				direction={{ xs: 'column', sm: 'row' }}
-				spacing={2.5}
-				sx={{ flex: 1 }}>
-				{NEWS_ITEMS.map((item) => (
-					<Box key={item.id} sx={styles.newsItem(item.color)}>
-						<Stack
-							direction='row'
-							justifyContent='space-between'
-							alignItems='flex-start'>
-							<Box sx={styles.iconBox(item.color)}>
-								<item.icon size={22} />
-							</Box>
+			{isLoading ? (
+				<NewsSkeleton />
+			) : displayItems.length === 0 ? (
+				<EmptyState
+					title='No insights yet'
+					description='Complete onboarding or create roadmaps to get personalized news.'
+				/>
+			) : (
+				<Stack
+					direction={{ xs: 'column', sm: 'row' }}
+					spacing={2.5}
+					sx={{ flex: 1, flexWrap: 'wrap' }}>
+					{displayItems.map((item) => {
+						const color = CATEGORY_COLORS[item.categorySlug] ?? palette.info.main;
+						return (
 							<Box
+								key={item.url}
+								component='a'
+								href={item.url}
+								target='_blank'
+								rel='noopener noreferrer'
 								sx={{
-									px: 1,
-									py: 0.4,
-									borderRadius: 1,
-									bgcolor: alpha(palette.text.primary, 0.04),
-									fontSize: '0.65rem',
-									fontWeight: 600,
-									color: 'text.secondary',
+									...styles.newsItem(color),
+									textDecoration: 'none',
+									flex: { xs: '1 1 100%', sm: '1 1 calc(50% - 10px)' },
+									maxWidth: { sm: 'calc(50% - 10px)' },
 								}}>
-								{item.readTime}
+								<Stack
+									direction='row'
+									justifyContent='space-between'
+									alignItems='flex-start'>
+									<Box sx={styles.iconBox(color)}>
+										<Newspaper size={22} />
+									</Box>
+									<Box
+										sx={{
+											px: 1,
+											py: 0.4,
+											borderRadius: 1,
+											bgcolor: alpha(palette.text.primary, 0.04),
+											fontSize: '0.65rem',
+											fontWeight: 600,
+											color: 'text.secondary',
+										}}>
+										{item.source}
+									</Box>
+								</Stack>
+
+								<Box>
+									<Typography
+										variant='subtitle2'
+										sx={styles.category(color)}
+										gutterBottom>
+										{formatSlug(item.categorySlug)}
+									</Typography>
+									<Typography
+										variant='body2'
+										sx={{
+											fontWeight: 700,
+											lineHeight: 1.3,
+											color: 'text.primary',
+											mb: 1,
+											display: '-webkit-box',
+											WebkitLineClamp: 2,
+											WebkitBoxOrient: 'vertical',
+											overflow: 'hidden',
+										}}>
+										{item.title}
+									</Typography>
+									<Typography
+										variant='caption'
+										sx={{
+											color: 'text.secondary',
+											lineHeight: 1.4,
+											display: '-webkit-box',
+											WebkitLineClamp: 2,
+											WebkitBoxOrient: 'vertical',
+											overflow: 'hidden',
+										}}>
+										{item.description}
+									</Typography>
+								</Box>
+
+								<Box
+									className='news-arrow'
+									sx={{
+										position: 'absolute',
+										bottom: 12,
+										right: 12,
+										opacity: 0,
+										transition: 'all 0.3s ease',
+										color,
+									}}>
+									<ExternalLink size={16} />
+								</Box>
 							</Box>
-						</Stack>
-
-						<Box>
-							<Typography
-								variant='subtitle2'
-								sx={styles.category(item.color)}
-								gutterBottom>
-								{item.category}
-							</Typography>
-							<Typography
-								variant='body2'
-								sx={{
-									fontWeight: 700,
-									lineHeight: 1.3,
-									color: 'text.primary',
-									mb: 1,
-									// Clamp to 2 lines
-									display: '-webkit-box',
-									WebkitLineClamp: 2,
-									WebkitBoxOrient: 'vertical',
-									overflow: 'hidden',
-								}}>
-								{item.title}
-							</Typography>
-							<Typography
-								variant='caption'
-								sx={{
-									color: 'text.secondary',
-									lineHeight: 1.4,
-									display: '-webkit-box',
-									WebkitLineClamp: 2,
-									WebkitBoxOrient: 'vertical',
-									overflow: 'hidden',
-								}}>
-								{item.description}
-							</Typography>
-						</Box>
-
-						<Box
-							className='news-arrow'
-							sx={{
-								position: 'absolute',
-								bottom: 12,
-								right: 12,
-								opacity: 0,
-								transition: 'all 0.3s ease',
-								color: item.color,
-							}}>
-							<ArrowRight size={16} />
-						</Box>
-					</Box>
-				))}
-			</Stack>
+						);
+					})}
+				</Stack>
+			)}
 		</Card>
 	);
 }

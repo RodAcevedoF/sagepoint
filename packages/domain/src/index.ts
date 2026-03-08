@@ -38,6 +38,9 @@ export * from './modules/roadmap/ports/step-quiz-attempt.repository';
 // Common
 export * from './common/pagination';
 
+// Insights
+export * from './modules/insights/entities/news-article.entity';
+
 // Shared Ports
 export * from './ports/file-storage.port';
 export * from './ports/content-analysis.port';
@@ -48,3 +51,4 @@ export * from './ports/quiz-generation.port';
 export * from './ports/image-text-extraction.port';
 export * from './ports/concept-expansion.port';
 export * from './ports/cache.port';
+export * from './ports/news.port';

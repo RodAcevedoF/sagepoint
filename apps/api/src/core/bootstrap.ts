@@ -16,7 +16,8 @@ import {
   type StorageDependencies,
 } from '@/features/storage/dependencies';
 import { GCSStorage } from '@sagepoint/storage';
-import { IFileStorage } from '@sagepoint/domain';
+import { TheNewsApiAdapter } from '@sagepoint/ai';
+import type { IFileStorage, INewsService } from '@sagepoint/domain';
 import Redis from 'ioredis';
 import { RedisCacheService } from '@/core/infra/cache/redis-cache.service';
 
@@ -27,6 +28,7 @@ export interface AppDependencies {
   storage: StorageDependencies;
   fileStorage: IFileStorage;
   neo4jService: Neo4jService;
+  newsService: INewsService;
 }
 
 let dependencies: AppDependencies | null = null;
@@ -61,6 +63,11 @@ export function bootstrap(): AppDependencies {
   });
   const cacheService = new RedisCacheService(cacheRedis);
 
+  const newsService: INewsService = new TheNewsApiAdapter({
+    apiKey: process.env.THE_NEWS_API_KEY ?? '',
+    baseUrl: process.env.THE_NEWS_API_URL,
+  });
+
   dependencies = {
     roadmap: makeRoadmapDependencies(neo4jService, cacheService),
     document: makeDocumentDependencies(fileStorage),
@@ -68,6 +75,7 @@ export function bootstrap(): AppDependencies {
     storage: makeStorageDependencies(fileStorage),
     fileStorage,
     neo4jService,
+    newsService,
   };
 
   return dependencies;

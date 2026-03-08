@@ -4,6 +4,8 @@ import { BullModule } from '@nestjs/bullmq';
 import { LoggerModule } from 'nestjs-pino';
 import { DocumentProcessorService } from './document-processor/document-processor.service';
 import { RoadmapProcessorService } from './roadmap-processor/roadmap-processor.service';
+import { InsightsRefreshService } from './insights-refresh/insights-refresh.service';
+import { TheNewsApiAdapter } from '@sagepoint/ai';
 
 import { ConfigModule } from '@nestjs/config';
 import { Neo4jModule, Neo4jService, Neo4jConceptRepository } from '@sagepoint/graph';
@@ -15,9 +17,14 @@ import Redis from 'ioredis';
 import {
   CONCEPT_REPOSITORY,
   FILE_STORAGE,
+  NEWS_SERVICE,
   RESOURCE_DISCOVERY_SERVICE,
 } from '@sagepoint/domain';
-import type { ICacheService, IResourceDiscoveryService } from '@sagepoint/domain';
+import type {
+  ICacheService,
+  INewsService,
+  IResourceDiscoveryService,
+} from '@sagepoint/domain';
 import { CachedResourceDiscoveryAdapter } from './infra/cached-resource-discovery.adapter';
 
 function createRedisCacheService(keyPrefix: string): ICacheService {
@@ -81,6 +88,7 @@ const isDev = process.env.NODE_ENV !== 'production';
   providers: [
     DocumentProcessorService,
     RoadmapProcessorService,
+    InsightsRefreshService,
     {
       provide: FILE_STORAGE,
       useFactory: (configService: ConfigService) => {
@@ -105,6 +113,15 @@ const isDev = process.env.NODE_ENV !== 'production';
       useFactory: (inner: IResourceDiscoveryService, cache: ICacheService) =>
         new CachedResourceDiscoveryAdapter(inner, cache),
       inject: ['INNER_RESOURCE_DISCOVERY', 'WORKER_CACHE'],
+    },
+    {
+      provide: NEWS_SERVICE,
+      useFactory: (configService: ConfigService): INewsService =>
+        new TheNewsApiAdapter({
+          apiKey: configService.get<string>('THE_NEWS_API_KEY') ?? '',
+          baseUrl: configService.get<string>('THE_NEWS_API_URL'),
+        }),
+      inject: [ConfigService],
     },
     {
       provide: CONCEPT_REPOSITORY,
