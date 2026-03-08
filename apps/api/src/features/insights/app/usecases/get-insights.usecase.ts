@@ -7,7 +7,12 @@ import type {
   NewsArticle,
 } from '@sagepoint/domain';
 
-const NEWS_CACHE_TTL = 43200; // 12 hours
+const NEWS_CACHE_TTL = 86400; // 24 hours
+
+function todayKey(slug: string): string {
+  const date = new Date().toISOString().split('T')[0];
+  return `news:${slug}:${date}`;
+}
 
 export class GetInsightsUseCase {
   constructor(
@@ -44,11 +49,11 @@ export class GetInsightsUseCase {
 
     if (categorySlugs.size === 0) return [];
 
-    // Fetch articles per category (cache-aside)
+    // Fetch articles per category (cache-aside with date-stamped keys)
     const allArticles: NewsArticle[] = [];
 
     for (const [slug, name] of categorySlugs) {
-      const cacheKey = `news:${slug}`;
+      const cacheKey = todayKey(slug);
       const cached = await this.cache.get<NewsArticle[]>(cacheKey);
 
       if (cached) {

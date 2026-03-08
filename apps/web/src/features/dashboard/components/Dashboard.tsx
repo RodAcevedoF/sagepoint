@@ -188,13 +188,10 @@ export function Dashboard() {
 								<DashboardActivity roadmaps={recentRoadmaps} />
 							</Grid>
 							{hasDocuments && (
-								<Grid size={{ xs: 12, md: 6 }}>
+								<Grid size={{ xs: 12, md: 12 }}>
 									<DashboardRecentDocuments documents={userDocuments} />
 								</Grid>
 							)}
-							<Grid size={{ xs: 12, md: hasDocuments ? 6 : 12 }}>
-								<DashboardNews />
-							</Grid>
 						</Grid>
 					</Grid>
 
@@ -207,6 +204,11 @@ export function Dashboard() {
 							/>
 						</Grid>
 					)}
+
+					{/* News — driven by user interests from onboarding */}
+					<Grid size={{ xs: 12 }}>
+						<DashboardNews />
+					</Grid>
 
 					{/* Full Width - Quick Actions */}
 					<Grid size={{ xs: 12 }}>
@@ -252,6 +254,9 @@ export function Dashboard() {
 						actionLabel='Create Roadmap'
 						onAction={() => router.push('/roadmaps/create')}
 					/>
+					<Box sx={{ mt: 3 }}>
+						<DashboardNews />
+					</Box>
 					{/* Dev Tools */}
 					{isDev && (
 						<Box
