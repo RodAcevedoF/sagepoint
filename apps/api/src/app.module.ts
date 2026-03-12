@@ -19,7 +19,7 @@ const isDev = process.env.NODE_ENV !== 'production';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: '../../.env' }),
     LoggerModule.forRoot({
       pinoHttp: {
         level: isDev ? 'debug' : 'info',

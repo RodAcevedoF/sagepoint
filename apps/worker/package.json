@@ -23,6 +23,7 @@
 		"@sagepoint/storage": "workspace:*",
 		"@supabase/supabase-js": "^2.90.1",
 		"bullmq": "^5.66.4",
+		"dotenv": "^17.2.3",
 		"ioredis": "^5.9.1",
 		"nestjs-pino": "^4.6.0",
 		"pino": "^10.3.1",
