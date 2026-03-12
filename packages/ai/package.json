@@ -7,7 +7,6 @@
 	"scripts": {
 		"build": "tsc",
 		"lint": "eslint \"src/**/*.ts\"",
-		"test": "jest",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {

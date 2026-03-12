@@ -1,0 +1,16 @@
+{
+	"jest.jestCommandLine": "",
+	"jest.disabledWorkspaceFolders": [],
+	"jest.runMode": "on-demand",
+	"jest.rootPath": "",
+	"jest.virtualFolders": [
+		{
+			"name": "domain",
+			"rootPath": "packages/domain"
+		},
+		{
+			"name": "api",
+			"rootPath": "apps/api"
+		}
+	]
+}
