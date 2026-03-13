@@ -17,15 +17,17 @@ describe('GetGraphUseCase', () => {
       Concept.create('c2', 'Advanced', 'doc1'),
       Concept.create('c3', 'Unrelated', 'doc2'),
     );
-    conceptRepo.seedRelations(
-      { fromId: 'c1', toId: 'c2', type: 'NEXT_STEP' },
-    );
+    conceptRepo.seedRelations({ fromId: 'c1', toId: 'c2', type: 'NEXT_STEP' });
 
     const result = await useCase.execute('doc1');
 
     expect(result.nodes).toHaveLength(2);
     expect(result.edges).toHaveLength(1);
-    expect(result.edges[0]).toEqual({ from: 'c1', to: 'c2', type: 'NEXT_STEP' });
+    expect(result.edges[0]).toEqual({
+      from: 'c1',
+      to: 'c2',
+      type: 'NEXT_STEP',
+    });
   });
 
   it('returns empty graph for unknown document', async () => {

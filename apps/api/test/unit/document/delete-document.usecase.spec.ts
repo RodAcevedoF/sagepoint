@@ -1,9 +1,10 @@
 import { DeleteDocumentUseCase } from '../../../src/features/document/app/usecases/delete-document.usecase';
 import { Document } from '@sagepoint/domain';
 import { NotFoundException } from '@nestjs/common';
-import { FakeDocumentRepository, FakeFileStorage } from '../_fakes/repositories';
-
-const FIXED_DATE = new Date('2026-01-01');
+import {
+  FakeDocumentRepository,
+  FakeFileStorage,
+} from '../_fakes/repositories';
 
 function buildDocument(id: string, userId: string) {
   return Document.create(id, 'file.pdf', `documents/${id}/file.pdf`, userId);
@@ -24,7 +25,10 @@ describe('DeleteDocumentUseCase', () => {
     it('removes the file from storage and the document from the repository', async () => {
       const doc = buildDocument('doc1', 'user1');
       documentRepo.seed(doc);
-      await fileStorage.upload('documents/doc1/file.pdf', Buffer.from('content'));
+      await fileStorage.upload(
+        'documents/doc1/file.pdf',
+        Buffer.from('content'),
+      );
 
       await useCase.execute('doc1', 'user1');
 

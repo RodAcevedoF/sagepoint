@@ -54,9 +54,9 @@ describe('UpdateUserProfileUseCase', () => {
 
   describe('when user does not exist', () => {
     it('throws NotFoundException', async () => {
-      await expect(
-        useCase.execute('nonexistent', 'goal', []),
-      ).rejects.toThrow(NotFoundException);
+      await expect(useCase.execute('nonexistent', 'goal', [])).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

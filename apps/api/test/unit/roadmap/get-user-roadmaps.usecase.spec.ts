@@ -18,7 +18,11 @@ function buildRoadmap(id: string, userId = 'user1'): Roadmap {
     userId,
     steps: [
       { concept: Concept.create('c1', 'Intro'), order: 1, dependsOn: [] },
-      { concept: Concept.create('c2', 'Advanced'), order: 2, dependsOn: ['c1'] },
+      {
+        concept: Concept.create('c2', 'Advanced'),
+        order: 2,
+        dependsOn: ['c1'],
+      },
     ],
     createdAt: new Date('2026-01-01'),
   });
@@ -34,7 +38,11 @@ describe('GetUserRoadmapsUseCase', () => {
     roadmapRepo = new FakeRoadmapRepository();
     progressRepo = new FakeProgressRepository();
     resourceRepo = new FakeResourceRepository();
-    useCase = new GetUserRoadmapsUseCase(roadmapRepo, progressRepo, resourceRepo);
+    useCase = new GetUserRoadmapsUseCase(
+      roadmapRepo,
+      progressRepo,
+      resourceRepo,
+    );
   });
 
   describe('execute', () => {

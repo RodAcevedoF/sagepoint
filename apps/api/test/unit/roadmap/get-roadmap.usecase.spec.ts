@@ -1,5 +1,5 @@
 import { GetRoadmapUseCase } from '../../../src/features/roadmap/app/usecases/get-roadmap.usecase';
-import { Roadmap, RoadmapVisibility } from '@sagepoint/domain';
+import { Roadmap } from '@sagepoint/domain';
 import { FakeRoadmapRepository } from '../_fakes/repositories';
 
 describe('GetRoadmapUseCase', () => {

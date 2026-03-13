@@ -13,21 +13,36 @@ describe('UploadFileUseCase', () => {
 
   describe('valid uploads', () => {
     it.each([
-      { category: 'avatars' as const, mimeType: 'image/png', filename: 'avatar.png' },
-      { category: 'documents' as const, mimeType: 'application/pdf', filename: 'doc.pdf' },
-      { category: 'roadmaps' as const, mimeType: 'application/json', filename: 'data.json' },
-    ])('uploads a $category file successfully', async ({ category, mimeType, filename }) => {
-      const result = await useCase.execute({
-        content: Buffer.from('file-content'),
-        filename,
-        mimeType,
-        category,
-        userId: 'user1',
-      });
+      {
+        category: 'avatars' as const,
+        mimeType: 'image/png',
+        filename: 'avatar.png',
+      },
+      {
+        category: 'documents' as const,
+        mimeType: 'application/pdf',
+        filename: 'doc.pdf',
+      },
+      {
+        category: 'roadmaps' as const,
+        mimeType: 'application/json',
+        filename: 'data.json',
+      },
+    ])(
+      'uploads a $category file successfully',
+      async ({ category, mimeType, filename }) => {
+        const result = await useCase.execute({
+          content: Buffer.from('file-content'),
+          filename,
+          mimeType,
+          category,
+          userId: 'user1',
+        });
 
-      expect(result.path).toContain(category);
-      expect(result.path).toContain('user1');
-    });
+        expect(result.path).toContain(category);
+        expect(result.path).toContain('user1');
+      },
+    );
 
     it('generates a unique storage path', async () => {
       const result1 = await useCase.execute({

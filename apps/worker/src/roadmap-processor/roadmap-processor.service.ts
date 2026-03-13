@@ -14,10 +14,8 @@ import type {
 	IConceptRepository,
 	ITopicConceptGenerationService,
 	IRoadmapGenerationService,
-	IResourceDiscoveryService,
 	ConceptForOrdering,
 	ConceptRelationshipForOrdering,
-	ConceptGraph,
 	UserContext,
 } from '@sagepoint/domain';
 import { CachedResourceDiscoveryAdapter } from '../infra/cached-resource-discovery.adapter';

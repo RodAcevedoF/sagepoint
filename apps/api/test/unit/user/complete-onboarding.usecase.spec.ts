@@ -82,8 +82,11 @@ describe('CompleteOnboardingUseCase', () => {
   describe('resetting onboarding', () => {
     it('saves user with PENDING status and clears data', async () => {
       // First complete onboarding
-      const completed = User.create('u1', 'test@example.com', 'Test User')
-        .completeOnboarding('Old goal', [WEB_DEV, DATA_SCI]);
+      const completed = User.create(
+        'u1',
+        'test@example.com',
+        'Test User',
+      ).completeOnboarding('Old goal', [WEB_DEV, DATA_SCI]);
       await userRepo.save(completed);
 
       await useCase.execute('u1', {

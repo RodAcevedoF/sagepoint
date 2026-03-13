@@ -33,21 +33,20 @@ describe('UpdateStepProgressUseCase', () => {
   });
 
   describe('successful update', () => {
-    it.each([
-      StepStatus.COMPLETED,
-      StepStatus.IN_PROGRESS,
-      StepStatus.SKIPPED,
-    ])('upserts progress with status %s and returns summary', async (status) => {
-      const result = await useCase.execute({
-        userId: 'u1',
-        roadmapId: 'r1',
-        conceptId: 'c1',
-        status,
-      });
+    it.each([StepStatus.COMPLETED, StepStatus.IN_PROGRESS, StepStatus.SKIPPED])(
+      'upserts progress with status %s and returns summary',
+      async (status) => {
+        const result = await useCase.execute({
+          userId: 'u1',
+          roadmapId: 'r1',
+          conceptId: 'c1',
+          status,
+        });
 
-      expect(result.progress.status).toBe(status);
-      expect(result.summary.roadmapId).toBe('r1');
-    });
+        expect(result.progress.status).toBe(status);
+        expect(result.summary.roadmapId).toBe('r1');
+      },
+    );
 
     it('computes correct summary after multiple updates', async () => {
       await useCase.execute({

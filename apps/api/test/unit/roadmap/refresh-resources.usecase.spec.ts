@@ -12,7 +12,11 @@ const ROADMAP = new Roadmap({
   userId: 'user1',
   steps: [
     { concept: Concept.create('c1', 'JavaScript'), order: 1, dependsOn: [] },
-    { concept: Concept.create('c2', 'TypeScript'), order: 2, dependsOn: ['c1'] },
+    {
+      concept: Concept.create('c2', 'TypeScript'),
+      order: 2,
+      dependsOn: ['c1'],
+    },
   ],
   createdAt: new Date('2026-01-01'),
 });

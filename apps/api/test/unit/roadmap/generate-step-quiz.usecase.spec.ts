@@ -1,5 +1,10 @@
 import { GenerateStepQuizUseCase } from '../../../src/features/roadmap/app/usecases/generate-step-quiz.usecase';
-import { Roadmap, Concept, StepQuizAttempt, QuestionType } from '@sagepoint/domain';
+import {
+  Roadmap,
+  Concept,
+  StepQuizAttempt,
+  QuestionType,
+} from '@sagepoint/domain';
 import {
   FakeRoadmapRepository,
   FakeQuizGenerationService,
@@ -12,7 +17,12 @@ const ROADMAP = new Roadmap({
   userId: 'user1',
   steps: [
     {
-      concept: Concept.create('c1', 'JavaScript', undefined, 'A programming language'),
+      concept: Concept.create(
+        'c1',
+        'JavaScript',
+        undefined,
+        'A programming language',
+      ),
       order: 1,
       dependsOn: [],
       learningObjective: 'Learn JS basics',
@@ -46,7 +56,11 @@ describe('GenerateStepQuizUseCase', () => {
     attemptRepo = new FakeStepQuizAttemptRepository();
     roadmapRepo.seed(ROADMAP);
     quizGenService.setResults(GENERATED_QUESTIONS);
-    useCase = new GenerateStepQuizUseCase(roadmapRepo, quizGenService, attemptRepo);
+    useCase = new GenerateStepQuizUseCase(
+      roadmapRepo,
+      quizGenService,
+      attemptRepo,
+    );
   });
 
   describe('when no pending attempt exists', () => {
@@ -61,6 +75,7 @@ describe('GenerateStepQuizUseCase', () => {
       expect(result.questions).toHaveLength(1);
       expect(result.questions[0].text).toBe('What is JS?');
       // isCorrect should NOT be in the client response
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       expect((result.questions[0] as any).options[0].isCorrect).toBeUndefined();
     });
 
@@ -107,7 +122,11 @@ describe('GenerateStepQuizUseCase', () => {
   describe('error cases', () => {
     it('throws when roadmap does not exist', async () => {
       await expect(
-        useCase.execute({ userId: 'user1', roadmapId: 'nonexistent', conceptId: 'c1' }),
+        useCase.execute({
+          userId: 'user1',
+          roadmapId: 'nonexistent',
+          conceptId: 'c1',
+        }),
       ).rejects.toThrow('not found');
     });
 

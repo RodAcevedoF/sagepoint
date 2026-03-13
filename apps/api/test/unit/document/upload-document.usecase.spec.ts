@@ -15,7 +15,11 @@ describe('UploadDocumentUseCase', () => {
     documentRepo = new FakeDocumentRepository();
     fileStorage = new FakeFileStorage();
     processingQueue = new FakeProcessingQueue();
-    useCase = new UploadDocumentUseCase(documentRepo, fileStorage, processingQueue);
+    useCase = new UploadDocumentUseCase(
+      documentRepo,
+      fileStorage,
+      processingQueue,
+    );
   });
 
   describe('when uploading a valid document', () => {
@@ -46,7 +50,8 @@ describe('UploadDocumentUseCase', () => {
     it('returns a document with PENDING status', async () => {
       const result = await useCase.execute({
         filename: 'report.docx',
-        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        mimeType:
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         userId: 'user1',
         size: 2048,
         fileBuffer: Buffer.from('docx-content'),

@@ -23,7 +23,11 @@ describe('SuggestRelatedTopicsUseCase', () => {
           id: 'r1',
           title: 'Test',
           steps: [
-            { concept: Concept.create('c1', 'JavaScript'), order: 1, dependsOn: [] },
+            {
+              concept: Concept.create('c1', 'JavaScript'),
+              order: 1,
+              dependsOn: [],
+            },
           ],
           createdAt: new Date('2026-01-01'),
         }),
@@ -33,7 +37,11 @@ describe('SuggestRelatedTopicsUseCase', () => {
         Concept.create('c1', 'JavaScript'),
         Concept.create('c2', 'TypeScript', undefined, 'Typed JS'),
       );
-      conceptRepo.seedRelations({ fromId: 'c1', toId: 'c2', type: 'RELATED_TO' });
+      conceptRepo.seedRelations({
+        fromId: 'c1',
+        toId: 'c2',
+        type: 'RELATED_TO',
+      });
 
       const result = await useCase.execute('r1');
 
@@ -45,7 +53,12 @@ describe('SuggestRelatedTopicsUseCase', () => {
   describe('when roadmap has no steps', () => {
     it('returns empty array', async () => {
       roadmapRepo.seed(
-        new Roadmap({ id: 'r1', title: 'Empty', steps: [], createdAt: new Date('2026-01-01') }),
+        new Roadmap({
+          id: 'r1',
+          title: 'Empty',
+          steps: [],
+          createdAt: new Date('2026-01-01'),
+        }),
       );
 
       const result = await useCase.execute('r1');

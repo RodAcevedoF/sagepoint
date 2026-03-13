@@ -126,9 +126,7 @@ describe('SubmitStepQuizUseCase', () => {
 
         expect(result.correctAnswers).toBe(expectedCorrect);
         expect(result.passed).toBe(expectedPassed);
-        expect(result.score).toBe(
-          Math.round((expectedCorrect / 3) * 100),
-        );
+        expect(result.score).toBe(Math.round((expectedCorrect / 3) * 100));
       },
     );
   });

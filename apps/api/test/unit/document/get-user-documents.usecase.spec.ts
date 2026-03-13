@@ -34,9 +34,7 @@ describe('GetUserDocumentsUseCase', () => {
 
   describe('executeCursor', () => {
     it('returns paginated results', async () => {
-      documentRepo.seed(
-        Document.create('d1', 'a.pdf', 'path/a.pdf', 'user1'),
-      );
+      documentRepo.seed(Document.create('d1', 'a.pdf', 'path/a.pdf', 'user1'));
 
       const result = await useCase.executeCursor('user1', { limit: 10 });
 
