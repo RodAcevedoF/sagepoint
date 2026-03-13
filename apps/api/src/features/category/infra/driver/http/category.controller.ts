@@ -1,34 +1,24 @@
 import { Controller, Get, Post, Body, Inject } from '@nestjs/common';
-import { GetCategoriesUseCase } from '../../../app/usecases/get-categories.usecase';
-import { CATEGORY_REPOSITORY, Category } from '@sagepoint/domain';
-import type { ICategoryRepository } from '@sagepoint/domain';
-
-// Simple DTO for now
-export class CreateCategoryDto {
-  name: string;
-  slug: string;
-}
+import {
+  CATEGORY_SERVICE,
+  type ICategoryService,
+} from '@/features/category/domain/inbound/category.service';
+import { CreateCategoryDto } from './create-category.dto';
 
 @Controller('categories')
 export class CategoryController {
   constructor(
-    @Inject('GetCategoriesUseCase')
-    private readonly getCategoriesUseCase: GetCategoriesUseCase,
-    @Inject(CATEGORY_REPOSITORY)
-    private readonly categoryConfigRepository: ICategoryRepository, // Quick hack to create, ideally use CreateCategoryUseCase
+    @Inject(CATEGORY_SERVICE)
+    private readonly categoryService: ICategoryService,
   ) {}
 
   @Get()
   async findAll() {
-    return this.getCategoriesUseCase.execute();
+    return this.categoryService.getAll();
   }
 
   @Post()
   async create(@Body() body: CreateCategoryDto) {
-    // Need ID generation if not passed, but Category entity has logic?
-    // Using quick entity creation for seed access
-    const id = crypto.randomUUID();
-    const cat = Category.create(id, body.name, body.slug);
-    return this.categoryConfigRepository.save(cat);
+    return this.categoryService.create(body);
   }
 }

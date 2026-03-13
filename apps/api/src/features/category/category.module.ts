@@ -1,29 +1,21 @@
 import { Module } from '@nestjs/common';
+import { CATEGORY_SERVICE } from '@/features/category/domain/inbound/category.service';
+import { CATEGORY_REPOSITORY } from '@sagepoint/domain';
 import { CategoryController } from './infra/driver/http/category.controller';
-import { PrismaCategoryRepository } from './infra/adapter/prisma-category.repository';
-import { GetCategoriesUseCase } from './app/usecases/get-categories.usecase';
-import {
-  CATEGORY_REPOSITORY,
-  type ICategoryRepository,
-} from '@sagepoint/domain';
-import { PrismaService } from '@/core/infra/database/prisma.service';
-import { RedisCacheService } from '@/core/infra/cache/redis-cache.service';
+import { getDependencies } from '@/core/bootstrap';
 
 @Module({
   controllers: [CategoryController],
   providers: [
-    PrismaService,
+    {
+      provide: CATEGORY_SERVICE,
+      useFactory: () => getDependencies().category.categoryService,
+    },
     {
       provide: CATEGORY_REPOSITORY,
-      useClass: PrismaCategoryRepository,
-    },
-    {
-      provide: 'GetCategoriesUseCase',
-      useFactory: (repo: ICategoryRepository, cache: RedisCacheService) =>
-        new GetCategoriesUseCase(repo, cache),
-      inject: [CATEGORY_REPOSITORY, RedisCacheService],
+      useFactory: () => getDependencies().category.categoryRepository,
     },
   ],
-  exports: [CATEGORY_REPOSITORY],
+  exports: [CATEGORY_SERVICE],
 })
 export class CategoryModule {}
