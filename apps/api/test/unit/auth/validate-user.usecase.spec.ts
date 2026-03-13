@@ -13,10 +13,7 @@ describe('ValidateUserUseCase', () => {
   beforeEach(() => {
     userService = new FakeUserService();
     passwordHasher = new FakePasswordHasher();
-    useCase = new ValidateUserUseCase(
-      userService as any,
-      passwordHasher as any,
-    );
+    useCase = new ValidateUserUseCase(userService, passwordHasher);
   });
 
   describe('when credentials are valid and email is verified', () => {
@@ -30,7 +27,10 @@ describe('ValidateUserUseCase', () => {
       ).verify();
       userService.seed(user);
 
-      const result = await useCase.execute('test@example.com', 'correct-password');
+      const result = await useCase.execute(
+        'test@example.com',
+        'correct-password',
+      );
 
       expect(result).not.toBeNull();
       expect(result!.id).toBe('u1');
@@ -55,7 +55,10 @@ describe('ValidateUserUseCase', () => {
       ).verify();
       userService.seed(user);
 
-      const result = await useCase.execute('test@example.com', 'wrong-password');
+      const result = await useCase.execute(
+        'test@example.com',
+        'wrong-password',
+      );
       expect(result).toBeNull();
     });
   });

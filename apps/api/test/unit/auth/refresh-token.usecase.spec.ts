@@ -21,11 +21,11 @@ describe('RefreshTokenUseCase', () => {
     userService = new FakeUserService();
     tokenStore = new FakeTokenStore();
     tokenService = new FakeTokenService();
-    loginUseCase = new LoginUseCase(tokenStore as any, tokenService as any);
+    loginUseCase = new LoginUseCase(tokenStore, tokenService);
     useCase = new RefreshTokenUseCase(
-      userService as any,
-      tokenStore as any,
-      tokenService as any,
+      userService,
+      tokenStore,
+      tokenService,
       loginUseCase,
     );
   });
@@ -60,18 +60,22 @@ describe('RefreshTokenUseCase', () => {
       // Store a different token
       await tokenStore.storeRefreshToken('u1', 'stored-different', 86400);
 
-      await expect(
-        useCase.execute('refresh-token-u1-999'),
-      ).rejects.toThrow(InvalidRefreshTokenError);
+      await expect(useCase.execute('refresh-token-u1-999')).rejects.toThrow(
+        InvalidRefreshTokenError,
+      );
     });
 
     it('throws when user no longer exists', async () => {
       // Create a valid token format but no user in the service
-      await tokenStore.storeRefreshToken('ghost', 'refresh-token-ghost-1', 86400);
+      await tokenStore.storeRefreshToken(
+        'ghost',
+        'refresh-token-ghost-1',
+        86400,
+      );
 
-      await expect(
-        useCase.execute('refresh-token-ghost-1'),
-      ).rejects.toThrow(InvalidRefreshTokenError);
+      await expect(useCase.execute('refresh-token-ghost-1')).rejects.toThrow(
+        InvalidRefreshTokenError,
+      );
     });
   });
 });

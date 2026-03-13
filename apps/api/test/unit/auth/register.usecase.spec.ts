@@ -1,4 +1,7 @@
-import { RegisterUseCase, UserAlreadyExistsError } from '../../../src/features/auth/app/usecases/register.usecase';
+import {
+  RegisterUseCase,
+  UserAlreadyExistsError,
+} from '../../../src/features/auth/app/usecases/register.usecase';
 import { User } from '@sagepoint/domain';
 import {
   FakeUserService,
@@ -22,10 +25,10 @@ describe('RegisterUseCase', () => {
     // clear the env var to test the email path
     delete process.env.USE_MOCK_EMAIL;
     useCase = new RegisterUseCase(
-      userService as any,
-      emailService as any,
-      tokenStore as any,
-      passwordHasher as any,
+      userService,
+      emailService,
+      tokenStore,
+      passwordHasher,
     );
   });
 
@@ -82,10 +85,10 @@ describe('RegisterUseCase', () => {
     it('auto-verifies the user without sending email', async () => {
       process.env.USE_MOCK_EMAIL = 'true';
       useCase = new RegisterUseCase(
-        userService as any,
-        emailService as any,
-        tokenStore as any,
-        passwordHasher as any,
+        userService,
+        emailService,
+        tokenStore,
+        passwordHasher,
       );
 
       await useCase.execute({
