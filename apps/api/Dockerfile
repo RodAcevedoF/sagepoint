@@ -16,7 +16,8 @@ RUN pnpm install --frozen-lockfile
 # --- build ---
 FROM deps AS build
 COPY . .
-RUN pnpm build
+RUN pnpm --filter @sagepoint/database db:generate
+RUN pnpm --filter @sagepoint/api... build
 RUN pnpm deploy --filter @sagepoint/api --prod /app/prod
 
 # --- runner (slim = glibc, fewer CVEs, better perf under load than musl) ---
