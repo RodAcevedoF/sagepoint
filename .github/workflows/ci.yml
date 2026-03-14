@@ -24,6 +24,8 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - run: pnpm --filter @sagepoint/database db:generate
+
       - run: pnpm build
 
       - run: pnpm check
