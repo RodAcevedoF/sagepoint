@@ -1,5 +1,6 @@
 import { ValidateGoogleUserUseCase } from '../../../src/features/auth/app/usecases/validate-google-user.usecase';
 import { User } from '@sagepoint/domain';
+import type { IUserService } from '@/features/user/domain/inbound/user.service';
 import { FakeUserService } from '../_fakes/repositories';
 
 describe('ValidateGoogleUserUseCase', () => {
@@ -8,7 +9,7 @@ describe('ValidateGoogleUserUseCase', () => {
 
   beforeEach(() => {
     userService = new FakeUserService();
-    useCase = new ValidateGoogleUserUseCase(userService as any);
+    useCase = new ValidateGoogleUserUseCase(userService as IUserService);
   });
 
   describe('when the Google user already exists', () => {

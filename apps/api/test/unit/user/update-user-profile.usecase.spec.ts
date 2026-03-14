@@ -1,5 +1,7 @@
 import { UpdateUserProfileUseCase } from '../../../src/features/user/app/usecases/update-user-profile.usecase';
 import { User, Category } from '@sagepoint/domain';
+import type { IUserRepository, ICategoryRepository } from '@sagepoint/domain';
+
 import { NotFoundException } from '@nestjs/common';
 import {
   FakeUserRepository,
@@ -21,8 +23,8 @@ describe('UpdateUserProfileUseCase', () => {
     categoryRepo.seed(WEB_DEV, DATA_SCI);
     // Bypass @Inject decorators — constructor accepts the interfaces directly
     useCase = new UpdateUserProfileUseCase(
-      userRepo as any,
-      categoryRepo as any,
+      userRepo as IUserRepository,
+      categoryRepo as ICategoryRepository,
     );
   });
 

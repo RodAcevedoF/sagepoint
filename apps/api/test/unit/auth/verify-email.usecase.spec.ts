@@ -4,6 +4,8 @@ import {
   UserNotFoundError,
 } from '../../../src/features/auth/app/usecases/verify-email.usecase';
 import { User } from '@sagepoint/domain';
+import type { IUserService } from '@/features/user/domain/inbound/user.service';
+import type { ITokenStore } from '@/features/auth/domain/outbound/token-store.port';
 import { FakeUserService, FakeTokenStore } from '../_fakes/repositories';
 
 describe('VerifyEmailUseCase', () => {
@@ -14,7 +16,10 @@ describe('VerifyEmailUseCase', () => {
   beforeEach(() => {
     userService = new FakeUserService();
     tokenStore = new FakeTokenStore();
-    useCase = new VerifyEmailUseCase(userService as any, tokenStore as any);
+    useCase = new VerifyEmailUseCase(
+      userService as IUserService,
+      tokenStore as ITokenStore,
+    );
   });
 
   describe('when token is valid and user is unverified', () => {

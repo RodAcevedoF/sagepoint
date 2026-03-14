@@ -1,0 +1,128 @@
+import {
+  connectPrisma,
+  disconnectPrisma,
+  cleanDatabase,
+  asPrismaService,
+} from './_setup/prisma-test-client';
+import { PrismaCategoryRepository } from '@/features/category/infra/adapter/prisma-category.repository';
+import { Category } from '@sagepoint/domain';
+
+describe('PrismaCategoryRepository (integration)', () => {
+  let repo: PrismaCategoryRepository;
+
+  const NOW = new Date('2026-01-01');
+
+  function buildCategory(overrides: {
+    id: string;
+    name: string;
+    slug: string;
+    description?: string;
+    parentId?: string;
+    createdAt?: Date;
+    updatedAt?: Date;
+  }) {
+    return new Category(
+      overrides.id,
+      overrides.name,
+      overrides.slug,
+      overrides.description,
+      overrides.parentId,
+      overrides.createdAt ?? NOW,
+      overrides.updatedAt ?? NOW,
+    );
+  }
+
+  beforeAll(async () => {
+    await connectPrisma();
+    repo = new PrismaCategoryRepository(asPrismaService());
+  });
+
+  afterAll(async () => {
+    await disconnectPrisma();
+  });
+
+  beforeEach(async () => {
+    await cleanDatabase();
+  });
+
+  describe('save + findById', () => {
+    it('creates a new category and retrieves it', async () => {
+      const cat = buildCategory({
+        id: 'cat-1',
+        name: 'Web Dev',
+        slug: 'web-dev',
+        description: 'Frontend & backend',
+      });
+
+      await repo.save(cat);
+      const found = await repo.findById('cat-1');
+
+      expect(found).not.toBeNull();
+      expect(found!.name).toBe('Web Dev');
+      expect(found!.slug).toBe('web-dev');
+      expect(found!.description).toBe('Frontend & backend');
+    });
+
+    it('updates an existing category on second save', async () => {
+      const cat = buildCategory({
+        id: 'cat-1',
+        name: 'Web Dev',
+        slug: 'web-dev',
+      });
+      await repo.save(cat);
+
+      const updated = buildCategory({
+        id: 'cat-1',
+        name: 'Web Development',
+        slug: 'web-dev',
+      });
+      await repo.save(updated);
+
+      const found = await repo.findById('cat-1');
+      expect(found!.name).toBe('Web Development');
+    });
+  });
+
+  describe('findBySlug', () => {
+    it('returns category by slug', async () => {
+      await repo.save(
+        buildCategory({ id: 'cat-1', name: 'ML', slug: 'machine-learning' }),
+      );
+
+      const found = await repo.findBySlug('machine-learning');
+      expect(found).not.toBeNull();
+      expect(found!.id).toBe('cat-1');
+    });
+
+    it('returns null for non-existent slug', async () => {
+      const found = await repo.findBySlug('non-existent');
+      expect(found).toBeNull();
+    });
+  });
+
+  describe('list', () => {
+    it('returns all categories', async () => {
+      await repo.save(buildCategory({ id: 'cat-1', name: 'A', slug: 'a' }));
+      await repo.save(buildCategory({ id: 'cat-2', name: 'B', slug: 'b' }));
+
+      const all = await repo.list();
+      expect(all).toHaveLength(2);
+    });
+
+    it('returns empty array when no categories exist', async () => {
+      const all = await repo.list();
+      expect(all).toEqual([]);
+    });
+  });
+
+  describe('delete', () => {
+    it('removes a category', async () => {
+      await repo.save(buildCategory({ id: 'cat-1', name: 'X', slug: 'x' }));
+
+      await repo.delete('cat-1');
+
+      const found = await repo.findById('cat-1');
+      expect(found).toBeNull();
+    });
+  });
+});

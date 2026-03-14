@@ -1,4 +1,5 @@
 import { LogoutUseCase } from '../../../src/features/auth/app/usecases/logout.usecase';
+import type { ITokenStore } from '@/features/auth/domain/outbound/token-store.port';
 import { FakeTokenStore } from '../_fakes/repositories';
 
 describe('LogoutUseCase', () => {
@@ -7,7 +8,7 @@ describe('LogoutUseCase', () => {
 
   beforeEach(() => {
     tokenStore = new FakeTokenStore();
-    useCase = new LogoutUseCase(tokenStore as any);
+    useCase = new LogoutUseCase(tokenStore as ITokenStore);
   });
 
   it('removes the refresh token for the user', async () => {

@@ -1,5 +1,7 @@
 import { LoginUseCase } from '../../../src/features/auth/app/usecases/login.usecase';
 import { User } from '@sagepoint/domain';
+import type { ITokenStore } from '@/features/auth/domain/outbound/token-store.port';
+import type { ITokenService } from '@/features/auth/domain/outbound/token-service.port';
 import { FakeTokenStore, FakeTokenService } from '../_fakes/repositories';
 
 const VERIFIED_USER = User.create('u1', 'test@example.com', 'Test').verify();
@@ -12,7 +14,10 @@ describe('LoginUseCase', () => {
   beforeEach(() => {
     tokenStore = new FakeTokenStore();
     tokenService = new FakeTokenService();
-    useCase = new LoginUseCase(tokenStore as any, tokenService as any);
+    useCase = new LoginUseCase(
+      tokenStore as ITokenStore,
+      tokenService as ITokenService,
+    );
   });
 
   describe('when a valid user logs in', () => {

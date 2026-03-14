@@ -72,6 +72,19 @@ jobs:
         env:
           DATABASE_URL: postgresql://user@localhost:5440/sagepoint?schema=public
 
+      - name: Create test database
+        run: PGPASSWORD="" psql -h localhost -p 5440 -U user -d sagepoint -c "CREATE DATABASE sagepoint_test;"
+
+      - name: Push schema to test database
+        run: pnpm db:push
+        env:
+          DATABASE_URL: postgresql://user@localhost:5440/sagepoint_test?schema=public
+
+      - name: Run integration tests
+        run: pnpm test:integration
+        env:
+          DATABASE_URL: postgresql://user@localhost:5440/sagepoint_test?schema=public
+
       - name: Run E2E tests
         run: pnpm --filter @sagepoint/api test:e2e
         env:

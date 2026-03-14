@@ -25,6 +25,19 @@ export default tseslint.config(
 		},
 	},
 	{
+		files: ['test/**/*.ts'],
+		languageOptions: {
+			parserOptions: {
+				projectService: false,
+				project: './tsconfig.test.json',
+				tsconfigRootDir: __dirname,
+			},
+		},
+		rules: {
+			'@typescript-eslint/require-await': 'off',
+		},
+	},
+	{
 		rules: {
 			'@typescript-eslint/no-explicit-any': 'off',
 			'@typescript-eslint/no-floating-promises': 'warn',
