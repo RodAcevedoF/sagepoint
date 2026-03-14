@@ -1,0 +1,17 @@
+node_modules
+dist
+.next
+*.tsbuildinfo
+coverage
+.env
+.env.*
+.git
+.github
+.husky
+.claude
+.DS_Store
+gcp-key*.json
+pnpm-debug.log*
+/tfg-docs
+/t-docs
+/uploads
