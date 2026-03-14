@@ -18,7 +18,7 @@ FROM deps AS build
 COPY . .
 RUN pnpm --filter @sagepoint/database db:generate
 RUN pnpm --filter @sagepoint/api... build
-RUN pnpm deploy --filter @sagepoint/api --prod /app/prod
+RUN pnpm deploy --filter @sagepoint/api --prod --legacy /app/prod
 
 # --- runner (slim = glibc, fewer CVEs, better perf under load than musl) ---
 FROM node:22-slim AS runner
