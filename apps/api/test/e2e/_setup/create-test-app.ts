@@ -17,7 +17,13 @@ import { PrismaService } from '@/core/infra/database/prisma.service';
 import { TOKEN_STORE } from '@/features/auth/domain/outbound/token-store.port';
 import { PASSWORD_HASHER } from '@/features/auth/domain/outbound/password-hasher.port';
 import { EMAIL_SERVICE_PORT } from '@/features/auth/domain/outbound/email.service.port';
-import { CATEGORY_REPOSITORY } from '@sagepoint/domain';
+import {
+  CATEGORY_REPOSITORY,
+  NEWS_SERVICE,
+  USER_REPOSITORY,
+  ROADMAP_REPOSITORY,
+} from '@sagepoint/domain';
+import { CATEGORY_SERVICE } from '@/features/category/domain/inbound/category.service';
 
 import {
   FakeUserRepository,
@@ -348,6 +354,13 @@ function patchBootstrapSingleton() {
     },
     user: { userService: fakeUserService, userRepository: fakeUserRepo },
     storage: { storageService: fakeStorageService },
+    category: {
+      categoryService: {
+        getAll: () => Promise.resolve([]),
+        create: () => Promise.resolve({}),
+      },
+      categoryRepository: new FakeCategoryRepository(),
+    },
     fileStorage: fakeFileStorage,
     neo4jService: { close: async () => {} },
     newsService: new FakeNewsService(),
@@ -406,9 +419,23 @@ export async function createTestApp(): Promise<TestContext> {
     // ─── Override Prisma (for AdminModule) ────────────────────────────
     .overrideProvider(PrismaService)
     .useValue(new StubPrismaService())
-    // ─── Override Category repo (CategoryModule uses PrismaService) ───
+    // ─── Override Category (CategoryModule uses getDependencies()) ─────
     .overrideProvider(CATEGORY_REPOSITORY)
     .useValue(new FakeCategoryRepository())
+    .overrideProvider(CATEGORY_SERVICE)
+    .useValue({
+      getAll: () => Promise.resolve([]),
+      create: () => Promise.resolve({}),
+    })
+    // ─── Override Insights deps (InsightsModule uses getDependencies()) ─
+    .overrideProvider(USER_REPOSITORY)
+    .useValue(new FakeUserRepository())
+    .overrideProvider(ROADMAP_REPOSITORY)
+    .useValue(new FakeRoadmapRepository())
+    .overrideProvider(NEWS_SERVICE)
+    .useValue(new FakeNewsService())
+    .overrideProvider('GetInsightsUseCase')
+    .useValue({ execute: () => Promise.resolve({ news: [], stats: {} }) })
     // ─── Override Health indicators' Neo4j dependency ─────────────────
     .overrideProvider('NEO4J_SERVICE')
     .useValue({ close: async () => {}, verifyConnectivity: async () => {} })
