@@ -9,7 +9,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default tseslint.config(
 	{
-		ignores: ['eslint.config.mjs', 'dist/**'],
+		ignores: ['eslint.config.mjs', 'dist/**', 'dist-scripts/**'],
 	},
 	eslint.configs.recommended,
 	...tseslint.configs.recommendedTypeChecked,
@@ -19,7 +19,10 @@ export default tseslint.config(
 				...globals.node,
 			},
 			parserOptions: {
-				projectService: true,
+				projectService: {
+					defaultProject: 'tsconfig.json',
+					allowDefaultProject: ['scripts/*.ts'],
+				},
 				tsconfigRootDir: __dirname,
 			},
 		},

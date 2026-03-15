@@ -1,31 +1,39 @@
 {
-	"name": "@sagepoint/database",
-	"version": "0.0.1",
-	"private": true,
-	"main": "dist/index.js",
-	"types": "dist/index.d.ts",
-	"scripts": {
-		"build": "tsc",
-		"db:generate": "prisma generate",
-		"db:push": "prisma db push",
-		"db:studio": "prisma studio",
-		"seed": "tsx scripts/init.ts",
-		"lint": "eslint \"src/**/*.ts\"",
-		"typecheck": "tsc --noEmit"
-	},
-	"dependencies": {
-		"@prisma/client": "^6.2.1",
-		"bcryptjs": "^2.4.3"
-	},
-	"devDependencies": {
-		"@eslint/js": "^9.39.2",
-		"@types/bcryptjs": "^2.4.6",
-		"@types/node": "^22.10.7",
-		"eslint": "^9.39.2",
-		"globals": "^16.5.0",
-		"prisma": "^6.2.1",
-		"tsx": "^4.7.0",
-		"typescript": "5.9.3",
-		"typescript-eslint": "^8.52.0"
-	}
+  "name": "@sagepoint/database",
+  "version": "0.0.1",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "seed": "tsx scripts/init.ts",
+    "migrate": "tsx scripts/migrate.ts",
+    "migrate:up": "tsx scripts/migrate.ts up",
+    "migrate:down": "tsx scripts/migrate.ts down",
+    "migrate:status": "tsx scripts/migrate.ts status",
+    "migrate:create": "tsx scripts/migrate.ts create",
+    "migrate:validate": "tsx scripts/migrate.ts validate",
+    "lint": "eslint \"src/**/*.ts\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.2.1",
+    "bcryptjs": "^2.4.3",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^22.10.7",
+    "@types/pg": "^8.16.0",
+    "eslint": "^9.39.2",
+    "globals": "^16.5.0",
+    "prisma": "^6.2.1",
+    "tsx": "^4.7.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "^8.52.0"
+  }
 }
