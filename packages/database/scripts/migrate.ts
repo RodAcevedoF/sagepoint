@@ -84,7 +84,21 @@ async function main() {
 
     case "down": {
       const stepsFlag = parseFlag("steps");
-      const steps = stepsFlag ? parseInt(stepsFlag, 10) : 1;
+      let steps = 1;
+      if (stepsFlag !== undefined) {
+        const parsed = Number(stepsFlag);
+        if (
+          !Number.isFinite(parsed) ||
+          !Number.isInteger(parsed) ||
+          parsed <= 0
+        ) {
+          console.error(
+            "Usage: migrate down [--steps <positive integer>] [--force]",
+          );
+          process.exit(1);
+        }
+        steps = parsed;
+      }
       const force = hasFlag("force");
 
       console.log(`Rolling back ${steps} migration(s)...`);

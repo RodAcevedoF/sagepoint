@@ -3,6 +3,8 @@ import { readdirSync, readFileSync, existsSync } from "fs";
 import { join } from "path";
 import { Client } from "pg";
 
+const ADVISORY_LOCK_KEY = 42_000_000_001;
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -111,14 +113,27 @@ export async function migrateUp(options: {
   const client = await createClient();
   const result: ApplyResult = { applied: [], skipped: [] };
 
+  await client.query("SELECT pg_advisory_lock($1)", [ADVISORY_LOCK_KEY]);
   try {
     await ensureControlTable(client);
     const applied = await getAppliedMigrations(client);
-    const appliedNames = new Set(applied.map((r) => r.name));
+    const appliedByName = new Map(applied.map((r) => [r.name, r]));
     const migrations = loadMigrationsFromDisk();
 
+    if (options.to && !migrations.some((m) => m.name === options.to)) {
+      throw new Error(`Target migration "${options.to}" not found on disk.`);
+    }
+
     for (const migration of migrations) {
-      if (appliedNames.has(migration.name)) {
+      const appliedRecord = appliedByName.get(migration.name);
+      if (appliedRecord) {
+        if (appliedRecord.checksum !== migration.checksum) {
+          throw new Error(
+            `Checksum mismatch for applied migration "${migration.name}". ` +
+              `DB=${appliedRecord.checksum}, disk=${migration.checksum}. ` +
+              "The migration file was modified after it was applied.",
+          );
+        }
         result.skipped.push(migration.name);
         if (options.to && migration.name === options.to) break;
         continue;
@@ -162,6 +177,11 @@ export async function migrateUp(options: {
       if (options.to && migration.name === options.to) break;
     }
   } finally {
+    try {
+      await client.query("SELECT pg_advisory_unlock($1)", [ADVISORY_LOCK_KEY]);
+    } catch {
+      // Lock released on disconnect anyway
+    }
     await client.end();
   }
 
@@ -182,6 +202,7 @@ export async function migrateDown(options: {
   const rolled: string[] = [];
   const steps = options.steps ?? 1;
 
+  await client.query("SELECT pg_advisory_lock($1)", [ADVISORY_LOCK_KEY]);
   try {
     await ensureControlTable(client);
     const applied = await getAppliedMigrations(client);
@@ -225,6 +246,11 @@ export async function migrateDown(options: {
       }
     }
   } finally {
+    try {
+      await client.query("SELECT pg_advisory_unlock($1)", [ADVISORY_LOCK_KEY]);
+    } catch {
+      // Lock released on disconnect anyway
+    }
     await client.end();
   }
 
