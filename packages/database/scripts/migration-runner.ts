@@ -139,8 +139,7 @@ export async function migrateUp(options: {
         continue;
       }
 
-      const isBaseline =
-        options.baseline && migration.name.includes("baseline");
+      const isBaseline = options.baseline && /_baseline$/.test(migration.name);
       const start = Date.now();
 
       await client.query("BEGIN");

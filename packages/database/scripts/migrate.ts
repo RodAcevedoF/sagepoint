@@ -8,6 +8,7 @@ import {
 } from "./migration-runner";
 
 const MIGRATIONS_DIR = join(__dirname, "..", "migrations");
+const MIGRATION_NAME_REGEX = /^[A-Za-z0-9_-]+$/;
 
 // ---------------------------------------------------------------------------
 // CLI
@@ -37,6 +38,12 @@ async function main() {
       const name = positional();
       if (!name) {
         console.error("Usage: migrate create <name> [--author <name>]");
+        process.exit(1);
+      }
+      if (!MIGRATION_NAME_REGEX.test(name)) {
+        console.error(
+          "Invalid migration name. Allowed: letters, digits, underscores, hyphens.",
+        );
         process.exit(1);
       }
       const author = parseFlag("author") ?? "unknown";
