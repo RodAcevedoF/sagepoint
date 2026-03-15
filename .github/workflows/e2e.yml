@@ -76,7 +76,7 @@ jobs:
         run: PGPASSWORD="" psql -h localhost -p 5440 -U user -d sagepoint -c "CREATE DATABASE sagepoint_test;"
 
       - name: Push schema to test database
-        run: pnpm db:push
+        run: pnpm --filter @sagepoint/database db:push
         env:
           DATABASE_URL: postgresql://user@localhost:5440/sagepoint_test?schema=public
 
