@@ -16,6 +16,6 @@ import { getDependencies } from '@/core/bootstrap';
       useFactory: () => getDependencies().category.categoryRepository,
     },
   ],
-  exports: [CATEGORY_SERVICE],
+  exports: [CATEGORY_SERVICE, CATEGORY_REPOSITORY],
 })
 export class CategoryModule {}
