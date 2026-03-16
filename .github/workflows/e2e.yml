@@ -67,16 +67,16 @@ jobs:
 
       - run: pnpm build
 
-      - name: Push database schema
-        run: pnpm db:push
+      - name: Run migrations
+        run: pnpm --filter @sagepoint/database migrate:up -- --author ci
         env:
           DATABASE_URL: postgresql://user@localhost:5440/sagepoint?schema=public
 
       - name: Create test database
         run: PGPASSWORD="" psql -h localhost -p 5440 -U user -d sagepoint -c "CREATE DATABASE sagepoint_test;"
 
-      - name: Push schema to test database
-        run: pnpm --filter @sagepoint/database db:push
+      - name: Run migrations on test database
+        run: pnpm --filter @sagepoint/database migrate:up -- --author ci
         env:
           DATABASE_URL: postgresql://user@localhost:5440/sagepoint_test?schema=public
 
