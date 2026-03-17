@@ -9,6 +9,7 @@ import {
   Query,
   Inject,
   UnauthorizedException,
+  ForbiddenException,
 } from '@nestjs/common';
 import type { Response, Request } from 'express';
 import type { IAuthService } from '@/features/auth/domain/inbound/auth.service.port';
@@ -19,9 +20,16 @@ import { GoogleAuthGuard } from '@/features/auth/infra/guards/google-auth.guard'
 import { JwtAuthGuard } from '@/features/auth/infra/guards/jwt-auth.guard';
 import { CurrentUser } from '@/features/auth/decorators/current-user.decorator';
 import type { RequestUser } from '@/features/auth/domain/request-user';
-import { User } from '@sagepoint/domain';
+import { User, UserRole } from '@sagepoint/domain';
 import { RegisterDto } from '@/features/auth/app/dto/register.dto';
 import { toUserResponseDto } from '@/features/user/app/dto/user-response.dto';
+
+/**
+ * When RESTRICT_AUTH_TO_ADMIN=true, only admin accounts can login/register.
+ * Use this in staging/prod to prevent unauthorized access and LLM token consumption.
+ * Set to "false" or remove the env var to allow all users.
+ */
+const isAuthRestricted = process.env.RESTRICT_AUTH_TO_ADMIN === 'true';
 
 @Controller('auth')
 export class AuthController {
@@ -32,6 +40,9 @@ export class AuthController {
 
   @Post('register')
   async register(@Body() registerDto: RegisterDto) {
+    if (isAuthRestricted) {
+      throw new ForbiddenException('Registration is disabled');
+    }
     return await this.authService.register(registerDto);
   }
 
@@ -113,6 +124,9 @@ export class AuthController {
   }
 
   private async handleLogin(user: User, response: Response) {
+    if (isAuthRestricted && user.role !== UserRole.ADMIN) {
+      throw new ForbiddenException('Access restricted to administrators');
+    }
     const result = await this.authService.login(user);
     this.setCookies(response, result.accessToken, result.refreshToken);
     // Return tokens in body for server-side auth (Next.js server actions)
