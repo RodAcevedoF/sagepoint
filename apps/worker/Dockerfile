@@ -20,7 +20,7 @@ COPY . .
 RUN pnpm --filter @sagepoint/database db:generate
 RUN pnpm --filter @sagepoint/worker... build
 RUN pnpm deploy --filter @sagepoint/worker --prod --legacy /app/prod
-RUN cp -r /app/dist/apps/worker/src/* /app/prod/dist/
+RUN cp -r /app/dist/apps/worker /app/prod/dist
 RUN cp /app/packages/database/prisma/schema.prisma /app/prod/schema.prisma
 RUN cd /app/prod && npx prisma generate --schema=schema.prisma && rm schema.prisma
 
@@ -32,4 +32,4 @@ WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=build /app/prod .
 USER node
-CMD ["dumb-init", "node", "dist/main.js"]
+CMD ["dumb-init", "node", "dist/src/main.js"]
