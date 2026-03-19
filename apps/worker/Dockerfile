@@ -21,7 +21,8 @@ RUN pnpm --filter @sagepoint/database db:generate
 RUN pnpm --filter @sagepoint/worker... build
 RUN pnpm deploy --filter @sagepoint/worker --prod --legacy /app/prod
 RUN cp -r /app/dist/apps/worker/src/* /app/prod/dist/
-RUN cp -r /app/node_modules/.prisma /app/prod/node_modules/.prisma
+RUN cp /app/packages/database/prisma/schema.prisma /app/prod/schema.prisma
+RUN cd /app/prod && npx prisma generate --schema=schema.prisma && rm schema.prisma
 
 # --- runner (slim = glibc, fewer CVEs, better perf under load than musl) ---
 FROM node:22-slim AS runner
