@@ -20,7 +20,7 @@ COPY . .
 RUN pnpm --filter @sagepoint/database db:generate
 RUN pnpm --filter @sagepoint/worker... build
 RUN pnpm deploy --filter @sagepoint/worker --prod --legacy /app/prod
-RUN cp -r /app/apps/worker/dist /app/prod/dist
+RUN cp -r /app/dist/apps/worker /app/prod/dist
 
 # --- runner (slim = glibc, fewer CVEs, better perf under load than musl) ---
 FROM node:22-slim AS runner
