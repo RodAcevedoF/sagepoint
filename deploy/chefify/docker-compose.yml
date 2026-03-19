@@ -1,0 +1,17 @@
+services:
+  chefify:
+    build:
+      context: ./chefify-api
+      dockerfile: Dockerfile
+    container_name: chefify_api
+    env_file:
+      - ./chefify-api/.env
+    ports:
+      - "127.0.0.1:4001:4000"
+    restart: unless-stopped
+    networks:
+      - shared
+
+networks:
+  shared:
+    external: true

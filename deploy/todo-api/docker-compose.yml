@@ -1,0 +1,21 @@
+services:
+  todo_api:
+    container_name: todo_api
+    build:
+      context: ./todo_api
+      dockerfile: Dockerfile
+    environment:
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME:-todo_db}
+      DB_HOST: shared_postgres
+      DB_PORT: "5432"
+    ports:
+      - "127.0.0.1:4000:4000"
+    restart: unless-stopped
+    networks:
+      - shared
+
+networks:
+  shared:
+    external: true

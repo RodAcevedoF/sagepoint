@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: [master]
+    branches: [master, develop]
   release:
     types: [published]
 
@@ -39,8 +39,8 @@ jobs:
         with:
           images: ${{ env.IMAGE_PREFIX }}-${{ matrix.app }}
           tags: |
-            type=raw,value=staging,enable=${{ github.event_name == 'push' }}
-            type=raw,value=latest,enable=${{ github.event_name == 'release' }}
+            type=raw,value=staging,enable=${{ github.ref == 'refs/heads/develop' }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
             type=semver,pattern={{version}},enable=${{ github.event_name == 'release' }}
 
       - uses: docker/build-push-action@v6
@@ -54,20 +54,17 @@ jobs:
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
 
     steps:
       - name: Deploy to VPS
-        run: |
-          echo "TODO: Add SSH deploy step"
-          echo "Images pushed to GHCR. Configure docker-compose pull + restart on your VPS."
-          echo "Environment: ${{ github.event_name == 'release' && 'production' || 'staging' }}"
-        # Uncomment and configure when VPS is ready:
-        # - uses: appleboy/ssh-action@v1
-        #   with:
-        #     host: ${{ secrets.VPS_HOST }}
-        #     username: ${{ secrets.VPS_USER }}
-        #     key: ${{ secrets.VPS_SSH_KEY }}
-        #     script: |
-        #       cd /opt/sagepoint
-        #       docker compose pull
-        #       docker compose up -d
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /opt/sagepoint
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d
+            docker compose -f docker-compose.prod.yml exec -T api node node_modules/.bin/prisma migrate deploy
