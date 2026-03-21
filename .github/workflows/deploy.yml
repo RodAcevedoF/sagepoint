@@ -66,6 +66,7 @@ jobs:
           port: ${{ secrets.VPS_SSH_PORT }}
           script: |
             cd /opt/sagepoint
+            export TAG=latest
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d
-            docker compose -f docker-compose.prod.yml exec -T api node node_modules/.bin/prisma migrate deploy
+            docker compose -f docker-compose.prod.yml exec -T api npx prisma migrate deploy --schema=prisma/schema.prisma
