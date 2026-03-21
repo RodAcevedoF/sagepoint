@@ -20,10 +20,13 @@ COPY . .
 RUN pnpm --filter @sagepoint/database db:generate
 RUN pnpm --filter @sagepoint/worker... build
 RUN pnpm deploy --filter @sagepoint/worker --prod --legacy /app/prod
-RUN cp -r /app/dist/apps/worker /app/prod/dist
-RUN cp -r /app/node_modules/.pnpm/@prisma+client*/node_modules/.prisma /app/prod/node_modules/.prisma
+RUN cp -r /app/apps/worker/dist /app/prod/dist
+# Prisma: copy generated client to where @prisma/client expects it
+RUN PRISMA_GENERATED=$(find /app/node_modules -path '*/.prisma/client' -type d | head -1) \
+    && mkdir -p /app/prod/node_modules/.prisma \
+    && cp -r "$PRISMA_GENERATED" /app/prod/node_modules/.prisma/client
 
-# --- runner (slim = glibc, fewer CVEs, better perf under load than musl) ---
+# --- runner ---
 FROM node:22-slim AS runner
 RUN apt-get update && apt-get install -y --no-install-recommends dumb-init \
     && rm -rf /var/lib/apt/lists/*
@@ -31,4 +34,4 @@ WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=build /app/prod .
 USER node
-CMD ["dumb-init", "node", "dist/src/main.js"]
+CMD ["dumb-init", "node", "dist/main.js"]
