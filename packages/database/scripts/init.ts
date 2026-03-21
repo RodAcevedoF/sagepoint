@@ -1,24 +1,70 @@
-import { PrismaClient, UserRole, OnboardingStatus } from '@prisma/client';
-import * as bcrypt from 'bcryptjs';
-import { randomUUID } from 'crypto';
+import {
+  PrismaClient,
+  UserRole,
+  OnboardingStatus,
+} from "../src/generated/prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import * as bcrypt from "bcryptjs";
+import { randomUUID } from "crypto";
 
-const prisma = new PrismaClient();
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const prisma = new PrismaClient({ adapter });
 
 // ============================================================================
 // Default Categories
 // ============================================================================
 
 const DEFAULT_CATEGORIES = [
-  { name: 'Web Development', slug: 'web-development', description: 'Frontend, backend, and full-stack web development' },
-  { name: 'Mobile Development', slug: 'mobile-development', description: 'iOS, Android, and cross-platform mobile apps' },
-  { name: 'Machine Learning', slug: 'machine-learning', description: 'AI, deep learning, and neural networks' },
-  { name: 'Data Science', slug: 'data-science', description: 'Data analysis, visualization, and statistics' },
-  { name: 'DevOps', slug: 'devops', description: 'CI/CD, cloud infrastructure, and deployment' },
-  { name: 'Cybersecurity', slug: 'cybersecurity', description: 'Security, penetration testing, and cryptography' },
-  { name: 'Cloud Computing', slug: 'cloud-computing', description: 'AWS, Azure, GCP, and cloud architecture' },
-  { name: 'Databases', slug: 'databases', description: 'SQL, NoSQL, and database design' },
-  { name: 'Programming Languages', slug: 'programming-languages', description: 'Python, JavaScript, Rust, Go, and more' },
-  { name: 'System Design', slug: 'system-design', description: 'Architecture, scalability, and distributed systems' },
+  {
+    name: "Web Development",
+    slug: "web-development",
+    description: "Frontend, backend, and full-stack web development",
+  },
+  {
+    name: "Mobile Development",
+    slug: "mobile-development",
+    description: "iOS, Android, and cross-platform mobile apps",
+  },
+  {
+    name: "Machine Learning",
+    slug: "machine-learning",
+    description: "AI, deep learning, and neural networks",
+  },
+  {
+    name: "Data Science",
+    slug: "data-science",
+    description: "Data analysis, visualization, and statistics",
+  },
+  {
+    name: "DevOps",
+    slug: "devops",
+    description: "CI/CD, cloud infrastructure, and deployment",
+  },
+  {
+    name: "Cybersecurity",
+    slug: "cybersecurity",
+    description: "Security, penetration testing, and cryptography",
+  },
+  {
+    name: "Cloud Computing",
+    slug: "cloud-computing",
+    description: "AWS, Azure, GCP, and cloud architecture",
+  },
+  {
+    name: "Databases",
+    slug: "databases",
+    description: "SQL, NoSQL, and database design",
+  },
+  {
+    name: "Programming Languages",
+    slug: "programming-languages",
+    description: "Python, JavaScript, Rust, Go, and more",
+  },
+  {
+    name: "System Design",
+    slug: "system-design",
+    description: "Architecture, scalability, and distributed systems",
+  },
 ];
 
 // ============================================================================
@@ -26,9 +72,9 @@ const DEFAULT_CATEGORIES = [
 // ============================================================================
 
 const ADMIN_USER = {
-  email: process.env.ADMIN_EMAIL || 'admin@sagepoint.dev',
-  password: process.env.ADMIN_PASSWORD || 'Admin123!',
-  name: process.env.ADMIN_NAME || 'Admin',
+  email: process.env.ADMIN_EMAIL || "admin@sagepoint.dev",
+  password: process.env.ADMIN_PASSWORD || "Admin123!",
+  name: process.env.ADMIN_NAME || "Admin",
 };
 
 // ============================================================================
@@ -36,10 +82,10 @@ const ADMIN_USER = {
 // ============================================================================
 
 async function main() {
-  console.log('🚀 Initializing Sagepoint...\n');
+  console.log("Initializing Sagepoint...\n");
 
   // 1. Create Categories
-  console.log('📚 Creating categories...');
+  console.log("Creating categories...");
   let categoriesCreated = 0;
   let categoriesSkipped = 0;
 
@@ -64,16 +110,16 @@ async function main() {
     categoriesCreated++;
   }
 
-  console.log(`   ✅ Created: ${categoriesCreated}, Skipped: ${categoriesSkipped}\n`);
+  console.log(`Created: ${categoriesCreated}, Skipped: ${categoriesSkipped}\n`);
 
   // 2. Create Admin User
-  console.log('👤 Creating admin user...');
+  console.log("Creating admin user...");
   const existingAdmin = await prisma.user.findUnique({
     where: { email: ADMIN_USER.email },
   });
 
   if (existingAdmin) {
-    console.log(`   ⏭️  Admin user already exists: ${ADMIN_USER.email}\n`);
+    console.log(`Admin user already exists: ${ADMIN_USER.email}\n`);
   } else {
     const passwordHash = await bcrypt.hash(ADMIN_USER.password, 10);
 
@@ -90,17 +136,17 @@ async function main() {
       },
     });
 
-    console.log(`   ✅ Created admin user: ${ADMIN_USER.email}`);
-    console.log(`   📧 Email: ${ADMIN_USER.email}`);
-    console.log(`   🔑 Password: ${ADMIN_USER.password}\n`);
+    console.log(`Created admin user: ${ADMIN_USER.email}`);
+    console.log(`Email: ${ADMIN_USER.email}`);
+    console.log(`Password: ${ADMIN_USER.password}\n`);
   }
 
-  console.log('✨ Sagepoint initialization complete!\n');
+  console.log("✨ Sagepoint initialization complete!\n");
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Initialization failed:', e);
+    console.error("Initialization failed:", e);
     process.exit(1);
   })
   .finally(async () => {

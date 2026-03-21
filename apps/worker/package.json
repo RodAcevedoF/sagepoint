@@ -13,6 +13,7 @@
     "test:cov": "jest --coverage"
   },
   "dependencies": {
+    "@prisma/client": "^7.2.0",
     "@nestjs/bullmq": "^11.0.4",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
