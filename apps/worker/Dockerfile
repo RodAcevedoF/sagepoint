@@ -26,7 +26,8 @@ RUN cp -r /app/apps/worker/dist /app/prod/dist
 
 # --- runner ---
 FROM node:24-slim AS runner
-RUN apt-get update && apt-get install -y --no-install-recommends dumb-init \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    dumb-init libfontconfig1 libfreetype6 \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 ENV NODE_ENV=production

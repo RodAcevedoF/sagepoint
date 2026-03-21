@@ -656,6 +656,9 @@ importers:
 
   packages/parsing:
     dependencies:
+      '@napi-rs/canvas':
+        specifier: ^0.1.80
+        version: 0.1.80
       mammoth:
         specifier: ^1.11.0
         version: 1.11.0
