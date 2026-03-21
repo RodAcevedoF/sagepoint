@@ -1,4 +1,4 @@
-import { PrismaClient } from '@sagepoint/database';
+import { PrismaClient, PrismaPg } from '@sagepoint/database';
 import type { PrismaService } from '@/core/infra/database/prisma.service';
 
 let client: PrismaClient;
@@ -9,7 +9,10 @@ let client: PrismaClient;
  */
 export function getPrismaClient(): PrismaClient {
   if (!client) {
-    client = new PrismaClient();
+    const adapter = new PrismaPg({
+      connectionString: process.env.DATABASE_URL!,
+    });
+    client = new PrismaClient({ adapter });
   }
   return client;
 }

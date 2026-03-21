@@ -1,9 +1,14 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Inject } from '@nestjs/common';
-import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
-import { Job } from 'bullmq';
-import { PrismaClient, Prisma, ProcessingStage } from '@sagepoint/database';
-import { CompositeDocumentParser } from '@sagepoint/parsing';
+import { Processor, WorkerHost } from "@nestjs/bullmq";
+import { Inject } from "@nestjs/common";
+import { InjectPinoLogger, PinoLogger } from "nestjs-pino";
+import { Job } from "bullmq";
+import {
+  PrismaClient,
+  PrismaPg,
+  Prisma,
+  ProcessingStage,
+} from "@sagepoint/database";
+import { CompositeDocumentParser } from "@sagepoint/parsing";
 import {
   DocumentStatus,
   Concept,
@@ -13,7 +18,7 @@ import {
   IMAGE_TEXT_EXTRACTION_SERVICE,
   FILE_STORAGE,
   CONCEPT_REPOSITORY,
-} from '@sagepoint/domain';
+} from "@sagepoint/domain";
 import type {
   IFileStorage,
   IConceptRepository,
@@ -24,8 +29,8 @@ import type {
   ExtractedConcept,
   DocumentAnalysisResult,
   GeneratedQuestion,
-} from '@sagepoint/domain';
-import { randomUUID } from 'crypto';
+} from "@sagepoint/domain";
+import { randomUUID } from "crypto";
 
 interface JobData {
   documentId: string;
@@ -35,22 +40,24 @@ interface JobData {
 }
 
 const MIME_MAP: Record<string, string> = {
-  pdf: 'application/pdf',
-  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  txt: 'text/plain',
-  md: 'text/markdown',
-  png: 'image/png',
-  jpg: 'image/jpeg',
-  jpeg: 'image/jpeg',
-  webp: 'image/webp',
+  pdf: "application/pdf",
+  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  txt: "text/plain",
+  md: "text/markdown",
+  png: "image/png",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  webp: "image/webp",
 };
 
 const MAX_AI_TEXT_LENGTH = 15000;
 
-@Processor('document-processing')
+@Processor("document-processing")
 export class DocumentProcessorService extends WorkerHost {
-  private readonly prisma = new PrismaClient();
+  private readonly prisma = new PrismaClient({
+    adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }),
+  });
   private readonly parser = new CompositeDocumentParser();
 
   constructor(
@@ -74,10 +81,19 @@ export class DocumentProcessorService extends WorkerHost {
 
   async process(job: Job<JobData>) {
     const { documentId, storagePath, filename, mimeType } = job.data;
-    this.logger.info({ jobId: job.id, documentId, filename, mimeType }, 'Processing document');
+    this.logger.info(
+      { jobId: job.id, documentId, filename, mimeType },
+      "Processing document",
+    );
 
     try {
-      const text = await this.parseDocument(job, documentId, storagePath, filename, mimeType);
+      const text = await this.parseDocument(
+        job,
+        documentId,
+        storagePath,
+        filename,
+        mimeType,
+      );
       const analysis = await this.analyzeDocument(job, documentId, text);
       await this.extractConceptsAndQuiz(job, documentId, text, analysis);
       await this.finalize(job, documentId);
@@ -94,18 +110,25 @@ export class DocumentProcessorService extends WorkerHost {
     filename: string,
     mimeType?: string,
   ): Promise<string> {
-    await this.updateStage(documentId, DocumentStatus.PROCESSING, ProcessingStage.PARSING);
-    await job.updateProgress({ stage: 'parsing' });
+    await this.updateStage(
+      documentId,
+      DocumentStatus.PROCESSING,
+      ProcessingStage.PARSING,
+    );
+    await job.updateProgress({ stage: "parsing" });
 
     const buffer = await this.fileStorage.download(storagePath);
     const resolvedMime = mimeType || this.guessMimeType(filename);
     const text = await this.extractText(buffer, resolvedMime);
 
     if (!text || text.trim().length === 0) {
-      throw new Error('No text could be extracted from the document');
+      throw new Error("No text could be extracted from the document");
     }
 
-    this.logger.info({ jobId: job.id, documentId, charCount: text.length }, 'Text extracted');
+    this.logger.info(
+      { jobId: job.id, documentId, charCount: text.length },
+      "Text extracted",
+    );
     return text;
   }
 
@@ -115,16 +138,19 @@ export class DocumentProcessorService extends WorkerHost {
     text: string,
   ): Promise<DocumentAnalysisResult> {
     await this.updateStage(documentId, undefined, ProcessingStage.ANALYZING);
-    await job.updateProgress({ stage: 'analyzing' });
+    await job.updateProgress({ stage: "analyzing" });
 
     const truncatedText = text.substring(0, MAX_AI_TEXT_LENGTH);
     const analysis = await this.documentAnalysis.analyzeDocument(truncatedText);
 
     await this.saveSummary(documentId, analysis);
     await this.updateStage(documentId, undefined, ProcessingStage.SUMMARIZED);
-    await job.updateProgress({ stage: 'summarized' });
+    await job.updateProgress({ stage: "summarized" });
 
-    this.logger.info({ jobId: job.id, documentId, stage: 'summarized' }, 'Summary saved');
+    this.logger.info(
+      { jobId: job.id, documentId, stage: "summarized" },
+      "Summary saved",
+    );
     return analysis;
   }
 
@@ -138,12 +164,14 @@ export class DocumentProcessorService extends WorkerHost {
 
     const [conceptsResult, quizResult] = await Promise.allSettled([
       this.contentAnalysis.extractConcepts(truncatedText),
-      this.quizGeneration.generateQuiz(truncatedText, [], { questionCount: 10 }),
+      this.quizGeneration.generateQuiz(truncatedText, [], {
+        questionCount: 10,
+      }),
     ]);
 
     let conceptCount = 0;
 
-    if (conceptsResult.status === 'fulfilled') {
+    if (conceptsResult.status === "fulfilled") {
       const concepts = conceptsResult.value.map((e) =>
         Concept.create(randomUUID(), e.name, documentId, e.description),
       );
@@ -156,46 +184,61 @@ export class DocumentProcessorService extends WorkerHost {
     } else {
       this.logger.warn(
         { jobId: job.id, documentId, err: String(conceptsResult.reason) },
-        'Concept extraction failed, continuing with partial results',
+        "Concept extraction failed, continuing with partial results",
       );
     }
 
-    if (quizResult.status === 'fulfilled') {
+    if (quizResult.status === "fulfilled") {
       await this.saveQuiz(documentId, analysis.topicArea, quizResult.value);
     } else {
       this.logger.warn(
         { jobId: job.id, documentId, err: String(quizResult.reason) },
-        'Quiz generation failed, continuing with partial results',
+        "Quiz generation failed, continuing with partial results",
       );
     }
 
-    if (conceptsResult.status === 'rejected' && quizResult.status === 'rejected') {
-      throw new Error('Both concept extraction and quiz generation failed');
+    if (
+      conceptsResult.status === "rejected" &&
+      quizResult.status === "rejected"
+    ) {
+      throw new Error("Both concept extraction and quiz generation failed");
     }
   }
 
   private async finalize(job: Job<JobData>, documentId: string): Promise<void> {
-    const summary = await this.prisma.documentSummary.findFirst({ where: { documentId } });
+    const summary = await this.prisma.documentSummary.findFirst({
+      where: { documentId },
+    });
     await this.prisma.document.update({
       where: { id: documentId },
       data: {
         status: DocumentStatus.COMPLETED,
-        processingStage: 'READY',
+        processingStage: "READY",
         conceptCount: summary?.conceptCount ?? 0,
       },
     });
-    await job.updateProgress({ stage: 'ready' });
-    this.logger.info({ jobId: job.id, documentId, stage: 'ready' }, 'Document fully processed');
+    await job.updateProgress({ stage: "ready" });
+    this.logger.info(
+      { jobId: job.id, documentId, stage: "ready" },
+      "Document fully processed",
+    );
   }
 
-  private async handleFailure(job: Job<JobData>, documentId: string, error: unknown): Promise<void> {
+  private async handleFailure(
+    job: Job<JobData>,
+    documentId: string,
+    error: unknown,
+  ): Promise<void> {
     const err = error instanceof Error ? error : new Error(String(error));
-    this.logger.error({ jobId: job.id, documentId, err }, 'Document processing failed');
+    this.logger.error(
+      { jobId: job.id, documentId, err },
+      "Document processing failed",
+    );
     await this.prisma.document.update({
       where: { id: documentId },
       data: {
         status: DocumentStatus.FAILED,
-        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        errorMessage: error instanceof Error ? error.message : "Unknown error",
       },
     });
   }
@@ -215,12 +258,12 @@ export class DocumentProcessorService extends WorkerHost {
   }
 
   private async extractText(buffer: Buffer, mimeType: string): Promise<string> {
-    if (mimeType.startsWith('image/')) {
+    if (mimeType.startsWith("image/")) {
       return this.visionExtractor.extractText(buffer, mimeType);
     }
 
-    if (mimeType.startsWith('text/')) {
-      return buffer.toString('utf-8');
+    if (mimeType.startsWith("text/")) {
+      return buffer.toString("utf-8");
     }
 
     if (this.parser.supports(mimeType)) {
@@ -228,13 +271,13 @@ export class DocumentProcessorService extends WorkerHost {
       return result.text;
     }
 
-    this.logger.warn({ mimeType }, 'Unknown MIME type, attempting text decode');
-    return buffer.toString('utf-8');
+    this.logger.warn({ mimeType }, "Unknown MIME type, attempting text decode");
+    return buffer.toString("utf-8");
   }
 
   private guessMimeType(filename: string): string {
-    const ext = filename.toLowerCase().split('.').pop();
-    return MIME_MAP[ext || ''] || 'application/octet-stream';
+    const ext = filename.toLowerCase().split(".").pop();
+    return MIME_MAP[ext || ""] || "application/octet-stream";
   }
 
   private async saveSummary(
@@ -312,10 +355,19 @@ export class DocumentProcessorService extends WorkerHost {
       }
     }
 
-    await this.conceptRepository.saveWithRelations(concepts, relationships, documentId, 'Document');
+    await this.conceptRepository.saveWithRelations(
+      concepts,
+      relationships,
+      documentId,
+      "Document",
+    );
     this.logger.info(
-      { documentId, conceptCount: concepts.length, relationshipCount: relationships.length },
-      'Saved concepts to Neo4j',
+      {
+        documentId,
+        conceptCount: concepts.length,
+        relationshipCount: relationships.length,
+      },
+      "Saved concepts to Neo4j",
     );
   }
 }
