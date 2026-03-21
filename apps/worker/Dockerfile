@@ -21,12 +21,9 @@ RUN pnpm --filter @sagepoint/database db:generate
 RUN pnpm --filter @sagepoint/worker... build
 RUN pnpm deploy --filter @sagepoint/worker --prod --legacy /app/prod
 RUN cp -r /app/apps/worker/dist /app/prod/dist
-# Prisma: copy @prisma/client runtime + generated client
-RUN PRISMA_CLIENT=$(find /app/node_modules -path '*/@prisma/client' -not -path '*/.prisma/*' -type d | head -1) \
-    && cp -r "$PRISMA_CLIENT" /app/prod/node_modules/@prisma/client
-RUN PRISMA_GENERATED=$(find /app/node_modules -path '*/.prisma/client' -type d | head -1) \
-    && mkdir -p /app/prod/node_modules/.prisma \
-    && cp -r "$PRISMA_GENERATED" /app/prod/node_modules/.prisma/client
+# Prisma: pnpm deploy misses these — copy from the full install
+RUN cp -r /app/node_modules/.pnpm/@prisma+client@*/node_modules/@prisma /app/prod/node_modules/@prisma
+RUN cp -r /app/node_modules/.pnpm/@prisma+client@*/node_modules/.prisma /app/prod/node_modules/.prisma
 
 # --- runner ---
 FROM node:22-slim AS runner
