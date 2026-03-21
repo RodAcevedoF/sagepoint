@@ -144,22 +144,28 @@ export class AuthController {
     refreshToken: string,
   ) {
     const isProduction = process.env.NODE_ENV === 'production';
+    const cookieDomain = isProduction
+      ? process.env.COOKIE_DOMAIN || '.sagepoint.online'
+      : undefined;
+
     // Access Token Cookie
     response.cookie('access_token', accessToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: 'strict',
+      sameSite: 'lax',
       path: '/',
       maxAge: 15 * 60 * 1000, // 15 minutes
+      ...(cookieDomain && { domain: cookieDomain }),
     });
 
     // Refresh Token Cookie
     response.cookie('refresh_token', refreshToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: 'strict',
+      sameSite: 'lax',
       path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      ...(cookieDomain && { domain: cookieDomain }),
     });
   }
 
