@@ -1,8 +1,17 @@
 {
-  "extends": "./tsconfig.json",
   "compilerOptions": {
+    "module": "commonjs",
+    "target": "ES2021",
     "outDir": "./dist-scripts",
-    "rootDir": "./scripts"
+    "rootDir": "./scripts",
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "strictNullChecks": false,
+    "noImplicitAny": false
   },
-  "include": ["scripts"]
+  "include": [
+    "scripts/migration-runner.ts",
+    "scripts/migrate.ts",
+    "scripts/init.ts"
+  ]
 }

@@ -1,18 +1,6 @@
-import {
-  PrismaClient,
-  UserRole,
-  OnboardingStatus,
-} from "../src/generated/prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { Client } from "pg";
 import * as bcrypt from "bcryptjs";
 import { randomUUID } from "crypto";
-
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
-const prisma = new PrismaClient({ adapter });
-
-// ============================================================================
-// Default Categories
-// ============================================================================
 
 const DEFAULT_CATEGORIES = [
   {
@@ -67,88 +55,82 @@ const DEFAULT_CATEGORIES = [
   },
 ];
 
-// ============================================================================
-// Admin User Config
-// ============================================================================
-
 const ADMIN_USER = {
   email: process.env.ADMIN_EMAIL || "admin@sagepoint.dev",
   password: process.env.ADMIN_PASSWORD || "Admin123!",
   name: process.env.ADMIN_NAME || "Admin",
 };
 
-// ============================================================================
-// Main Script
-// ============================================================================
-
 async function main() {
-  console.log("Initializing Sagepoint...\n");
+  const url = process.env.DATABASE_URL;
+  if (!url) {
+    console.error("DATABASE_URL is not set");
+    process.exit(1);
+  }
 
-  // 1. Create Categories
-  console.log("Creating categories...");
-  let categoriesCreated = 0;
-  let categoriesSkipped = 0;
+  const client = new Client({ connectionString: url });
+  await client.connect();
 
-  for (const category of DEFAULT_CATEGORIES) {
-    const existing = await prisma.category.findUnique({
-      where: { slug: category.slug },
-    });
+  try {
+    console.log("Initializing Sagepoint...\n");
 
-    if (existing) {
-      categoriesSkipped++;
-      continue;
+    // 1. Create Categories
+    console.log("Creating categories...");
+    let categoriesCreated = 0;
+    let categoriesSkipped = 0;
+
+    for (const category of DEFAULT_CATEGORIES) {
+      const { rows } = await client.query(
+        "SELECT 1 FROM categories WHERE slug = $1",
+        [category.slug],
+      );
+
+      if (rows.length > 0) {
+        categoriesSkipped++;
+        continue;
+      }
+
+      await client.query(
+        `INSERT INTO categories (id, name, slug, description, "createdAt", "updatedAt")
+         VALUES ($1, $2, $3, $4, now(), now())`,
+        [randomUUID(), category.name, category.slug, category.description],
+      );
+      categoriesCreated++;
     }
 
-    await prisma.category.create({
-      data: {
-        id: randomUUID(),
-        name: category.name,
-        slug: category.slug,
-        description: category.description,
-      },
-    });
-    categoriesCreated++;
+    console.log(
+      `  Created: ${categoriesCreated}, Skipped: ${categoriesSkipped}\n`,
+    );
+
+    // 2. Create Admin User
+    console.log("Creating admin user...");
+    const { rows: existing } = await client.query(
+      "SELECT 1 FROM users WHERE email = $1",
+      [ADMIN_USER.email],
+    );
+
+    if (existing.length > 0) {
+      console.log(`  Admin user already exists: ${ADMIN_USER.email}\n`);
+    } else {
+      const passwordHash = await bcrypt.hash(ADMIN_USER.password, 10);
+
+      await client.query(
+        `INSERT INTO users (id, email, name, password, role, "isActive", "isVerified", "onboardingStatus", "createdAt", "updatedAt")
+         VALUES ($1, $2, $3, $4, 'ADMIN', true, true, 'COMPLETED', now(), now())`,
+        [randomUUID(), ADMIN_USER.email, ADMIN_USER.name, passwordHash],
+      );
+
+      console.log(`  Created admin user: ${ADMIN_USER.email}`);
+      console.log(`  Password: ${ADMIN_USER.password}\n`);
+    }
+
+    console.log("Sagepoint initialization complete!\n");
+  } finally {
+    await client.end();
   }
-
-  console.log(`Created: ${categoriesCreated}, Skipped: ${categoriesSkipped}\n`);
-
-  // 2. Create Admin User
-  console.log("Creating admin user...");
-  const existingAdmin = await prisma.user.findUnique({
-    where: { email: ADMIN_USER.email },
-  });
-
-  if (existingAdmin) {
-    console.log(`Admin user already exists: ${ADMIN_USER.email}\n`);
-  } else {
-    const passwordHash = await bcrypt.hash(ADMIN_USER.password, 10);
-
-    await prisma.user.create({
-      data: {
-        id: randomUUID(),
-        email: ADMIN_USER.email,
-        name: ADMIN_USER.name,
-        password: passwordHash,
-        role: UserRole.ADMIN,
-        isActive: true,
-        isVerified: true,
-        onboardingStatus: OnboardingStatus.COMPLETED,
-      },
-    });
-
-    console.log(`Created admin user: ${ADMIN_USER.email}`);
-    console.log(`Email: ${ADMIN_USER.email}`);
-    console.log(`Password: ${ADMIN_USER.password}\n`);
-  }
-
-  console.log("✨ Sagepoint initialization complete!\n");
 }
 
-main()
-  .catch((e) => {
-    console.error("Initialization failed:", e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+main().catch((e) => {
+  console.error("Initialization failed:", e instanceof Error ? e.message : e);
+  process.exit(1);
+});

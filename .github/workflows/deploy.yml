@@ -70,4 +70,4 @@ jobs:
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d
             sleep 5
-            docker compose -f docker-compose.prod.yml exec -T api node scripts/migrate-prod.mjs up --author ci
+            docker compose -f docker-compose.prod.yml exec -T api node scripts/migrate.js up --author ci
