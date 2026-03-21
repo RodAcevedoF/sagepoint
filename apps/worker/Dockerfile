@@ -25,10 +25,8 @@ RUN pnpm deploy --filter @sagepoint/worker --prod --legacy /app/prod
 RUN cp -r /app/apps/worker/dist /app/prod/dist
 
 # --- runner ---
-FROM node:24-slim AS runner
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    dumb-init libfontconfig1 libfreetype6 \
-    && rm -rf /var/lib/apt/lists/*
+FROM node:24-alpine AS runner
+RUN apk add --no-cache dumb-init fontconfig freetype
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=build /app/prod .
