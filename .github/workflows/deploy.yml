@@ -69,4 +69,5 @@ jobs:
             export TAG=latest
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d
-            # Migrations are run manually via the custom runner
+            sleep 5
+            docker compose -f docker-compose.prod.yml exec -T api node scripts/migrate-prod.mjs up --author ci
