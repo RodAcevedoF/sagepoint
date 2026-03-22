@@ -1,11 +1,9 @@
 "use client";
 
+import { useAppSelector } from "@/common/hooks";
 import { Brand } from "../Brand";
 
-/**
- * NavbarBrand component for the application header.
- * Uses the unified Brand component with the logo visible.
- */
 export function NavbarBrand() {
-  return <Brand showLogo={true} />;
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  return <Brand showLogo={true} href={isAuthenticated ? "/dashboard" : "/"} />;
 }
