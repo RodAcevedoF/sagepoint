@@ -1,16 +1,15 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { logout } from '@/infrastructure/store/slices/authSlice';
-import { useAppDispatch } from '@/common/hooks';
+import { logout } from "@/infrastructure/store/slices/authSlice";
+import { useAppDispatch } from "@/common/hooks";
+import { logoutAction } from "@/app/actions/auth";
 
 export function useLogoutCommand() {
   const dispatch = useAppDispatch();
-  const router = useRouter();
 
-  const execute = () => {
+  const execute = async () => {
     dispatch(logout());
-    router.push('/login');
+    await logoutAction();
   };
 
   return { execute };
