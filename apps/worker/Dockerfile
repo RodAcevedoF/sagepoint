@@ -18,9 +18,8 @@ RUN pnpm install --frozen-lockfile
 FROM deps AS build
 COPY . .
 RUN pnpm --filter @sagepoint/database db:generate
-# Build workspace deps first, then worker with tsc directly (nest build has incremental issues in Docker)
 RUN pnpm --filter @sagepoint/worker^... build
-RUN cd /app/apps/worker && npx tsc -p tsconfig.build.json
+RUN pnpm --filter @sagepoint/worker build
 RUN pnpm deploy --filter @sagepoint/worker --prod --legacy /app/prod
 RUN cp -r /app/apps/worker/dist /app/prod/dist
 
