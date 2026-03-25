@@ -17,6 +17,6 @@ import { getDependencies } from '@/core/bootstrap';
       useFactory: () => getDependencies().user.userRepository,
     },
   ],
-  exports: [USER_SERVICE],
+  exports: [USER_SERVICE, USER_REPOSITORY],
 })
 export class UserModule {}

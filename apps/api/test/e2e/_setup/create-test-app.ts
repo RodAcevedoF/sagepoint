@@ -19,6 +19,7 @@ import { PASSWORD_HASHER } from '@/features/auth/domain/outbound/password-hasher
 import { EMAIL_SERVICE_PORT } from '@/features/auth/domain/outbound/email.service.port';
 import {
   CATEGORY_REPOSITORY,
+  INVITATION_REPOSITORY,
   NEWS_SERVICE,
   USER_REPOSITORY,
   ROADMAP_REPOSITORY,
@@ -44,6 +45,7 @@ import {
   FakePasswordHasher,
   FakeEmailService,
   FakeUserService,
+  FakeInvitationRepository,
 } from '../../unit/_fakes/repositories';
 
 import type { IDocumentService } from '@/features/document/domain/inbound/document.service';
@@ -284,6 +286,14 @@ class StubPrismaService {
     update: () => Promise.resolve({}),
   };
   quiz = { count: () => Promise.resolve(0) };
+  invitation = {
+    findFirst: () => Promise.resolve(null),
+    findUnique: () => Promise.resolve(null),
+    findMany: () => Promise.resolve([]),
+    create: () => Promise.resolve({}),
+    update: () => Promise.resolve({}),
+    upsert: () => Promise.resolve({}),
+  };
   $queryRaw = () => Promise.resolve([]);
   $connect = async () => {};
   $disconnect = async () => {};
@@ -361,6 +371,80 @@ function patchBootstrapSingleton() {
       },
       categoryRepository: new FakeCategoryRepository(),
     },
+    admin: {
+      adminService: {
+        getStats: () =>
+          Promise.resolve({
+            userCount: 0,
+            documentCount: 0,
+            roadmapCount: 0,
+            quizCount: 0,
+            documentsByStage: {},
+          }),
+        getQueueStats: () =>
+          Promise.resolve({
+            documentQueue: {
+              name: 'document-processing',
+              counts: {},
+              recentFailures: [],
+            },
+            roadmapQueue: {
+              name: 'roadmap-generation',
+              counts: {},
+              recentFailures: [],
+            },
+          }),
+        getUsers: () => Promise.resolve([]),
+        updateUser: () => Promise.resolve({}),
+        deleteUser: () => Promise.resolve({ success: true }),
+        getRoadmaps: () =>
+          Promise.resolve({ data: [], total: 0, page: 1, limit: 10 }),
+        deleteRoadmap: () => Promise.resolve({ success: true }),
+        toggleRoadmapFeatured: () =>
+          Promise.resolve({ id: '', isFeatured: false }),
+        getDocuments: () =>
+          Promise.resolve({ data: [], total: 0, page: 1, limit: 10 }),
+        deleteDocument: () => Promise.resolve({ success: true }),
+        getAnalytics: () =>
+          Promise.resolve({ signups: [], uploads: [], generations: [] }),
+      },
+      adminRepository: {
+        countUsers: () => Promise.resolve(0),
+        countDocuments: () => Promise.resolve(0),
+        countRoadmaps: () => Promise.resolve(0),
+        countQuizzes: () => Promise.resolve(0),
+        getDocumentCountsByStage: () => Promise.resolve({}),
+        findAllUsers: () => Promise.resolve([]),
+        findUserById: () => Promise.resolve(null),
+        updateUser: () => Promise.resolve({}),
+        deleteUser: () => Promise.resolve(),
+        findRoadmaps: () => Promise.resolve({ data: [], total: 0 }),
+        findRoadmapById: () => Promise.resolve(null),
+        deleteRoadmap: () => Promise.resolve(),
+        updateRoadmapFeatured: () =>
+          Promise.resolve({ id: '', isFeatured: false }),
+        findDocuments: () => Promise.resolve({ data: [], total: 0 }),
+        documentExists: () => Promise.resolve(false),
+        deleteDocument: () => Promise.resolve(),
+        getSignupsByDay: () => Promise.resolve([]),
+        getUploadsByDay: () => Promise.resolve([]),
+        getGenerationsByDay: () => Promise.resolve([]),
+      },
+      queueStatsProvider: {
+        getDocumentQueueStats: () =>
+          Promise.resolve({
+            name: 'document-processing',
+            counts: {},
+            recentFailures: [],
+          }),
+        getRoadmapQueueStats: () =>
+          Promise.resolve({
+            name: 'roadmap-generation',
+            counts: {},
+            recentFailures: [],
+          }),
+      },
+    },
     fileStorage: fakeFileStorage,
     neo4jService: { close: async () => {} },
     newsService: new FakeNewsService(),
@@ -427,6 +511,9 @@ export async function createTestApp(): Promise<TestContext> {
       getAll: () => Promise.resolve([]),
       create: () => Promise.resolve({}),
     })
+    // ─── Override Invitation infra ──────────────────────────────────────
+    .overrideProvider(INVITATION_REPOSITORY)
+    .useValue(new FakeInvitationRepository())
     // ─── Override Insights deps (InsightsModule uses getDependencies()) ─
     .overrideProvider(USER_REPOSITORY)
     .useValue(new FakeUserRepository())
