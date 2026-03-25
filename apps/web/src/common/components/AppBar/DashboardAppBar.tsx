@@ -62,11 +62,6 @@ export function DashboardAppBar() {
           onClick={() => router.push("/feed")}
           color="info"
         />
-      </AppBar.Group>
-
-      <AppBar.Divider />
-
-      <AppBar.Group>
         <AppBar.Item
           id="documents"
           icon={FileText}

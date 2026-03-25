@@ -4,13 +4,13 @@ import {
   type BaseQueryFn,
   type FetchArgs,
   type FetchBaseQueryError,
-} from '@reduxjs/toolkit/query/react';
+} from "@reduxjs/toolkit/query/react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: API_URL,
-  credentials: 'include',
+  credentials: "include",
 });
 
 /**
@@ -32,9 +32,9 @@ const baseQueryWithReauth: BaseQueryFn<
   if (result.error && result.error.status === 401) {
     // Try to refresh the token
     const refreshResult = await baseQuery(
-      { url: '/auth/refresh', method: 'POST' },
+      { url: "/auth/refresh", method: "POST" },
       api,
-      extraOptions
+      extraOptions,
     );
 
     if (refreshResult.data) {
@@ -49,8 +49,25 @@ const baseQueryWithReauth: BaseQueryFn<
 };
 
 export const baseApi = createApi({
-  reducerPath: 'api',
+  reducerPath: "api",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['User', 'Document', 'DocumentSummary', 'Quiz', 'QuizAttempt', 'Graph', 'Category', 'Roadmap', 'RoadmapProgress', 'Resource', 'AdminStats', 'AdminUsers', 'AdminRoadmaps', 'AdminDocuments', 'Insights'],
+  tagTypes: [
+    "User",
+    "Document",
+    "DocumentSummary",
+    "Quiz",
+    "QuizAttempt",
+    "Graph",
+    "Category",
+    "Roadmap",
+    "RoadmapProgress",
+    "Resource",
+    "AdminStats",
+    "AdminUsers",
+    "AdminRoadmaps",
+    "AdminDocuments",
+    "AdminInvitations",
+    "Insights",
+  ],
   endpoints: () => ({}),
 });
