@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Optional } from '@nestjs/common';
 import type { IUserService } from '@/features/user/domain/inbound/user.service';
 import { USER_SERVICE } from '@/features/user/domain/inbound/user.service';
 import type { IEmailService } from '@/features/auth/domain/outbound/email.service.port';
@@ -7,6 +7,8 @@ import type { ITokenStore } from '@/features/auth/domain/outbound/token-store.po
 import { TOKEN_STORE } from '@/features/auth/domain/outbound/token-store.port';
 import type { IPasswordHasher } from '@/features/auth/domain/outbound/password-hasher.port';
 import { PASSWORD_HASHER } from '@/features/auth/domain/outbound/password-hasher.port';
+import { ValidateInvitationTokenUseCase } from '@/features/invitation/app/usecases/validate-invitation-token.usecase';
+import { AcceptInvitationUseCase } from '@/features/invitation/app/usecases/accept-invitation.usecase';
 import { UserRole } from '@sagepoint/domain';
 import { randomBytes } from 'crypto';
 
@@ -14,6 +16,7 @@ export interface RegisterInput {
   email: string;
   name: string;
   password: string;
+  invitationToken?: string;
 }
 
 export class UserAlreadyExistsError extends Error {
@@ -32,6 +35,9 @@ export class RegisterUseCase {
     @Inject(EMAIL_SERVICE_PORT) private readonly emailService: IEmailService,
     @Inject(TOKEN_STORE) private readonly tokenStore: ITokenStore,
     @Inject(PASSWORD_HASHER) private readonly passwordHasher: IPasswordHasher,
+    @Optional()
+    private readonly validateInvitationToken?: ValidateInvitationTokenUseCase,
+    @Optional() private readonly acceptInvitation?: AcceptInvitationUseCase,
   ) {}
 
   async execute(input: RegisterInput): Promise<{ message: string }> {
@@ -40,16 +46,36 @@ export class RegisterUseCase {
       throw new UserAlreadyExistsError(input.email);
     }
 
-    const passwordHash = await this.passwordHasher.hash(input.password);
-    const verificationToken = randomBytes(32).toString('hex');
+    // Invitation flow: validate token, get assigned role
+    let invitedRole: UserRole | undefined;
+    if (input.invitationToken && this.validateInvitationToken) {
+      const invitation = await this.validateInvitationToken.execute(
+        input.invitationToken,
+      );
+      if (invitation.email.toLowerCase() !== input.email.toLowerCase()) {
+        throw new UserAlreadyExistsError('Email does not match the invitation');
+      }
+      invitedRole = invitation.role as UserRole;
+    }
 
+    const passwordHash = await this.passwordHasher.hash(input.password);
     const user = await this.userService.create({
       email: input.email,
       name: input.name,
-      role: UserRole.USER,
+      role: invitedRole ?? UserRole.USER,
       passwordHash,
     });
 
+    // Invited users are auto-verified
+    if (input.invitationToken && this.acceptInvitation) {
+      const verifiedUser = user.verify();
+      await this.userService.save(verifiedUser);
+      await this.acceptInvitation.execute(input.invitationToken, user.id);
+      return { message: 'Registration successful. You can now sign in.' };
+    }
+
+    // Standard registration flow
+    const verificationToken = randomBytes(32).toString('hex');
     const userWithToken = user.withVerificationToken(verificationToken);
     await this.userService.save(userWithToken);
 
@@ -59,13 +85,8 @@ export class RegisterUseCase {
       RegisterUseCase.VERIFICATION_TOKEN_TTL,
     );
 
-    // If using Mock Email (Dev/Test), we can auto-verify for convenience
-    // OR we could return the token.
-    // Let's auto-verify to unblock E2E tests simply.
     const isMock = process.env.USE_MOCK_EMAIL === 'true';
-
     if (isMock) {
-      // Auto-verify
       const verifiedUser = user.verify();
       await this.userService.save(verifiedUser);
     } else {

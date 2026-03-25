@@ -2,11 +2,16 @@ import {
   IsEmail,
   IsNotEmpty,
   IsOptional,
-  IsString,
+  IsEnum,
   MinLength,
 } from 'class-validator';
 
-export class RegisterDto {
+enum UserRoleDto {
+  ADMIN = 'ADMIN',
+  USER = 'USER',
+}
+
+export class CreateUserDirectDto {
   @IsEmail()
   email!: string;
 
@@ -14,10 +19,10 @@ export class RegisterDto {
   name!: string;
 
   @IsNotEmpty()
-  @MinLength(6, { message: 'Password must be at least 6 characters long' })
+  @MinLength(6)
   password!: string;
 
   @IsOptional()
-  @IsString()
-  invitationToken?: string;
+  @IsEnum(UserRoleDto)
+  role?: string;
 }

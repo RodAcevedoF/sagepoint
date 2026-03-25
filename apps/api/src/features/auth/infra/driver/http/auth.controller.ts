@@ -40,7 +40,7 @@ export class AuthController {
 
   @Post('register')
   async register(@Body() registerDto: RegisterDto) {
-    if (isAuthRestricted) {
+    if (isAuthRestricted && !registerDto.invitationToken) {
       throw new ForbiddenException('Registration is disabled');
     }
     return await this.authService.register(registerDto);
@@ -124,7 +124,7 @@ export class AuthController {
   }
 
   private async handleLogin(user: User, response: Response) {
-    if (isAuthRestricted && user.role !== UserRole.ADMIN) {
+    if (isAuthRestricted && user.role !== UserRole.ADMIN && !user.isVerified) {
       throw new ForbiddenException('Access restricted to administrators');
     }
     const result = await this.authService.login(user);
