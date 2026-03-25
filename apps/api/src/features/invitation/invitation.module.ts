@@ -1,0 +1,32 @@
+import { Module } from '@nestjs/common';
+import { INVITATION_REPOSITORY } from '@sagepoint/domain';
+import { PrismaService } from '@/core/infra/database/prisma.service';
+import { PrismaInvitationRepository } from './infra/driven/prisma-invitation.repository';
+import { InvitationController } from './invitation.controller';
+import { CreateInvitationUseCase } from './app/usecases/create-invitation.usecase';
+import { FindAllInvitationsUseCase } from './app/usecases/find-all-invitations.usecase';
+import { RevokeInvitationUseCase } from './app/usecases/revoke-invitation.usecase';
+import { ValidateInvitationTokenUseCase } from './app/usecases/validate-invitation-token.usecase';
+import { AcceptInvitationUseCase } from './app/usecases/accept-invitation.usecase';
+import { CreateUserDirectUseCase } from './app/usecases/create-user-direct.usecase';
+
+@Module({
+  controllers: [InvitationController],
+  providers: [
+    PrismaService,
+    {
+      provide: INVITATION_REPOSITORY,
+      useFactory: (prisma: PrismaService) =>
+        new PrismaInvitationRepository(prisma),
+      inject: [PrismaService],
+    },
+    CreateInvitationUseCase,
+    FindAllInvitationsUseCase,
+    RevokeInvitationUseCase,
+    ValidateInvitationTokenUseCase,
+    AcceptInvitationUseCase,
+    CreateUserDirectUseCase,
+  ],
+  exports: [AcceptInvitationUseCase, ValidateInvitationTokenUseCase],
+})
+export class InvitationModule {}

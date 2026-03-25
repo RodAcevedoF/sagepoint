@@ -71,16 +71,20 @@ export async function registerAction(
   const name = formData.get("name") as string;
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  const invitationToken = formData.get("invitationToken") as string | null;
 
   if (!name || !email || !password) {
     return { error: "All fields are required" };
   }
 
+  const body: Record<string, string> = { name, email, password };
+  if (invitationToken) body.invitationToken = invitationToken;
+
   try {
     const response = await fetch(`${API_URL}/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {

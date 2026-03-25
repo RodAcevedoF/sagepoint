@@ -9,12 +9,20 @@ import { RegisterForm } from "./RegisterForm";
 const Antigravity = dynamic(
   () =>
     import("@/common/components/animations/Antigravity").then(
-      (m) => m.Antigravity
+      (m) => m.Antigravity,
     ),
-  { ssr: false }
+  { ssr: false },
 );
 
-export function RegisterPage() {
+interface RegisterPageProps {
+  invitationToken?: string;
+  invitedEmail?: string;
+}
+
+export function RegisterPage({
+  invitationToken,
+  invitedEmail,
+}: RegisterPageProps) {
   return (
     <PublicLayout>
       <Antigravity
@@ -39,7 +47,10 @@ export function RegisterPage() {
             alignItems: "center",
           }}
         >
-          <RegisterForm />
+          <RegisterForm
+            invitationToken={invitationToken}
+            invitedEmail={invitedEmail}
+          />
         </Box>
       </Container>
     </PublicLayout>

@@ -14,6 +14,14 @@ export class MockEmailService implements IEmailService {
     return Promise.resolve();
   }
 
+  sendInvitationEmail(email: string, token: string): Promise<void> {
+    const url = `http://localhost:3000/register?invitation=${token}`;
+    const logMessage = `[INVITATION] To: ${email}, Link: ${url}`;
+    this.logs.push(logMessage);
+    this.logger.log(logMessage);
+    return Promise.resolve();
+  }
+
   getLogs(): string[] {
     return [...this.logs];
   }

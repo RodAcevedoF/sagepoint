@@ -11,6 +11,7 @@ import type {
   IQuizRepository,
   IDocumentSummaryRepository,
   IConceptRepository,
+  IInvitationRepository,
   IFileStorage,
   IDocumentProcessingQueue,
   ICacheService,
@@ -39,6 +40,8 @@ import {
   Quiz,
   DocumentSummary,
   Concept,
+  Invitation,
+  InvitationStatus,
   UserRole,
 } from '@sagepoint/domain';
 import { RoadmapVisibility } from '@sagepoint/domain';
@@ -710,6 +713,51 @@ export class FakeConceptRepository implements IConceptRepository {
   }
 }
 
+// ─── Invitation ─────────────────────────────────────────────────────────────
+
+export class FakeInvitationRepository implements IInvitationRepository {
+  private invitations: Invitation[] = [];
+
+  seed(...invitations: Invitation[]) {
+    this.invitations.push(...invitations);
+  }
+
+  save(invitation: Invitation): Promise<void> {
+    this.invitations = this.invitations.filter((i) => i.id !== invitation.id);
+    this.invitations.push(invitation);
+    return Promise.resolve();
+  }
+
+  findById(id: string): Promise<Invitation | null> {
+    return Promise.resolve(this.invitations.find((i) => i.id === id) ?? null);
+  }
+
+  findByToken(token: string): Promise<Invitation | null> {
+    return Promise.resolve(
+      this.invitations.find((i) => i.token === token) ?? null,
+    );
+  }
+
+  findPendingByEmail(email: string): Promise<Invitation | null> {
+    return Promise.resolve(
+      this.invitations.find(
+        (i) =>
+          i.email === email &&
+          i.status === InvitationStatus.PENDING &&
+          i.expiresAt > new Date(),
+      ) ?? null,
+    );
+  }
+
+  findAll(): Promise<Invitation[]> {
+    return Promise.resolve([...this.invitations]);
+  }
+
+  getAll(): Invitation[] {
+    return [...this.invitations];
+  }
+}
+
 // ─── Auth: TokenStore ────────────────────────────────────────────────────────
 
 export class FakeTokenStore implements ITokenStore {
@@ -814,6 +862,11 @@ export class FakeEmailService implements IEmailService {
   public sentEmails: Array<{ email: string; token: string }> = [];
 
   sendVerificationEmail(email: string, token: string): Promise<void> {
+    this.sentEmails.push({ email, token });
+    return Promise.resolve();
+  }
+
+  sendInvitationEmail(email: string, token: string): Promise<void> {
     this.sentEmails.push({ email, token });
     return Promise.resolve();
   }

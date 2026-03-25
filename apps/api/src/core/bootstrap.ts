@@ -19,6 +19,10 @@ import {
   makeCategoryDependencies,
   type CategoryDependencies,
 } from '@/features/category/dependencies';
+import {
+  makeAdminDependencies,
+  type AdminDependencies,
+} from '@/features/admin/dependencies';
 import { GCSStorage } from '@sagepoint/storage';
 import { NewsdataApiAdapter } from '@sagepoint/ai';
 import type { IFileStorage, INewsService } from '@sagepoint/domain';
@@ -31,6 +35,7 @@ export interface AppDependencies {
   user: UserDependencies;
   storage: StorageDependencies;
   category: CategoryDependencies;
+  admin: AdminDependencies;
   fileStorage: IFileStorage;
   neo4jService: Neo4jService;
   newsService: INewsService;
@@ -78,6 +83,7 @@ export function bootstrap(): AppDependencies {
     user: userDeps,
     storage: makeStorageDependencies(fileStorage),
     category: makeCategoryDependencies(cacheService),
+    admin: makeAdminDependencies(),
     fileStorage,
     neo4jService,
     newsService,

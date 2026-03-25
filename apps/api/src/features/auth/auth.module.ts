@@ -10,11 +10,11 @@ import { AuthService } from '@/features/auth/infra/driver/auth.service';
 import { AuthController } from '@/features/auth/infra/driver/http/auth.controller';
 import { RedisTokenStore } from '@/features/auth/infra/driven/redis-token.store';
 import { BcryptPasswordHasher } from '@/features/auth/infra/driven/bcrypt-password.hasher';
-import {
-  NodemailerEmailService,
-  EmailConfig,
-} from '@/features/auth/infra/driven/nodemailer-email.service';
 import { MockEmailService } from '@/features/auth/infra/driven/mock-email.service';
+import {
+  ResendEmailService,
+  ResendConfig,
+} from '@/features/auth/infra/driven/resend-email.service';
 import {
   JwtTokenService,
   JwtConfig,
@@ -29,10 +29,11 @@ import { ValidateGoogleUserUseCase } from '@/features/auth/app/usecases/validate
 import { JwtStrategy } from '@/features/auth/infra/strategies/jwt.strategy';
 import { GoogleStrategy } from '@/features/auth/infra/strategies/google.strategy';
 import { UserModule } from '@/features/user/user.module';
+import { InvitationModule } from '@/features/invitation/invitation.module';
 
 @Global()
 @Module({
-  imports: [UserModule, PassportModule],
+  imports: [UserModule, PassportModule, InvitationModule],
   controllers: [AuthController],
   providers: [
     // Configuration Providers
@@ -55,12 +56,11 @@ import { UserModule } from '@/features/user/user.module';
       }),
     },
     {
-      provide: 'EMAIL_CONFIG',
-      useFactory: (): EmailConfig => ({
-        host: process.env.SMTP_HOST || 'smtp.ethereal.email',
-        port: parseInt(process.env.SMTP_PORT || '587'),
-        user: process.env.SMTP_USER || 'user',
-        pass: process.env.SMTP_PASS || 'pass',
+      provide: 'RESEND_CONFIG',
+      useFactory: (): ResendConfig => ({
+        apiKey: process.env.RESEND_API_KEY || '',
+        fromEmail:
+          process.env.RESEND_FROM_EMAIL || 'Sagepoint <onboarding@resend.dev>',
         frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
       }),
     },
@@ -86,14 +86,12 @@ import { UserModule } from '@/features/user/user.module';
     },
     {
       provide: EMAIL_SERVICE_PORT,
-      useFactory: (config: EmailConfig) => {
-        // Force mock email for debugging as per previous bootstrap logic
-        const useMockEmail = true;
-        return useMockEmail
-          ? new MockEmailService()
-          : new NodemailerEmailService(config);
+      useFactory: (resendConfig: ResendConfig) => {
+        const provider = process.env.EMAIL_PROVIDER || 'mock';
+        if (provider === 'resend') return new ResendEmailService(resendConfig);
+        return new MockEmailService();
       },
-      inject: ['EMAIL_CONFIG'],
+      inject: ['RESEND_CONFIG'],
     },
     {
       provide: TOKEN_SERVICE,
@@ -119,6 +117,12 @@ import { UserModule } from '@/features/user/user.module';
     JwtStrategy,
     GoogleStrategy,
   ],
-  exports: [AUTH_SERVICE, TOKEN_SERVICE, TOKEN_STORE],
+  exports: [
+    AUTH_SERVICE,
+    TOKEN_SERVICE,
+    TOKEN_STORE,
+    EMAIL_SERVICE_PORT,
+    PASSWORD_HASHER,
+  ],
 })
 export class AuthModule {}
