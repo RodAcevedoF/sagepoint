@@ -51,13 +51,13 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-  deploy:
+  deploy-staging:
     needs: build-and-push
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
+    if: github.ref == 'refs/heads/develop'
 
     steps:
-      - name: Deploy to VPS
+      - name: Deploy staging to VPS
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -66,8 +66,27 @@ jobs:
           port: ${{ secrets.VPS_SSH_PORT }}
           script: |
             cd /opt/sagepoint
-            export TAG=latest
-            docker compose -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.prod.yml up -d
+            docker compose -f docker-compose.prod.yml pull api-staging worker-staging
+            docker compose -f docker-compose.prod.yml up -d api-staging worker-staging
+            sleep 5
+            docker compose -f docker-compose.prod.yml exec -T api-staging node scripts/migrate.js up --author ci
+
+  deploy-production:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
+
+    steps:
+      - name: Deploy production to VPS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_SSH_PORT }}
+          script: |
+            cd /opt/sagepoint
+            docker compose -f docker-compose.prod.yml pull api worker
+            docker compose -f docker-compose.prod.yml up -d api worker
             sleep 5
             docker compose -f docker-compose.prod.yml exec -T api node scripts/migrate.js up --author ci

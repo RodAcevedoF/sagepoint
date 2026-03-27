@@ -1,25 +1,7 @@
 services:
-  neo4j:
-    image: neo4j:5-community
-    container_name: sagepoint_neo4j
-    restart: unless-stopped
-    ports:
-      - "127.0.0.1:7474:7474"
-      - "127.0.0.1:7687:7687"
-    environment:
-      NEO4J_AUTH: ${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD}
-      NEO4J_PLUGINS: '["apoc"]'
-      NEO4J_dbms_security_procedures_unrestricted: apoc.*
-      NEO4J_server_memory_heap_initial__size: 256m
-      NEO4J_server_memory_heap_max__size: 512m
-      NEO4J_server_memory_pagecache_size: 128m
-    volumes:
-      - neo4j_data:/data
-    networks:
-      - shared
-
+  # ── Production ──
   api:
-    image: ${IMAGE_PREFIX:-ghcr.io/rodacevedof/sagepoint}-api:${TAG:-staging}
+    image: ${IMAGE_PREFIX:-ghcr.io/rodacevedof/sagepoint}-api:${TAG:-latest}
     container_name: sagepoint_api
     restart: unless-stopped
     ports:
@@ -28,27 +10,46 @@ services:
     environment:
       PORT: 3001
       REDIS_HOST: shared_redis
-      NEO4J_URI: bolt://sagepoint_neo4j:7687
-    depends_on:
-      - neo4j
+      NEO4J_URI: bolt://shared_neo4j:7687
     networks:
       - shared
 
   worker:
-    image: ${IMAGE_PREFIX:-ghcr.io/rodacevedof/sagepoint}-worker:${TAG:-staging}
+    image: ${IMAGE_PREFIX:-ghcr.io/rodacevedof/sagepoint}-worker:${TAG:-latest}
     container_name: sagepoint_worker
     restart: unless-stopped
     env_file: .env.production
     environment:
       REDIS_HOST: shared_redis
-      NEO4J_URI: bolt://sagepoint_neo4j:7687
-    depends_on:
-      - neo4j
+      NEO4J_URI: bolt://shared_neo4j:7687
     networks:
       - shared
 
-volumes:
-  neo4j_data:
+  # ── Staging ──
+  api-staging:
+    image: ${IMAGE_PREFIX:-ghcr.io/rodacevedof/sagepoint}-api:staging
+    container_name: sagepoint_api_staging
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3002:3002"
+    env_file: .env.staging
+    environment:
+      PORT: 3002
+      REDIS_HOST: shared_redis
+      NEO4J_URI: bolt://shared_neo4j:7687
+    networks:
+      - shared
+
+  worker-staging:
+    image: ${IMAGE_PREFIX:-ghcr.io/rodacevedof/sagepoint}-worker:staging
+    container_name: sagepoint_worker_staging
+    restart: unless-stopped
+    env_file: .env.staging
+    environment:
+      REDIS_HOST: shared_redis
+      NEO4J_URI: bolt://shared_neo4j:7687
+    networks:
+      - shared
 
 networks:
   shared:

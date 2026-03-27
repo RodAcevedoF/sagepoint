@@ -9,3 +9,8 @@ CREATE DATABASE todo_db;
 CREATE DATABASE sagepoint;
 \c sagepoint
 CREATE EXTENSION IF NOT EXISTS vector;
+
+-- sagepoint staging
+CREATE DATABASE sagepoint_staging;
+\c sagepoint_staging
+CREATE EXTENSION IF NOT EXISTS vector;
