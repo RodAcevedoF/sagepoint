@@ -100,7 +100,15 @@ export async function registerAction(
 
 export async function logoutAction(): Promise<void> {
   const cookieStore = await cookies();
-  cookieStore.delete("access_token");
-  cookieStore.delete("refresh_token");
+  const isProduction = process.env.NODE_ENV === "production";
+  const cookieDomain = isProduction ? ".sagepoint.online" : undefined;
+
+  const deleteOptions = {
+    ...(cookieDomain && { domain: cookieDomain }),
+    path: "/",
+  };
+
+  cookieStore.delete({ name: "access_token", ...deleteOptions });
+  cookieStore.delete({ name: "refresh_token", ...deleteOptions });
   redirect("/login");
 }
