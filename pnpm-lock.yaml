@@ -549,6 +549,9 @@ importers:
       '@prisma/client':
         specifier: 7.5.0
         version: 7.5.0(prisma@7.5.0(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@5.9.3))(typescript@5.9.3)
+      '@sagepoint/domain':
+        specifier: workspace:*
+        version: link:../domain
       bcryptjs:
         specifier: ^2.4.3
         version: 2.4.3

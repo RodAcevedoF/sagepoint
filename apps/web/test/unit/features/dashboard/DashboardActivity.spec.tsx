@@ -30,7 +30,7 @@ describe("DashboardActivity", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-03-16T12:00:00Z"));
     render(<DashboardActivity roadmaps={roadmaps} />);
-    expect(screen.getByText("Recent Roadmaps")).toBeInTheDocument();
+    expect(screen.getByText("Recent Activity")).toBeInTheDocument();
     vi.useRealTimers();
   });
 
@@ -39,9 +39,9 @@ describe("DashboardActivity", () => {
     vi.setSystemTime(new Date("2026-03-16T12:00:00Z"));
     render(<DashboardActivity roadmaps={roadmaps} />);
     expect(screen.getByText("Docker Deep Dive")).toBeInTheDocument();
-    expect(screen.getByText("3/5 steps completed")).toBeInTheDocument();
+    expect(screen.getByText("3/5 steps")).toBeInTheDocument();
     expect(screen.getByText("TypeScript Mastery")).toBeInTheDocument();
-    expect(screen.getByText("2/7 steps completed")).toBeInTheDocument();
+    expect(screen.getByText("2/7 steps")).toBeInTheDocument();
     vi.useRealTimers();
   });
 

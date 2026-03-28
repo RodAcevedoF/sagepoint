@@ -1,56 +1,72 @@
 import { Injectable, Logger, Inject } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
-import { PrismaClient, PrismaPg } from "@sagepoint/database";
-import type { ICacheService, INewsService } from "@sagepoint/domain";
-import { NEWS_SERVICE } from "@sagepoint/domain";
+import type {
+  ICategoryRepository,
+  INewsArticleRepository,
+  INewsService,
+} from "@sagepoint/domain";
+import {
+  CATEGORY_REPOSITORY,
+  NEWS_ARTICLE_REPOSITORY,
+  NEWS_SERVICE,
+  NewsArticle,
+} from "@sagepoint/domain";
+import { randomUUID } from "crypto";
 
-const NEWS_CACHE_TTL = 86400; // 24 hours
-
-function todayKey(slug: string): string {
-  const date = new Date().toISOString().split("T")[0];
-  return `news:${slug}:${date}`;
-}
+const RETENTION_DAYS = 5;
 
 @Injectable()
+// @TODO: Add distributed locking if we ever have multiple worker instances to prevent duplicate refreshes.
+// @TODO: this files violates ports and adapters architecture
 export class InsightsRefreshService {
   private readonly logger = new Logger(InsightsRefreshService.name);
-  private readonly prisma = new PrismaClient({
-    adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }),
-  });
 
   constructor(
-    @Inject("WORKER_CACHE") private readonly cache: ICacheService,
     @Inject(NEWS_SERVICE) private readonly newsService: INewsService,
+    @Inject(CATEGORY_REPOSITORY)
+    private readonly categoryRepo: ICategoryRepository,
+    @Inject(NEWS_ARTICLE_REPOSITORY)
+    private readonly newsArticleRepo: INewsArticleRepository,
   ) {}
 
   @Cron("0 6 * * *")
   async refreshNewsCache() {
-    this.logger.log("Starting daily news cache refresh...");
+    this.logger.log("Starting daily news refresh...");
 
-    const categories = await this.prisma.category.findMany();
+    const categories = await this.categoryRepo.list();
+    let totalSaved = 0;
 
     for (const category of categories) {
-      const cacheKey = todayKey(category.slug);
-
-      // Skip if today's news already cached
-      const existing = await this.cache.get(cacheKey);
-      if (existing) {
-        this.logger.log(`Already fresh for ${category.name}, skipping`);
-        continue;
-      }
-
       try {
-        const articles = await this.newsService.fetchByCategory(
+        const fetched = await this.newsService.fetchByCategory(
           category.slug,
           category.name,
         );
 
-        if (articles.length > 0) {
-          await this.cache.set(cacheKey, articles, NEWS_CACHE_TTL);
+        if (fetched.length === 0) {
+          this.logger.log(`No articles found for ${category.name}`);
+          continue;
         }
 
+        const articles = fetched.map(
+          (a) =>
+            new NewsArticle(
+              randomUUID(),
+              a.title,
+              a.description,
+              a.url,
+              a.imageUrl,
+              a.source,
+              a.publishedAt,
+              category.id,
+              category.slug,
+            ),
+        );
+
+        await this.newsArticleRepo.upsertMany(articles);
+        totalSaved += articles.length;
         this.logger.log(
-          `Refreshed ${articles.length} articles for ${category.name}`,
+          `Saved ${articles.length} articles for ${category.name}`,
         );
       } catch (error) {
         this.logger.error(
@@ -60,6 +76,23 @@ export class InsightsRefreshService {
       }
     }
 
-    this.logger.log("Daily news cache refresh complete");
+    this.logger.log(
+      `Daily news refresh complete — ${totalSaved} articles saved`,
+    );
+
+    await this.purgeOldArticles();
+  }
+
+  private async purgeOldArticles() {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - RETENTION_DAYS);
+
+    const count = await this.newsArticleRepo.deleteOlderThan(cutoff);
+
+    if (count > 0) {
+      this.logger.log(
+        `Purged ${count} articles older than ${RETENTION_DAYS} days`,
+      );
+    }
   }
 }

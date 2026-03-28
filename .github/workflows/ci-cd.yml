@@ -151,7 +151,9 @@ jobs:
           images: ${{ env.IMAGE_PREFIX }}-${{ matrix.app }}
           tags: |
             type=raw,value=staging,enable=${{ github.ref == 'refs/heads/develop' }}
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
+            type=raw,value=staging-${{ github.sha }},enable=${{ github.ref == 'refs/heads/develop' }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' || github.event_name == 'release' }}
+            type=raw,value=prod-${{ github.sha }},enable=${{ github.ref == 'refs/heads/master' || github.event_name == 'release' }}
             type=semver,pattern={{version}},enable=${{ github.event_name == 'release' }}
 
       - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
