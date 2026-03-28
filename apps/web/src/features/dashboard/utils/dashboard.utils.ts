@@ -91,6 +91,7 @@ export function computeRecentRoadmaps(
       id: roadmap.id,
       title: roadmap.title,
       createdAt: roadmap.createdAt,
+      generationStatus: roadmap.generationStatus,
       progressPercentage: progress.progressPercentage,
       completedSteps: progress.completedSteps,
       totalSteps: progress.totalSteps,

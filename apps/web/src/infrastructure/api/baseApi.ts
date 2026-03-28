@@ -48,26 +48,30 @@ const baseQueryWithReauth: BaseQueryFn<
   return result;
 };
 
+const TAG_TYPES = [
+  "User",
+  "Document",
+  "DocumentSummary",
+  "Quiz",
+  "QuizAttempt",
+  "Graph",
+  "Category",
+  "Roadmap",
+  "RoadmapProgress",
+  "Resource",
+  "AdminStats",
+  "AdminUsers",
+  "AdminRoadmaps",
+  "AdminDocuments",
+  "AdminInvitations",
+  "Insights",
+] as const;
+
+export type ApiTagType = (typeof TAG_TYPES)[number];
+
 export const baseApi = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithReauth,
-  tagTypes: [
-    "User",
-    "Document",
-    "DocumentSummary",
-    "Quiz",
-    "QuizAttempt",
-    "Graph",
-    "Category",
-    "Roadmap",
-    "RoadmapProgress",
-    "Resource",
-    "AdminStats",
-    "AdminUsers",
-    "AdminRoadmaps",
-    "AdminDocuments",
-    "AdminInvitations",
-    "Insights",
-  ],
+  tagTypes: [...TAG_TYPES],
   endpoints: () => ({}),
 });

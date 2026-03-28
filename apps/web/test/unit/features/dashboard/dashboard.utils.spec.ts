@@ -40,6 +40,7 @@ function makeDashboardRoadmap(
     roadmap: {
       id: "r1",
       title: "Test Roadmap",
+      generationStatus: "completed",
       steps: [makeStep()],
       createdAt: "2026-01-15T00:00:00Z",
       ...overrides.roadmap,
