@@ -11,8 +11,8 @@ export function useLogoutCommand() {
 
   const execute = async () => {
     await logoutAction();
-    dispatch(logout());
     router.push("/login");
+    dispatch(logout());
   };
 
   return { execute };
