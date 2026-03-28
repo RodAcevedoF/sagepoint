@@ -1,22 +1,133 @@
-name: Deploy
+name: CI/CD
 
 on:
   push:
+    branches: ["**"]
+  pull_request:
     branches: [master, develop]
   release:
     types: [published]
 
 concurrency:
-  group: deploy-${{ github.ref }}
-  cancel-in-progress: false
+  group: ci-cd-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop' }}
 
 env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/sagepoint
 
 jobs:
-  build-and-push:
+  quality:
     runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter @sagepoint/database db:generate
+
+      - run: pnpm build
+
+      - run: pnpm check
+
+      - run: pnpm test
+
+  integration:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_USER: user
+          POSTGRES_DB: sagepoint
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5440:5432
+        options: >-
+          --health-cmd="pg_isready -U user -d sagepoint"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+      redis:
+        image: redis:8-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+      neo4j:
+        image: neo4j:5-community
+        env:
+          NEO4J_AUTH: none
+        ports:
+          - 7687:7687
+        options: >-
+          --health-cmd="cypher-shell -u neo4j -p neo4j 'RETURN 1' || true"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter @sagepoint/database db:generate
+
+      - run: pnpm build
+
+      - name: Run migrations
+        run: pnpm --filter @sagepoint/database migrate:up -- --author ci
+        env:
+          DATABASE_URL: postgresql://user@localhost:5440/sagepoint?schema=public
+
+      - name: Create test database
+        run: PGPASSWORD="" psql -h localhost -p 5440 -U user -d sagepoint -c "CREATE DATABASE sagepoint_test;"
+
+      - name: Run migrations on test database
+        run: pnpm --filter @sagepoint/database migrate:up -- --author ci
+        env:
+          DATABASE_URL: postgresql://user@localhost:5440/sagepoint_test?schema=public
+
+      - name: Run integration tests
+        run: pnpm test:integration
+        env:
+          DATABASE_URL: postgresql://user@localhost:5440/sagepoint_test?schema=public
+
+      - name: Run E2E tests
+        run: pnpm --filter @sagepoint/api test:e2e
+        env:
+          DATABASE_URL: postgresql://user@localhost:5440/sagepoint?schema=public
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          NEO4J_URI: bolt://localhost:7687
+          JWT_SECRET: ci-test-secret
+          JWT_REFRESH_SECRET: ci-test-refresh-secret
+
+  build-and-push:
+    needs: [quality, integration]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master') || github.event_name == 'release'
     permissions:
       contents: read
       packages: write
