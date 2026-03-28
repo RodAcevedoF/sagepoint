@@ -23,7 +23,7 @@ const STAGE_LABELS: Record<string, string> = {
   done: "Finishing up...",
 };
 
-function stageProgress(stage: RoadmapEventStage): number {
+function stageProgress(stage: RoadmapEventStage | null): number {
   switch (stage) {
     case "concepts":
       return 25;
