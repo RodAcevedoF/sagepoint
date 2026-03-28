@@ -110,5 +110,4 @@ export async function logoutAction(): Promise<void> {
 
   cookieStore.delete({ name: "access_token", ...deleteOptions });
   cookieStore.delete({ name: "refresh_token", ...deleteOptions });
-  redirect("/login");
 }

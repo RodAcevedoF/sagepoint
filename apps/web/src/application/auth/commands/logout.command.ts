@@ -2,14 +2,17 @@
 
 import { logout } from "@/infrastructure/store/slices/authSlice";
 import { useAppDispatch } from "@/common/hooks";
+import { useRouter } from "next/navigation";
 import { logoutAction } from "@/app/actions/auth";
 
 export function useLogoutCommand() {
   const dispatch = useAppDispatch();
+  const router = useRouter();
 
   const execute = async () => {
-    dispatch(logout());
     await logoutAction();
+    dispatch(logout());
+    router.push("/login");
   };
 
   return { execute };
