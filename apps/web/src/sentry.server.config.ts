@@ -4,3 +4,6 @@ Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
   tracesSampleRate: process.env.NODE_ENV === "development" ? 1.0 : 0.2,
 });
+
+// For more information on how to use Sentry with Next.js, see:
+// https://docs.sentry.io/platforms/javascript/guides/nextjs/
