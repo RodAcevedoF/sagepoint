@@ -445,6 +445,13 @@ function patchBootstrapSingleton() {
           }),
       },
     },
+    insights: {
+      newsArticleRepository: {
+        upsertMany: () => Promise.resolve(),
+        findByCategorySlugs: () => Promise.resolve([]),
+        deleteOlderThan: () => Promise.resolve(0),
+      },
+    },
     fileStorage: fakeFileStorage,
     neo4jService: { close: async () => {} },
     newsService: new FakeNewsService(),
