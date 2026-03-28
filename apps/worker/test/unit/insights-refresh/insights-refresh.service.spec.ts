@@ -1,126 +1,152 @@
 import { InsightsRefreshService } from "../../../src/insights-refresh/insights-refresh.service";
 import { NewsArticle } from "@sagepoint/domain";
-import { FakePrismaClient } from "../_fakes/prisma.fake";
-import { FakeCacheService, FakeNewsService } from "../_fakes/services.fake";
+import type {
+  ICategoryRepository,
+  INewsArticleRepository,
+} from "@sagepoint/domain";
+import { FakeNewsService } from "../_fakes/services.fake";
+import { Category } from "@sagepoint/domain";
 
-function buildArticle(title: string): NewsArticle {
+function buildArticle(title: string, slug: string): NewsArticle {
   return new NewsArticle(
+    "",
     title,
     "Description",
-    "https://example.com",
+    `https://example.com/${title.replace(/\s/g, "-")}`,
     null,
     "Source",
-    "2026-01-01",
-    "test",
+    new Date("2026-01-01"),
+    "",
+    slug,
   );
 }
 
+function fakeCategoryRepo(): ICategoryRepository & {
+  seedCategory: (cat: Category) => void;
+} {
+  const categories: Category[] = [];
+  return {
+    list: () => Promise.resolve([...categories]),
+    save: () => Promise.resolve(categories[0]),
+    findById: () => Promise.resolve(null),
+    findBySlug: () => Promise.resolve(null),
+    delete: () => Promise.resolve(),
+    seedCategory: (cat: Category) => categories.push(cat),
+  };
+}
+
+function fakeNewsArticleRepo(): INewsArticleRepository & {
+  articles: NewsArticle[];
+  deletedBefore: Date | null;
+} {
+  const repo = {
+    articles: [] as NewsArticle[],
+    deletedBefore: null as Date | null,
+    upsertMany(articles: NewsArticle[]) {
+      repo.articles.push(...articles);
+      return Promise.resolve();
+    },
+    findByCategorySlugs() {
+      return Promise.resolve([] as NewsArticle[]);
+    },
+    deleteOlderThan(date: Date) {
+      repo.deletedBefore = date;
+      const before = repo.articles.length;
+      repo.articles = repo.articles.filter((a) => a.createdAt >= date);
+      return Promise.resolve(before - repo.articles.length);
+    },
+  };
+  return repo;
+}
+
 function buildService(overrides?: {
-  cache?: FakeCacheService;
   newsService?: FakeNewsService;
-  prisma?: FakePrismaClient;
+  categoryRepo?: ReturnType<typeof fakeCategoryRepo>;
+  newsArticleRepo?: ReturnType<typeof fakeNewsArticleRepo>;
 }) {
-  const cache = overrides?.cache ?? new FakeCacheService();
   const newsService = overrides?.newsService ?? new FakeNewsService();
-  const prisma = overrides?.prisma ?? new FakePrismaClient();
+  const categoryRepo = overrides?.categoryRepo ?? fakeCategoryRepo();
+  const newsArticleRepo = overrides?.newsArticleRepo ?? fakeNewsArticleRepo();
 
   const service = Object.create(
     InsightsRefreshService.prototype,
   ) as InsightsRefreshService;
-  Object.defineProperty(service, "cache", { value: cache });
   Object.defineProperty(service, "newsService", { value: newsService });
-  Object.defineProperty(service, "prisma", { value: prisma });
+  Object.defineProperty(service, "categoryRepo", { value: categoryRepo });
+  Object.defineProperty(service, "newsArticleRepo", {
+    value: newsArticleRepo,
+  });
   Object.defineProperty(service, "logger", {
     value: { log: () => {}, error: () => {}, warn: () => {} },
   });
 
-  return { service, cache, newsService, prisma };
+  return { service, newsService, categoryRepo, newsArticleRepo };
 }
 
 describe("InsightsRefreshService", () => {
-  let service: InsightsRefreshService;
-  let cache: FakeCacheService;
-  let newsService: FakeNewsService;
-  let prisma: FakePrismaClient;
-
-  beforeEach(() => {
-    const ctx = buildService();
-    service = ctx.service;
-    cache = ctx.cache;
-    newsService = ctx.newsService;
-    prisma = ctx.prisma;
-  });
-
   describe("refreshNewsCache", () => {
-    it("should fetch and cache articles for each category", async () => {
-      prisma.seedCategory({ id: "cat-1", name: "AI", slug: "ai" });
-      prisma.seedCategory({ id: "cat-2", name: "Web Dev", slug: "web-dev" });
+    it("should fetch and persist articles for each category", async () => {
+      const { service, newsService, categoryRepo, newsArticleRepo } =
+        buildService();
+      categoryRepo.seedCategory(Category.create("cat-1", "AI", "ai"));
+      categoryRepo.seedCategory(Category.create("cat-2", "Web Dev", "web-dev"));
 
       newsService.setArticles("ai", [
-        buildArticle("AI News 1"),
-        buildArticle("AI News 2"),
+        buildArticle("AI News 1", "ai"),
+        buildArticle("AI News 2", "ai"),
       ]);
-      newsService.setArticles("web-dev", [buildArticle("Web News")]);
+      newsService.setArticles("web-dev", [buildArticle("Web News", "web-dev")]);
 
       await service.refreshNewsCache();
 
-      const today = new Date().toISOString().split("T")[0];
-      expect(cache.has(`news:ai:${today}`)).toBe(true);
-      expect(cache.has(`news:web-dev:${today}`)).toBe(true);
+      expect(newsArticleRepo.articles).toHaveLength(3);
     });
 
-    it("should skip categories that already have cached news for today", async () => {
-      prisma.seedCategory({ id: "cat-1", name: "AI", slug: "ai" });
-
-      const today = new Date().toISOString().split("T")[0];
-      cache.seed(`news:ai:${today}`, [buildArticle("Already cached")]);
-
-      newsService.setArticles("ai", [buildArticle("New article")]);
-
-      await service.refreshNewsCache();
-
-      const cached = await cache.get<NewsArticle[]>(`news:ai:${today}`);
-      expect(cached?.[0].title).toBe("Already cached");
-    });
-
-    it("should not cache empty article arrays", async () => {
-      prisma.seedCategory({ id: "cat-1", name: "AI", slug: "ai" });
+    it("should not persist when no articles are found", async () => {
+      const { service, newsService, categoryRepo, newsArticleRepo } =
+        buildService();
+      categoryRepo.seedCategory(Category.create("cat-1", "AI", "ai"));
       newsService.setArticles("ai", []);
 
       await service.refreshNewsCache();
 
-      const today = new Date().toISOString().split("T")[0];
-      expect(cache.has(`news:ai:${today}`)).toBe(false);
+      expect(newsArticleRepo.articles).toHaveLength(0);
     });
 
     it("should continue processing other categories when one fails", async () => {
       const failingService = new FakeNewsService();
-      const ctx = buildService({ newsService: failingService });
-      ctx.prisma.seedCategory({ id: "cat-1", name: "AI", slug: "ai" });
-      ctx.prisma.seedCategory({
-        id: "cat-2",
-        name: "Web Dev",
-        slug: "web-dev",
+      const { service, categoryRepo, newsArticleRepo } = buildService({
+        newsService: failingService,
       });
+      categoryRepo.seedCategory(Category.create("cat-1", "AI", "ai"));
+      categoryRepo.seedCategory(Category.create("cat-2", "Web Dev", "web-dev"));
 
       let callCount = 0;
       Object.defineProperty(failingService, "fetchByCategory", {
         value: (slug: string) => {
           callCount++;
           if (slug === "ai") return Promise.reject(new Error("API error"));
-          return Promise.resolve([buildArticle("Web article")]);
+          return Promise.resolve([buildArticle("Web article", "web-dev")]);
         },
       });
 
-      await ctx.service.refreshNewsCache();
+      await service.refreshNewsCache();
 
-      const today = new Date().toISOString().split("T")[0];
-      expect(ctx.cache.has(`news:ai:${today}`)).toBe(false);
-      expect(ctx.cache.has(`news:web-dev:${today}`)).toBe(true);
+      expect(newsArticleRepo.articles).toHaveLength(1);
       expect(callCount).toBe(2);
     });
 
+    it("should purge old articles after refresh", async () => {
+      const { service, newsArticleRepo, categoryRepo } = buildService();
+      categoryRepo.seedCategory(Category.create("cat-1", "AI", "ai"));
+
+      await service.refreshNewsCache();
+
+      expect(newsArticleRepo.deletedBefore).toBeInstanceOf(Date);
+    });
+
     it("should handle empty category list gracefully", async () => {
+      const { service } = buildService();
       await expect(service.refreshNewsCache()).resolves.toBeUndefined();
     });
   });

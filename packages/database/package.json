@@ -20,6 +20,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@sagepoint/domain": "workspace:*",
     "@prisma/adapter-pg": "7.5.0",
     "@prisma/client": "7.5.0",
     "bcryptjs": "^2.4.3",

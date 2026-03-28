@@ -3,6 +3,7 @@ import { InsightsController } from './infra/driver/http/insights.controller';
 import { GetInsightsUseCase } from './app/usecases/get-insights.usecase';
 import { getDependencies } from '@/core/bootstrap';
 import {
+  NEWS_ARTICLE_REPOSITORY,
   NEWS_SERVICE,
   CATEGORY_REPOSITORY,
   USER_REPOSITORY,
@@ -13,6 +14,7 @@ import type {
   IRoadmapRepository,
   ICategoryRepository,
   ICacheService,
+  INewsArticleRepository,
   INewsService,
 } from '@sagepoint/domain';
 import { RedisCacheService } from '@/core/infra/cache/redis-cache.service';
@@ -22,6 +24,10 @@ import { CategoryModule } from '@/features/category/category.module';
   imports: [CategoryModule],
   controllers: [InsightsController],
   providers: [
+    {
+      provide: NEWS_ARTICLE_REPOSITORY,
+      useFactory: () => getDependencies().insights.newsArticleRepository,
+    },
     {
       provide: NEWS_SERVICE,
       useFactory: () => getDependencies().newsService,
@@ -41,6 +47,7 @@ import { CategoryModule } from '@/features/category/category.module';
         roadmapRepo: IRoadmapRepository,
         categoryRepo: ICategoryRepository,
         cache: ICacheService,
+        newsArticleRepo: INewsArticleRepository,
         newsService: INewsService,
       ) =>
         new GetInsightsUseCase(
@@ -48,6 +55,7 @@ import { CategoryModule } from '@/features/category/category.module';
           roadmapRepo,
           categoryRepo,
           cache,
+          newsArticleRepo,
           newsService,
         ),
       inject: [
@@ -55,6 +63,7 @@ import { CategoryModule } from '@/features/category/category.module';
         ROADMAP_REPOSITORY,
         CATEGORY_REPOSITORY,
         RedisCacheService,
+        NEWS_ARTICLE_REPOSITORY,
         NEWS_SERVICE,
       ],
     },

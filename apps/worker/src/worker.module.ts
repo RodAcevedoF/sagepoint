@@ -1,36 +1,54 @@
-import { Module } from '@nestjs/common';
-import { ScheduleModule } from '@nestjs/schedule';
-import { BullModule } from '@nestjs/bullmq';
-import { LoggerModule } from 'nestjs-pino';
-import { DocumentProcessorService } from './document-processor/document-processor.service';
-import { RoadmapProcessorService } from './roadmap-processor/roadmap-processor.service';
-import { InsightsRefreshService } from './insights-refresh/insights-refresh.service';
-import { NewsdataApiAdapter } from '@sagepoint/ai';
+import { Module } from "@nestjs/common";
+import { ScheduleModule } from "@nestjs/schedule";
+import { BullModule } from "@nestjs/bullmq";
+import { LoggerModule } from "nestjs-pino";
+import { DocumentProcessorService } from "./document-processor/document-processor.service";
+import { RoadmapProcessorService } from "./roadmap-processor/roadmap-processor.service";
+import { InsightsRefreshService } from "./insights-refresh/insights-refresh.service";
+import { NewsdataApiAdapter } from "@sagepoint/ai";
 
-import { ConfigModule } from '@nestjs/config';
-import { Neo4jModule, Neo4jService, Neo4jConceptRepository } from '@sagepoint/graph';
-import { AiModule } from '@sagepoint/ai';
-
-import { GCSStorage } from '@sagepoint/storage';
-import { ConfigService } from '@nestjs/config';
-import Redis from 'ioredis';
+import { ConfigModule } from "@nestjs/config";
 import {
+  Neo4jModule,
+  Neo4jService,
+  Neo4jConceptRepository,
+} from "@sagepoint/graph";
+import { AiModule } from "@sagepoint/ai";
+
+import { GCSStorage } from "@sagepoint/storage";
+import { ConfigService } from "@nestjs/config";
+import Redis from "ioredis";
+import {
+  CATEGORY_REPOSITORY,
   CONCEPT_REPOSITORY,
   FILE_STORAGE,
+  NEWS_ARTICLE_REPOSITORY,
   NEWS_SERVICE,
   RESOURCE_DISCOVERY_SERVICE,
-} from '@sagepoint/domain';
+} from "@sagepoint/domain";
 import type {
   ICacheService,
   INewsService,
   IResourceDiscoveryService,
-} from '@sagepoint/domain';
-import { CachedResourceDiscoveryAdapter } from './infra/cached-resource-discovery.adapter';
+} from "@sagepoint/domain";
+import {
+  PrismaClient,
+  PrismaPg,
+  PrismaCategoryRepository,
+  PrismaNewsArticleRepository,
+} from "@sagepoint/database";
+import { CachedResourceDiscoveryAdapter } from "./infra/cached-resource-discovery.adapter";
+
+function createWorkerPrisma(): PrismaClient {
+  return new PrismaClient({
+    adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }),
+  });
+}
 
 function createRedisCacheService(keyPrefix: string): ICacheService {
   const redis = new Redis({
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6379'),
+    host: process.env.REDIS_HOST || "localhost",
+    port: parseInt(process.env.REDIS_PORT || "6379"),
     keyPrefix,
   });
 
@@ -41,7 +59,7 @@ function createRedisCacheService(keyPrefix: string): ICacheService {
       return JSON.parse(raw) as T;
     },
     async set<T>(key: string, value: T, ttlSeconds: number): Promise<void> {
-      await redis.set(key, JSON.stringify(value), 'EX', ttlSeconds);
+      await redis.set(key, JSON.stringify(value), "EX", ttlSeconds);
     },
     async del(key: string): Promise<void> {
       await redis.del(key);
@@ -53,17 +71,17 @@ function createRedisCacheService(keyPrefix: string): ICacheService {
   };
 }
 
-const isDev = process.env.NODE_ENV !== 'production';
+const isDev = process.env.NODE_ENV !== "production";
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, envFilePath: '../../.env' }),
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: "../../.env" }),
     LoggerModule.forRoot({
       pinoHttp: {
-        level: isDev ? 'debug' : 'info',
+        level: isDev ? "debug" : "info",
         ...(isDev && {
           transport: {
-            target: 'pino-pretty',
+            target: "pino-pretty",
             options: { colorize: true, singleLine: true },
           },
         }),
@@ -74,15 +92,15 @@ const isDev = process.env.NODE_ENV !== 'production';
     ScheduleModule.forRoot(),
     BullModule.forRoot({
       connection: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379'),
+        host: process.env.REDIS_HOST || "localhost",
+        port: parseInt(process.env.REDIS_PORT || "6379"),
       },
     }),
     BullModule.registerQueue({
-      name: 'document-processing',
+      name: "document-processing",
     }),
     BullModule.registerQueue({
-      name: 'roadmap-generation',
+      name: "roadmap-generation",
     }),
   ],
   providers: [
@@ -93,32 +111,48 @@ const isDev = process.env.NODE_ENV !== 'production';
       provide: FILE_STORAGE,
       useFactory: (configService: ConfigService) => {
         return new GCSStorage({
-          projectId: configService.getOrThrow<string>('GCP_PROJECT_ID'),
-          bucketName: configService.getOrThrow<string>('GCS_BUCKET_NAME'),
-          keyFilename: configService.get<string>('GCP_KEY_FILE'),
+          projectId: configService.getOrThrow<string>("GCP_PROJECT_ID"),
+          bucketName: configService.getOrThrow<string>("GCS_BUCKET_NAME"),
+          keyFilename: configService.get<string>("GCP_KEY_FILE"),
         });
       },
       inject: [ConfigService],
     },
     {
-      provide: 'WORKER_CACHE',
-      useFactory: () => createRedisCacheService('cache:'),
+      provide: "WORKER_CACHE",
+      useFactory: () => createRedisCacheService("cache:"),
     },
     {
-      provide: 'INNER_RESOURCE_DISCOVERY',
+      provide: "INNER_RESOURCE_DISCOVERY",
       useExisting: RESOURCE_DISCOVERY_SERVICE,
     },
     {
       provide: CachedResourceDiscoveryAdapter,
       useFactory: (inner: IResourceDiscoveryService, cache: ICacheService) =>
         new CachedResourceDiscoveryAdapter(inner, cache),
-      inject: ['INNER_RESOURCE_DISCOVERY', 'WORKER_CACHE'],
+      inject: ["INNER_RESOURCE_DISCOVERY", "WORKER_CACHE"],
+    },
+    {
+      provide: "WORKER_PRISMA",
+      useFactory: () => createWorkerPrisma(),
+    },
+    {
+      provide: CATEGORY_REPOSITORY,
+      useFactory: (prisma: PrismaClient) =>
+        new PrismaCategoryRepository(prisma),
+      inject: ["WORKER_PRISMA"],
+    },
+    {
+      provide: NEWS_ARTICLE_REPOSITORY,
+      useFactory: (prisma: PrismaClient) =>
+        new PrismaNewsArticleRepository(prisma),
+      inject: ["WORKER_PRISMA"],
     },
     {
       provide: NEWS_SERVICE,
       useFactory: (configService: ConfigService): INewsService =>
         new NewsdataApiAdapter({
-          apiKey: configService.get<string>('NEWSDATAIO_API_KEY') ?? '',
+          apiKey: configService.get<string>("NEWSDATAIO_API_KEY") ?? "",
         }),
       inject: [ConfigService],
     },

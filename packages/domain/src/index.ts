@@ -45,6 +45,7 @@ export * from "./common/pagination";
 
 // Insights
 export * from "./modules/insights/entities/news-article.entity";
+export * from "./modules/insights/ports/news-article.repository";
 
 // Shared Ports
 export * from "./ports/file-storage.port";

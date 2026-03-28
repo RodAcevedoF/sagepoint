@@ -146,6 +146,55 @@ export class FakePrismaClient {
     this.categories.push(cat);
   }
 
+  // ─── NewsArticle ─────────────────────────────────────────────────────
+  private newsArticles = new Map<string, Record<string, unknown>>();
+
+  readonly newsArticle = {
+    upsert: ({
+      where,
+      create,
+      update,
+    }: {
+      where: { url: string };
+      create: Record<string, unknown>;
+      update: Record<string, unknown>;
+    }) => {
+      const existing = [...this.newsArticles.values()].find(
+        (a) => a.url === where.url,
+      );
+      if (existing) {
+        const updated = { ...existing, ...update };
+        this.newsArticles.set(existing.id as string, updated);
+        return Promise.resolve(updated);
+      }
+      this.newsArticles.set(create.id as string, create);
+      return Promise.resolve(create);
+    },
+    deleteMany: ({ where }: { where: { createdAt: { lt: Date } } }) => {
+      let count = 0;
+      for (const [id, a] of this.newsArticles.entries()) {
+        if ((a.createdAt as Date) < where.createdAt.lt) {
+          this.newsArticles.delete(id);
+          count++;
+        }
+      }
+      return Promise.resolve({ count });
+    },
+  };
+
+  getNewsArticles() {
+    return [...this.newsArticles.values()];
+  }
+
+  seedNewsArticle(article: Record<string, unknown>) {
+    this.newsArticles.set(article.id as string, article);
+  }
+
+  // ─── $transaction ──────────────────────────────────────────────────
+  $transaction(operations: Promise<unknown>[]) {
+    return Promise.all(operations);
+  }
+
   // ─── Resource ───────────────────────────────────────────────────────
   private resources: Record<string, unknown>[] = [];
 

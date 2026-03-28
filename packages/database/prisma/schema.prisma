@@ -235,10 +235,28 @@ model Category {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  roadmaps    Roadmap[]
-  users       UserInterest[]
+  roadmaps     Roadmap[]
+  users        UserInterest[]
+  newsArticles NewsArticle[]
 
   @@map("categories")
+}
+
+model NewsArticle {
+  id           String   @id @default(uuid())
+  title        String
+  description  String
+  url          String   @unique
+  imageUrl     String?
+  source       String
+  publishedAt  DateTime
+  categoryId   String
+  category     Category @relation(fields: [categoryId], references: [id])
+  createdAt    DateTime @default(now())
+
+  @@index([categoryId])
+  @@index([createdAt])
+  @@map("news_articles")
 }
 
 model Roadmap {

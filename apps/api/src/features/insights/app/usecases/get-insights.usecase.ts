@@ -1,17 +1,18 @@
+import { NewsArticle } from '@sagepoint/domain';
 import type {
   IUserRepository,
   IRoadmapRepository,
   ICategoryRepository,
   ICacheService,
+  INewsArticleRepository,
   INewsService,
-  NewsArticle,
 } from '@sagepoint/domain';
+import { randomUUID } from 'crypto';
 
-const NEWS_CACHE_TTL = 86400; // 24 hours
+const INSIGHTS_CACHE_TTL = 600; // 10 minutes
 
-function todayKey(slug: string): string {
-  const date = new Date().toISOString().split('T')[0];
-  return `news:${slug}:${date}`;
+function userInsightsKey(userId: string): string {
+  return `insights:${userId}`;
 }
 
 export class GetInsightsUseCase {
@@ -20,60 +21,97 @@ export class GetInsightsUseCase {
     private readonly roadmapRepo: IRoadmapRepository,
     private readonly categoryRepo: ICategoryRepository,
     private readonly cache: ICacheService,
+    private readonly newsArticleRepo: INewsArticleRepository,
     private readonly newsService: INewsService,
   ) {}
 
   async execute(userId: string): Promise<NewsArticle[]> {
+    const cacheKey = userInsightsKey(userId);
+    const cached = await this.cache.get<NewsArticle[]>(cacheKey);
+    if (cached) return cached;
+
     const user = await this.userRepo.findById(userId);
     if (!user) return [];
 
-    // Collect category slugs from user interests
-    const categorySlugs = new Map<string, string>();
+    // Collect categories from user interests + roadmaps
+    const categoryMap = new Map<string, { id: string; name: string }>();
     for (const interest of user.interests) {
-      categorySlugs.set(interest.slug, interest.name);
+      categoryMap.set(interest.slug, { id: interest.id, name: interest.name });
     }
 
-    // Collect category slugs from user roadmaps
     const roadmaps = await this.roadmapRepo.findByUserId(userId);
     if (roadmaps.length > 0) {
       const allCategories = await this.categoryRepo.list();
-      const categoryMap = new Map(allCategories.map((c) => [c.id, c]));
+      const catById = new Map(allCategories.map((c) => [c.id, c]));
 
       for (const roadmap of roadmaps) {
         if (roadmap.categoryId) {
-          const cat = categoryMap.get(roadmap.categoryId);
-          if (cat) categorySlugs.set(cat.slug, cat.name);
+          const cat = catById.get(roadmap.categoryId);
+          if (cat) categoryMap.set(cat.slug, { id: cat.id, name: cat.name });
         }
       }
     }
 
-    if (categorySlugs.size === 0) return [];
+    if (categoryMap.size === 0) return [];
 
-    // Fetch articles per category (cache-aside with date-stamped keys)
-    const allArticles: NewsArticle[] = [];
+    const slugs = [...categoryMap.keys()];
+    let articles = await this.newsArticleRepo.findByCategorySlugs(slugs);
 
-    for (const [slug, name] of categorySlugs) {
-      const cacheKey = todayKey(slug);
-      const cached = await this.cache.get<NewsArticle[]>(cacheKey);
+    // Identify categories with no articles and fetch on-demand
+    const coveredSlugs = new Set(articles.map((a) => a.categorySlug));
+    const missingSlugs = slugs.filter((s) => !coveredSlugs.has(s));
 
-      if (cached) {
-        allArticles.push(...cached);
-        continue;
-      }
-
-      const articles = await this.newsService.fetchByCategory(slug, name);
-      if (articles.length > 0) {
-        await this.cache.set(cacheKey, articles, NEWS_CACHE_TTL);
-      }
-      allArticles.push(...articles);
+    if (missingSlugs.length > 0) {
+      const fetched = await this.fetchAndPersist(missingSlugs, categoryMap);
+      articles = [...articles, ...fetched];
+      articles.sort(
+        (a, b) => b.publishedAt.getTime() - a.publishedAt.getTime(),
+      );
     }
 
-    // Sort by publishedAt desc, limit 20
-    return allArticles
-      .sort(
-        (a, b) =>
-          new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
-      )
-      .slice(0, 20);
+    if (articles.length > 0) {
+      await this.cache.set(cacheKey, articles, INSIGHTS_CACHE_TTL);
+    }
+
+    return articles;
+  }
+
+  private async fetchAndPersist(
+    slugs: string[],
+    categoryMap: Map<string, { id: string; name: string }>,
+  ): Promise<NewsArticle[]> {
+    const allFetched: NewsArticle[] = [];
+
+    for (const slug of slugs) {
+      const cat = categoryMap.get(slug);
+      if (!cat) continue;
+
+      try {
+        const raw = await this.newsService.fetchByCategory(slug, cat.name);
+        if (raw.length === 0) continue;
+
+        const articles = raw.map(
+          (a) =>
+            new NewsArticle(
+              randomUUID(),
+              a.title,
+              a.description,
+              a.url,
+              a.imageUrl,
+              a.source,
+              a.publishedAt,
+              cat.id,
+              slug,
+            ),
+        );
+
+        await this.newsArticleRepo.upsertMany(articles);
+        allFetched.push(...articles);
+      } catch {
+        // Log failure but continue with other categories
+      }
+    }
+
+    return allFetched;
   }
 }
