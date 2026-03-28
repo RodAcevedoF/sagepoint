@@ -14,6 +14,7 @@ export interface NewsArticleDto {
 }
 
 export const insightsApi = baseApi.injectEndpoints({
+  overrideExisting: true,
   endpoints: (builder) => ({
     getInsights: builder.query<NewsArticleDto[], void>({
       query: () => "/insights",
