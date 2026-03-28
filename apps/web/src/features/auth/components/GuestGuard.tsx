@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Box, CircularProgress } from "@mui/material";
+import { Loader } from "@/common/components";
 import { useAppSelector } from "@/common/hooks";
 
 interface GuestGuardProps {
@@ -23,34 +23,8 @@ export function GuestGuard({ children }: GuestGuardProps) {
     }
   }, [isLoading, isAuthenticated, router]);
 
-  if (isLoading) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          minHeight: "100vh",
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (isAuthenticated) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          minHeight: "100vh",
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
+  if (isLoading || isAuthenticated) {
+    return <Loader variant="page" sx={{ minHeight: "100vh" }} />;
   }
 
   return <>{children}</>;

@@ -1,9 +1,9 @@
 "use client";
 
-import { logout } from "@/infrastructure/store/slices/authSlice";
 import { useAppDispatch } from "@/common/hooks";
 import { useRouter } from "next/navigation";
 import { logoutAction } from "@/app/actions/auth";
+import { authApi } from "@/infrastructure/api/authApi";
 
 export function useLogoutCommand() {
   const dispatch = useAppDispatch();
@@ -11,8 +11,8 @@ export function useLogoutCommand() {
 
   const execute = async () => {
     await logoutAction();
-    router.push("/login");
-    dispatch(logout());
+    dispatch(authApi.util.resetApiState());
+    router.replace("/login");
   };
 
   return { execute };
