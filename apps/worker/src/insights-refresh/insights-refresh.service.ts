@@ -33,7 +33,7 @@ export class InsightsRefreshService {
   async refreshNewsCache() {
     this.logger.log("Starting daily news refresh...");
 
-    const categories = await this.categoryRepo.list();
+    const categories = await this.categoryRepo.listWithActiveInterests();
     let totalSaved = 0;
 
     for (const category of categories) {

@@ -118,6 +118,10 @@ export class FakeCategoryRepository implements ICategoryRepository {
     return Promise.resolve([...this.categories]);
   }
 
+  listWithActiveInterests(): Promise<Category[]> {
+    return Promise.resolve([...this.categories]);
+  }
+
   delete(id: string): Promise<void> {
     this.categories = this.categories.filter((c) => c.id !== id);
     return Promise.resolve();

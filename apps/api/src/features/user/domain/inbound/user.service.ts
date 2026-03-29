@@ -20,6 +20,7 @@ export interface UpdateProfileInput {
   name?: string;
   learningGoal?: string;
   avatarUrl?: string;
+  interests?: string[];
 }
 
 export interface IUserService {

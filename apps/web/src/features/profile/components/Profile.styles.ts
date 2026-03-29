@@ -123,6 +123,16 @@ export const makeStyles = (theme: Theme) => ({
       pointerEvents: "none",
     },
   },
+  customInterestChip: {
+    fontWeight: 600,
+    background: `linear-gradient(135deg, ${theme.palette.secondary.main}, ${theme.palette.secondary.light})`,
+    borderColor: "transparent",
+    color: theme.palette.background.default,
+    "& .MuiChip-deleteIcon": {
+      color: alpha(theme.palette.background.default, 0.7),
+      "&:hover": { color: theme.palette.background.default },
+    },
+  },
   interestChip: (isSelected: boolean, isEditing: boolean) => ({
     fontWeight: 600,
     cursor: isEditing ? "pointer" : "default",

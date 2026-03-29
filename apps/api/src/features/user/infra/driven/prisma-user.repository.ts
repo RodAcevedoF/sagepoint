@@ -20,48 +20,50 @@ export class PrismaUserRepository implements IUserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async save(user: User): Promise<void> {
-    const interestCreate = user.interests.map((i) => ({ categoryId: i.id }));
+    const interestCreate = user.interests.map((i) => ({
+      userId: user.id,
+      categoryId: i.id,
+    }));
 
-    await this.prisma.user.upsert({
-      where: { id: user.id },
-      create: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        password: user.passwordHash,
-        googleId: user.googleId,
-        role: user.role,
-        avatarUrl: user.avatarUrl,
-        isActive: user.isActive,
-        isVerified: user.isVerified,
-        verificationToken: user.verificationToken,
-        learningGoal: user.learningGoal,
-        onboardingStatus: user.onboardingStatus,
-        interests: {
-          create: interestCreate,
+    await this.prisma.$transaction([
+      this.prisma.user.upsert({
+        where: { id: user.id },
+        create: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          password: user.passwordHash,
+          googleId: user.googleId,
+          role: user.role,
+          avatarUrl: user.avatarUrl,
+          isActive: user.isActive,
+          isVerified: user.isVerified,
+          verificationToken: user.verificationToken,
+          learningGoal: user.learningGoal,
+          onboardingStatus: user.onboardingStatus,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
         },
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      },
-      update: {
-        email: user.email,
-        name: user.name,
-        password: user.passwordHash,
-        googleId: user.googleId,
-        role: user.role,
-        avatarUrl: user.avatarUrl,
-        isActive: user.isActive,
-        isVerified: user.isVerified,
-        verificationToken: user.verificationToken,
-        learningGoal: user.learningGoal,
-        onboardingStatus: user.onboardingStatus,
-        interests: {
-          deleteMany: {},
-          create: interestCreate,
+        update: {
+          email: user.email,
+          name: user.name,
+          password: user.passwordHash,
+          googleId: user.googleId,
+          role: user.role,
+          avatarUrl: user.avatarUrl,
+          isActive: user.isActive,
+          isVerified: user.isVerified,
+          verificationToken: user.verificationToken,
+          learningGoal: user.learningGoal,
+          onboardingStatus: user.onboardingStatus,
+          updatedAt: user.updatedAt,
         },
-        updatedAt: user.updatedAt,
-      },
-    });
+      }),
+      this.prisma.userInterest.deleteMany({ where: { userId: user.id } }),
+      ...(interestCreate.length > 0
+        ? [this.prisma.userInterest.createMany({ data: interestCreate })]
+        : []),
+    ]);
   }
 
   async findByEmail(email: string): Promise<User | null> {

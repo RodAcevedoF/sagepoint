@@ -46,6 +46,13 @@ export class PrismaCategoryRepository implements ICategoryRepository {
     return found.map((c) => this.toDomain(c));
   }
 
+  async listWithActiveInterests(): Promise<Category[]> {
+    const found = await this.prisma.category.findMany({
+      where: { users: { some: {} } },
+    });
+    return found.map((c) => this.toDomain(c));
+  }
+
   async delete(id: string): Promise<void> {
     await this.prisma.category.delete({ where: { id } });
   }
