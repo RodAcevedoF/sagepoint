@@ -9,7 +9,23 @@ export class Category {
     public readonly updatedAt: Date = new Date(),
   ) {}
 
-  static create(id: string, name: string, slug: string, description?: string, parentId?: string): Category {
+  static create(
+    id: string,
+    name: string,
+    slug: string,
+    description?: string,
+    parentId?: string,
+  ): Category {
     return new Category(id, name, slug, description, parentId);
+  }
+
+  static slugify(name: string): string {
+    return name
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-+|-+$/g, "");
   }
 }

@@ -1,9 +1,8 @@
-'use server';
+"use server";
 
-import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
+import { cookies } from "next/headers";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 export interface OnboardingActionState {
   error?: string;
@@ -19,42 +18,42 @@ export interface OnboardingData {
 
 async function getAuthToken(): Promise<string | null> {
   const cookieStore = await cookies();
-  return cookieStore.get('access_token')?.value || null;
+  return cookieStore.get("access_token")?.value || null;
 }
 
 export async function completeOnboardingAction(
-  data: OnboardingData
+  data: OnboardingData,
 ): Promise<OnboardingActionState> {
   const token = await getAuthToken();
 
   if (!token) {
-    return { error: 'Not authenticated' };
+    return { error: "Not authenticated" };
   }
 
   try {
     const response = await fetch(`${API_URL}/users/me/onboarding`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         learningGoal: data.goal,
         experienceLevel: data.experience,
         interests: data.interests,
         weeklyHoursGoal: parseInt(data.weeklyHours) || null,
-        status: 'COMPLETED',
+        status: "COMPLETED",
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      return { error: errorData.message || 'Failed to save onboarding data' };
+      return { error: errorData.message || "Failed to save onboarding data" };
     }
 
     return { success: true };
   } catch {
-    return { error: 'Network error. Please try again.' };
+    return { error: "Network error. Please try again." };
   }
 }
 
@@ -62,29 +61,28 @@ export async function skipOnboardingAction(): Promise<OnboardingActionState> {
   const token = await getAuthToken();
 
   if (!token) {
-    return { error: 'Not authenticated' };
+    return { error: "Not authenticated" };
   }
 
   try {
     const response = await fetch(`${API_URL}/users/me/onboarding`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        status: 'SKIPPED',
+        status: "SKIPPED",
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      return { error: errorData.message || 'Failed to skip onboarding' };
+      return { error: errorData.message || "Failed to skip onboarding" };
     }
-
   } catch {
-    return { error: 'Network error. Please try again.' };
+    return { error: "Network error. Please try again." };
   }
 
-  redirect('/dashboard');
+  return { success: true };
 }

@@ -1,22 +1,22 @@
-import { baseApi } from './baseApi';
-import { UserDto } from './authApi';
+import { baseApi } from "./baseApi";
+import { UserDto } from "./authApi";
 
 export interface UpdateUserDto {
   name?: string;
   avatarUrl?: string;
   learningGoal?: string;
-  // Add other updateable fields as needed
+  interests?: string[];
 }
 
 export const userApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     updateProfile: builder.mutation<UserDto, UpdateUserDto>({
       query: (data) => ({
-        url: '/users/me',
-        method: 'PATCH',
+        url: "/users/me",
+        method: "PATCH",
         body: data,
       }),
-      invalidatesTags: ['User'],
+      invalidatesTags: ["User", "Insights"],
     }),
   }),
 });

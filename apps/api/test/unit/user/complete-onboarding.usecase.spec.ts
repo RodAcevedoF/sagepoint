@@ -1,4 +1,5 @@
 import { CompleteOnboardingUseCase } from '../../../src/features/user/app/usecases/complete-onboarding.usecase';
+import { InterestResolverService } from '../../../src/features/user/app/services/interest-resolver.service';
 import { User, OnboardingStatus, Category } from '@sagepoint/domain';
 import { NotFoundException } from '@nestjs/common';
 import {
@@ -20,7 +21,8 @@ describe('CompleteOnboardingUseCase', () => {
     categoryRepo = new FakeCategoryRepository();
     userRepo.seed(User.create('u1', 'test@example.com', 'Test User'));
     categoryRepo.seed(WEB_DEV, DATA_SCI, DEVOPS);
-    useCase = new CompleteOnboardingUseCase(userRepo, categoryRepo);
+    const interestResolver = new InterestResolverService(categoryRepo);
+    useCase = new CompleteOnboardingUseCase(userRepo, interestResolver);
   });
 
   describe('completing onboarding', () => {
@@ -51,7 +53,7 @@ describe('CompleteOnboardingUseCase', () => {
       expect(userRepo.getById('u1')!.interests).toHaveLength(1);
     });
 
-    it('appends custom interests to the learning goal', async () => {
+    it('creates real categories from custom interests', async () => {
       await useCase.execute('u1', {
         status: 'COMPLETED',
         learningGoal: 'My goal',
@@ -59,9 +61,10 @@ describe('CompleteOnboardingUseCase', () => {
       });
 
       const saved = userRepo.getById('u1')!;
-      expect(saved.learningGoal).toContain('Blockchain');
-      expect(saved.learningGoal).toContain('IoT');
-      expect(saved.interests).toHaveLength(1); // only c1
+      expect(saved.learningGoal).toBe('My goal');
+      expect(saved.interests).toHaveLength(3);
+      expect(saved.interests.map((i) => i.slug)).toContain('blockchain');
+      expect(saved.interests.map((i) => i.slug)).toContain('iot');
     });
   });
 

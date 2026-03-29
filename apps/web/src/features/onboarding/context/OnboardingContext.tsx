@@ -28,7 +28,7 @@ interface OnboardingContextValue {
   visitedSteps: Set<string>;
   updateData: <K extends keyof OnboardingData>(
     key: K,
-    value: OnboardingData[K]
+    value: OnboardingData[K],
   ) => void;
   canAccessStep: (step: string) => boolean;
   goToStep: (step: string) => void;
@@ -77,19 +77,19 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
   const [data, setData] = useState<OnboardingData>(INITIAL_DATA);
   const [visitedSteps, setVisitedSteps] = useState<Set<string>>(
-    new Set(["welcome"])
+    new Set(["welcome"]),
   );
 
   const currentStep = pathname?.split("/").pop() || "welcome";
   const currentStepIndex = ONBOARDING_STEPS.indexOf(
-    currentStep as OnboardingStep
+    currentStep as OnboardingStep,
   );
 
   const updateData = useCallback(
     <K extends keyof OnboardingData>(key: K, value: OnboardingData[K]) => {
       setData((prev) => ({ ...prev, [key]: value }));
     },
-    []
+    [],
   );
 
   const canAccessStep = useCallback(
@@ -101,7 +101,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       const prevStep = ONBOARDING_STEPS[stepIndex - 1];
       return visitedSteps.has(prevStep);
     },
-    [visitedSteps]
+    [visitedSteps],
   );
 
   const goToStep = useCallback(
@@ -110,7 +110,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         router.push(`/onboarding/${step}`);
       }
     },
-    [canAccessStep, router]
+    [canAccessStep, router],
   );
 
   const goNext = useCallback(() => {
@@ -130,9 +130,12 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
   const skip = useCallback(() => {
     startTransition(async () => {
-      await skipOnboardingAction();
+      const result = await skipOnboardingAction();
+      if (result.success) {
+        router.replace("/dashboard");
+      }
     });
-  }, []);
+  }, [router]);
 
   const value = useMemo(
     () => ({
@@ -161,7 +164,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       skip,
       isPending,
       currentStepIndex,
-    ]
+    ],
   );
 
   return (

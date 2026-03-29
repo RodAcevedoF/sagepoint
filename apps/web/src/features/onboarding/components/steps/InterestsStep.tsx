@@ -98,7 +98,7 @@ export function InterestsStep() {
     .map((i) => i.replace("custom:", ""));
 
   const selectedCategoryIds = data.interests.filter(
-    (i) => !i.startsWith("custom:")
+    (i) => !i.startsWith("custom:"),
   );
 
   const toggleInterest = (id: string) => {
@@ -109,7 +109,7 @@ export function InterestsStep() {
   };
 
   const addCustomInterest = () => {
-    const trimmed = customInput.trim();
+    const trimmed = customInput.trim().slice(0, 50);
     if (!trimmed) return;
 
     const customId = `custom:${trimmed}`;
@@ -122,7 +122,7 @@ export function InterestsStep() {
   const removeCustomInterest = (interest: string) => {
     updateData(
       "interests",
-      data.interests.filter((i) => i !== `custom:${interest}`)
+      data.interests.filter((i) => i !== `custom:${interest}`),
     );
   };
 
@@ -177,7 +177,14 @@ export function InterestsStep() {
 
             {/* Custom interests */}
             {customInterests.length > 0 && (
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: categories.length > 0 ? 1.5 : 0 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 1,
+                  mt: categories.length > 0 ? 1.5 : 0,
+                }}
+              >
                 {customInterests.map((interest, index) => (
                   <motion.div
                     key={interest}
@@ -200,7 +207,7 @@ export function InterestsStep() {
               size="small"
               placeholder="Add a custom topic..."
               value={customInput}
-              onChange={(e) => setCustomInput(e.target.value)}
+              onChange={(e) => setCustomInput(e.target.value.slice(0, 50))}
               onKeyDown={handleKeyDown}
               sx={styles.input}
               fullWidth

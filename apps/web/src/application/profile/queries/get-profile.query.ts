@@ -1,4 +1,5 @@
-import { useGetProfileQuery as useGetProfileQueryBase } from '@/infrastructure/api/authApi';
+import { useGetProfileQuery as useGetProfileQueryBase } from "@/infrastructure/api/authApi";
+export type { UserDto } from "@/infrastructure/api/authApi";
 
 export function useGetProfileQuery() {
   const { data: user, isLoading, error, refetch } = useGetProfileQueryBase();

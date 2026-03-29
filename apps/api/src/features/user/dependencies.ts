@@ -6,6 +6,7 @@ import { GetUserUseCase } from './app/usecases/get-user.usecase';
 import { UpdateUserUseCase } from './app/usecases/update-user.usecase';
 import { UpdateMeUseCase } from './app/usecases/update-me.usecase';
 import { CompleteOnboardingUseCase } from './app/usecases/complete-onboarding.usecase';
+import { InterestResolverService } from './app/services/interest-resolver.service';
 import { PrismaService } from '@/core/infra/database/prisma.service';
 import { PrismaUserRepository } from '@/features/user/infra/driven/prisma-user.repository';
 import { PrismaCategoryRepository } from '@/features/category/infra/adapter/prisma-category.repository';
@@ -19,14 +20,15 @@ export function makeUserDependencies(): UserDependencies {
   const prismaService = new PrismaService();
   const userRepository = new PrismaUserRepository(prismaService);
   const categoryRepository = new PrismaCategoryRepository(prismaService);
+  const interestResolver = new InterestResolverService(categoryRepository);
 
   const createUserUseCase = new CreateUserUseCase(userRepository);
   const getUserUseCase = new GetUserUseCase(userRepository);
   const updateUserUseCase = new UpdateUserUseCase(userRepository);
-  const updateMeUseCase = new UpdateMeUseCase(userRepository);
+  const updateMeUseCase = new UpdateMeUseCase(userRepository, interestResolver);
   const completeOnboardingUseCase = new CompleteOnboardingUseCase(
     userRepository,
-    categoryRepository,
+    interestResolver,
   );
 
   const userService = new UserService(

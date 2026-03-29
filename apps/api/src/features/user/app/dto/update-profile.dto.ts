@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsUrl } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsUrl,
+  IsArray,
+  ArrayMaxSize,
+} from 'class-validator';
 
 export class UpdateProfileDto {
   @IsOptional()
@@ -12,4 +18,10 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsUrl()
   avatarUrl?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(20)
+  @IsString({ each: true })
+  interests?: string[];
 }
