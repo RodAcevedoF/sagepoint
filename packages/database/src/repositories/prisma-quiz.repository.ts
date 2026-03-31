@@ -1,10 +1,12 @@
-import type { IQuizRepository } from '@sagepoint/domain';
-import { Quiz } from '@sagepoint/domain';
-import type { Quiz as PrismaQuiz } from '@sagepoint/database';
-import { PrismaService } from '@/core/infra/database/prisma.service';
+import type { IQuizRepository } from "@sagepoint/domain";
+import { Quiz } from "@sagepoint/domain";
+import type {
+  PrismaClient,
+  Quiz as PrismaQuiz,
+} from "../generated/prisma/client";
 
 export class PrismaQuizRepository implements IQuizRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaClient) {}
 
   async save(quiz: Quiz): Promise<void> {
     await this.prisma.quiz.upsert({
@@ -36,7 +38,7 @@ export class PrismaQuizRepository implements IQuizRepository {
   async findByDocumentId(documentId: string): Promise<Quiz[]> {
     const data = await this.prisma.quiz.findMany({
       where: { documentId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
     return data.map((d) => this.mapToDomain(d));
   }

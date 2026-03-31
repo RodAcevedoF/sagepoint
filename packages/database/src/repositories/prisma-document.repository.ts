@@ -3,16 +3,16 @@ import {
   Document,
   DocumentStatus,
   ProcessingStage,
-} from '@sagepoint/domain';
+} from "@sagepoint/domain";
 import type {
   CursorPaginationParams,
   CursorPaginatedResult,
-} from '@sagepoint/domain';
-import type { Document as PrismaDocument } from '@sagepoint/database';
-import { PrismaService } from '@/core/infra/database/prisma.service';
+} from "@sagepoint/domain";
+import type { Document as PrismaDocument } from "../generated/prisma/client";
+import type { PrismaClient } from "../generated/prisma/client";
 
 export class PrismaDocumentRepository implements IDocumentRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaClient) {}
 
   async save(document: Document): Promise<void> {
     await this.prisma.document.upsert({
@@ -24,7 +24,7 @@ export class PrismaDocumentRepository implements IDocumentRepository {
         status: document.status as string,
         userId: document.userId,
         errorMessage: document.errorMessage,
-        processingStage: document.processingStage ?? 'UPLOADED',
+        processingStage: document.processingStage ?? "UPLOADED",
         mimeType: document.mimeType,
         fileSize: document.fileSize,
         conceptCount: document.conceptCount,
@@ -57,7 +57,7 @@ export class PrismaDocumentRepository implements IDocumentRepository {
   async findByUserId(userId: string): Promise<Document[]> {
     const data = await this.prisma.document.findMany({
       where: { userId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
     return data.map((d) => this.mapToDomain(d));
   }
@@ -74,7 +74,7 @@ export class PrismaDocumentRepository implements IDocumentRepository {
     const [rows, total] = await Promise.all([
       this.prisma.document.findMany({
         where: { ...where, ...cursorClause },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         take: params.limit + 1,
       }),
       this.prisma.document.count({ where }),

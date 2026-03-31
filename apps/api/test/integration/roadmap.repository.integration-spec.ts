@@ -5,10 +5,12 @@ import {
   asPrismaService,
   getPrismaClient,
 } from './_setup/prisma-test-client';
-import { PrismaRoadmapRepository } from '@/features/roadmap/infra/driven/prisma-roadmap.repository';
-import { PrismaResourceRepository } from '@/features/roadmap/infra/driven/prisma-resource.repository';
-import { PrismaProgressRepository } from '@/features/roadmap/infra/driven/prisma-progress.repository';
-import { PrismaStepQuizAttemptRepository } from '@/features/roadmap/infra/driven/prisma-step-quiz-attempt.repository';
+import {
+  PrismaRoadmapRepository,
+  PrismaResourceRepository,
+  PrismaProgressRepository,
+  PrismaStepQuizAttemptRepository,
+} from '@sagepoint/database';
 import {
   Roadmap,
   Concept,

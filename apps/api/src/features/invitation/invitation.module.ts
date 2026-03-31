@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { INVITATION_REPOSITORY } from '@sagepoint/domain';
 import { PrismaService } from '@/core/infra/database/prisma.service';
 import { UserModule } from '@/features/user/user.module';
-import { PrismaInvitationRepository } from './infra/driven/prisma-invitation.repository';
+import { PrismaInvitationRepository } from '@sagepoint/database';
 import { InvitationController } from './invitation.controller';
 import { CreateInvitationUseCase } from './app/usecases/create-invitation.usecase';
 import { FindAllInvitationsUseCase } from './app/usecases/find-all-invitations.usecase';

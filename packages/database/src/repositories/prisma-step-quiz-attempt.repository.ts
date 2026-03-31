@@ -1,14 +1,14 @@
-import type { StepQuizAttempt as PrismaAttempt } from '@sagepoint/database';
-import { Prisma } from '@sagepoint/database';
+import type { StepQuizAttempt as PrismaAttempt } from "../generated/prisma/client";
+import { Prisma } from "../generated/prisma/client";
+import type { PrismaClient } from "../generated/prisma/client";
 import {
   StepQuizAttempt,
   type IStepQuizAttemptRepository,
   type StepQuizQuestion,
-} from '@sagepoint/domain';
-import { PrismaService } from '@/core/infra/database/prisma.service';
+} from "@sagepoint/domain";
 
 export class PrismaStepQuizAttemptRepository implements IStepQuizAttemptRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaClient) {}
 
   async create(attempt: StepQuizAttempt): Promise<StepQuizAttempt> {
     const data = await this.prisma.stepQuizAttempt.create({
@@ -45,7 +45,7 @@ export class PrismaStepQuizAttemptRepository implements IStepQuizAttemptReposito
   ): Promise<StepQuizAttempt | null> {
     const data = await this.prisma.stepQuizAttempt.findFirst({
       where: { userId, roadmapId, conceptId, completedAt: null },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
     return data ? this.mapToDomain(data) : null;
   }

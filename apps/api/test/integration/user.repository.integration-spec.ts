@@ -4,7 +4,7 @@ import {
   cleanDatabase,
   asPrismaService,
 } from './_setup/prisma-test-client';
-import { PrismaUserRepository } from '@/features/user/infra/driven/prisma-user.repository';
+import { PrismaUserRepository } from '@sagepoint/database';
 import { PrismaCategoryRepository } from '@sagepoint/database';
 import { User, Category, UserRole, OnboardingStatus } from '@sagepoint/domain';
 

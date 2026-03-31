@@ -5,11 +5,13 @@ import {
   asPrismaService,
   getPrismaClient,
 } from './_setup/prisma-test-client';
-import { PrismaDocumentRepository } from '@/features/document/infra/driven/prisma-document.repository';
-import { PrismaDocumentSummaryRepository } from '@/features/document/infra/driven/prisma-document-summary.repository';
-import { PrismaQuizRepository } from '@/features/document/infra/driven/prisma-quiz.repository';
-import { PrismaQuestionRepository } from '@/features/document/infra/driven/prisma-question.repository';
-import { PrismaQuizAttemptRepository } from '@/features/document/infra/driven/prisma-quiz-attempt.repository';
+import {
+  PrismaDocumentRepository,
+  PrismaDocumentSummaryRepository,
+  PrismaQuizRepository,
+  PrismaQuestionRepository,
+  PrismaQuizAttemptRepository,
+} from '@sagepoint/database';
 import {
   Document,
   DocumentStatus,

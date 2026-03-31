@@ -4,9 +4,11 @@ import {
   RoadmapProgressSummary,
   StepStatus,
   type ICacheService,
-} from '@sagepoint/domain';
-import type { UserRoadmapProgress as PrismaProgress } from '@sagepoint/database';
-import { PrismaService } from '@/core/infra/database/prisma.service';
+} from "@sagepoint/domain";
+import type {
+  PrismaClient,
+  UserRoadmapProgress as PrismaProgress,
+} from "../generated/prisma/client";
 
 interface SerializedStep {
   concept: { id: string };
@@ -16,7 +18,7 @@ const TTL_SECONDS = 600; // 10 minutes
 
 export class PrismaProgressRepository implements IProgressRepository {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly prisma: PrismaClient,
     private readonly cache?: ICacheService,
   ) {}
 
@@ -148,7 +150,7 @@ export class PrismaProgressRepository implements IProgressRepository {
     }
 
     const counts = await this.prisma.userRoadmapProgress.groupBy({
-      by: ['status'],
+      by: ["status"],
       where: { userId, roadmapId },
       _count: { status: true },
     });
@@ -158,9 +160,9 @@ export class PrismaProgressRepository implements IProgressRepository {
       return acc;
     }, {});
 
-    const completedSteps = statusCounts['COMPLETED'] || 0;
-    const inProgressSteps = statusCounts['IN_PROGRESS'] || 0;
-    const skippedSteps = statusCounts['SKIPPED'] || 0;
+    const completedSteps = statusCounts["COMPLETED"] || 0;
+    const inProgressSteps = statusCounts["IN_PROGRESS"] || 0;
+    const skippedSteps = statusCounts["SKIPPED"] || 0;
 
     const summary: RoadmapProgressSummary = {
       roadmapId,
@@ -214,9 +216,9 @@ export class PrismaProgressRepository implements IProgressRepository {
         {},
       );
 
-      const completedSteps = statusCounts['COMPLETED'] || 0;
-      const inProgressSteps = statusCounts['IN_PROGRESS'] || 0;
-      const skippedSteps = statusCounts['SKIPPED'] || 0;
+      const completedSteps = statusCounts["COMPLETED"] || 0;
+      const inProgressSteps = statusCounts["IN_PROGRESS"] || 0;
+      const skippedSteps = statusCounts["SKIPPED"] || 0;
 
       return {
         roadmapId: roadmap.id,
@@ -241,20 +243,14 @@ export class PrismaProgressRepository implements IProgressRepository {
     roadmapId: string,
   ): Promise<string[]> {
     const completed = await this.prisma.userRoadmapProgress.findMany({
-      where: {
-        userId,
-        roadmapId,
-        status: 'COMPLETED',
-      },
+      where: { userId, roadmapId, status: "COMPLETED" },
       select: { conceptId: true },
     });
     return completed.map((p) => p.conceptId);
   }
 
   async deleteByRoadmap(roadmapId: string): Promise<void> {
-    await this.prisma.userRoadmapProgress.deleteMany({
-      where: { roadmapId },
-    });
+    await this.prisma.userRoadmapProgress.deleteMany({ where: { roadmapId } });
   }
 
   async deleteByUserAndRoadmap(
@@ -264,7 +260,6 @@ export class PrismaProgressRepository implements IProgressRepository {
     await this.prisma.userRoadmapProgress.deleteMany({
       where: { userId, roadmapId },
     });
-
     await this.invalidateCache(userId, roadmapId);
   }
 

@@ -1,10 +1,10 @@
-import type { IQuizAttemptRepository } from '@sagepoint/domain';
-import { QuizAttempt } from '@sagepoint/domain';
-import type { QuizAttempt as PrismaQuizAttempt } from '@sagepoint/database';
-import { PrismaService } from '@/core/infra/database/prisma.service';
+import type { IQuizAttemptRepository } from "@sagepoint/domain";
+import { QuizAttempt } from "@sagepoint/domain";
+import type { QuizAttempt as PrismaQuizAttempt } from "../generated/prisma/client";
+import type { PrismaClient } from "../generated/prisma/client";
 
 export class PrismaQuizAttemptRepository implements IQuizAttemptRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaClient) {}
 
   async save(attempt: QuizAttempt): Promise<void> {
     await this.prisma.quizAttempt.create({
@@ -28,7 +28,7 @@ export class PrismaQuizAttemptRepository implements IQuizAttemptRepository {
   ): Promise<QuizAttempt[]> {
     const data = await this.prisma.quizAttempt.findMany({
       where: { userId, quizId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
     return data.map((d) => this.mapToDomain(d));
   }
@@ -36,7 +36,7 @@ export class PrismaQuizAttemptRepository implements IQuizAttemptRepository {
   async findByUser(userId: string): Promise<QuizAttempt[]> {
     const data = await this.prisma.quizAttempt.findMany({
       where: { userId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
     return data.map((d) => this.mapToDomain(d));
   }

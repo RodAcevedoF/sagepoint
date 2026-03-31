@@ -8,8 +8,10 @@ import { UpdateMeUseCase } from './app/usecases/update-me.usecase';
 import { CompleteOnboardingUseCase } from './app/usecases/complete-onboarding.usecase';
 import { InterestResolverService } from './app/services/interest-resolver.service';
 import { PrismaService } from '@/core/infra/database/prisma.service';
-import { PrismaUserRepository } from '@/features/user/infra/driven/prisma-user.repository';
-import { PrismaCategoryRepository } from '@sagepoint/database';
+import {
+  PrismaUserRepository,
+  PrismaCategoryRepository,
+} from '@sagepoint/database';
 
 export interface UserDependencies {
   userService: IUserService;

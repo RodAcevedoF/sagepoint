@@ -4,20 +4,20 @@ import {
   Category,
   OnboardingStatus,
   UserRole,
-} from '@sagepoint/domain';
+} from "@sagepoint/domain";
 import type {
+  PrismaClient,
   User as PrismaUser,
   UserInterest as PrismaUserInterest,
   Category as PrismaCategory,
-} from '@sagepoint/database';
-import { PrismaService } from '@/core/infra/database/prisma.service';
+} from "../generated/prisma/client";
 
 type UserWithInterests = PrismaUser & {
   interests: (PrismaUserInterest & { category: PrismaCategory })[];
 };
 
 export class PrismaUserRepository implements IUserRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaClient) {}
 
   async save(user: User): Promise<void> {
     const interestCreate = user.interests.map((i) => ({

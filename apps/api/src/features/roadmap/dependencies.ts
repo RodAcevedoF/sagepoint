@@ -9,7 +9,7 @@ import type {
   ICacheService,
 } from '@sagepoint/domain';
 import { RoadmapService } from '@/features/roadmap/infra/driver/roadmap.service';
-import { PrismaRoadmapRepository } from '@/features/roadmap/infra/driven/prisma-roadmap.repository';
+
 import { GenerateRoadmapUseCase } from '@/features/roadmap/app/usecases/generate-roadmap.usecase';
 import { GenerateTopicRoadmapUseCase } from '@/features/roadmap/app/usecases/generate-topic-roadmap.usecase';
 import { EnqueueTopicRoadmapUseCase } from '@/features/roadmap/app/usecases/enqueue-topic-roadmap.usecase';
@@ -24,8 +24,6 @@ import { GenerateStepQuizUseCase } from '@/features/roadmap/app/usecases/generat
 import { SubmitStepQuizUseCase } from '@/features/roadmap/app/usecases/submit-step-quiz.usecase';
 import { UpdateVisibilityUseCase } from '@/features/roadmap/app/usecases/update-visibility.usecase';
 import { GetPublicRoadmapsUseCase } from '@/features/roadmap/app/usecases/get-public-roadmaps.usecase';
-import { PrismaStepQuizAttemptRepository } from './infra/driven/prisma-step-quiz-attempt.repository';
-
 import { Neo4jService, Neo4jConceptRepository } from '@sagepoint/graph';
 import { GetGraphUseCase } from './app/usecases/get-graph.usecase';
 import {
@@ -33,8 +31,12 @@ import {
   CachedResourceDiscoveryAdapter,
 } from '@sagepoint/ai';
 import { PrismaService } from '@/core/infra/database/prisma.service';
-import { PrismaResourceRepository } from './infra/driven/prisma-resource.repository';
-import { PrismaProgressRepository } from './infra/driven/prisma-progress.repository';
+import {
+  PrismaRoadmapRepository,
+  PrismaResourceRepository,
+  PrismaProgressRepository,
+  PrismaStepQuizAttemptRepository,
+} from '@sagepoint/database';
 import { BullMqRoadmapGenerationQueue } from '@/core/infra/queue/bull-mq-roadmap.queue';
 import { Queue } from 'bullmq';
 

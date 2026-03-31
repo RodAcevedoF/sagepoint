@@ -1,14 +1,17 @@
-import type { IQuestionRepository, QuestionOption } from '@sagepoint/domain';
-import { Question, QuestionType } from '@sagepoint/domain';
-import type { Question as PrismaQuestion, Prisma } from '@sagepoint/database';
-import { PrismaService } from '@/core/infra/database/prisma.service';
+import type { IQuestionRepository, QuestionOption } from "@sagepoint/domain";
+import { Question, QuestionType } from "@sagepoint/domain";
+import type {
+  Question as PrismaQuestion,
+  Prisma,
+} from "../generated/prisma/client";
+import type { PrismaClient } from "../generated/prisma/client";
 
 function toJsonValue(options: QuestionOption[]): Prisma.InputJsonValue {
   return JSON.parse(JSON.stringify(options)) as Prisma.InputJsonValue;
 }
 
 export class PrismaQuestionRepository implements IQuestionRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaClient) {}
 
   async saveMany(questions: Question[]): Promise<void> {
     await this.prisma.$transaction(
@@ -42,7 +45,7 @@ export class PrismaQuestionRepository implements IQuestionRepository {
   async findByQuizId(quizId: string): Promise<Question[]> {
     const data = await this.prisma.question.findMany({
       where: { quizId },
-      orderBy: { order: 'asc' },
+      orderBy: { order: "asc" },
     });
     return data.map((d) => this.mapToDomain(d));
   }

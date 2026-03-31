@@ -1,10 +1,10 @@
-import type { IDocumentSummaryRepository } from '@sagepoint/domain';
-import { DocumentSummary } from '@sagepoint/domain';
-import type { DocumentSummary as PrismaDocumentSummary } from '@sagepoint/database';
-import { PrismaService } from '@/core/infra/database/prisma.service';
+import type { IDocumentSummaryRepository } from "@sagepoint/domain";
+import { DocumentSummary } from "@sagepoint/domain";
+import type { DocumentSummary as PrismaDocumentSummary } from "../generated/prisma/client";
+import type { PrismaClient } from "../generated/prisma/client";
 
 export class PrismaDocumentSummaryRepository implements IDocumentSummaryRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaClient) {}
 
   async save(summary: DocumentSummary): Promise<void> {
     await this.prisma.documentSummary.upsert({

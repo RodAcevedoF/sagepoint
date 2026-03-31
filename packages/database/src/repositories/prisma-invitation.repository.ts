@@ -3,12 +3,14 @@ import {
   Invitation,
   InvitationStatus,
   UserRole,
-} from '@sagepoint/domain';
-import type { Invitation as PrismaInvitation } from '@sagepoint/database';
-import { PrismaService } from '@/core/infra/database/prisma.service';
+} from "@sagepoint/domain";
+import type {
+  PrismaClient,
+  Invitation as PrismaInvitation,
+} from "../generated/prisma/client";
 
 export class PrismaInvitationRepository implements IInvitationRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaClient) {}
 
   async save(invitation: Invitation): Promise<void> {
     await this.prisma.invitation.upsert({
@@ -56,7 +58,7 @@ export class PrismaInvitationRepository implements IInvitationRepository {
 
   async findAll(): Promise<Invitation[]> {
     const data = await this.prisma.invitation.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
     return data.map((d) => this.mapToDomain(d));
   }

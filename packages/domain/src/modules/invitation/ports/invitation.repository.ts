@@ -1,6 +1,6 @@
 import type { Invitation } from "../entities/invitation.entity";
 
-export const INVITATION_REPOSITORY = "INVITATION_REPOSITORY";
+export const INVITATION_REPOSITORY = Symbol("INVITATION_REPOSITORY");
 
 export interface IInvitationRepository {
   save(invitation: Invitation): Promise<void>;

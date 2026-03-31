@@ -1,9 +1,11 @@
-import { IResourceRepository, Resource, ResourceType } from '@sagepoint/domain';
-import type { Resource as PrismaResource } from '@sagepoint/database';
-import { PrismaService } from '@/core/infra/database/prisma.service';
+import { IResourceRepository, Resource, ResourceType } from "@sagepoint/domain";
+import type {
+  PrismaClient,
+  Resource as PrismaResource,
+} from "../generated/prisma/client";
 
 export class PrismaResourceRepository implements IResourceRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaClient) {}
 
   async save(resource: Resource): Promise<Resource> {
     const data = await this.prisma.resource.upsert({
@@ -77,7 +79,7 @@ export class PrismaResourceRepository implements IResourceRepository {
   async findByRoadmapId(roadmapId: string): Promise<Resource[]> {
     const data = await this.prisma.resource.findMany({
       where: { roadmapId },
-      orderBy: { order: 'asc' },
+      orderBy: { order: "asc" },
     });
     return data.map((r) => this.mapToDomain(r));
   }
@@ -85,15 +87,13 @@ export class PrismaResourceRepository implements IResourceRepository {
   async findByConceptId(conceptId: string): Promise<Resource[]> {
     const data = await this.prisma.resource.findMany({
       where: { conceptId },
-      orderBy: { order: 'asc' },
+      orderBy: { order: "asc" },
     });
     return data.map((r) => this.mapToDomain(r));
   }
 
   async deleteByRoadmapId(roadmapId: string): Promise<void> {
-    await this.prisma.resource.deleteMany({
-      where: { roadmapId },
-    });
+    await this.prisma.resource.deleteMany({ where: { roadmapId } });
   }
 
   private mapToDomain(data: PrismaResource): Resource {

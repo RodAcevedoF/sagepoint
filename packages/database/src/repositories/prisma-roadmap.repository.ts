@@ -5,13 +5,13 @@ import {
   RoadmapStep,
   RoadmapGenerationStatus,
   RoadmapVisibility,
-} from '@sagepoint/domain';
+} from "@sagepoint/domain";
 import type {
+  PrismaClient,
   Roadmap as PrismaRoadmap,
   RoadmapGenerationStatus as PrismaGenStatus,
   RoadmapVisibility as PrismaVisibility,
-} from '@sagepoint/database';
-import { PrismaService } from '@/core/infra/database/prisma.service';
+} from "../generated/prisma/client";
 
 interface SerializedStep {
   concept: {
@@ -24,12 +24,12 @@ interface SerializedStep {
   dependsOn: string[];
   learningObjective?: string;
   estimatedDuration?: number;
-  difficulty?: 'beginner' | 'intermediate' | 'advanced';
+  difficulty?: "beginner" | "intermediate" | "advanced";
   rationale?: string;
 }
 
 export class PrismaRoadmapRepository implements IRoadmapRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaClient) {}
 
   async save(roadmap: Roadmap): Promise<Roadmap> {
     const data = await this.prisma.roadmap.upsert({
@@ -71,7 +71,7 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
   async findByDocumentId(documentId: string): Promise<Roadmap[]> {
     const data = await this.prisma.roadmap.findMany({
       where: { documentId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
     return data.map((r) => this.mapToDomain(r));
   }
@@ -79,15 +79,15 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
   async findByUserId(userId: string): Promise<Roadmap[]> {
     const data = await this.prisma.roadmap.findMany({
       where: { userId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
     return data.map((r) => this.mapToDomain(r));
   }
 
   async findPublic(): Promise<Roadmap[]> {
     const data = await this.prisma.roadmap.findMany({
-      where: { visibility: 'PUBLIC', generationStatus: 'COMPLETED' },
-      orderBy: { createdAt: 'desc' },
+      where: { visibility: "PUBLIC", generationStatus: "COMPLETED" },
+      orderBy: { createdAt: "desc" },
     });
     return data.map((r) => this.mapToDomain(r));
   }
@@ -137,7 +137,7 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
     }));
   }
 
-  private deserializeSteps(json: PrismaRoadmap['steps']): RoadmapStep[] {
+  private deserializeSteps(json: PrismaRoadmap["steps"]): RoadmapStep[] {
     if (!Array.isArray(json)) return [];
     const steps = json as unknown as SerializedStep[];
     return steps.map((raw) => ({
@@ -168,8 +168,8 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
     visibility: RoadmapVisibility,
   ): PrismaVisibility {
     const map: Record<RoadmapVisibility, PrismaVisibility> = {
-      [RoadmapVisibility.PRIVATE]: 'PRIVATE',
-      [RoadmapVisibility.PUBLIC]: 'PUBLIC',
+      [RoadmapVisibility.PRIVATE]: "PRIVATE",
+      [RoadmapVisibility.PUBLIC]: "PUBLIC",
     };
     return map[visibility];
   }

@@ -20,11 +20,13 @@ import { DeleteDocumentUseCase } from './app/usecases/delete-document.usecase';
 import { BullMqDocumentProcessingQueue } from '@/core/infra/queue/bull-mq.queue';
 import { Queue } from 'bullmq';
 import { PrismaService } from '@/core/infra/database/prisma.service';
-import { PrismaDocumentRepository } from '@/features/document/infra/driven/prisma-document.repository';
-import { PrismaDocumentSummaryRepository } from '@/features/document/infra/driven/prisma-document-summary.repository';
-import { PrismaQuizRepository } from '@/features/document/infra/driven/prisma-quiz.repository';
-import { PrismaQuestionRepository } from '@/features/document/infra/driven/prisma-question.repository';
-import { PrismaQuizAttemptRepository } from '@/features/document/infra/driven/prisma-quiz-attempt.repository';
+import {
+  PrismaDocumentRepository,
+  PrismaDocumentSummaryRepository,
+  PrismaQuizRepository,
+  PrismaQuestionRepository,
+  PrismaQuizAttemptRepository,
+} from '@sagepoint/database';
 
 export interface DocumentDependencies {
   documentService: IDocumentService;
