@@ -2,9 +2,9 @@ import {
   connectPrisma,
   disconnectPrisma,
   cleanDatabase,
-  asPrismaService,
+  getPrismaClient,
 } from './_setup/prisma-test-client';
-import { PrismaCategoryRepository } from '@/features/category/infra/adapter/prisma-category.repository';
+import { PrismaCategoryRepository } from '@sagepoint/database';
 import { Category } from '@sagepoint/domain';
 
 describe('PrismaCategoryRepository (integration)', () => {
@@ -34,7 +34,7 @@ describe('PrismaCategoryRepository (integration)', () => {
 
   beforeAll(async () => {
     await connectPrisma();
-    repo = new PrismaCategoryRepository(asPrismaService());
+    repo = new PrismaCategoryRepository(getPrismaClient());
   });
 
   afterAll(async () => {

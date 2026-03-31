@@ -5,7 +5,7 @@ import {
   asPrismaService,
 } from './_setup/prisma-test-client';
 import { PrismaUserRepository } from '@/features/user/infra/driven/prisma-user.repository';
-import { PrismaCategoryRepository } from '@/features/category/infra/adapter/prisma-category.repository';
+import { PrismaCategoryRepository } from '@sagepoint/database';
 import { User, Category, UserRole, OnboardingStatus } from '@sagepoint/domain';
 
 describe('PrismaUserRepository (integration)', () => {

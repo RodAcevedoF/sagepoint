@@ -3,7 +3,7 @@ import type { ICategoryRepository, ICacheService } from '@sagepoint/domain';
 import { CategoryService } from '@/features/category/infra/driver/category.service';
 import { GetCategoriesUseCase } from './app/usecases/get-categories.usecase';
 import { CreateCategoryUseCase } from './app/usecases/create-category.usecase';
-import { PrismaCategoryRepository } from './infra/adapter/prisma-category.repository';
+import { PrismaCategoryRepository } from '@sagepoint/database';
 import { PrismaService } from '@/core/infra/database/prisma.service';
 
 export interface CategoryDependencies {

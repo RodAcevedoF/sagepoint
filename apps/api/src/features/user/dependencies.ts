@@ -9,7 +9,7 @@ import { CompleteOnboardingUseCase } from './app/usecases/complete-onboarding.us
 import { InterestResolverService } from './app/services/interest-resolver.service';
 import { PrismaService } from '@/core/infra/database/prisma.service';
 import { PrismaUserRepository } from '@/features/user/infra/driven/prisma-user.repository';
-import { PrismaCategoryRepository } from '@/features/category/infra/adapter/prisma-category.repository';
+import { PrismaCategoryRepository } from '@sagepoint/database';
 
 export interface UserDependencies {
   userService: IUserService;
