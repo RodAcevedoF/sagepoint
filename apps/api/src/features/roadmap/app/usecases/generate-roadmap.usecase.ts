@@ -151,19 +151,22 @@ export class GenerateRoadmapUseCase {
   ): Promise<void> {
     if (!this.resourceDiscoveryService || !this.resourceRepository) return;
 
-    // Discover resources for all concepts in parallel
-    const resourcePromises = steps.map(async (step) => {
-      const discovered =
-        await this.resourceDiscoveryService!.discoverResourcesForConcept(
-          step.concept.name,
-          step.concept.description,
-          {
-            maxResults: 3,
-            difficulty: step.difficulty,
-          },
-        );
+    // Discover resources via batch API
+    const concepts = steps.map((step) => ({
+      id: step.concept.id,
+      name: step.concept.name,
+      description: step.concept.description,
+    }));
 
-      // Convert discovered resources to domain entities
+    const difficulty = steps[0]?.difficulty;
+    const resourceMap =
+      await this.resourceDiscoveryService.discoverResourcesForConcepts(
+        concepts,
+        { maxResults: 3, difficulty },
+      );
+
+    const allResources = steps.flatMap((step) => {
+      const discovered = resourceMap.get(step.concept.id) ?? [];
       return discovered.map((d, resourceIndex) =>
         Resource.create({
           title: d.title,
@@ -179,9 +182,6 @@ export class GenerateRoadmapUseCase {
         }),
       );
     });
-
-    const resourceArrays = await Promise.all(resourcePromises);
-    const allResources = resourceArrays.flat();
 
     // Save all resources in batch
     if (allResources.length > 0) {

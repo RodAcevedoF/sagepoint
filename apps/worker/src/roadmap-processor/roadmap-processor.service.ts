@@ -18,7 +18,7 @@ import type {
   ConceptRelationshipForOrdering,
   UserContext,
 } from "@sagepoint/domain";
-import { CachedResourceDiscoveryAdapter } from "../infra/cached-resource-discovery.adapter";
+import { CachedResourceDiscoveryAdapter } from "@sagepoint/ai";
 import { Inject } from "@nestjs/common";
 
 interface JobData {
@@ -350,14 +350,21 @@ export class RoadmapProcessorService extends WorkerHost {
     await job.updateProgress({ stage: "resources" });
 
     try {
-      const resourcePromises = steps.map(async (step) => {
-        const discovered =
-          await this.resourceDiscovery.discoverResourcesForConcept(
-            step.concept.name,
-            step.concept.description,
-            { maxResults: 3, difficulty: step.difficulty },
-          );
+      const concepts = steps.map((step) => ({
+        id: step.concept.id,
+        name: step.concept.name,
+        description: step.concept.description,
+      }));
 
+      const difficulty = steps[0]?.difficulty;
+      const resourceMap =
+        await this.resourceDiscovery.discoverResourcesForConcepts(concepts, {
+          maxResults: 3,
+          difficulty,
+        });
+
+      const allResources = steps.flatMap((step) => {
+        const discovered = resourceMap.get(step.concept.id) ?? [];
         return discovered.map((d, idx) =>
           Resource.create({
             title: d.title,
@@ -373,9 +380,6 @@ export class RoadmapProcessorService extends WorkerHost {
           }),
         );
       });
-
-      const resourceArrays = await Promise.all(resourcePromises);
-      const allResources = resourceArrays.flat();
 
       if (allResources.length > 0) {
         await this.prisma.resource.createMany({

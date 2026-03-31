@@ -50,18 +50,22 @@ export class RefreshResourcesUseCase {
       await this.resourceRepository.deleteByRoadmapId(command.roadmapId);
     }
 
-    // Discover new resources in parallel
-    const resourcePromises = stepsToRefresh.map(async (step) => {
-      const discovered =
-        await this.resourceDiscoveryService.discoverResourcesForConcept(
-          step.concept.name,
-          step.concept.description,
-          {
-            maxResults: 3,
-            difficulty: step.difficulty,
-          },
-        );
+    // Discover new resources via batch API
+    const concepts = stepsToRefresh.map((step) => ({
+      id: step.concept.id,
+      name: step.concept.name,
+      description: step.concept.description,
+    }));
 
+    const difficulty = stepsToRefresh[0]?.difficulty;
+    const resourceMap =
+      await this.resourceDiscoveryService.discoverResourcesForConcepts(
+        concepts,
+        { maxResults: 3, difficulty },
+      );
+
+    const allResources = stepsToRefresh.flatMap((step) => {
+      const discovered = resourceMap.get(step.concept.id) ?? [];
       return discovered.map((d, index) =>
         Resource.create({
           title: d.title,
@@ -77,9 +81,6 @@ export class RefreshResourcesUseCase {
         }),
       );
     });
-
-    const resourceArrays = await Promise.all(resourcePromises);
-    const allResources = resourceArrays.flat();
 
     // Save new resources in batch
     if (allResources.length > 0) {

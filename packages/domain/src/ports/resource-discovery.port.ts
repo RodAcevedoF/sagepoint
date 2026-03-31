@@ -1,9 +1,9 @@
-import { ResourceType } from '../modules/roadmap/entities/resource.entity';
+import { ResourceType } from "../modules/roadmap/entities/resource.entity";
 
 export interface ResourceDiscoveryOptions {
   maxResults?: number;
   preferredTypes?: ResourceType[];
-  difficulty?: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+  difficulty?: "beginner" | "intermediate" | "advanced" | "expert";
   freeOnly?: boolean;
 }
 
@@ -17,12 +17,23 @@ export interface DiscoveredResource {
   difficulty?: string;
 }
 
-export const RESOURCE_DISCOVERY_SERVICE = Symbol('RESOURCE_DISCOVERY_SERVICE');
+export const RESOURCE_DISCOVERY_SERVICE = Symbol("RESOURCE_DISCOVERY_SERVICE");
+
+export interface ConceptForDiscovery {
+  id: string;
+  name: string;
+  description?: string;
+}
 
 export interface IResourceDiscoveryService {
   discoverResourcesForConcept(
     conceptName: string,
     conceptDescription?: string,
-    options?: ResourceDiscoveryOptions
+    options?: ResourceDiscoveryOptions,
   ): Promise<DiscoveredResource[]>;
+
+  discoverResourcesForConcepts(
+    concepts: ConceptForDiscovery[],
+    options?: ResourceDiscoveryOptions,
+  ): Promise<Map<string, DiscoveredResource[]>>;
 }

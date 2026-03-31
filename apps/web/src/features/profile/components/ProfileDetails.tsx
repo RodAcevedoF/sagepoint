@@ -52,6 +52,8 @@ function DetailRow({
     try {
       await onSave(editValue);
       setIsEditing(false);
+    } catch {
+      // error already surfaced via snackbar in onSave; keep edit mode open
     } finally {
       setIsSaving(false);
     }

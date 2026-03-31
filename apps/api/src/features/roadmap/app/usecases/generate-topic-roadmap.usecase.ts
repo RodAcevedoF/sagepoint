@@ -132,17 +132,21 @@ export class GenerateTopicRoadmapUseCase {
   ): Promise<void> {
     if (!this.resourceDiscoveryService || !this.resourceRepository) return;
 
-    const resourcePromises = steps.map(async (step) => {
-      const discovered =
-        await this.resourceDiscoveryService!.discoverResourcesForConcept(
-          step.concept.name,
-          step.concept.description,
-          {
-            maxResults: 3,
-            difficulty: step.difficulty,
-          },
-        );
+    const concepts = steps.map((step) => ({
+      id: step.concept.id,
+      name: step.concept.name,
+      description: step.concept.description,
+    }));
 
+    const difficulty = steps[0]?.difficulty;
+    const resourceMap =
+      await this.resourceDiscoveryService.discoverResourcesForConcepts(
+        concepts,
+        { maxResults: 3, difficulty },
+      );
+
+    const allResources = steps.flatMap((step) => {
+      const discovered = resourceMap.get(step.concept.id) ?? [];
       return discovered.map((d, resourceIndex) =>
         Resource.create({
           title: d.title,
@@ -158,9 +162,6 @@ export class GenerateTopicRoadmapUseCase {
         }),
       );
     });
-
-    const resourceArrays = await Promise.all(resourcePromises);
-    const allResources = resourceArrays.flat();
 
     if (allResources.length > 0) {
       await this.resourceRepository.saveMany(allResources);

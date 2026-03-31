@@ -109,7 +109,7 @@ export function InterestsStep() {
   };
 
   const addCustomInterest = () => {
-    const trimmed = customInput.trim().slice(0, 50);
+    const trimmed = customInput.trim().toLowerCase().slice(0, 50);
     if (!trimmed) return;
 
     const customId = `custom:${trimmed}`;

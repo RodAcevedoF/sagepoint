@@ -1,67 +1,55 @@
-import { Injectable, Logger, Optional, Inject } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Injectable, Logger, Optional, Inject } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   ITopicConceptGenerationService,
   ConceptForOrdering,
   ConceptRelationshipForOrdering,
   UserContext,
-} from '@sagepoint/domain';
-import { ChatOpenAI } from '@langchain/openai';
-import { z } from 'zod';
-
-export interface OpenAiTopicConceptGeneratorConfig {
-  apiKey: string;
-  modelName?: string;
-}
+} from "@sagepoint/domain";
+import { ChatOpenAI } from "@langchain/openai";
+import { z } from "zod";
+import { resolveOpenAiConfig, createChatModel } from "./llm-config";
+import type { LlmAdapterConfig } from "./llm-config";
 
 @Injectable()
 export class OpenAiTopicConceptGeneratorAdapter implements ITopicConceptGenerationService {
   private readonly model: ChatOpenAI;
   private readonly logger = new Logger(OpenAiTopicConceptGeneratorAdapter.name);
 
-  constructor(@Optional() @Inject(ConfigService) configOrService?: ConfigService | OpenAiTopicConceptGeneratorConfig) {
-    let apiKey: string | undefined;
-    let modelName: string | undefined;
-
-    if (configOrService && 'apiKey' in configOrService) {
-      apiKey = configOrService.apiKey;
-      modelName = configOrService.modelName;
-    } else if (configOrService && 'get' in configOrService) {
-      apiKey = configOrService.get<string>('OPENAI_API_KEY');
-      modelName = configOrService.get<string>('MODEL_TOPIC_CONCEPT_GENERATION');
-    } else {
-      apiKey = process.env.OPENAI_API_KEY;
-    }
-
-    if (!apiKey) {
-      this.logger.warn('OPENAI_API_KEY is not set. AI features will fail.');
-    }
-
-    this.model = new ChatOpenAI({
-      apiKey,
-      modelName: modelName || 'gpt-4o',
+  constructor(
+    @Optional()
+    @Inject(ConfigService)
+    configOrService?: ConfigService | LlmAdapterConfig,
+  ) {
+    const resolved = resolveOpenAiConfig(
+      configOrService,
+      "MODEL_TOPIC_CONCEPT_GENERATION",
+    );
+    this.model = createChatModel({
+      ...resolved,
+      modelName: resolved.modelName || "gpt-4o",
       temperature: 0.3,
     });
   }
 
   private getExperienceLevelGuidelines(level?: string): string {
     switch (level) {
-      case 'beginner':
+      case "beginner":
         return `- Generate between 10 and 15 concepts.
 - Focus on foundational, first-principles concepts.
 - Start from the very basics — assume no prior knowledge.
 - Include introductory and prerequisite concepts.`;
-      case 'intermediate':
+      case "intermediate":
         return `- Generate between 8 and 12 concepts.
 - Skip introductory/101 concepts — assume basic familiarity.
 - Focus on practical application and common patterns.
 - Include concepts that bridge theory and real-world usage.`;
-      case 'advanced':
+      case "advanced":
         return `- Generate between 8 and 12 concepts.
 - Skip all basics — assume solid working knowledge.
 - Focus on advanced patterns, architecture, and best practices.
 - Include performance optimization and design trade-offs.`;
-      case 'expert':
+      case "expert":
         return `- Generate between 6 and 10 specialized concepts.
 - Target cutting-edge, research-level, or niche topics.
 - Focus on deep specialization, edge cases, and advanced internals.
@@ -84,32 +72,48 @@ export class OpenAiTopicConceptGeneratorAdapter implements ITopicConceptGenerati
       this.logger.log(`Generating concepts from topic: "${topic}"`);
 
       const topicConceptsSchema = z.object({
-        concepts: z.array(
-          z.object({
-            id: z.string().describe('A unique identifier for this concept (use a short slug like "react-hooks")'),
-            name: z.string().describe('The name of the concept'),
-            description: z.string().nullable().describe('A brief description of what this concept covers'),
-          })
-        ).describe('The list of key concepts a learner needs to understand for this topic'),
-        relationships: z.array(
-          z.object({
-            fromId: z.string().describe('The ID of the source concept'),
-            toId: z.string().describe('The ID of the target concept'),
-            type: z.enum(['DEPENDS_ON', 'RELATED_TO', 'NEXT_STEP']).describe('The type of relationship'),
-          })
-        ).describe('Relationships between concepts'),
+        concepts: z
+          .array(
+            z.object({
+              id: z
+                .string()
+                .describe(
+                  'A unique identifier for this concept (use a short slug like "react-hooks")',
+                ),
+              name: z.string().describe("The name of the concept"),
+              description: z
+                .string()
+                .nullable()
+                .describe("A brief description of what this concept covers"),
+            }),
+          )
+          .describe(
+            "The list of key concepts a learner needs to understand for this topic",
+          ),
+        relationships: z
+          .array(
+            z.object({
+              fromId: z.string().describe("The ID of the source concept"),
+              toId: z.string().describe("The ID of the target concept"),
+              type: z
+                .enum(["DEPENDS_ON", "RELATED_TO", "NEXT_STEP"])
+                .describe("The type of relationship"),
+            }),
+          )
+          .describe("Relationships between concepts"),
       });
 
-      const structuredModel = this.model.withStructuredOutput(topicConceptsSchema);
+      const structuredModel =
+        this.model.withStructuredOutput(topicConceptsSchema);
 
       const userContextInfo = userContext
         ? `
 User Context:
-- Goal: ${userContext.goal || 'General learning'}
-- Experience Level: ${userContext.experienceLevel || 'Not specified'}
-- Time Available: ${userContext.timeAvailable ? `${userContext.timeAvailable} hours/week` : 'Not specified'}
-- Preferred Learning Style: ${userContext.preferredLearningStyle || 'Not specified'}`
-        : '';
+- Goal: ${userContext.goal || "General learning"}
+- Experience Level: ${userContext.experienceLevel || "Not specified"}
+- Time Available: ${userContext.timeAvailable ? `${userContext.timeAvailable} hours/week` : "Not specified"}
+- Preferred Learning Style: ${userContext.preferredLearningStyle || "Not specified"}`
+        : "";
 
       const experienceGuidelines = this.getExperienceLevelGuidelines(
         userContext?.experienceLevel,
@@ -117,11 +121,11 @@ User Context:
 
       const ontologyInfo = existingOntologyContext
         ? `\n\nExisting Knowledge Graph Context (concepts already known in the system — reuse and build upon these where relevant, ensure consistency with existing terminology):\n${existingOntologyContext}`
-        : '';
+        : "";
 
       const result = await structuredModel.invoke([
         {
-          role: 'system',
+          role: "system",
           content: `You are an expert curriculum designer. Given a learning topic, identify the key concepts a learner needs to understand, along with relationships between them.
 
 Guidelines:
@@ -134,7 +138,7 @@ ${experienceGuidelines}
 - If existing ontology context is provided, leverage it to create more precise and consistent concepts. Reuse concept names where they match, and add RELATED_TO relationships to relevant existing concepts.`,
         },
         {
-          role: 'user',
+          role: "user",
           content: `Identify key concepts and their relationships for learning about: "${topic}"
 ${userContextInfo}${ontologyInfo}
 
@@ -154,7 +158,7 @@ Return a structured list of concepts with their relationships.`,
         relationships: result.relationships,
       };
     } catch (error) {
-      this.logger.error('Failed to generate concepts from topic', error);
+      this.logger.error("Failed to generate concepts from topic", error);
       throw error;
     }
   }

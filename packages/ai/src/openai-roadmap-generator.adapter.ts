@@ -1,46 +1,34 @@
-import { Injectable, Logger, Optional, Inject } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Injectable, Logger, Optional, Inject } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   IRoadmapGenerationService,
   ConceptForOrdering,
   ConceptRelationshipForOrdering,
   UserContext,
   GeneratedLearningPath,
-} from '@sagepoint/domain';
-import { ChatOpenAI } from '@langchain/openai';
-import { z } from 'zod';
-
-export interface OpenAiRoadmapGeneratorConfig {
-  apiKey: string;
-  modelName?: string;
-}
+} from "@sagepoint/domain";
+import { ChatOpenAI } from "@langchain/openai";
+import { z } from "zod";
+import { resolveOpenAiConfig, createChatModel } from "./llm-config";
+import type { LlmAdapterConfig } from "./llm-config";
 
 @Injectable()
 export class OpenAiRoadmapGeneratorAdapter implements IRoadmapGenerationService {
   private readonly model: ChatOpenAI;
   private readonly logger = new Logger(OpenAiRoadmapGeneratorAdapter.name);
 
-  constructor(@Optional() @Inject(ConfigService) configOrService?: ConfigService | OpenAiRoadmapGeneratorConfig) {
-    let apiKey: string | undefined;
-    let modelName: string | undefined;
-
-    if (configOrService && 'apiKey' in configOrService) {
-      apiKey = configOrService.apiKey;
-      modelName = configOrService.modelName;
-    } else if (configOrService && 'get' in configOrService) {
-      apiKey = configOrService.get<string>('OPENAI_API_KEY');
-      modelName = configOrService.get<string>('MODEL_ROADMAP_GENERATION');
-    } else {
-      apiKey = process.env.OPENAI_API_KEY;
-    }
-
-    if (!apiKey) {
-      this.logger.warn('OPENAI_API_KEY is not set. AI features will fail.');
-    }
-
-    this.model = new ChatOpenAI({
-      apiKey,
-      modelName: modelName || 'gpt-4o',
+  constructor(
+    @Optional()
+    @Inject(ConfigService)
+    configOrService?: ConfigService | LlmAdapterConfig,
+  ) {
+    const resolved = resolveOpenAiConfig(
+      configOrService,
+      "MODEL_ROADMAP_GENERATION",
+    );
+    this.model = createChatModel({
+      ...resolved,
+      modelName: resolved.modelName || "gpt-4o",
       temperature: 0.3,
     });
   }
@@ -48,82 +36,96 @@ export class OpenAiRoadmapGeneratorAdapter implements IRoadmapGenerationService 
   async generateLearningPath(
     concepts: ConceptForOrdering[],
     relationships: ConceptRelationshipForOrdering[],
-    userContext?: UserContext
+    userContext?: UserContext,
   ): Promise<GeneratedLearningPath> {
     if (!concepts || concepts.length === 0) {
       return {
         orderedConcepts: [],
-        description: 'No concepts available to create a learning path.',
+        description: "No concepts available to create a learning path.",
       };
     }
 
     try {
       this.logger.log(
-        `Generating learning path for ${concepts.length} concepts with ${relationships.length} relationships`
+        `Generating learning path for ${concepts.length} concepts with ${relationships.length} relationships`,
       );
 
       const learningPathSchema = z.object({
         orderedConcepts: z.array(
           z.object({
-            conceptId: z.string().describe('The ID of the concept'),
-            order: z.number().describe('The position in the learning sequence (1-based)'),
+            conceptId: z.string().describe("The ID of the concept"),
+            order: z
+              .number()
+              .describe("The position in the learning sequence (1-based)"),
             learningObjective: z
               .string()
-              .describe('What the learner will understand or be able to do after this step'),
+              .describe(
+                "What the learner will understand or be able to do after this step",
+              ),
             estimatedDuration: z
               .number()
               .nullable()
-              .describe('Estimated time to learn this concept in minutes'),
+              .describe("Estimated time to learn this concept in minutes"),
             difficulty: z
-              .enum(['beginner', 'intermediate', 'advanced', 'expert'])
-              .describe('The difficulty level of this concept'),
+              .enum(["beginner", "intermediate", "advanced", "expert"])
+              .describe("The difficulty level of this concept"),
             rationale: z
               .string()
-              .describe('Brief explanation of why this concept is at this position'),
-          })
+              .describe(
+                "Brief explanation of why this concept is at this position",
+              ),
+          }),
         ),
         description: z
           .string()
-          .describe('A brief description of the overall learning path and its goals'),
+          .describe(
+            "A brief description of the overall learning path and its goals",
+          ),
         totalEstimatedDuration: z
           .number()
           .nullable()
-          .describe('Total estimated time to complete the path in minutes'),
+          .describe("Total estimated time to complete the path in minutes"),
         recommendedPace: z
           .string()
           .nullable()
           .describe('Suggested learning pace (e.g., "2-3 concepts per week")'),
       });
 
-      const structuredModel = this.model.withStructuredOutput(learningPathSchema);
+      const structuredModel =
+        this.model.withStructuredOutput(learningPathSchema);
 
       const conceptsInfo = concepts
-        .map((c) => `- ID: ${c.id}, Name: "${c.name}"${c.description ? `, Description: "${c.description}"` : ''}`)
-        .join('\n');
+        .map(
+          (c) =>
+            `- ID: ${c.id}, Name: "${c.name}"${c.description ? `, Description: "${c.description}"` : ""}`,
+        )
+        .join("\n");
 
       const relationshipsInfo =
         relationships.length > 0
           ? relationships
               .map((r) => {
-                const fromConcept = concepts.find((c) => c.id === r.fromId)?.name || r.fromId;
-                const toConcept = concepts.find((c) => c.id === r.toId)?.name || r.toId;
+                const fromConcept =
+                  concepts.find((c) => c.id === r.fromId)?.name || r.fromId;
+                const toConcept =
+                  concepts.find((c) => c.id === r.toId)?.name || r.toId;
                 return `- "${fromConcept}" ${r.type} "${toConcept}"`;
               })
-              .join('\n')
-          : 'No explicit relationships provided.';
+              .join("\n")
+          : "No explicit relationships provided.";
 
       const userContextInfo = userContext
         ? `
 User Context:
-- Goal: ${userContext.goal || 'General learning'}
-- Experience Level: ${userContext.experienceLevel || 'Not specified'}
-- Time Available: ${userContext.timeAvailable ? `${userContext.timeAvailable} hours/week` : 'Not specified'}
-- Preferred Learning Style: ${userContext.preferredLearningStyle || 'Not specified'}`
-        : '';
+- Goal: ${userContext.goal || "General learning"}
+- Experience Level: ${userContext.experienceLevel || "Not specified"}
+- Time Available: ${userContext.timeAvailable ? `${userContext.timeAvailable} hours/week` : "Not specified"}
+- Preferred Learning Style: ${userContext.preferredLearningStyle || "Not specified"}`
+        : "";
 
       const result = await structuredModel.invoke([
         {
-          role: 'system',
+          role: "system",
           content: `You are an expert educational curriculum designer. Your task is to organize a set of concepts into an optimal learning path.
 
 Guidelines:
@@ -137,7 +139,7 @@ Guidelines:
 8. Consider the user's context if provided to personalize the path.`,
         },
         {
-          role: 'user',
+          role: "user",
           content: `Please organize these concepts into an optimal learning path:
 
 Concepts:
@@ -151,7 +153,9 @@ Return a structured learning path with each concept ordered, along with learning
         },
       ]);
 
-      this.logger.log(`Generated learning path with ${result.orderedConcepts.length} ordered concepts`);
+      this.logger.log(
+        `Generated learning path with ${result.orderedConcepts.length} ordered concepts`,
+      );
 
       return {
         orderedConcepts: result.orderedConcepts.map((c) => ({
@@ -163,7 +167,10 @@ Return a structured learning path with each concept ordered, along with learning
         recommendedPace: result.recommendedPace ?? undefined,
       };
     } catch (error) {
-      this.logger.error('Failed to generate learning path via LangChain', error);
+      this.logger.error(
+        "Failed to generate learning path via LangChain",
+        error,
+      );
       throw error;
     }
   }

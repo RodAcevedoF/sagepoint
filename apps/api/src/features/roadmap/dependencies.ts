@@ -28,7 +28,10 @@ import { PrismaStepQuizAttemptRepository } from './infra/driven/prisma-step-quiz
 
 import { Neo4jService, Neo4jConceptRepository } from '@sagepoint/graph';
 import { GetGraphUseCase } from './app/usecases/get-graph.usecase';
-import { createAiAdapters } from '@sagepoint/ai';
+import {
+  createAiAdapters,
+  CachedResourceDiscoveryAdapter,
+} from '@sagepoint/ai';
 import { PrismaService } from '@/core/infra/database/prisma.service';
 import { PrismaResourceRepository } from './infra/driven/prisma-resource.repository';
 import { PrismaProgressRepository } from './infra/driven/prisma-progress.repository';
@@ -74,7 +77,12 @@ export function makeRoadmapDependencies(
   });
   const roadmapGenerationService = aiAdapters.roadmapGenerator;
   const topicConceptGenerationService = aiAdapters.topicConceptGenerator;
-  const resourceDiscoveryService = aiAdapters.resourceDiscovery;
+  const resourceDiscoveryService = cacheService
+    ? new CachedResourceDiscoveryAdapter(
+        aiAdapters.resourceDiscovery,
+        cacheService,
+      )
+    : aiAdapters.resourceDiscovery;
 
   // BullMQ queue for async roadmap generation
   const roadmapQueue = new Queue('roadmap-generation', {

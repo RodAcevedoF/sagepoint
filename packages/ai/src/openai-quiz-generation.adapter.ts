@@ -1,45 +1,33 @@
-import { Injectable, Logger, Optional, Inject } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Injectable, Logger, Optional, Inject } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   IQuizGenerationService,
   GeneratedQuestion,
   QuizGenerationOptions,
   QuestionType,
-} from '@sagepoint/domain';
-import { ChatOpenAI } from '@langchain/openai';
-import { z } from 'zod';
-
-export interface OpenAiQuizGenerationConfig {
-  apiKey: string;
-  modelName?: string;
-}
+} from "@sagepoint/domain";
+import { ChatOpenAI } from "@langchain/openai";
+import { z } from "zod";
+import { resolveOpenAiConfig, createChatModel } from "./llm-config";
+import type { LlmAdapterConfig } from "./llm-config";
 
 @Injectable()
 export class OpenAiQuizGenerationAdapter implements IQuizGenerationService {
   private readonly model: ChatOpenAI;
   private readonly logger = new Logger(OpenAiQuizGenerationAdapter.name);
 
-  constructor(@Optional() @Inject(ConfigService) configOrService?: ConfigService | OpenAiQuizGenerationConfig) {
-    let apiKey: string | undefined;
-    let modelName: string | undefined;
-
-    if (configOrService && 'apiKey' in configOrService) {
-      apiKey = configOrService.apiKey;
-      modelName = configOrService.modelName;
-    } else if (configOrService && 'get' in configOrService) {
-      apiKey = configOrService.get<string>('OPENAI_API_KEY');
-      modelName = configOrService.get<string>('MODEL_QUIZ_GENERATION');
-    } else {
-      apiKey = process.env.OPENAI_API_KEY;
-    }
-
-    if (!apiKey) {
-      this.logger.warn('OPENAI_API_KEY is not set. Quiz generation will fail.');
-    }
-
-    this.model = new ChatOpenAI({
-      apiKey,
-      modelName: modelName || 'gpt-4o-mini',
+  constructor(
+    @Optional()
+    @Inject(ConfigService)
+    configOrService?: ConfigService | LlmAdapterConfig,
+  ) {
+    const resolved = resolveOpenAiConfig(
+      configOrService,
+      "MODEL_QUIZ_GENERATION",
+    );
+    this.model = createChatModel({
+      ...resolved,
+      modelName: resolved.modelName || "gpt-4o-mini",
       temperature: 0.3,
     });
   }
@@ -50,38 +38,58 @@ export class OpenAiQuizGenerationAdapter implements IQuizGenerationService {
     options?: QuizGenerationOptions,
   ): Promise<GeneratedQuestion[]> {
     const questionCount = options?.questionCount ?? 10;
-    const difficulty = options?.difficulty ?? 'intermediate';
+    const difficulty = options?.difficulty ?? "intermediate";
 
-    this.logger.log(`Generating ${questionCount} quiz questions (difficulty: ${difficulty}) from ${conceptNames.length} concepts`);
+    this.logger.log(
+      `Generating ${questionCount} quiz questions (difficulty: ${difficulty}) from ${conceptNames.length} concepts`,
+    );
 
     const quizSchema = z.object({
       questions: z.array(
         z.object({
-          type: z.enum(['MULTIPLE_CHOICE', 'TRUE_FALSE']).describe('Question type'),
-          text: z.string().describe('The question text'),
-          options: z.array(
-            z.object({
-              label: z.string().describe('Option label (A, B, C, D or True, False)'),
-              text: z.string().describe('Option text'),
-              isCorrect: z.boolean().describe('Whether this is the correct answer'),
-            }),
-          ).describe('Answer options'),
-          explanation: z.string().describe('Brief explanation of the correct answer'),
-          conceptName: z.string().nullable().describe('The concept this question tests, or null if not applicable'),
-          difficulty: z.enum(['beginner', 'intermediate', 'advanced', 'expert']).describe('Question difficulty'),
+          type: z
+            .enum(["MULTIPLE_CHOICE", "TRUE_FALSE"])
+            .describe("Question type"),
+          text: z.string().describe("The question text"),
+          options: z
+            .array(
+              z.object({
+                label: z
+                  .string()
+                  .describe("Option label (A, B, C, D or True, False)"),
+                text: z.string().describe("Option text"),
+                isCorrect: z
+                  .boolean()
+                  .describe("Whether this is the correct answer"),
+              }),
+            )
+            .describe("Answer options"),
+          explanation: z
+            .string()
+            .describe("Brief explanation of the correct answer"),
+          conceptName: z
+            .string()
+            .nullable()
+            .describe(
+              "The concept this question tests, or null if not applicable",
+            ),
+          difficulty: z
+            .enum(["beginner", "intermediate", "advanced", "expert"])
+            .describe("Question difficulty"),
         }),
       ),
     });
 
     const structuredModel = this.model.withStructuredOutput(quizSchema);
 
-    const conceptList = conceptNames.length > 0
-      ? `\nKey concepts to test: ${conceptNames.join(', ')}`
-      : '';
+    const conceptList =
+      conceptNames.length > 0
+        ? `\nKey concepts to test: ${conceptNames.join(", ")}`
+        : "";
 
     const result = await structuredModel.invoke([
       {
-        role: 'system',
+        role: "system",
         content: `You are an expert quiz creator for educational content. Generate quiz questions based on the provided document text.
 
 Guidelines:
@@ -95,7 +103,7 @@ Guidelines:
 - If concept names are provided, link questions to relevant concepts.`,
       },
       {
-        role: 'user',
+        role: "user",
         content: `Generate quiz questions from this document:
 
 ${text}${conceptList}`,

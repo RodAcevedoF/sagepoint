@@ -5,7 +5,10 @@ import { LoggerModule } from "nestjs-pino";
 import { DocumentProcessorService } from "./document-processor/document-processor.service";
 import { RoadmapProcessorService } from "./roadmap-processor/roadmap-processor.service";
 import { InsightsRefreshService } from "./insights-refresh/insights-refresh.service";
-import { NewsdataApiAdapter } from "@sagepoint/ai";
+import {
+  NewsdataApiAdapter,
+  CachedResourceDiscoveryAdapter,
+} from "@sagepoint/ai";
 
 import { ConfigModule } from "@nestjs/config";
 import {
@@ -37,7 +40,6 @@ import {
   PrismaCategoryRepository,
   PrismaNewsArticleRepository,
 } from "@sagepoint/database";
-import { CachedResourceDiscoveryAdapter } from "./infra/cached-resource-discovery.adapter";
 
 function createWorkerPrisma(): PrismaClient {
   return new PrismaClient({

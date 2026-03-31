@@ -951,6 +951,16 @@ export class FakeResourceDiscoveryService implements IResourceDiscoveryService {
   discoverResourcesForConcept(): Promise<DiscoveredResource[]> {
     return Promise.resolve([...this.results]);
   }
+
+  discoverResourcesForConcepts(
+    concepts: Array<{ id: string; name: string; description?: string }>,
+  ): Promise<Map<string, DiscoveredResource[]>> {
+    const map = new Map<string, DiscoveredResource[]>();
+    for (const concept of concepts) {
+      map.set(concept.id, [...this.results]);
+    }
+    return Promise.resolve(map);
+  }
 }
 
 // ─── QuizGenerationService ──────────────────────────────────────────────────

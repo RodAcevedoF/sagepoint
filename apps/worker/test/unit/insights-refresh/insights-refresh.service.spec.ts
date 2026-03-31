@@ -69,17 +69,11 @@ function buildService(overrides?: {
   const categoryRepo = overrides?.categoryRepo ?? fakeCategoryRepo();
   const newsArticleRepo = overrides?.newsArticleRepo ?? fakeNewsArticleRepo();
 
-  const service = Object.create(
-    InsightsRefreshService.prototype,
-  ) as InsightsRefreshService;
-  Object.defineProperty(service, "newsService", { value: newsService });
-  Object.defineProperty(service, "categoryRepo", { value: categoryRepo });
-  Object.defineProperty(service, "newsArticleRepo", {
-    value: newsArticleRepo,
-  });
-  Object.defineProperty(service, "logger", {
-    value: { log: () => {}, error: () => {}, warn: () => {} },
-  });
+  const service = new InsightsRefreshService(
+    newsService,
+    categoryRepo,
+    newsArticleRepo,
+  );
 
   return { service, newsService, categoryRepo, newsArticleRepo };
 }

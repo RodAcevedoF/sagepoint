@@ -9,7 +9,7 @@ import {
   FakeConceptRepository,
   FakeCacheService,
 } from "../_fakes/services.fake";
-import { CachedResourceDiscoveryAdapter } from "../../../src/infra/cached-resource-discovery.adapter";
+import { CachedResourceDiscoveryAdapter } from "@sagepoint/ai";
 import type { Job } from "bullmq";
 import {
   Concept,
@@ -286,7 +286,7 @@ describe("RoadmapProcessorService", () => {
 
       // Make inner discovery throw
       const failingDiscovery = new FakeResourceDiscoveryService();
-      Object.defineProperty(failingDiscovery, "discoverResourcesForConcept", {
+      Object.defineProperty(failingDiscovery, "discoverResourcesForConcepts", {
         value: () => Promise.reject(new Error("Discovery failed")),
       });
 

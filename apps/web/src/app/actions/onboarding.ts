@@ -41,7 +41,9 @@ export async function completeOnboardingAction(
         learningGoal: data.goal,
         experienceLevel: data.experience,
         interests: data.interests,
-        weeklyHoursGoal: parseInt(data.weeklyHours) || null,
+        weeklyHoursGoal: data.weeklyHours
+          ? parseInt(data.weeklyHours, 10)
+          : null,
         status: "COMPLETED",
       }),
     });

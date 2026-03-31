@@ -1,4 +1,4 @@
-import { CachedResourceDiscoveryAdapter } from "../../../src/infra/cached-resource-discovery.adapter";
+import { CachedResourceDiscoveryAdapter } from "@sagepoint/ai";
 import {
   FakeResourceDiscoveryService,
   FakeCacheService,
