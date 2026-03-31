@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
+import { SentryModule, SentryGlobalFilter } from '@sentry/nestjs/setup';
 import { BullModule } from '@nestjs/bullmq';
 import { ConfigModule } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
@@ -60,6 +61,7 @@ const isDev = process.env.NODE_ENV !== 'production';
         port: parseInt(process.env.REDIS_PORT || '6379'),
       },
     }),
+    SentryModule.forRoot(),
     CacheModule,
     RoadmapModule,
     DocumentModule,
@@ -71,6 +73,9 @@ const isDev = process.env.NODE_ENV !== 'production';
     InsightsModule,
     InvitationModule,
   ],
-  providers: [{ provide: APP_FILTER, useClass: DomainExceptionFilter }],
+  providers: [
+    { provide: APP_FILTER, useClass: SentryGlobalFilter },
+    { provide: APP_FILTER, useClass: DomainExceptionFilter },
+  ],
 })
 export class AppModule {}

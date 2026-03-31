@@ -12,6 +12,9 @@ import { palette } from "@/common/theme";
 interface CardProps {
   children: ReactNode;
   onClick?: () => void;
+  href?: string;
+  target?: string;
+  rel?: string;
   sx?: SxProps<Theme>;
   variant?: "glass" | "outlined" | "solid";
   hoverable?: boolean;
@@ -43,14 +46,21 @@ const getVariantStyles = (variant: CardProps["variant"]) => {
 export function Card({
   children,
   onClick,
+  href,
+  target,
+  rel,
   sx,
   variant = "glass",
   hoverable = true,
 }: CardProps) {
+  const linkProps = href
+    ? { component: "a" as React.ElementType, href, target, rel }
+    : {};
   return (
     <Paper
       elevation={0}
       onClick={onClick}
+      {...linkProps}
       sx={[
         {
           position: "relative",

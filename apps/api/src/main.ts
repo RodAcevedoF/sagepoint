@@ -1,5 +1,16 @@
 import { config } from 'dotenv';
 config({ path: '../../.env' });
+import * as Sentry from '@sentry/nestjs';
+import { nodeProfilingIntegration } from '@sentry/profiling-node';
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  environment: process.env.NODE_ENV ?? 'development',
+  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.2 : 1.0,
+  profilesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 0,
+  integrations: [nodeProfilingIntegration()],
+});
+
 import { execSync } from 'child_process';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
