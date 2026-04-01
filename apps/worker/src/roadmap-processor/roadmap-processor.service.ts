@@ -1,7 +1,6 @@
 import { Processor, WorkerHost } from "@nestjs/bullmq";
 import { InjectPinoLogger, PinoLogger } from "nestjs-pino";
 import { Job } from "bullmq";
-import { PrismaClient, PrismaPg } from "@sagepoint/database";
 import {
   RoadmapStep,
   Concept,
@@ -9,9 +8,15 @@ import {
   TOPIC_CONCEPT_GENERATION_SERVICE,
   ROADMAP_GENERATION_SERVICE,
   CONCEPT_REPOSITORY,
+  ROADMAP_REPOSITORY,
+  CATEGORY_REPOSITORY,
+  RESOURCE_REPOSITORY,
 } from "@sagepoint/domain";
 import type {
   IConceptRepository,
+  IRoadmapRepository,
+  ICategoryRepository,
+  IResourceRepository,
   ITopicConceptGenerationService,
   IRoadmapGenerationService,
   ConceptForOrdering,
@@ -31,10 +36,6 @@ interface JobData {
 
 @Processor("roadmap-generation")
 export class RoadmapProcessorService extends WorkerHost {
-  private readonly prisma = new PrismaClient({
-    adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }),
-  });
-
   constructor(
     @InjectPinoLogger(RoadmapProcessorService.name)
     private readonly logger: PinoLogger,
@@ -45,6 +46,12 @@ export class RoadmapProcessorService extends WorkerHost {
     private readonly resourceDiscovery: CachedResourceDiscoveryAdapter,
     @Inject(CONCEPT_REPOSITORY)
     private readonly conceptRepository: IConceptRepository,
+    @Inject(ROADMAP_REPOSITORY)
+    private readonly roadmapRepo: IRoadmapRepository,
+    @Inject(CATEGORY_REPOSITORY)
+    private readonly categoryRepo: ICategoryRepository,
+    @Inject(RESOURCE_REPOSITORY)
+    private readonly resourceRepo: IResourceRepository,
   ) {
     super();
   }
@@ -104,9 +111,8 @@ export class RoadmapProcessorService extends WorkerHost {
   }
 
   private async markProcessing(roadmapId: string): Promise<void> {
-    await this.prisma.roadmap.update({
-      where: { id: roadmapId },
-      data: { generationStatus: "PROCESSING" },
+    await this.roadmapRepo.updateGeneration(roadmapId, {
+      generationStatus: "processing",
     });
   }
 
@@ -157,13 +163,10 @@ export class RoadmapProcessorService extends WorkerHost {
   }
 
   private async completeEmpty(roadmapId: string): Promise<void> {
-    await this.prisma.roadmap.update({
-      where: { id: roadmapId },
-      data: {
-        generationStatus: "COMPLETED",
-        description:
-          "Could not generate concepts for this topic. Please try a more specific topic.",
-      },
+    await this.roadmapRepo.updateGeneration(roadmapId, {
+      generationStatus: "completed",
+      description:
+        "Could not generate concepts for this topic. Please try a more specific topic.",
     });
   }
 
@@ -238,21 +241,6 @@ export class RoadmapProcessorService extends WorkerHost {
       });
     }
 
-    const serializedSteps = steps.map((step) => ({
-      concept: {
-        id: step.concept.id,
-        name: step.concept.name,
-        documentId: step.concept.documentId,
-        description: step.concept.description,
-      },
-      order: step.order,
-      dependsOn: step.dependsOn,
-      learningObjective: step.learningObjective,
-      estimatedDuration: step.estimatedDuration,
-      difficulty: step.difficulty,
-      rationale: step.rationale,
-    }));
-
     const stepDurationSum = steps.reduce(
       (sum, s) => sum + (s.estimatedDuration ?? 0),
       0,
@@ -262,16 +250,13 @@ export class RoadmapProcessorService extends WorkerHost {
       concepts.map((c) => c.name),
     );
 
-    await this.prisma.roadmap.update({
-      where: { id: roadmapId },
-      data: {
-        generationStatus: "COMPLETED",
-        description: learningPath.description,
-        steps: serializedSteps,
-        totalDuration: stepDurationSum > 0 ? stepDurationSum : null,
-        recommendedPace: learningPath.recommendedPace,
-        ...(categoryId ? { categoryId } : {}),
-      },
+    await this.roadmapRepo.updateGeneration(roadmapId, {
+      generationStatus: "completed",
+      description: learningPath.description,
+      steps,
+      totalEstimatedDuration: stepDurationSum > 0 ? stepDurationSum : undefined,
+      recommendedPace: learningPath.recommendedPace ?? undefined,
+      categoryId: categoryId ?? undefined,
     });
 
     this.logger.info(
@@ -292,12 +277,9 @@ export class RoadmapProcessorService extends WorkerHost {
       { jobId: job.id, roadmapId, err },
       "Roadmap generation failed",
     );
-    await this.prisma.roadmap.update({
-      where: { id: roadmapId },
-      data: {
-        generationStatus: "FAILED",
-        errorMessage: error instanceof Error ? error.message : "Unknown error",
-      },
+    await this.roadmapRepo.updateGeneration(roadmapId, {
+      generationStatus: "failed",
+      errorMessage: error instanceof Error ? error.message : "Unknown error",
     });
   }
 
@@ -306,9 +288,7 @@ export class RoadmapProcessorService extends WorkerHost {
     conceptNames: string[],
   ): Promise<string | null> {
     try {
-      const categories = await this.prisma.category.findMany({
-        select: { id: true, name: true, slug: true, description: true },
-      });
+      const categories = await this.categoryRepo.list();
 
       const searchText = [topic, ...conceptNames].join(" ").toLowerCase();
       let bestMatch: { id: string; score: number } | null = null;
@@ -382,21 +362,7 @@ export class RoadmapProcessorService extends WorkerHost {
       });
 
       if (allResources.length > 0) {
-        await this.prisma.resource.createMany({
-          data: allResources.map((r) => ({
-            id: r.id,
-            title: r.title,
-            url: r.url,
-            type: r.type,
-            description: r.description,
-            provider: r.provider,
-            estimatedDuration: r.estimatedDuration,
-            difficulty: r.difficulty,
-            conceptId: r.conceptId,
-            roadmapId: r.roadmapId,
-            order: r.order,
-          })),
-        });
+        await this.resourceRepo.saveMany(allResources);
       }
 
       this.logger.info(

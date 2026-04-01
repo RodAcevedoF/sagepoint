@@ -1,10 +1,21 @@
-import type { Document } from '../entities/document.entity';
+import type {
+  Document,
+  DocumentStatus,
+  ProcessingStage,
+} from "../entities/document.entity";
 import type {
   CursorPaginationParams,
   CursorPaginatedResult,
-} from '../../../common/pagination';
+} from "../../../common/pagination";
 
-export const DOCUMENT_REPOSITORY = Symbol('DOCUMENT_REPOSITORY');
+export const DOCUMENT_REPOSITORY = Symbol("DOCUMENT_REPOSITORY");
+
+export interface DocumentStatusUpdate {
+  status?: DocumentStatus;
+  processingStage?: ProcessingStage;
+  conceptCount?: number;
+  errorMessage?: string;
+}
 
 export interface IDocumentRepository {
   save(document: Document): Promise<void>;
@@ -15,5 +26,6 @@ export interface IDocumentRepository {
     userId: string,
     params: CursorPaginationParams,
   ): Promise<CursorPaginatedResult<Document>>;
+  updateStatus(id: string, fields: DocumentStatusUpdate): Promise<void>;
   delete(id: string): Promise<void>;
 }

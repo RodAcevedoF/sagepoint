@@ -27,6 +27,10 @@ import {
   makeInsightsDependencies,
   type InsightsDependencies,
 } from '@/features/insights/dependencies';
+import {
+  makeInvitationDependencies,
+  type InvitationDependencies,
+} from '@/features/invitation/dependencies';
 import { GCSStorage } from '@sagepoint/storage';
 import { NewsdataApiAdapter } from '@sagepoint/ai';
 import type { IFileStorage, INewsService } from '@sagepoint/domain';
@@ -41,6 +45,7 @@ export interface AppDependencies {
   category: CategoryDependencies;
   admin: AdminDependencies;
   insights: InsightsDependencies;
+  invitation: InvitationDependencies;
   fileStorage: IFileStorage;
   neo4jService: Neo4jService;
   newsService: INewsService;
@@ -90,6 +95,7 @@ export function bootstrap(): AppDependencies {
     category: makeCategoryDependencies(cacheService),
     admin: makeAdminDependencies(),
     insights: makeInsightsDependencies(),
+    invitation: makeInvitationDependencies(),
     fileStorage,
     neo4jService,
     newsService,

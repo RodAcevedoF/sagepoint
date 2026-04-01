@@ -1,7 +1,12 @@
 import { DocumentProcessorService } from "../../../src/document-processor/document-processor.service";
 import { FakeLogger } from "../_fakes/logger.fake";
 import { FakeJob } from "../_fakes/job.fake";
-import { FakePrismaClient } from "../_fakes/prisma.fake";
+import {
+  FakeDocumentRepository,
+  FakeDocumentSummaryRepository,
+  FakeQuizRepository,
+  FakeQuestionRepository,
+} from "../_fakes/repositories.fake";
 import {
   FakeFileStorage,
   FakeContentAnalysisService,
@@ -31,7 +36,10 @@ function buildService(overrides: {
   visionExtractor?: FakeImageTextExtractionService;
   fileStorage?: FakeFileStorage;
   conceptRepository?: FakeConceptRepository;
-  prisma?: FakePrismaClient;
+  documentRepo?: FakeDocumentRepository;
+  summaryRepo?: FakeDocumentSummaryRepository;
+  quizRepo?: FakeQuizRepository;
+  questionRepo?: FakeQuestionRepository;
 }) {
   const logger = overrides.logger ?? new FakeLogger();
   const contentAnalysis =
@@ -45,27 +53,25 @@ function buildService(overrides: {
   const fileStorage = overrides.fileStorage ?? new FakeFileStorage();
   const conceptRepository =
     overrides.conceptRepository ?? new FakeConceptRepository();
-  const prisma = overrides.prisma ?? new FakePrismaClient();
+  const documentRepo = overrides.documentRepo ?? new FakeDocumentRepository();
+  const summaryRepo =
+    overrides.summaryRepo ?? new FakeDocumentSummaryRepository();
+  const quizRepo = overrides.quizRepo ?? new FakeQuizRepository();
+  const questionRepo = overrides.questionRepo ?? new FakeQuestionRepository();
 
-  // Create instance bypassing the decorator-based constructor
-  const service = Object.create(
-    DocumentProcessorService.prototype,
-  ) as DocumentProcessorService;
-  Object.defineProperty(service, "logger", { value: logger });
-  Object.defineProperty(service, "contentAnalysis", { value: contentAnalysis });
-  Object.defineProperty(service, "documentAnalysis", {
-    value: documentAnalysis,
-  });
-  Object.defineProperty(service, "quizGeneration", { value: quizGeneration });
-  Object.defineProperty(service, "visionExtractor", { value: visionExtractor });
-  Object.defineProperty(service, "fileStorage", { value: fileStorage });
-  Object.defineProperty(service, "conceptRepository", {
-    value: conceptRepository,
-  });
-  Object.defineProperty(service, "prisma", { value: prisma });
-  Object.defineProperty(service, "parser", {
-    value: { supports: () => false, parse: () => ({ text: "" }) },
-  });
+  const service = new DocumentProcessorService(
+    logger as never,
+    contentAnalysis,
+    documentAnalysis,
+    quizGeneration,
+    visionExtractor,
+    fileStorage,
+    conceptRepository,
+    documentRepo,
+    summaryRepo,
+    quizRepo,
+    questionRepo,
+  );
 
   return {
     service,
@@ -76,7 +82,10 @@ function buildService(overrides: {
     visionExtractor,
     fileStorage,
     conceptRepository,
-    prisma,
+    documentRepo,
+    summaryRepo,
+    quizRepo,
+    questionRepo,
   };
 }
 
@@ -89,7 +98,10 @@ describe("DocumentProcessorService", () => {
   let visionExtractor: FakeImageTextExtractionService;
   let fileStorage: FakeFileStorage;
   let conceptRepository: FakeConceptRepository;
-  let prisma: FakePrismaClient;
+  let documentRepo: FakeDocumentRepository;
+  let summaryRepo: FakeDocumentSummaryRepository;
+  let quizRepo: FakeQuizRepository;
+  let questionRepo: FakeQuestionRepository;
 
   beforeEach(() => {
     const ctx = buildService({});
@@ -101,11 +113,13 @@ describe("DocumentProcessorService", () => {
     visionExtractor = ctx.visionExtractor;
     fileStorage = ctx.fileStorage;
     conceptRepository = ctx.conceptRepository;
-    prisma = ctx.prisma;
+    documentRepo = ctx.documentRepo;
+    summaryRepo = ctx.summaryRepo;
+    quizRepo = ctx.quizRepo;
+    questionRepo = ctx.questionRepo;
 
-    // Seed file storage with a PDF buffer
     fileStorage.seed(STORAGE_PATH, Buffer.from("Hello World document content"));
-    prisma.seedDocument(DOC_ID);
+    documentRepo.seedDocument(DOC_ID);
   });
 
   describe("happy path — full processing pipeline", () => {
@@ -138,36 +152,28 @@ describe("DocumentProcessorService", () => {
 
       await service.process(job as unknown as Job<JobData>);
 
-      // Document should be COMPLETED
-      const doc = prisma.getDocument(DOC_ID);
+      const doc = documentRepo.getDocument(DOC_ID);
       expect(doc?.status).toBe("COMPLETED");
       expect(doc?.processingStage).toBe("READY");
 
-      // Summary should be saved
-      const summary = prisma.getSummaryByDocumentId(DOC_ID);
+      const summary = summaryRepo.getSummaryByDocumentId(DOC_ID);
       expect(summary).toBeDefined();
       expect(summary?.overview).toBe("Test overview");
       expect(summary?.topicArea).toBe("Test Topic");
 
-      // Quiz should be saved
-      const quiz = prisma.getQuizByDocumentId(DOC_ID);
+      const quiz = quizRepo.getQuizByDocumentId(DOC_ID);
       expect(quiz).toBeDefined();
       expect(quiz?.questionCount).toBe(1);
 
-      // Questions should be saved
-      const questions = prisma.getQuestionsByQuizId(quiz?.id as string);
+      const questions = questionRepo.getQuestionsByQuizId(quiz?.id as string);
       expect(questions).toHaveLength(1);
 
-      // Concepts should be saved to Neo4j
-      const concepts = conceptRepository.getSavedConcepts();
-      expect(concepts).toHaveLength(2);
+      expect(conceptRepository.getSavedConcepts()).toHaveLength(2);
 
-      // Relationships should be saved
       const relations = conceptRepository.getSavedRelations();
       expect(relations).toHaveLength(1);
       expect(relations[0].type).toBe("DEPENDS_ON");
 
-      // Progress should track all stages
       expect(job.progressUpdates).toEqual([
         { stage: "parsing" },
         { stage: "analyzing" },
@@ -191,13 +197,14 @@ describe("DocumentProcessorService", () => {
 
       await service.process(job as unknown as Job<JobData>);
 
-      const summary = prisma.getSummaryByDocumentId(DOC_ID);
-      expect(summary).toBeDefined();
+      expect(summaryRepo.getSummaryByDocumentId(DOC_ID)).toBeDefined();
     });
 
     it("should decode plain text files directly from buffer", async () => {
-      const textContent = "Direct text content from file";
-      fileStorage.seed("uploads/readme.txt", Buffer.from(textContent));
+      fileStorage.seed(
+        "uploads/readme.txt",
+        Buffer.from("Direct text content from file"),
+      );
 
       const job = new FakeJob<JobData>("job-3", {
         documentId: DOC_ID,
@@ -208,8 +215,7 @@ describe("DocumentProcessorService", () => {
 
       await service.process(job as unknown as Job<JobData>);
 
-      const doc = prisma.getDocument(DOC_ID);
-      expect(doc?.status).toBe("COMPLETED");
+      expect(documentRepo.getDocument(DOC_ID)?.status).toBe("COMPLETED");
     });
 
     it("should guess mime type from filename extension when not provided", async () => {
@@ -223,8 +229,7 @@ describe("DocumentProcessorService", () => {
 
       await service.process(job as unknown as Job<JobData>);
 
-      const doc = prisma.getDocument(DOC_ID);
-      expect(doc?.status).toBe("COMPLETED");
+      expect(documentRepo.getDocument(DOC_ID)?.status).toBe("COMPLETED");
     });
 
     it("should throw when no text can be extracted", async () => {
@@ -241,8 +246,7 @@ describe("DocumentProcessorService", () => {
         service.process(job as unknown as Job<JobData>),
       ).rejects.toThrow("No text could be extracted from the document");
 
-      const doc = prisma.getDocument(DOC_ID);
-      expect(doc?.status).toBe("FAILED");
+      expect(documentRepo.getDocument(DOC_ID)?.status).toBe("FAILED");
     });
   });
 
@@ -267,13 +271,9 @@ describe("DocumentProcessorService", () => {
 
       await service.process(job as unknown as Job<JobData>);
 
-      const doc = prisma.getDocument(DOC_ID);
-      expect(doc?.status).toBe("COMPLETED");
+      expect(documentRepo.getDocument(DOC_ID)?.status).toBe("COMPLETED");
       expect(logger.hasLevel("warn")).toBe(true);
-
-      // Quiz should still be saved
-      const quiz = prisma.getQuizByDocumentId(DOC_ID);
-      expect(quiz).toBeDefined();
+      expect(quizRepo.getQuizByDocumentId(DOC_ID)).toBeDefined();
     });
 
     it("should continue when quiz generation fails but concepts succeed", async () => {
@@ -291,11 +291,8 @@ describe("DocumentProcessorService", () => {
 
       await service.process(job as unknown as Job<JobData>);
 
-      const doc = prisma.getDocument(DOC_ID);
-      expect(doc?.status).toBe("COMPLETED");
+      expect(documentRepo.getDocument(DOC_ID)?.status).toBe("COMPLETED");
       expect(logger.hasLevel("warn")).toBe(true);
-
-      // Concepts should still be saved
       expect(conceptRepository.getSavedConcepts()).toHaveLength(1);
     });
 
@@ -314,8 +311,7 @@ describe("DocumentProcessorService", () => {
         service.process(job as unknown as Job<JobData>),
       ).rejects.toThrow("Both concept extraction and quiz generation failed");
 
-      const doc = prisma.getDocument(DOC_ID);
-      expect(doc?.status).toBe("FAILED");
+      expect(documentRepo.getDocument(DOC_ID)?.status).toBe("FAILED");
     });
   });
 
@@ -323,9 +319,9 @@ describe("DocumentProcessorService", () => {
     it("should mark document as FAILED and re-throw on unexpected error", async () => {
       fileStorage.seed("uploads/bad.txt", Buffer.from("content"));
 
-      // Make document analysis throw
       Object.defineProperty(documentAnalysis, "analyzeDocument", {
         value: () => Promise.reject(new Error("AI service down")),
+        configurable: true,
       });
 
       const job = new FakeJob<JobData>("job-9", {
@@ -339,7 +335,7 @@ describe("DocumentProcessorService", () => {
         service.process(job as unknown as Job<JobData>),
       ).rejects.toThrow("AI service down");
 
-      const doc = prisma.getDocument(DOC_ID);
+      const doc = documentRepo.getDocument(DOC_ID);
       expect(doc?.status).toBe("FAILED");
       expect(doc?.errorMessage).toBe("AI service down");
       expect(logger.hasLevel("error")).toBe(true);
@@ -372,7 +368,6 @@ describe("DocumentProcessorService", () => {
       await service.process(job as unknown as Job<JobData>);
 
       const relations = conceptRepository.getSavedRelations();
-      // Only Alpha→Beta should exist. Gamma→Unknown should be skipped (no matching concept)
       expect(relations).toHaveLength(1);
       expect(relations[0].type).toBe("RELATED_TO");
     });
@@ -393,8 +388,7 @@ describe("DocumentProcessorService", () => {
 
       await service.process(job as unknown as Job<JobData>);
 
-      const summary = prisma.getSummaryByDocumentId(DOC_ID);
-      expect(summary?.conceptCount).toBe(3);
+      expect(summaryRepo.getSummaryByDocumentId(DOC_ID)?.conceptCount).toBe(3);
     });
   });
 });

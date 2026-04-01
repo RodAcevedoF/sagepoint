@@ -175,6 +175,10 @@ export class FakeDocumentRepository implements IDocumentRepository {
     return Promise.resolve();
   }
 
+  updateStatus(): Promise<void> {
+    return Promise.resolve();
+  }
+
   getAll(): Document[] {
     return [...this.documents];
   }
@@ -233,6 +237,10 @@ export class FakeRoadmapRepository implements IRoadmapRepository {
 
   delete(id: string): Promise<void> {
     this.roadmaps = this.roadmaps.filter((r) => r.id !== id);
+    return Promise.resolve();
+  }
+
+  updateGeneration(): Promise<void> {
     return Promise.resolve();
   }
 

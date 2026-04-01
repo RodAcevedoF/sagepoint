@@ -1,8 +1,7 @@
 import { Module } from '@nestjs/common';
 import { INVITATION_REPOSITORY } from '@sagepoint/domain';
-import { PrismaService } from '@/core/infra/database/prisma.service';
 import { UserModule } from '@/features/user/user.module';
-import { PrismaInvitationRepository } from '@sagepoint/database';
+import { getDependencies } from '@/core/bootstrap';
 import { InvitationController } from './invitation.controller';
 import { CreateInvitationUseCase } from './app/usecases/create-invitation.usecase';
 import { FindAllInvitationsUseCase } from './app/usecases/find-all-invitations.usecase';
@@ -15,12 +14,9 @@ import { CreateUserDirectUseCase } from './app/usecases/create-user-direct.useca
   imports: [UserModule],
   controllers: [InvitationController],
   providers: [
-    PrismaService,
     {
       provide: INVITATION_REPOSITORY,
-      useFactory: (prisma: PrismaService) =>
-        new PrismaInvitationRepository(prisma),
-      inject: [PrismaService],
+      useFactory: () => getDependencies().invitation.invitationRepository,
     },
     CreateInvitationUseCase,
     FindAllInvitationsUseCase,

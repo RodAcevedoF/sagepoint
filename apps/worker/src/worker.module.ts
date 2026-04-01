@@ -28,6 +28,12 @@ import {
   NEWS_ARTICLE_REPOSITORY,
   NEWS_SERVICE,
   RESOURCE_DISCOVERY_SERVICE,
+  DOCUMENT_REPOSITORY,
+  DOCUMENT_SUMMARY_REPOSITORY,
+  QUIZ_REPOSITORY,
+  QUESTION_REPOSITORY,
+  ROADMAP_REPOSITORY,
+  RESOURCE_REPOSITORY,
 } from "@sagepoint/domain";
 import type {
   ICacheService,
@@ -39,6 +45,12 @@ import {
   PrismaPg,
   PrismaCategoryRepository,
   PrismaNewsArticleRepository,
+  PrismaDocumentRepository,
+  PrismaDocumentSummaryRepository,
+  PrismaQuizRepository,
+  PrismaQuestionRepository,
+  PrismaRoadmapRepository,
+  PrismaResourceRepository,
 } from "@sagepoint/database";
 
 function createWorkerPrisma(): PrismaClient {
@@ -148,6 +160,40 @@ const isDev = process.env.NODE_ENV !== "production";
       provide: NEWS_ARTICLE_REPOSITORY,
       useFactory: (prisma: PrismaClient) =>
         new PrismaNewsArticleRepository(prisma),
+      inject: ["WORKER_PRISMA"],
+    },
+    {
+      provide: DOCUMENT_REPOSITORY,
+      useFactory: (prisma: PrismaClient) =>
+        new PrismaDocumentRepository(prisma),
+      inject: ["WORKER_PRISMA"],
+    },
+    {
+      provide: DOCUMENT_SUMMARY_REPOSITORY,
+      useFactory: (prisma: PrismaClient) =>
+        new PrismaDocumentSummaryRepository(prisma),
+      inject: ["WORKER_PRISMA"],
+    },
+    {
+      provide: QUIZ_REPOSITORY,
+      useFactory: (prisma: PrismaClient) => new PrismaQuizRepository(prisma),
+      inject: ["WORKER_PRISMA"],
+    },
+    {
+      provide: QUESTION_REPOSITORY,
+      useFactory: (prisma: PrismaClient) =>
+        new PrismaQuestionRepository(prisma),
+      inject: ["WORKER_PRISMA"],
+    },
+    {
+      provide: ROADMAP_REPOSITORY,
+      useFactory: (prisma: PrismaClient) => new PrismaRoadmapRepository(prisma),
+      inject: ["WORKER_PRISMA"],
+    },
+    {
+      provide: RESOURCE_REPOSITORY,
+      useFactory: (prisma: PrismaClient) =>
+        new PrismaResourceRepository(prisma),
       inject: ["WORKER_PRISMA"],
     },
     {

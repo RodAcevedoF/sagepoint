@@ -1,8 +1,22 @@
-import type { Roadmap } from '../entities/roadmap.entity';
-import { type RoadmapVisibility } from '../entities/roadmap.entity';
-import type { Concept } from '../entities/concept.entity';
+import type {
+  Roadmap,
+  RoadmapGenerationStatus,
+  RoadmapStep,
+} from "../entities/roadmap.entity";
+import { type RoadmapVisibility } from "../entities/roadmap.entity";
+import type { Concept } from "../entities/concept.entity";
 
-export const ROADMAP_REPOSITORY = Symbol('ROADMAP_REPOSITORY');
+export const ROADMAP_REPOSITORY = Symbol("ROADMAP_REPOSITORY");
+
+export interface RoadmapGenerationUpdate {
+  generationStatus: RoadmapGenerationStatus;
+  description?: string;
+  steps?: RoadmapStep[];
+  totalEstimatedDuration?: number;
+  recommendedPace?: string;
+  categoryId?: string;
+  errorMessage?: string;
+}
 
 export interface IRoadmapRepository {
   save(roadmap: Roadmap): Promise<Roadmap>;
@@ -11,6 +25,7 @@ export interface IRoadmapRepository {
   findByUserId(userId: string): Promise<Roadmap[]>;
   findPublic(): Promise<Roadmap[]>;
   updateVisibility(id: string, visibility: RoadmapVisibility): Promise<Roadmap>;
+  updateGeneration(id: string, data: RoadmapGenerationUpdate): Promise<void>;
   delete(id: string): Promise<void>;
 
   saveConcept(concept: Concept): Promise<Concept>;
@@ -18,6 +33,6 @@ export interface IRoadmapRepository {
   saveConceptRelation(
     fromConceptId: string,
     toConceptId: string,
-    relationType: 'DEPENDS_ON' | 'NEXT_STEP',
+    relationType: "DEPENDS_ON" | "NEXT_STEP",
   ): Promise<void>;
 }

@@ -38,7 +38,7 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
         id: roadmap.id,
         title: roadmap.title,
         documentId: roadmap.documentId || null,
-        userId: roadmap.userId!,
+        userId: roadmap.userId,
         categoryId: roadmap.categoryId,
         description: roadmap.description,
         steps: this.serializeSteps(roadmap.steps),
@@ -101,6 +101,42 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
       data: { visibility: this.mapVisibilityToPrisma(visibility) },
     });
     return this.mapToDomain(data);
+  }
+
+  async updateGeneration(
+    id: string,
+    data: {
+      generationStatus: RoadmapGenerationStatus;
+      description?: string;
+      steps?: RoadmapStep[];
+      totalEstimatedDuration?: number;
+      recommendedPace?: string;
+      categoryId?: string;
+      errorMessage?: string;
+    },
+  ): Promise<void> {
+    await this.prisma.roadmap.update({
+      where: { id },
+      data: {
+        generationStatus: this.mapStatusToPrisma(data.generationStatus),
+        ...(data.description !== undefined && {
+          description: data.description,
+        }),
+        ...(data.steps !== undefined && {
+          steps: this.serializeSteps(data.steps),
+        }),
+        ...(data.totalEstimatedDuration !== undefined && {
+          totalDuration: data.totalEstimatedDuration,
+        }),
+        ...(data.recommendedPace !== undefined && {
+          recommendedPace: data.recommendedPace,
+        }),
+        ...(data.categoryId !== undefined && { categoryId: data.categoryId }),
+        ...(data.errorMessage !== undefined && {
+          errorMessage: data.errorMessage,
+        }),
+      },
+    });
   }
 
   async delete(id: string): Promise<void> {

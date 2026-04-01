@@ -1,7 +1,11 @@
 import { RoadmapProcessorService } from "../../../src/roadmap-processor/roadmap-processor.service";
 import { FakeLogger } from "../_fakes/logger.fake";
 import { FakeJob } from "../_fakes/job.fake";
-import { FakePrismaClient } from "../_fakes/prisma.fake";
+import {
+  FakeRoadmapRepository,
+  FakeResourceRepository,
+  FakeCategoryRepository,
+} from "../_fakes/repositories.fake";
 import {
   FakeTopicConceptGenerationService,
   FakeRoadmapGenerationService,
@@ -44,7 +48,9 @@ function buildService(overrides?: {
   roadmapGenerator?: FakeRoadmapGenerationService;
   innerResourceDiscovery?: FakeResourceDiscoveryService;
   conceptRepository?: FakeConceptRepository;
-  prisma?: FakePrismaClient;
+  roadmapRepo?: FakeRoadmapRepository;
+  resourceRepo?: FakeResourceRepository;
+  categoryRepo?: FakeCategoryRepository;
   logger?: FakeLogger;
 }) {
   const logger = overrides?.logger ?? new FakeLogger();
@@ -56,34 +62,26 @@ function buildService(overrides?: {
     overrides?.innerResourceDiscovery ?? new FakeResourceDiscoveryService();
   const conceptRepository =
     overrides?.conceptRepository ?? new FakeConceptRepository();
-  const prisma = overrides?.prisma ?? new FakePrismaClient();
+  const roadmapRepo = overrides?.roadmapRepo ?? new FakeRoadmapRepository();
+  const resourceRepo = overrides?.resourceRepo ?? new FakeResourceRepository();
+  const categoryRepo = overrides?.categoryRepo ?? new FakeCategoryRepository();
 
   const cache = new FakeCacheService();
-  const resourceDiscovery = Object.create(
-    CachedResourceDiscoveryAdapter.prototype,
-  ) as CachedResourceDiscoveryAdapter;
-  Object.defineProperty(resourceDiscovery, "inner", {
-    value: innerResourceDiscovery,
-  });
-  Object.defineProperty(resourceDiscovery, "cache", { value: cache });
+  const resourceDiscovery = new CachedResourceDiscoveryAdapter(
+    innerResourceDiscovery,
+    cache,
+  );
 
-  const service = Object.create(
-    RoadmapProcessorService.prototype,
-  ) as RoadmapProcessorService;
-  Object.defineProperty(service, "logger", { value: logger });
-  Object.defineProperty(service, "topicConceptGenerator", {
-    value: topicConceptGenerator,
-  });
-  Object.defineProperty(service, "roadmapGenerator", {
-    value: roadmapGenerator,
-  });
-  Object.defineProperty(service, "resourceDiscovery", {
-    value: resourceDiscovery,
-  });
-  Object.defineProperty(service, "conceptRepository", {
-    value: conceptRepository,
-  });
-  Object.defineProperty(service, "prisma", { value: prisma });
+  const service = new RoadmapProcessorService(
+    logger as never,
+    topicConceptGenerator,
+    roadmapGenerator,
+    resourceDiscovery,
+    conceptRepository,
+    roadmapRepo,
+    categoryRepo,
+    resourceRepo,
+  );
 
   return {
     service,
@@ -92,7 +90,9 @@ function buildService(overrides?: {
     roadmapGenerator,
     innerResourceDiscovery,
     conceptRepository,
-    prisma,
+    roadmapRepo,
+    resourceRepo,
+    categoryRepo,
     cache,
   };
 }
@@ -104,7 +104,9 @@ describe("RoadmapProcessorService", () => {
   let roadmapGenerator: FakeRoadmapGenerationService;
   let innerResourceDiscovery: FakeResourceDiscoveryService;
   let conceptRepository: FakeConceptRepository;
-  let prisma: FakePrismaClient;
+  let roadmapRepo: FakeRoadmapRepository;
+  let resourceRepo: FakeResourceRepository;
+  let categoryRepo: FakeCategoryRepository;
 
   beforeEach(() => {
     const ctx = buildService();
@@ -114,9 +116,11 @@ describe("RoadmapProcessorService", () => {
     roadmapGenerator = ctx.roadmapGenerator;
     innerResourceDiscovery = ctx.innerResourceDiscovery;
     conceptRepository = ctx.conceptRepository;
-    prisma = ctx.prisma;
+    roadmapRepo = ctx.roadmapRepo;
+    resourceRepo = ctx.resourceRepo;
+    categoryRepo = ctx.categoryRepo;
 
-    prisma.seedRoadmap(ROADMAP_ID);
+    roadmapRepo.seedRoadmap(ROADMAP_ID);
   });
 
   describe("happy path — full roadmap generation", () => {
@@ -178,8 +182,8 @@ describe("RoadmapProcessorService", () => {
       await service.process(job as unknown as Job<JobData>);
 
       // Roadmap should be COMPLETED
-      const roadmap = prisma.getRoadmap(ROADMAP_ID);
-      expect(roadmap?.generationStatus).toBe("COMPLETED");
+      const roadmap = roadmapRepo.getRoadmap(ROADMAP_ID);
+      expect(roadmap?.generationStatus).toBe("completed");
       expect(roadmap?.description).toBe("ML fundamentals roadmap");
       expect(roadmap?.recommendedPace).toBe("1 hour/day");
 
@@ -188,13 +192,13 @@ describe("RoadmapProcessorService", () => {
       expect(steps).toHaveLength(3);
 
       // Total duration should be calculated
-      expect(roadmap?.totalDuration).toBe(135); // 30 + 60 + 45
+      expect(roadmap?.totalEstimatedDuration).toBe(135); // 30 + 60 + 45
 
       // Concepts should be persisted to Neo4j
       expect(conceptRepository.getSavedConcepts()).toHaveLength(3);
 
       // Resources should be saved (3 steps × 1 resource each)
-      const resources = prisma.getResourcesByRoadmapId(ROADMAP_ID);
+      const resources = resourceRepo.getResourcesByRoadmapId(ROADMAP_ID);
       expect(resources).toHaveLength(3);
 
       // Progress should track all stages
@@ -220,8 +224,8 @@ describe("RoadmapProcessorService", () => {
 
       await service.process(job as unknown as Job<JobData>);
 
-      const roadmap = prisma.getRoadmap(ROADMAP_ID);
-      expect(roadmap?.generationStatus).toBe("COMPLETED");
+      const roadmap = roadmapRepo.getRoadmap(ROADMAP_ID);
+      expect(roadmap?.generationStatus).toBe("completed");
       expect(roadmap?.description).toContain("Could not generate concepts");
     });
   });
@@ -257,8 +261,8 @@ describe("RoadmapProcessorService", () => {
 
       await service.process(job as unknown as Job<JobData>);
 
-      const roadmap = prisma.getRoadmap(ROADMAP_ID);
-      expect(roadmap?.generationStatus).toBe("COMPLETED");
+      const roadmap = roadmapRepo.getRoadmap(ROADMAP_ID);
+      expect(roadmap?.generationStatus).toBe("completed");
       expect(logger.hasLevel("warn")).toBe(true);
     });
   });
@@ -291,8 +295,10 @@ describe("RoadmapProcessorService", () => {
       });
 
       const ctx = buildService({ innerResourceDiscovery: failingDiscovery });
-      prisma = ctx.prisma;
-      prisma.seedRoadmap(ROADMAP_ID);
+      roadmapRepo = ctx.roadmapRepo;
+      resourceRepo = ctx.resourceRepo;
+      categoryRepo = ctx.categoryRepo;
+      roadmapRepo.seedRoadmap(ROADMAP_ID);
       ctx.topicConceptGenerator.setResult({
         concepts: CONCEPTS.slice(0, 1),
         relationships: [],
@@ -321,21 +327,21 @@ describe("RoadmapProcessorService", () => {
 
       await ctx.service.process(job as unknown as Job<JobData>);
 
-      const roadmap = ctx.prisma.getRoadmap(ROADMAP_ID);
-      expect(roadmap?.generationStatus).toBe("COMPLETED");
+      const roadmap = ctx.roadmapRepo.getRoadmap(ROADMAP_ID);
+      expect(roadmap?.generationStatus).toBe("completed");
       expect(ctx.logger.hasLevel("warn")).toBe(true);
     });
   });
 
   describe("category auto-matching", () => {
     it("should auto-assign a category when topic matches keywords", async () => {
-      prisma.seedCategory({
+      categoryRepo.seedCategory({
         id: "cat-1",
         name: "Machine Learning",
         slug: "machine-learning",
         description: "AI, neural networks, deep learning",
       });
-      prisma.seedCategory({
+      categoryRepo.seedCategory({
         id: "cat-2",
         name: "Web Development",
         slug: "web-development",
@@ -370,12 +376,12 @@ describe("RoadmapProcessorService", () => {
 
       await service.process(job as unknown as Job<JobData>);
 
-      const roadmap = prisma.getRoadmap(ROADMAP_ID);
+      const roadmap = roadmapRepo.getRoadmap(ROADMAP_ID);
       expect(roadmap?.categoryId).toBe("cat-1");
     });
 
     it("should not assign a category when no match is found", async () => {
-      prisma.seedCategory({
+      categoryRepo.seedCategory({
         id: "cat-1",
         name: "Cooking",
         slug: "cooking",
@@ -410,7 +416,7 @@ describe("RoadmapProcessorService", () => {
 
       await service.process(job as unknown as Job<JobData>);
 
-      const roadmap = prisma.getRoadmap(ROADMAP_ID);
+      const roadmap = roadmapRepo.getRoadmap(ROADMAP_ID);
       expect(roadmap?.categoryId).toBeUndefined();
     });
   });
@@ -437,8 +443,8 @@ describe("RoadmapProcessorService", () => {
         service.process(job as unknown as Job<JobData>),
       ).rejects.toThrow("AI service unavailable");
 
-      const roadmap = prisma.getRoadmap(ROADMAP_ID);
-      expect(roadmap?.generationStatus).toBe("FAILED");
+      const roadmap = roadmapRepo.getRoadmap(ROADMAP_ID);
+      expect(roadmap?.generationStatus).toBe("failed");
       expect(roadmap?.errorMessage).toBe("AI service unavailable");
       expect(logger.hasLevel("error")).toBe(true);
     });
@@ -459,8 +465,8 @@ describe("RoadmapProcessorService", () => {
       // Should not throw even with user context
       await service.process(job as unknown as Job<JobData>);
 
-      const roadmap = prisma.getRoadmap(ROADMAP_ID);
-      expect(roadmap?.generationStatus).toBe("COMPLETED");
+      const roadmap = roadmapRepo.getRoadmap(ROADMAP_ID);
+      expect(roadmap?.generationStatus).toBe("completed");
     });
   });
 
@@ -484,8 +490,8 @@ describe("RoadmapProcessorService", () => {
       await service.process(job as unknown as Job<JobData>);
 
       // Should complete without errors (ontology context was fetched)
-      const roadmap = prisma.getRoadmap(ROADMAP_ID);
-      expect(roadmap?.generationStatus).toBe("COMPLETED");
+      const roadmap = roadmapRepo.getRoadmap(ROADMAP_ID);
+      expect(roadmap?.generationStatus).toBe("completed");
     });
   });
 });

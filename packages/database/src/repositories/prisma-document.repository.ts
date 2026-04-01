@@ -92,6 +92,33 @@ export class PrismaDocumentRepository implements IDocumentRepository {
     };
   }
 
+  async updateStatus(
+    id: string,
+    fields: {
+      status?: DocumentStatus;
+      processingStage?: ProcessingStage;
+      conceptCount?: number;
+      errorMessage?: string;
+    },
+  ): Promise<void> {
+    await this.prisma.document.update({
+      where: { id },
+      data: {
+        ...(fields.status !== undefined && { status: fields.status as string }),
+        ...(fields.processingStage !== undefined && {
+          processingStage: fields.processingStage,
+        }),
+        ...(fields.conceptCount !== undefined && {
+          conceptCount: fields.conceptCount,
+        }),
+        ...(fields.errorMessage !== undefined && {
+          errorMessage: fields.errorMessage,
+        }),
+        updatedAt: new Date(),
+      },
+    });
+  }
+
   async delete(id: string): Promise<void> {
     await this.prisma.document.delete({ where: { id } });
   }

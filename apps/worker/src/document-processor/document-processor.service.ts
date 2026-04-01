@@ -2,15 +2,14 @@ import { Processor, WorkerHost } from "@nestjs/bullmq";
 import { Inject } from "@nestjs/common";
 import { InjectPinoLogger, PinoLogger } from "nestjs-pino";
 import { Job } from "bullmq";
-import {
-  PrismaClient,
-  PrismaPg,
-  Prisma,
-  ProcessingStage,
-} from "@sagepoint/database";
 import { CompositeDocumentParser } from "@sagepoint/parsing";
 import {
   DocumentStatus,
+  ProcessingStage,
+  DocumentSummary,
+  Quiz,
+  Question,
+  QuestionType,
   Concept,
   CONTENT_ANALYSIS_SERVICE,
   DOCUMENT_ANALYSIS_SERVICE,
@@ -18,14 +17,23 @@ import {
   IMAGE_TEXT_EXTRACTION_SERVICE,
   FILE_STORAGE,
   CONCEPT_REPOSITORY,
+  DOCUMENT_REPOSITORY,
+  DOCUMENT_SUMMARY_REPOSITORY,
+  QUIZ_REPOSITORY,
+  QUESTION_REPOSITORY,
 } from "@sagepoint/domain";
 import type {
   IFileStorage,
   IConceptRepository,
+  IDocumentRepository,
+  IDocumentSummaryRepository,
+  IQuizRepository,
+  IQuestionRepository,
   IContentAnalysisService,
   IDocumentAnalysisService,
   IQuizGenerationService,
   IImageTextExtractionService,
+  QuestionOption,
   ExtractedConcept,
   DocumentAnalysisResult,
   GeneratedQuestion,
@@ -55,9 +63,6 @@ const MAX_AI_TEXT_LENGTH = 15000;
 
 @Processor("document-processing")
 export class DocumentProcessorService extends WorkerHost {
-  private readonly prisma = new PrismaClient({
-    adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }),
-  });
   private readonly parser = new CompositeDocumentParser();
 
   constructor(
@@ -75,6 +80,14 @@ export class DocumentProcessorService extends WorkerHost {
     private readonly fileStorage: IFileStorage,
     @Inject(CONCEPT_REPOSITORY)
     private readonly conceptRepository: IConceptRepository,
+    @Inject(DOCUMENT_REPOSITORY)
+    private readonly documentRepo: IDocumentRepository,
+    @Inject(DOCUMENT_SUMMARY_REPOSITORY)
+    private readonly documentSummaryRepo: IDocumentSummaryRepository,
+    @Inject(QUIZ_REPOSITORY)
+    private readonly quizRepo: IQuizRepository,
+    @Inject(QUESTION_REPOSITORY)
+    private readonly questionRepo: IQuestionRepository,
   ) {
     super();
   }
@@ -177,10 +190,23 @@ export class DocumentProcessorService extends WorkerHost {
       );
       await this.saveConcepts(concepts, conceptsResult.value, documentId);
       conceptCount = concepts.length;
-      await this.prisma.documentSummary.updateMany({
-        where: { documentId },
-        data: { conceptCount },
-      });
+      const existingSummary =
+        await this.documentSummaryRepo.findByDocumentId(documentId);
+      if (existingSummary) {
+        await this.documentSummaryRepo.save(
+          new DocumentSummary(
+            existingSummary.id,
+            existingSummary.documentId,
+            existingSummary.overview,
+            existingSummary.keyPoints,
+            existingSummary.topicArea,
+            existingSummary.difficulty,
+            conceptCount,
+            existingSummary.createdAt,
+            existingSummary.estimatedReadTime,
+          ),
+        );
+      }
     } else {
       this.logger.warn(
         { jobId: job.id, documentId, err: String(conceptsResult.reason) },
@@ -206,16 +232,11 @@ export class DocumentProcessorService extends WorkerHost {
   }
 
   private async finalize(job: Job<JobData>, documentId: string): Promise<void> {
-    const summary = await this.prisma.documentSummary.findFirst({
-      where: { documentId },
-    });
-    await this.prisma.document.update({
-      where: { id: documentId },
-      data: {
-        status: DocumentStatus.COMPLETED,
-        processingStage: "READY",
-        conceptCount: summary?.conceptCount ?? 0,
-      },
+    const summary = await this.documentSummaryRepo.findByDocumentId(documentId);
+    await this.documentRepo.updateStatus(documentId, {
+      status: DocumentStatus.COMPLETED,
+      processingStage: ProcessingStage.READY,
+      conceptCount: summary?.conceptCount ?? 0,
     });
     await job.updateProgress({ stage: "ready" });
     this.logger.info(
@@ -234,12 +255,9 @@ export class DocumentProcessorService extends WorkerHost {
       { jobId: job.id, documentId, err },
       "Document processing failed",
     );
-    await this.prisma.document.update({
-      where: { id: documentId },
-      data: {
-        status: DocumentStatus.FAILED,
-        errorMessage: error instanceof Error ? error.message : "Unknown error",
-      },
+    await this.documentRepo.updateStatus(documentId, {
+      status: DocumentStatus.FAILED,
+      errorMessage: error instanceof Error ? error.message : "Unknown error",
     });
   }
 
@@ -248,12 +266,9 @@ export class DocumentProcessorService extends WorkerHost {
     status?: DocumentStatus,
     processingStage?: ProcessingStage,
   ): Promise<void> {
-    await this.prisma.document.update({
-      where: { id: documentId },
-      data: {
-        ...(status && { status }),
-        ...(processingStage && { processingStage }),
-      },
+    await this.documentRepo.updateStatus(documentId, {
+      ...(status !== undefined && { status }),
+      ...(processingStage !== undefined && { processingStage }),
     });
   }
 
@@ -284,17 +299,18 @@ export class DocumentProcessorService extends WorkerHost {
     documentId: string,
     analysis: DocumentAnalysisResult,
   ): Promise<void> {
-    await this.prisma.documentSummary.create({
-      data: {
-        id: randomUUID(),
+    await this.documentSummaryRepo.save(
+      new DocumentSummary(
+        randomUUID(),
         documentId,
-        overview: analysis.overview,
-        keyPoints: analysis.keyPoints,
-        topicArea: analysis.topicArea,
-        difficulty: analysis.difficulty,
-        conceptCount: 0,
-      },
-    });
+        analysis.overview,
+        analysis.keyPoints,
+        analysis.topicArea,
+        analysis.difficulty,
+        0,
+        new Date(),
+      ),
+    );
   }
 
   private async saveQuiz(
@@ -303,28 +319,35 @@ export class DocumentProcessorService extends WorkerHost {
     questions: GeneratedQuestion[],
   ): Promise<void> {
     const quizId = randomUUID();
-    await this.prisma.quiz.create({
-      data: {
-        id: quizId,
+    const now = new Date();
+    await this.quizRepo.save(
+      new Quiz(
+        quizId,
         documentId,
-        title: `${topicArea} Quiz`,
-        questionCount: questions.length,
-      },
-    });
+        `${topicArea} Quiz`,
+        questions.length,
+        now,
+        now,
+      ),
+    );
 
     if (questions.length > 0) {
-      await this.prisma.question.createMany({
-        data: questions.map((q, index) => ({
-          id: randomUUID(),
-          quizId,
-          type: q.type,
-          text: q.text,
-          options: q.options as unknown as Prisma.InputJsonValue,
-          explanation: q.explanation,
-          difficulty: q.difficulty,
-          order: index,
-        })),
-      });
+      await this.questionRepo.saveMany(
+        questions.map(
+          (q, index) =>
+            new Question(
+              randomUUID(),
+              quizId,
+              q.type as QuestionType,
+              q.text,
+              q.options as QuestionOption[],
+              index,
+              q.difficulty,
+              now,
+              q.explanation ?? undefined,
+            ),
+        ),
+      );
     }
   }
 
