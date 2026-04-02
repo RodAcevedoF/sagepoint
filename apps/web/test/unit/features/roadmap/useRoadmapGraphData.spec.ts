@@ -141,4 +141,44 @@ describe("useRoadmapGraphData", () => {
     expect(result.current.nodes).toEqual([]);
     expect(result.current.edges).toEqual([]);
   });
+
+  it("uses dotted notation for sub-concept step order", () => {
+    const steps: RoadmapStep[] = [
+      makeStep({ id: "c1", name: "React", order: 1, dependsOn: [] }),
+      makeStep({ id: "c2", name: "Vue", order: 2, dependsOn: [] }),
+      makeStep({
+        id: "s1",
+        name: "useState",
+        order: 3,
+        dependsOn: ["c1"],
+        rationale: 'Sub-concept of "React"',
+      } as Partial<RoadmapStep> & { id: string; name: string }),
+      makeStep({
+        id: "s2",
+        name: "useEffect",
+        order: 4,
+        dependsOn: ["c1"],
+        rationale: 'Sub-concept of "React"',
+      } as Partial<RoadmapStep> & { id: string; name: string }),
+    ];
+
+    const { result } = renderHook(() => useRoadmapGraphData(steps, {}));
+
+    expect(result.current.nodes[0].data.order).toBe(1);
+    expect(result.current.nodes[1].data.order).toBe(2);
+    expect(result.current.nodes[2].data.order).toBe("1.1");
+    expect(result.current.nodes[3].data.order).toBe("1.2");
+  });
+
+  it("keeps numeric order for top-level steps with dependsOn", () => {
+    const steps: RoadmapStep[] = [
+      makeStep({ id: "c1", name: "HTML", order: 1, dependsOn: [] }),
+      makeStep({ id: "c2", name: "CSS", order: 2, dependsOn: ["c1"] }),
+    ];
+
+    const { result } = renderHook(() => useRoadmapGraphData(steps, {}));
+
+    expect(result.current.nodes[0].data.order).toBe(1);
+    expect(result.current.nodes[1].data.order).toBe(2);
+  });
 });

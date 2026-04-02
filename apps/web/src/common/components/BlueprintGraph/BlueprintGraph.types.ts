@@ -12,7 +12,7 @@ export interface BlueprintNodeData extends Record<string, unknown> {
   description?: string;
   status?: BlueprintNodeStatus;
   difficulty?: string;
-  order?: number;
+  order?: number | string;
   metadata?: Record<string, unknown>;
 }
 

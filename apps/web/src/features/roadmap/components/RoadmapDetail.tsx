@@ -73,24 +73,38 @@ export function RoadmapDetail({ roadmapId }: RoadmapDetailProps) {
     [roadmapData],
   );
 
-  const orderedSteps = useMemo(
+  const allSteps = useMemo(
     () =>
       [...(roadmapData?.roadmap.steps || [])].sort((a, b) => a.order - b.order),
     [roadmapData],
   );
 
-  // Concept IDs that have been expanded (a sub-concept step depends on them)
-  const expandedConceptIds = useMemo(() => {
-    const ids = new Set<string>();
-    for (const step of orderedSteps) {
-      if (step.rationale?.startsWith("Sub-concept of")) {
-        for (const depId of step.dependsOn) {
-          ids.add(depId);
+  // Separate top-level steps from sub-concepts and build grouping
+  const { topLevelSteps, subConceptsByParent, expandedConceptIds } =
+    useMemo(() => {
+      const topLevel: typeof allSteps = [];
+      const byParent = new Map<string, typeof allSteps>();
+      const expanded = new Set<string>();
+
+      for (const step of allSteps) {
+        if (step.rationale?.startsWith("Sub-concept of")) {
+          for (const depId of step.dependsOn) {
+            expanded.add(depId);
+            const group = byParent.get(depId) ?? [];
+            group.push(step);
+            byParent.set(depId, group);
+          }
+        } else {
+          topLevel.push(step);
         }
       }
-    }
-    return ids;
-  }, [orderedSteps]);
+
+      return {
+        topLevelSteps: topLevel,
+        subConceptsByParent: byParent,
+        expandedConceptIds: expanded,
+      };
+    }, [allSteps]);
 
   if (roadmapLoading) {
     return <Loader variant="page" message="Loading roadmap" />;
@@ -207,7 +221,7 @@ export function RoadmapDetail({ roadmapId }: RoadmapDetailProps) {
       </MotionBox>
 
       {/* View Toggle */}
-      {orderedSteps.length > 0 && (
+      {topLevelSteps.length > 0 && (
         <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
           <ToggleButtonGroup
             value={view}
@@ -235,18 +249,18 @@ export function RoadmapDetail({ roadmapId }: RoadmapDetailProps) {
       )}
 
       {/* Content */}
-      {orderedSteps.length === 0 ? (
+      {topLevelSteps.length === 0 ? (
         <EmptyState
           title="No steps yet"
           description="This roadmap doesn't have any steps defined."
         />
       ) : view === "graph" ? (
         <Suspense fallback={<Loader message="Loading graph" />}>
-          <LazyRoadmapGraph steps={orderedSteps} stepProgress={stepProgress} />
+          <LazyRoadmapGraph steps={allSteps} stepProgress={stepProgress} />
         </Suspense>
       ) : (
         <Box sx={styles.timelineContainer}>
-          {orderedSteps.map((step, index) => (
+          {topLevelSteps.map((step, index) => (
             <TimelineStep
               key={step.concept.id}
               step={step}
@@ -254,13 +268,14 @@ export function RoadmapDetail({ roadmapId }: RoadmapDetailProps) {
               status={stepProgress[step.concept.id] || StepStatus.NOT_STARTED}
               resources={resourcesByConceptId[step.concept.id] || []}
               resourcesLoading={false}
-              isLast={index === orderedSteps.length - 1}
+              isLast={index === topLevelSteps.length - 1}
               index={index}
               parentDocumentId={roadmap.documentId}
               isExpanded={expandedConceptIds.has(step.concept.id)}
-              isSubConcept={
-                step.rationale?.startsWith("Sub-concept of") ?? false
-              }
+              subSteps={subConceptsByParent.get(step.concept.id) ?? []}
+              subStepProgress={stepProgress}
+              subStepResources={resourcesByConceptId}
+              parentOrder={step.order}
             />
           ))}
         </Box>

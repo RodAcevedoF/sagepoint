@@ -35,7 +35,10 @@ interface TimelineStepProps {
   index: number;
   parentDocumentId?: string;
   isExpanded?: boolean;
-  isSubConcept?: boolean;
+  subSteps?: RoadmapStep[];
+  subStepProgress?: Record<string, StepStatus>;
+  subStepResources?: Record<string, ResourceDto[]>;
+  parentOrder?: number;
 }
 
 export function TimelineStep({
@@ -48,7 +51,9 @@ export function TimelineStep({
   index,
   parentDocumentId,
   isExpanded = false,
-  isSubConcept = false,
+  subSteps = [],
+  subStepProgress = {},
+  parentOrder,
 }: TimelineStepProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery("(max-width:625px)");
@@ -137,7 +142,7 @@ export function TimelineStep({
     }
   };
 
-  const canExpand = !isExpanded && !isSubConcept;
+  const canExpand = !isExpanded && subSteps.length === 0;
 
   const handleToggle = () => {
     if (isMobile) {
@@ -150,6 +155,9 @@ export function TimelineStep({
             statusColor={dotColor}
             onExpand={canExpand ? handleExpand : undefined}
             expandLoading={expandLoading}
+            subSteps={subSteps}
+            subStepProgress={subStepProgress}
+            parentOrder={parentOrder ?? step.order}
           />
         </Box>,
         {
@@ -190,7 +198,6 @@ export function TimelineStep({
             statusColor={dotColor}
             parentDocumentId={parentDocumentId}
             quizReady={quizReady}
-            isSubConcept={isSubConcept}
           />
 
           <AnimatePresence>
@@ -209,6 +216,9 @@ export function TimelineStep({
                   statusColor={dotColor}
                   onExpand={canExpand ? handleExpand : undefined}
                   expandLoading={expandLoading}
+                  subSteps={subSteps}
+                  subStepProgress={subStepProgress}
+                  parentOrder={parentOrder ?? step.order}
                 />
               </MotionBox>
             )}
