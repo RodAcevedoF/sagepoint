@@ -7,8 +7,8 @@ import type {
 
 const elk = new ELK();
 
-const NODE_WIDTH = 220;
-const NODE_HEIGHT = 90;
+const NODE_WIDTH = 240;
+const NODE_HEIGHT = 140;
 
 export async function applyElkLayout(
   nodes: BlueprintNode[],
@@ -19,14 +19,21 @@ export async function applyElkLayout(
 
   const elkDirection = direction === "TB" ? "DOWN" : "RIGHT";
 
+  // Filter out edges that reference non-existent nodes (can happen after
+  // concept expansion when dependsOn references stale IDs)
+  const nodeIds = new Set(nodes.map((n) => n.id));
+  const validEdges = edges.filter(
+    (e) => nodeIds.has(e.source) && nodeIds.has(e.target),
+  );
+
   const graph = {
     id: "root",
     layoutOptions: {
       "elk.algorithm": "layered",
       "elk.direction": elkDirection,
-      "elk.spacing.nodeNode": "60",
-      "elk.layered.spacing.nodeNodeBetweenLayers": "80",
-      "elk.layered.spacing.edgeNodeBetweenLayers": "40",
+      "elk.spacing.nodeNode": "40",
+      "elk.layered.spacing.nodeNodeBetweenLayers": "60",
+      "elk.layered.spacing.edgeNodeBetweenLayers": "30",
       "elk.padding": "[top=40,left=40,bottom=40,right=40]",
     },
     children: nodes.map((node) => ({
@@ -34,7 +41,7 @@ export async function applyElkLayout(
       width: NODE_WIDTH,
       height: NODE_HEIGHT,
     })),
-    edges: edges.map((edge) => ({
+    edges: validEdges.map((edge) => ({
       id: edge.id,
       sources: [edge.source],
       targets: [edge.target],

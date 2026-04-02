@@ -73,6 +73,25 @@ export function RoadmapDetail({ roadmapId }: RoadmapDetailProps) {
     [roadmapData],
   );
 
+  const orderedSteps = useMemo(
+    () =>
+      [...(roadmapData?.roadmap.steps || [])].sort((a, b) => a.order - b.order),
+    [roadmapData],
+  );
+
+  // Concept IDs that have been expanded (a sub-concept step depends on them)
+  const expandedConceptIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const step of orderedSteps) {
+      if (step.rationale?.startsWith("Sub-concept of")) {
+        for (const depId of step.dependsOn) {
+          ids.add(depId);
+        }
+      }
+    }
+    return ids;
+  }, [orderedSteps]);
+
   if (roadmapLoading) {
     return <Loader variant="page" message="Loading roadmap" />;
   }
@@ -89,9 +108,6 @@ export function RoadmapDetail({ roadmapId }: RoadmapDetailProps) {
   }
 
   const { roadmap, progress, stepProgress } = roadmapData;
-  const orderedSteps = [...(roadmap.steps || [])].sort(
-    (a, b) => a.order - b.order,
-  );
 
   return (
     <Box sx={styles.container}>
@@ -241,6 +257,10 @@ export function RoadmapDetail({ roadmapId }: RoadmapDetailProps) {
               isLast={index === orderedSteps.length - 1}
               index={index}
               parentDocumentId={roadmap.documentId}
+              isExpanded={expandedConceptIds.has(step.concept.id)}
+              isSubConcept={
+                step.rationale?.startsWith("Sub-concept of") ?? false
+              }
             />
           ))}
         </Box>
