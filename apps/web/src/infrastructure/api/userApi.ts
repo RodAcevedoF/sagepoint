@@ -23,6 +23,14 @@ export const userApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["User", "Insights"],
     }),
+    resetOnboarding: builder.mutation<{ success: boolean }, void>({
+      query: () => ({
+        url: "/users/me/onboarding",
+        method: "POST",
+        body: { status: "PENDING" },
+      }),
+      invalidatesTags: ["User"],
+    }),
     uploadAvatar: builder.mutation<UploadResult, File>({
       query: (file) => {
         const formData = new FormData();
@@ -39,4 +47,8 @@ export const userApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useUpdateProfileMutation, useUploadAvatarMutation } = userApi;
+export const {
+  useUpdateProfileMutation,
+  useResetOnboardingMutation,
+  useUploadAvatarMutation,
+} = userApi;
