@@ -11,9 +11,7 @@ import {
   FakeRoadmapGenerationService,
   FakeResourceDiscoveryService,
   FakeConceptRepository,
-  FakeCacheService,
 } from "../_fakes/services.fake";
-import { CachedResourceDiscoveryAdapter } from "@sagepoint/ai";
 import type { Job } from "bullmq";
 import {
   Concept,
@@ -46,7 +44,7 @@ const RELATIONSHIPS: ConceptRelationshipForOrdering[] = [
 function buildService(overrides?: {
   topicConceptGenerator?: FakeTopicConceptGenerationService;
   roadmapGenerator?: FakeRoadmapGenerationService;
-  innerResourceDiscovery?: FakeResourceDiscoveryService;
+  resourceDiscovery?: FakeResourceDiscoveryService;
   conceptRepository?: FakeConceptRepository;
   roadmapRepo?: FakeRoadmapRepository;
   resourceRepo?: FakeResourceRepository;
@@ -58,19 +56,13 @@ function buildService(overrides?: {
     overrides?.topicConceptGenerator ?? new FakeTopicConceptGenerationService();
   const roadmapGenerator =
     overrides?.roadmapGenerator ?? new FakeRoadmapGenerationService();
-  const innerResourceDiscovery =
-    overrides?.innerResourceDiscovery ?? new FakeResourceDiscoveryService();
+  const resourceDiscovery =
+    overrides?.resourceDiscovery ?? new FakeResourceDiscoveryService();
   const conceptRepository =
     overrides?.conceptRepository ?? new FakeConceptRepository();
   const roadmapRepo = overrides?.roadmapRepo ?? new FakeRoadmapRepository();
   const resourceRepo = overrides?.resourceRepo ?? new FakeResourceRepository();
   const categoryRepo = overrides?.categoryRepo ?? new FakeCategoryRepository();
-
-  const cache = new FakeCacheService();
-  const resourceDiscovery = new CachedResourceDiscoveryAdapter(
-    innerResourceDiscovery,
-    cache,
-  );
 
   const service = new RoadmapProcessorService(
     logger as never,
@@ -88,12 +80,11 @@ function buildService(overrides?: {
     logger,
     topicConceptGenerator,
     roadmapGenerator,
-    innerResourceDiscovery,
+    resourceDiscovery,
     conceptRepository,
     roadmapRepo,
     resourceRepo,
     categoryRepo,
-    cache,
   };
 }
 
@@ -102,7 +93,7 @@ describe("RoadmapProcessorService", () => {
   let logger: FakeLogger;
   let topicConceptGenerator: FakeTopicConceptGenerationService;
   let roadmapGenerator: FakeRoadmapGenerationService;
-  let innerResourceDiscovery: FakeResourceDiscoveryService;
+  let resourceDiscovery: FakeResourceDiscoveryService;
   let conceptRepository: FakeConceptRepository;
   let roadmapRepo: FakeRoadmapRepository;
   let resourceRepo: FakeResourceRepository;
@@ -114,7 +105,7 @@ describe("RoadmapProcessorService", () => {
     logger = ctx.logger;
     topicConceptGenerator = ctx.topicConceptGenerator;
     roadmapGenerator = ctx.roadmapGenerator;
-    innerResourceDiscovery = ctx.innerResourceDiscovery;
+    resourceDiscovery = ctx.resourceDiscovery;
     conceptRepository = ctx.conceptRepository;
     roadmapRepo = ctx.roadmapRepo;
     resourceRepo = ctx.resourceRepo;
@@ -161,7 +152,7 @@ describe("RoadmapProcessorService", () => {
         recommendedPace: "1 hour/day",
       });
 
-      innerResourceDiscovery.setResults([
+      resourceDiscovery.setResults([
         {
           title: "Resource 1",
           url: "https://example.com/r1",
@@ -294,7 +285,7 @@ describe("RoadmapProcessorService", () => {
         value: () => Promise.reject(new Error("Discovery failed")),
       });
 
-      const ctx = buildService({ innerResourceDiscovery: failingDiscovery });
+      const ctx = buildService({ resourceDiscovery: failingDiscovery });
       roadmapRepo = ctx.roadmapRepo;
       resourceRepo = ctx.resourceRepo;
       categoryRepo = ctx.categoryRepo;

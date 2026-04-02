@@ -1,27 +1,9 @@
 import { Module } from '@nestjs/common';
 import { InsightsController } from './infra/driver/http/insights.controller';
-import { GetInsightsUseCase } from './app/usecases/get-insights.usecase';
 import { getDependencies } from '@/core/bootstrap';
-import {
-  NEWS_ARTICLE_REPOSITORY,
-  NEWS_SERVICE,
-  CATEGORY_REPOSITORY,
-  USER_REPOSITORY,
-  ROADMAP_REPOSITORY,
-} from '@sagepoint/domain';
-import type {
-  IUserRepository,
-  IRoadmapRepository,
-  ICategoryRepository,
-  ICacheService,
-  INewsArticleRepository,
-  INewsService,
-} from '@sagepoint/domain';
-import { RedisCacheService } from '@/core/infra/cache/redis-cache.service';
-import { CategoryModule } from '@/features/category/category.module';
+import { NEWS_ARTICLE_REPOSITORY } from '@sagepoint/domain';
 
 @Module({
-  imports: [CategoryModule],
   controllers: [InsightsController],
   providers: [
     {
@@ -29,43 +11,8 @@ import { CategoryModule } from '@/features/category/category.module';
       useFactory: () => getDependencies().insights.newsArticleRepository,
     },
     {
-      provide: NEWS_SERVICE,
-      useFactory: () => getDependencies().newsService,
-    },
-    {
-      provide: USER_REPOSITORY,
-      useFactory: () => getDependencies().user.userRepository,
-    },
-    {
-      provide: ROADMAP_REPOSITORY,
-      useFactory: () => getDependencies().roadmap.roadmapRepository,
-    },
-    {
       provide: 'GetInsightsUseCase',
-      useFactory: (
-        userRepo: IUserRepository,
-        roadmapRepo: IRoadmapRepository,
-        categoryRepo: ICategoryRepository,
-        cache: ICacheService,
-        newsArticleRepo: INewsArticleRepository,
-        newsService: INewsService,
-      ) =>
-        new GetInsightsUseCase(
-          userRepo,
-          roadmapRepo,
-          categoryRepo,
-          cache,
-          newsArticleRepo,
-          newsService,
-        ),
-      inject: [
-        USER_REPOSITORY,
-        ROADMAP_REPOSITORY,
-        CATEGORY_REPOSITORY,
-        RedisCacheService,
-        NEWS_ARTICLE_REPOSITORY,
-        NEWS_SERVICE,
-      ],
+      useFactory: () => getDependencies().insights.getInsightsUseCase,
     },
   ],
 })

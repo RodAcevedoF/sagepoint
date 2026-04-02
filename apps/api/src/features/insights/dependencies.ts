@@ -1,16 +1,41 @@
-import type { INewsArticleRepository } from '@sagepoint/domain';
+import type {
+  INewsArticleRepository,
+  IUserRepository,
+  IRoadmapRepository,
+  ICategoryRepository,
+  ICacheService,
+  INewsService,
+} from '@sagepoint/domain';
 import { PrismaNewsArticleRepository } from '@sagepoint/database';
 import { PrismaService } from '@/core/infra/database/prisma.service';
+import { GetInsightsUseCase } from './app/usecases/get-insights.usecase';
 
 export interface InsightsDependencies {
   newsArticleRepository: INewsArticleRepository;
+  getInsightsUseCase: GetInsightsUseCase;
 }
 
-export function makeInsightsDependencies(): InsightsDependencies {
+export function makeInsightsDependencies(
+  userRepo: IUserRepository,
+  roadmapRepo: IRoadmapRepository,
+  categoryRepo: ICategoryRepository,
+  cache: ICacheService,
+  newsService: INewsService,
+): InsightsDependencies {
   const prismaService = new PrismaService();
   const newsArticleRepository = new PrismaNewsArticleRepository(prismaService);
 
+  const getInsightsUseCase = new GetInsightsUseCase(
+    userRepo,
+    roadmapRepo,
+    categoryRepo,
+    cache,
+    newsArticleRepository,
+    newsService,
+  );
+
   return {
     newsArticleRepository,
+    getInsightsUseCase,
   };
 }

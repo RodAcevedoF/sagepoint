@@ -1,14 +1,8 @@
-import { Injectable, Inject, ConflictException } from '@nestjs/common';
+import { ConflictException } from '@nestjs/common';
 import { randomBytes } from 'crypto';
 import type { IInvitationRepository, IUserRepository } from '@sagepoint/domain';
-import {
-  Invitation,
-  INVITATION_REPOSITORY,
-  USER_REPOSITORY,
-  UserRole,
-} from '@sagepoint/domain';
+import { Invitation, UserRole } from '@sagepoint/domain';
 import type { IEmailService } from '@/features/auth/domain/outbound/email.service.port';
-import { EMAIL_SERVICE_PORT } from '@/features/auth/domain/outbound/email.service.port';
 import { v4 as uuid } from 'uuid';
 
 const INVITATION_TTL_DAYS = 7;
@@ -18,14 +12,10 @@ export interface CreateInvitationInput {
   role?: string;
 }
 
-@Injectable()
 export class CreateInvitationUseCase {
   constructor(
-    @Inject(INVITATION_REPOSITORY)
     private readonly invitationRepo: IInvitationRepository,
-    @Inject(USER_REPOSITORY)
     private readonly userRepo: IUserRepository,
-    @Inject(EMAIL_SERVICE_PORT)
     private readonly emailService: IEmailService,
   ) {}
 

@@ -36,6 +36,9 @@ import { NewsdataApiAdapter } from '@sagepoint/ai';
 import type { IFileStorage, INewsService } from '@sagepoint/domain';
 import Redis from 'ioredis';
 import { RedisCacheService } from '@/core/infra/cache/redis-cache.service';
+import { BcryptPasswordHasher } from '@/features/auth/infra/driven/bcrypt-password.hasher';
+import { MockEmailService } from '@/features/auth/infra/driven/mock-email.service';
+import { ResendEmailService } from '@/features/auth/infra/driven/resend-email.service';
 
 export interface AppDependencies {
   roadmap: RoadmapDependencies;
@@ -87,15 +90,36 @@ export function bootstrap(): AppDependencies {
     apiKey: process.env.NEWSDATAIO_API_KEY ?? '',
   });
 
+  const roadmapDeps = makeRoadmapDependencies(neo4jService, cacheService);
+  const categoryDeps = makeCategoryDependencies(cacheService);
+
   dependencies = {
-    roadmap: makeRoadmapDependencies(neo4jService, cacheService),
+    roadmap: roadmapDeps,
     document: makeDocumentDependencies(fileStorage),
     user: userDeps,
     storage: makeStorageDependencies(fileStorage),
-    category: makeCategoryDependencies(cacheService),
+    category: categoryDeps,
     admin: makeAdminDependencies(),
-    insights: makeInsightsDependencies(),
-    invitation: makeInvitationDependencies(),
+    insights: makeInsightsDependencies(
+      userDeps.userRepository,
+      roadmapDeps.roadmapRepository,
+      categoryDeps.categoryRepository,
+      cacheService,
+      newsService,
+    ),
+    invitation: makeInvitationDependencies(
+      userDeps.userRepository,
+      process.env.EMAIL_PROVIDER === 'resend'
+        ? new ResendEmailService({
+            apiKey: process.env.RESEND_API_KEY || '',
+            fromEmail:
+              process.env.RESEND_FROM_EMAIL ||
+              'Sagepoint <onboarding@resend.dev>',
+            frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
+          })
+        : new MockEmailService(),
+      new BcryptPasswordHasher(),
+    ),
     fileStorage,
     neo4jService,
     newsService,

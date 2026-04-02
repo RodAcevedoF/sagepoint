@@ -68,7 +68,7 @@ enum InvitationStatus {
 }
 
 model User {
-  id        String   @id @default(uuid())
+  id        String   @id @default(uuid()) @db.Uuid
   email     String   @unique
   name      String
   password  String?
@@ -78,7 +78,7 @@ model User {
   isActive  Boolean  @default(true)
   isVerified Boolean @default(false)
   verificationToken String?
-  
+
   learningGoal     String?  // "Become a DevOps Engineer"
   onboardingStatus OnboardingStatus @default(PENDING)
   interests        UserInterest[]
@@ -99,8 +99,8 @@ model User {
 }
 
 model UserInterest {
-  userId     String
-  categoryId String
+  userId     String   @db.Uuid
+  categoryId String   @db.Uuid
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now())
@@ -112,8 +112,8 @@ model UserInterest {
 }
 
 model UserPreferences {
-  id     String @id @default(uuid())
-  userId String @unique
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @unique @db.Uuid
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Learning preferences
@@ -135,7 +135,7 @@ model UserPreferences {
 }
 
 model Document {
-  id              String           @id @default(uuid())
+  id              String           @id @default(uuid()) @db.Uuid
   filename        String
   status          String
   storagePath     String
@@ -147,7 +147,7 @@ model Document {
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 
-  userId          String
+  userId          String           @db.Uuid
   user            User             @relation(fields: [userId], references: [id])
 
   roadmaps        Roadmap[]
@@ -160,8 +160,8 @@ model Document {
 }
 
 model DocumentSummary {
-  id                String   @id @default(uuid())
-  documentId        String   @unique
+  id                String   @id @default(uuid()) @db.Uuid
+  documentId        String   @unique @db.Uuid
   document          Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
   overview          String   @db.Text
   keyPoints         Json
@@ -175,8 +175,8 @@ model DocumentSummary {
 }
 
 model Quiz {
-  id            String        @id @default(uuid())
-  documentId    String
+  id            String        @id @default(uuid()) @db.Uuid
+  documentId    String        @db.Uuid
   document      Document      @relation(fields: [documentId], references: [id], onDelete: Cascade)
   title         String
   description   String?
@@ -191,8 +191,8 @@ model Quiz {
 }
 
 model Question {
-  id         String       @id @default(uuid())
-  quizId     String
+  id         String       @id @default(uuid()) @db.Uuid
+  quizId     String       @db.Uuid
   quiz       Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
   type       QuestionType
   text       String       @db.Text
@@ -208,10 +208,10 @@ model Question {
 }
 
 model QuizAttempt {
-  id             String    @id @default(uuid())
-  quizId         String
+  id             String    @id @default(uuid()) @db.Uuid
+  quizId         String    @db.Uuid
   quiz           Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  userId         String
+  userId         String    @db.Uuid
   answers        Json
   score          Float
   totalQuestions  Int
@@ -225,11 +225,11 @@ model QuizAttempt {
 }
 
 model Category {
-  id          String   @id @default(uuid())
+  id          String   @id @default(uuid()) @db.Uuid
   name        String
   slug        String   @unique
   description String?
-  parentId    String?
+  parentId    String?  @db.Uuid
   parent      Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
   children    Category[] @relation("CategoryHierarchy")
   createdAt   DateTime @default(now())
@@ -243,14 +243,14 @@ model Category {
 }
 
 model NewsArticle {
-  id           String   @id @default(uuid())
+  id           String   @id @default(uuid()) @db.Uuid
   title        String
   description  String
   url          String   @unique
   imageUrl     String?
   source       String
   publishedAt  DateTime
-  categoryId   String
+  categoryId   String   @db.Uuid
   category     Category @relation(fields: [categoryId], references: [id])
   createdAt    DateTime @default(now())
 
@@ -260,17 +260,17 @@ model NewsArticle {
 }
 
 model Roadmap {
-  id          String   @id @default(uuid())
+  id          String   @id @default(uuid()) @db.Uuid
   title       String
   description String?
 
-  userId      String
+  userId      String   @db.Uuid
   user        User     @relation(fields: [userId], references: [id])
 
-  documentId  String?
+  documentId  String?  @db.Uuid
   document    Document? @relation(fields: [documentId], references: [id])
 
-  categoryId  String?
+  categoryId  String?  @db.Uuid
   category    Category? @relation(fields: [categoryId], references: [id])
 
   steps              Json     // Storing steps as JSON for simplicity, or could be separate model
@@ -298,7 +298,7 @@ model Roadmap {
 }
 
 model Resource {
-  id                String       @id @default(uuid())
+  id                String       @id @default(uuid()) @db.Uuid
   title             String
   url               String
   type              ResourceType
@@ -309,7 +309,7 @@ model Resource {
   conceptId         String       // ID of the concept this resource is for
   order             Int          @default(0)
 
-  roadmapId         String
+  roadmapId         String       @db.Uuid
   roadmap           Roadmap      @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
 
   createdAt         DateTime     @default(now())
@@ -320,8 +320,8 @@ model Resource {
 }
 
 model UserRoadmapProgress {
-  userId      String
-  roadmapId   String
+  userId      String   @db.Uuid
+  roadmapId   String   @db.Uuid
   conceptId   String
   status      StepStatus @default(NOT_STARTED)
   completedAt DateTime?
@@ -338,9 +338,9 @@ model UserRoadmapProgress {
 }
 
 model StepQuizAttempt {
-  id             String    @id @default(uuid())
-  userId         String
-  roadmapId      String
+  id             String    @id @default(uuid()) @db.Uuid
+  userId         String    @db.Uuid
+  roadmapId      String    @db.Uuid
   conceptId      String
   questions      Json      // StepQuizQuestion[] with isCorrect flags
   answers        Json?     // User answers, null until submitted
@@ -359,17 +359,17 @@ model StepQuizAttempt {
 }
 
 model Invitation {
-  id           String           @id @default(uuid())
+  id           String           @id @default(uuid()) @db.Uuid
   email        String
   token        String           @unique
   role         UserRole         @default(USER)
   status       InvitationStatus @default(PENDING)
   expiresAt    DateTime
 
-  invitedById  String
+  invitedById  String           @db.Uuid
   invitedBy    User   @relation("InvitedByUser", fields: [invitedById], references: [id])
 
-  acceptedById String?
+  acceptedById String?          @db.Uuid
   acceptedBy   User?  @relation("AcceptedInvitation", fields: [acceptedById], references: [id])
 
   createdAt    DateTime @default(now())

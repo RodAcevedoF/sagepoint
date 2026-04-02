@@ -58,3 +58,5 @@ export * from "./ports/image-text-extraction.port";
 export * from "./ports/concept-expansion.port";
 export * from "./ports/cache.port";
 export * from "./ports/news.port";
+export * from "./ports/document-processor.port";
+export * from "./ports/roadmap-processor.port";
