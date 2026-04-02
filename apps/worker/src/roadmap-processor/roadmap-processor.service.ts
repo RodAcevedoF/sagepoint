@@ -170,9 +170,12 @@ export class RoadmapProcessorService
           .map((c) => `${c.name}: ${c.description || ""}`)
           .join("\n");
       }
-    } catch {
+    } catch (error) {
       this.logger.warn(
-        { roadmapId },
+        {
+          roadmapId,
+          err: error instanceof Error ? error.message : String(error),
+        },
         "Failed to query existing ontology, proceeding without",
       );
     }
