@@ -339,6 +339,10 @@ export class FakeCategoryRepository implements ICategoryRepository {
     return Promise.resolve(category);
   }
 
+  findOrCreateBySlug(category: Category): Promise<Category> {
+    return Promise.resolve(category);
+  }
+
   findById(_id: string): Promise<Category | null> {
     return Promise.resolve(null);
   }

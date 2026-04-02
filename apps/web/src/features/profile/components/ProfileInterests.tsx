@@ -27,7 +27,8 @@ export function ProfileInterests({ user }: ProfileInterestsProps) {
   const theme = useTheme();
   const styles = makeStyles(theme);
   const { showSnackbar } = useSnackbar();
-  const { data: categories } = useCategoriesQuery();
+  const { data: categories, isLoading: categoriesLoading } =
+    useCategoriesQuery();
   const { execute: updateProfile, isLoading } = useUpdateProfileCommand();
 
   const currentIds = useMemo(
@@ -137,6 +138,7 @@ export function ProfileInterests({ user }: ProfileInterestsProps) {
             <Button
               variant="outlined"
               onClick={() => setEditingIds(new Set(currentIds))}
+              disabled={categoriesLoading}
               sx={styles.actionButton}
             >
               Edit
@@ -197,7 +199,8 @@ export function ProfileInterests({ user }: ProfileInterestsProps) {
                 variant="filled"
                 sx={{
                   ...styles.interestChip(true, false),
-                  ...(!predefinedIds.has(interest.id) &&
+                  ...(!categoriesLoading &&
+                    !predefinedIds.has(interest.id) &&
                     styles.customInterestChip),
                 }}
               />

@@ -104,6 +104,13 @@ export class FakeCategoryRepository implements ICategoryRepository {
     return Promise.resolve(category);
   }
 
+  findOrCreateBySlug(category: Category): Promise<Category> {
+    const existing = this.categories.find((c) => c.slug === category.slug);
+    if (existing) return Promise.resolve(existing);
+    this.categories.push(category);
+    return Promise.resolve(category);
+  }
+
   findById(id: string): Promise<Category | null> {
     return Promise.resolve(this.categories.find((c) => c.id === id) ?? null);
   }

@@ -1,10 +1,23 @@
 "use client";
 
-import { Avatar, Box, Typography, alpha, Chip, useTheme } from "@mui/material";
+import { useState } from "react";
+import {
+  Avatar,
+  Box,
+  Typography,
+  alpha,
+  Chip,
+  CircularProgress,
+  useTheme,
+} from "@mui/material";
 import { Camera, Shield, CheckCircle, Verified } from "lucide-react";
-import { Card } from "@/common/components";
+import { Card, useSnackbar } from "@/common/components";
 import type { UserDto } from "@/application/profile/queries/get-profile.query";
+import { useUploadAvatarCommand } from "@/application/profile/commands/upload-avatar.command";
 import { makeStyles } from "./Profile.styles";
+
+const MAX_AVATAR_SIZE = 5 * 1024 * 1024; // 5MB
+const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
 interface ProfileHeaderProps {
   user: UserDto;
@@ -13,6 +26,39 @@ interface ProfileHeaderProps {
 export function ProfileHeader({ user }: ProfileHeaderProps) {
   const theme = useTheme();
   const styles = makeStyles(theme);
+  const { showSnackbar } = useSnackbar();
+  const { execute: uploadAvatar } = useUploadAvatarCommand();
+  const [uploading, setUploading] = useState(false);
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Reset input so the same file can be re-selected
+    e.target.value = "";
+
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      showSnackbar("Please select a JPEG, PNG, WebP, or GIF image", {
+        severity: "error",
+      });
+      return;
+    }
+
+    if (file.size > MAX_AVATAR_SIZE) {
+      showSnackbar("Image must be under 5 MB", { severity: "error" });
+      return;
+    }
+
+    setUploading(true);
+    try {
+      await uploadAvatar(file);
+      showSnackbar("Avatar updated", { severity: "success" });
+    } catch {
+      showSnackbar("Failed to upload avatar", { severity: "error" });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const initials = user.name
     .split(" ")
@@ -35,11 +81,24 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
           {/* Edit overlay */}
           <Box
             className="avatar-overlay"
-            sx={styles.avatarOverlay}
+            sx={{
+              ...styles.avatarOverlay,
+              ...(uploading && { opacity: 1 }),
+            }}
             component="label"
           >
-            <Camera size={32} color={theme.palette.primary.light} />
-            <input hidden accept="image/*" type="file" />
+            {uploading ? (
+              <CircularProgress size={32} sx={{ color: "primary.light" }} />
+            ) : (
+              <Camera size={32} color={theme.palette.primary.light} />
+            )}
+            <input
+              hidden
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              type="file"
+              onChange={handleAvatarChange}
+              disabled={uploading}
+            />
           </Box>
         </Box>
 
