@@ -135,7 +135,9 @@ describe('Document repositories (integration)', () => {
       });
 
       it('returns empty for user with no documents', async () => {
-        const docs = await docRepo.findByUserId('non-existent');
+        const docs = await docRepo.findByUserId(
+          '00000000-0000-0000-0000-ffffffffffff',
+        );
         expect(docs).toEqual([]);
       });
     });
@@ -145,7 +147,7 @@ describe('Document repositories (integration)', () => {
         // Create 3 documents with different timestamps
         for (let i = 1; i <= 3; i++) {
           const doc = new Document(
-            `doc-${i}`,
+            `00000000-0000-0000-0000-00000000d0${String(i).padStart(2, '0')}`,
             `file-${i}.pdf`,
             `docs/${i}`,
             DocumentStatus.COMPLETED,
