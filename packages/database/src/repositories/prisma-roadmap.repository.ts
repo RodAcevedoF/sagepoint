@@ -149,7 +149,7 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
   }
 
   findConceptsByDocumentId(): Promise<Concept[]> {
-    return Promise.resolve([]);
+    return Promise.resolve([] as Concept[]);
   }
 
   saveConceptRelation(): Promise<void> {
