@@ -32,6 +32,9 @@ import type {
   IDocumentAnalysisService,
   IQuizGenerationService,
   IImageTextExtractionService,
+  IDocumentProcessorService,
+  DocumentProcessingInput,
+  DocumentProcessingProgress,
   ExtractedConcept,
   DocumentAnalysisResult,
   GeneratedQuestion,
@@ -60,7 +63,10 @@ const MIME_MAP: Record<string, string> = {
 const MAX_AI_TEXT_LENGTH = 15000;
 
 @Processor("document-processing")
-export class DocumentProcessorService extends WorkerHost {
+export class DocumentProcessorService
+  extends WorkerHost
+  implements IDocumentProcessorService
+{
   private readonly parser = new CompositeDocumentParser();
 
   constructor(
@@ -91,42 +97,48 @@ export class DocumentProcessorService extends WorkerHost {
   }
 
   async process(job: Job<JobData>) {
-    const { documentId, storagePath, filename, mimeType } = job.data;
-    this.logger.info(
-      { jobId: job.id, documentId, filename, mimeType },
-      "Processing document",
-    );
+    await this.processDocument(job.data, (progress) => {
+      void job.updateProgress(progress);
+    });
+  }
+
+  async processDocument(
+    input: DocumentProcessingInput,
+    onProgress?: (progress: DocumentProcessingProgress) => void,
+  ): Promise<void> {
+    const { documentId, storagePath, filename, mimeType } = input;
+    this.logger.info({ documentId, filename, mimeType }, "Processing document");
 
     try {
       const text = await this.parseDocument(
-        job,
         documentId,
         storagePath,
         filename,
         mimeType,
+        onProgress,
       );
-      const analysis = await this.analyzeDocument(job, documentId, text);
-      await this.extractConceptsAndQuiz(job, documentId, text, analysis);
-      await this.finalize(job, documentId);
+      const analysis = await this.analyzeDocument(documentId, text, onProgress);
+      await this.extractConceptsAndQuiz(documentId, text, analysis);
+      await this.finalize(documentId, onProgress);
     } catch (error) {
-      await this.handleFailure(job, documentId, error);
+      await this.handleFailure(documentId, error);
       throw error;
     }
   }
 
   private async parseDocument(
-    job: Job<JobData>,
     documentId: string,
     storagePath: string,
     filename: string,
     mimeType?: string,
+    onProgress?: (progress: DocumentProcessingProgress) => void,
   ): Promise<string> {
     await this.updateStage(
       documentId,
       DocumentStatus.PROCESSING,
       ProcessingStage.PARSING,
     );
-    await job.updateProgress({ stage: "parsing" });
+    onProgress?.({ stage: "parsing" });
 
     const buffer = await this.fileStorage.download(storagePath);
     const resolvedMime = mimeType || this.guessMimeType(filename);
@@ -136,37 +148,30 @@ export class DocumentProcessorService extends WorkerHost {
       throw new Error("No text could be extracted from the document");
     }
 
-    this.logger.info(
-      { jobId: job.id, documentId, charCount: text.length },
-      "Text extracted",
-    );
+    this.logger.info({ documentId, charCount: text.length }, "Text extracted");
     return text;
   }
 
   private async analyzeDocument(
-    job: Job<JobData>,
     documentId: string,
     text: string,
+    onProgress?: (progress: DocumentProcessingProgress) => void,
   ): Promise<DocumentAnalysisResult> {
     await this.updateStage(documentId, undefined, ProcessingStage.ANALYZING);
-    await job.updateProgress({ stage: "analyzing" });
+    onProgress?.({ stage: "analyzing" });
 
     const truncatedText = text.substring(0, MAX_AI_TEXT_LENGTH);
     const analysis = await this.documentAnalysis.analyzeDocument(truncatedText);
 
     await this.saveSummary(documentId, analysis);
     await this.updateStage(documentId, undefined, ProcessingStage.SUMMARIZED);
-    await job.updateProgress({ stage: "summarized" });
+    onProgress?.({ stage: "summarized" });
 
-    this.logger.info(
-      { jobId: job.id, documentId, stage: "summarized" },
-      "Summary saved",
-    );
+    this.logger.info({ documentId, stage: "summarized" }, "Summary saved");
     return analysis;
   }
 
   private async extractConceptsAndQuiz(
-    job: Job<JobData>,
     documentId: string,
     text: string,
     analysis: DocumentAnalysisResult,
@@ -207,7 +212,7 @@ export class DocumentProcessorService extends WorkerHost {
       }
     } else {
       this.logger.warn(
-        { jobId: job.id, documentId, err: String(conceptsResult.reason) },
+        { documentId, err: String(conceptsResult.reason) },
         "Concept extraction failed, continuing with partial results",
       );
     }
@@ -216,7 +221,7 @@ export class DocumentProcessorService extends WorkerHost {
       await this.saveQuiz(documentId, analysis.topicArea, quizResult.value);
     } else {
       this.logger.warn(
-        { jobId: job.id, documentId, err: String(quizResult.reason) },
+        { documentId, err: String(quizResult.reason) },
         "Quiz generation failed, continuing with partial results",
       );
     }
@@ -229,30 +234,29 @@ export class DocumentProcessorService extends WorkerHost {
     }
   }
 
-  private async finalize(job: Job<JobData>, documentId: string): Promise<void> {
+  private async finalize(
+    documentId: string,
+    onProgress?: (progress: DocumentProcessingProgress) => void,
+  ): Promise<void> {
     const summary = await this.documentSummaryRepo.findByDocumentId(documentId);
     await this.documentRepo.updateStatus(documentId, {
       status: DocumentStatus.COMPLETED,
       processingStage: ProcessingStage.READY,
       conceptCount: summary?.conceptCount ?? 0,
     });
-    await job.updateProgress({ stage: "ready" });
+    onProgress?.({ stage: "ready" });
     this.logger.info(
-      { jobId: job.id, documentId, stage: "ready" },
+      { documentId, stage: "ready" },
       "Document fully processed",
     );
   }
 
   private async handleFailure(
-    job: Job<JobData>,
     documentId: string,
     error: unknown,
   ): Promise<void> {
     const err = error instanceof Error ? error : new Error(String(error));
-    this.logger.error(
-      { jobId: job.id, documentId, err },
-      "Document processing failed",
-    );
+    this.logger.error({ documentId, err }, "Document processing failed");
     await this.documentRepo.updateStatus(documentId, {
       status: DocumentStatus.FAILED,
       errorMessage: error instanceof Error ? error.message : "Unknown error",

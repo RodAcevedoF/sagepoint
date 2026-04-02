@@ -8,6 +8,7 @@ import { InsightsRefreshService } from "./insights-refresh/insights-refresh.serv
 import {
   NewsdataApiAdapter,
   CachedResourceDiscoveryAdapter,
+  PerplexityResearchAdapter,
 } from "@sagepoint/ai";
 
 import { ConfigModule } from "@nestjs/config";
@@ -35,11 +36,7 @@ import {
   ROADMAP_REPOSITORY,
   RESOURCE_REPOSITORY,
 } from "@sagepoint/domain";
-import type {
-  ICacheService,
-  INewsService,
-  IResourceDiscoveryService,
-} from "@sagepoint/domain";
+import type { ICacheService, INewsService } from "@sagepoint/domain";
 import {
   PrismaClient,
   PrismaPg,
@@ -137,14 +134,14 @@ const isDev = process.env.NODE_ENV !== "production";
       useFactory: () => createRedisCacheService("cache:"),
     },
     {
-      provide: "INNER_RESOURCE_DISCOVERY",
-      useExisting: RESOURCE_DISCOVERY_SERVICE,
-    },
-    {
-      provide: CachedResourceDiscoveryAdapter,
-      useFactory: (inner: IResourceDiscoveryService, cache: ICacheService) =>
-        new CachedResourceDiscoveryAdapter(inner, cache),
-      inject: ["INNER_RESOURCE_DISCOVERY", "WORKER_CACHE"],
+      provide: RESOURCE_DISCOVERY_SERVICE,
+      useFactory: (config: ConfigService, cache: ICacheService) => {
+        const inner = new PerplexityResearchAdapter({
+          apiKey: config.get<string>("PERPLEXITY_API_KEY") ?? "",
+        });
+        return new CachedResourceDiscoveryAdapter(inner, cache);
+      },
+      inject: [ConfigService, "WORKER_CACHE"],
     },
     {
       provide: "WORKER_PRISMA",

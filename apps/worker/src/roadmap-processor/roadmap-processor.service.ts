@@ -11,6 +11,7 @@ import {
   ROADMAP_REPOSITORY,
   CATEGORY_REPOSITORY,
   RESOURCE_REPOSITORY,
+  RESOURCE_DISCOVERY_SERVICE,
 } from "@sagepoint/domain";
 import type {
   IConceptRepository,
@@ -19,11 +20,14 @@ import type {
   IResourceRepository,
   ITopicConceptGenerationService,
   IRoadmapGenerationService,
+  IResourceDiscoveryService,
+  IRoadmapProcessorService,
+  RoadmapGenerationInput,
+  RoadmapGenerationProgress,
   ConceptForOrdering,
   ConceptRelationshipForOrdering,
   UserContext,
 } from "@sagepoint/domain";
-import { CachedResourceDiscoveryAdapter } from "@sagepoint/ai";
 import { Inject } from "@nestjs/common";
 
 interface JobData {
@@ -35,7 +39,10 @@ interface JobData {
 }
 
 @Processor("roadmap-generation")
-export class RoadmapProcessorService extends WorkerHost {
+export class RoadmapProcessorService
+  extends WorkerHost
+  implements IRoadmapProcessorService
+{
   constructor(
     @InjectPinoLogger(RoadmapProcessorService.name)
     private readonly logger: PinoLogger,
@@ -43,7 +50,8 @@ export class RoadmapProcessorService extends WorkerHost {
     private readonly topicConceptGenerator: ITopicConceptGenerationService,
     @Inject(ROADMAP_GENERATION_SERVICE)
     private readonly roadmapGenerator: IRoadmapGenerationService,
-    private readonly resourceDiscovery: CachedResourceDiscoveryAdapter,
+    @Inject(RESOURCE_DISCOVERY_SERVICE)
+    private readonly resourceDiscovery: IResourceDiscoveryService,
     @Inject(CONCEPT_REPOSITORY)
     private readonly conceptRepository: IConceptRepository,
     @Inject(ROADMAP_REPOSITORY)
@@ -57,9 +65,18 @@ export class RoadmapProcessorService extends WorkerHost {
   }
 
   async process(job: Job<JobData>) {
-    const { roadmapId, topic, userContext } = job.data;
+    await this.generateRoadmap(job.data, (progress) => {
+      void job.updateProgress(progress);
+    });
+  }
+
+  async generateRoadmap(
+    input: RoadmapGenerationInput,
+    onProgress?: (progress: RoadmapGenerationProgress) => void,
+  ): Promise<void> {
+    const { roadmapId, topic, userContext } = input;
     this.logger.info(
-      { jobId: job.id, roadmapId, topic, stage: "concepts" },
+      { roadmapId, topic, stage: "concepts" },
       "Processing roadmap generation",
     );
 
@@ -68,10 +85,10 @@ export class RoadmapProcessorService extends WorkerHost {
       const parsedContext = this.parseUserContext(userContext);
 
       const { concepts, relationships } = await this.generateConcepts(
-        job,
         roadmapId,
         topic,
         parsedContext,
+        onProgress,
       );
       if (concepts.length === 0) {
         await this.completeEmpty(roadmapId);
@@ -81,22 +98,22 @@ export class RoadmapProcessorService extends WorkerHost {
       await this.persistToNeo4j(roadmapId, concepts, relationships);
 
       const steps = await this.buildLearningPath(
-        job,
         roadmapId,
         topic,
         concepts,
         relationships,
         parsedContext,
+        onProgress,
       );
 
-      await this.discoverAndSaveResources(job, roadmapId, steps);
-      await job.updateProgress({ stage: "done" });
+      await this.discoverAndSaveResources(roadmapId, steps, onProgress);
+      onProgress?.({ stage: "done" });
       this.logger.info(
-        { jobId: job.id, roadmapId, stage: "done" },
+        { roadmapId, stage: "done" },
         "Roadmap resources discovered",
       );
     } catch (error) {
-      await this.handleFailure(job, roadmapId, error);
+      await this.handleFailure(roadmapId, error);
       throw error;
     }
   }
@@ -117,15 +134,15 @@ export class RoadmapProcessorService extends WorkerHost {
   }
 
   private async generateConcepts(
-    job: Job<JobData>,
     roadmapId: string,
     topic: string,
     userContext?: UserContext,
+    onProgress?: (progress: RoadmapGenerationProgress) => void,
   ): Promise<{
     concepts: ConceptForOrdering[];
     relationships: ConceptRelationshipForOrdering[];
   }> {
-    await job.updateProgress({ stage: "concepts" });
+    onProgress?.({ stage: "concepts" });
 
     const ontologyContext = await this.fetchOntologyContext(roadmapId, topic);
 
@@ -195,14 +212,14 @@ export class RoadmapProcessorService extends WorkerHost {
   }
 
   private async buildLearningPath(
-    job: Job<JobData>,
     roadmapId: string,
     topic: string,
     concepts: ConceptForOrdering[],
     relationships: ConceptRelationshipForOrdering[],
     userContext?: UserContext,
+    onProgress?: (progress: RoadmapGenerationProgress) => void,
   ): Promise<RoadmapStep[]> {
-    await job.updateProgress({ stage: "learning-path" });
+    onProgress?.({ stage: "learning-path" });
 
     const learningPath = await this.roadmapGenerator.generateLearningPath(
       concepts,
@@ -260,7 +277,7 @@ export class RoadmapProcessorService extends WorkerHost {
     });
 
     this.logger.info(
-      { jobId: job.id, roadmapId, stepCount: steps.length, stage: "completed" },
+      { roadmapId, stepCount: steps.length, stage: "completed" },
       "Roadmap generation complete",
     );
 
@@ -268,15 +285,11 @@ export class RoadmapProcessorService extends WorkerHost {
   }
 
   private async handleFailure(
-    job: Job<JobData>,
     roadmapId: string,
     error: unknown,
   ): Promise<void> {
     const err = error instanceof Error ? error : new Error(String(error));
-    this.logger.error(
-      { jobId: job.id, roadmapId, err },
-      "Roadmap generation failed",
-    );
+    this.logger.error({ roadmapId, err }, "Roadmap generation failed");
     await this.roadmapRepo.updateGeneration(roadmapId, {
       generationStatus: "failed",
       errorMessage: error instanceof Error ? error.message : "Unknown error",
@@ -323,11 +336,11 @@ export class RoadmapProcessorService extends WorkerHost {
   }
 
   private async discoverAndSaveResources(
-    job: Job<JobData>,
     roadmapId: string,
     steps: RoadmapStep[],
+    onProgress?: (progress: RoadmapGenerationProgress) => void,
   ): Promise<void> {
-    await job.updateProgress({ stage: "resources" });
+    onProgress?.({ stage: "resources" });
 
     try {
       const concepts = steps.map((step) => ({
