@@ -1,13 +1,8 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import type { IInvitationRepository } from '@sagepoint/domain';
-import { INVITATION_REPOSITORY } from '@sagepoint/domain';
 
-@Injectable()
 export class ValidateInvitationTokenUseCase {
-  constructor(
-    @Inject(INVITATION_REPOSITORY)
-    private readonly invitationRepo: IInvitationRepository,
-  ) {}
+  constructor(private readonly invitationRepo: IInvitationRepository) {}
 
   async execute(token: string): Promise<{ email: string; role: string }> {
     const invitation = await this.invitationRepo.findByToken(token);

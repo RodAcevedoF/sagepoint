@@ -1,8 +1,7 @@
-import { Injectable, Inject, ConflictException } from '@nestjs/common';
+import { ConflictException } from '@nestjs/common';
 import type { IUserRepository } from '@sagepoint/domain';
-import { User, USER_REPOSITORY, UserRole } from '@sagepoint/domain';
+import { User, UserRole } from '@sagepoint/domain';
 import type { IPasswordHasher } from '@/features/auth/domain/outbound/password-hasher.port';
-import { PASSWORD_HASHER } from '@/features/auth/domain/outbound/password-hasher.port';
 import { v4 as uuid } from 'uuid';
 
 export interface CreateUserDirectInput {
@@ -12,12 +11,9 @@ export interface CreateUserDirectInput {
   role?: string;
 }
 
-@Injectable()
 export class CreateUserDirectUseCase {
   constructor(
-    @Inject(USER_REPOSITORY)
     private readonly userRepo: IUserRepository,
-    @Inject(PASSWORD_HASHER)
     private readonly passwordHasher: IPasswordHasher,
   ) {}
 

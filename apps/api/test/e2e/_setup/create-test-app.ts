@@ -451,6 +451,18 @@ function patchBootstrapSingleton() {
         findByCategorySlugs: () => Promise.resolve([]),
         deleteOlderThan: () => Promise.resolve(0),
       },
+      getInsightsUseCase: { execute: () => Promise.resolve([]) },
+    },
+    invitation: {
+      invitationRepository: new FakeInvitationRepository(),
+      createInvitationUseCase: { execute: () => Promise.resolve({}) },
+      findAllInvitationsUseCase: { execute: () => Promise.resolve([]) },
+      revokeInvitationUseCase: {
+        execute: () => Promise.resolve({ success: true }),
+      },
+      validateInvitationTokenUseCase: { execute: () => Promise.resolve(null) },
+      acceptInvitationUseCase: { execute: () => Promise.resolve() },
+      createUserDirectUseCase: { execute: () => Promise.resolve({}) },
     },
     fileStorage: fakeFileStorage,
     neo4jService: { close: async () => {} },
