@@ -31,7 +31,7 @@ describe('Document repositories (integration)', () => {
   let attemptRepo: PrismaQuizAttemptRepository;
 
   const NOW = new Date('2026-01-01');
-  const USER_ID = 'user-1';
+  const USER_ID = '00000000-0000-0000-0000-0000000a0001';
 
   async function seedUser() {
     await getPrismaClient().user.create({
@@ -53,7 +53,7 @@ describe('Document repositories (integration)', () => {
     }> = {},
   ) {
     return new Document(
-      overrides.id ?? 'doc-1',
+      overrides.id ?? '00000000-0000-0000-0000-00000000d001',
       overrides.filename ?? 'thesis.pdf',
       'docs/thesis.pdf',
       overrides.status ?? DocumentStatus.COMPLETED,
@@ -95,7 +95,9 @@ describe('Document repositories (integration)', () => {
       it('creates and retrieves a document', async () => {
         await docRepo.save(buildDoc());
 
-        const found = await docRepo.findById('doc-1');
+        const found = await docRepo.findById(
+          '00000000-0000-0000-0000-00000000d001',
+        );
         expect(found).not.toBeNull();
         expect(found!.filename).toBe('thesis.pdf');
         expect(found!.mimeType).toBe('application/pdf');
@@ -106,15 +108,27 @@ describe('Document repositories (integration)', () => {
         await docRepo.save(buildDoc({ status: DocumentStatus.PROCESSING }));
         await docRepo.save(buildDoc({ status: DocumentStatus.COMPLETED }));
 
-        const found = await docRepo.findById('doc-1');
+        const found = await docRepo.findById(
+          '00000000-0000-0000-0000-00000000d001',
+        );
         expect(found!.status).toBe(DocumentStatus.COMPLETED);
       });
     });
 
     describe('findByUserId', () => {
       it('returns documents for a user ordered by createdAt desc', async () => {
-        await docRepo.save(buildDoc({ id: 'doc-1', filename: 'first.pdf' }));
-        await docRepo.save(buildDoc({ id: 'doc-2', filename: 'second.pdf' }));
+        await docRepo.save(
+          buildDoc({
+            id: '00000000-0000-0000-0000-00000000d001',
+            filename: 'first.pdf',
+          }),
+        );
+        await docRepo.save(
+          buildDoc({
+            id: '00000000-0000-0000-0000-00000000d002',
+            filename: 'second.pdf',
+          }),
+        );
 
         const docs = await docRepo.findByUserId(USER_ID);
         expect(docs).toHaveLength(2);
@@ -165,9 +179,11 @@ describe('Document repositories (integration)', () => {
     describe('delete', () => {
       it('removes a document', async () => {
         await docRepo.save(buildDoc());
-        await docRepo.delete('doc-1');
+        await docRepo.delete('00000000-0000-0000-0000-00000000d001');
 
-        const found = await docRepo.findById('doc-1');
+        const found = await docRepo.findById(
+          '00000000-0000-0000-0000-00000000d001',
+        );
         expect(found).toBeNull();
       });
     });
@@ -180,8 +196,8 @@ describe('Document repositories (integration)', () => {
       await docRepo.save(buildDoc());
 
       const summary = new DocumentSummary(
-        'sum-1',
-        'doc-1',
+        '00000000-0000-0000-0000-000000005001',
+        '00000000-0000-0000-0000-00000000d001',
         'An overview of the thesis.',
         ['Point A', 'Point B'],
         'Computer Science',
@@ -192,7 +208,9 @@ describe('Document repositories (integration)', () => {
       );
       await summaryRepo.save(summary);
 
-      const found = await summaryRepo.findByDocumentId('doc-1');
+      const found = await summaryRepo.findByDocumentId(
+        '00000000-0000-0000-0000-00000000d001',
+      );
       expect(found).not.toBeNull();
       expect(found!.overview).toBe('An overview of the thesis.');
       expect(found!.keyPoints).toEqual(['Point A', 'Point B']);
@@ -204,8 +222,8 @@ describe('Document repositories (integration)', () => {
 
       await summaryRepo.save(
         new DocumentSummary(
-          'sum-1',
-          'doc-1',
+          '00000000-0000-0000-0000-000000005001',
+          '00000000-0000-0000-0000-00000000d001',
           'V1',
           ['A'],
           'CS',
@@ -216,8 +234,8 @@ describe('Document repositories (integration)', () => {
       );
       await summaryRepo.save(
         new DocumentSummary(
-          'sum-1',
-          'doc-1',
+          '00000000-0000-0000-0000-000000005001',
+          '00000000-0000-0000-0000-00000000d001',
           'V2',
           ['B'],
           'ML',
@@ -227,7 +245,9 @@ describe('Document repositories (integration)', () => {
         ),
       );
 
-      const found = await summaryRepo.findByDocumentId('doc-1');
+      const found = await summaryRepo.findByDocumentId(
+        '00000000-0000-0000-0000-00000000d001',
+      );
       expect(found!.overview).toBe('V2');
       expect(found!.topicArea).toBe('ML');
     });
@@ -235,12 +255,25 @@ describe('Document repositories (integration)', () => {
     it('deletes summary by documentId', async () => {
       await docRepo.save(buildDoc());
       await summaryRepo.save(
-        new DocumentSummary('sum-1', 'doc-1', 'X', [], 'Y', 'beginner', 0, NOW),
+        new DocumentSummary(
+          '00000000-0000-0000-0000-000000005001',
+          '00000000-0000-0000-0000-00000000d001',
+          'X',
+          [],
+          'Y',
+          'beginner',
+          0,
+          NOW,
+        ),
       );
 
-      await summaryRepo.deleteByDocumentId('doc-1');
+      await summaryRepo.deleteByDocumentId(
+        '00000000-0000-0000-0000-00000000d001',
+      );
 
-      const found = await summaryRepo.findByDocumentId('doc-1');
+      const found = await summaryRepo.findByDocumentId(
+        '00000000-0000-0000-0000-00000000d001',
+      );
       expect(found).toBeNull();
     });
   });
@@ -251,12 +284,19 @@ describe('Document repositories (integration)', () => {
     it('saves quiz with questions and retrieves them', async () => {
       await docRepo.save(buildDoc());
 
-      const quiz = new Quiz('quiz-1', 'doc-1', 'Chapter 1 Quiz', 2, NOW, NOW);
+      const quiz = new Quiz(
+        '00000000-0000-0000-0000-000000009001',
+        '00000000-0000-0000-0000-00000000d001',
+        'Chapter 1 Quiz',
+        2,
+        NOW,
+        NOW,
+      );
       await quizRepo.save(quiz);
 
       const q1 = new Question(
-        'q-1',
-        'quiz-1',
+        '00000000-0000-0000-0000-000000009101',
+        '00000000-0000-0000-0000-000000009001',
         QuestionType.MULTIPLE_CHOICE,
         'What is React?',
         [
@@ -269,8 +309,8 @@ describe('Document repositories (integration)', () => {
         'React is a UI library.',
       );
       const q2 = new Question(
-        'q-2',
-        'quiz-1',
+        '00000000-0000-0000-0000-000000009102',
+        '00000000-0000-0000-0000-000000009001',
         QuestionType.TRUE_FALSE,
         'React uses a virtual DOM.',
         [
@@ -283,7 +323,9 @@ describe('Document repositories (integration)', () => {
       );
       await questionRepo.saveMany([q1, q2]);
 
-      const questions = await questionRepo.findByQuizId('quiz-1');
+      const questions = await questionRepo.findByQuizId(
+        '00000000-0000-0000-0000-000000009001',
+      );
       expect(questions).toHaveLength(2);
       expect(questions[0].order).toBe(1);
       expect(questions[1].order).toBe(2);
@@ -293,11 +335,20 @@ describe('Document repositories (integration)', () => {
 
     it('deletes questions by quizId', async () => {
       await docRepo.save(buildDoc());
-      await quizRepo.save(new Quiz('quiz-1', 'doc-1', 'Q', 1, NOW, NOW));
+      await quizRepo.save(
+        new Quiz(
+          '00000000-0000-0000-0000-000000009001',
+          '00000000-0000-0000-0000-00000000d001',
+          'Q',
+          1,
+          NOW,
+          NOW,
+        ),
+      );
       await questionRepo.saveMany([
         new Question(
-          'q-1',
-          'quiz-1',
+          '00000000-0000-0000-0000-000000009101',
+          '00000000-0000-0000-0000-000000009001',
           QuestionType.TRUE_FALSE,
           'T?',
           [
@@ -310,9 +361,11 @@ describe('Document repositories (integration)', () => {
         ),
       ]);
 
-      await questionRepo.deleteByQuizId('quiz-1');
+      await questionRepo.deleteByQuizId('00000000-0000-0000-0000-000000009001');
 
-      const questions = await questionRepo.findByQuizId('quiz-1');
+      const questions = await questionRepo.findByQuizId(
+        '00000000-0000-0000-0000-000000009001',
+      );
       expect(questions).toEqual([]);
     });
   });
@@ -322,13 +375,25 @@ describe('Document repositories (integration)', () => {
   describe('PrismaQuizAttemptRepository', () => {
     it('saves and retrieves attempts by user+quiz', async () => {
       await docRepo.save(buildDoc());
-      await quizRepo.save(new Quiz('quiz-1', 'doc-1', 'Q', 2, NOW, NOW));
+      await quizRepo.save(
+        new Quiz(
+          '00000000-0000-0000-0000-000000009001',
+          '00000000-0000-0000-0000-00000000d001',
+          'Q',
+          2,
+          NOW,
+          NOW,
+        ),
+      );
 
       const attempt = new QuizAttempt(
-        'att-1',
-        'quiz-1',
+        '00000000-0000-0000-0000-00000000a101',
+        '00000000-0000-0000-0000-000000009001',
         USER_ID,
-        { 'q-1': 'A', 'q-2': 'True' },
+        {
+          '00000000-0000-0000-0000-000000009101': 'A',
+          '00000000-0000-0000-0000-000000009102': 'True',
+        },
         0.75,
         2,
         1,
@@ -337,20 +402,35 @@ describe('Document repositories (integration)', () => {
       );
       await attemptRepo.save(attempt);
 
-      const found = await attemptRepo.findByUserAndQuiz(USER_ID, 'quiz-1');
+      const found = await attemptRepo.findByUserAndQuiz(
+        USER_ID,
+        '00000000-0000-0000-0000-000000009001',
+      );
       expect(found).toHaveLength(1);
       expect(found[0].score).toBe(0.75);
-      expect(found[0].answers).toEqual({ 'q-1': 'A', 'q-2': 'True' });
+      expect(found[0].answers).toEqual({
+        '00000000-0000-0000-0000-000000009101': 'A',
+        '00000000-0000-0000-0000-000000009102': 'True',
+      });
     });
 
     it('returns attempts ordered by createdAt desc', async () => {
       await docRepo.save(buildDoc());
-      await quizRepo.save(new Quiz('quiz-1', 'doc-1', 'Q', 1, NOW, NOW));
+      await quizRepo.save(
+        new Quiz(
+          '00000000-0000-0000-0000-000000009001',
+          '00000000-0000-0000-0000-00000000d001',
+          'Q',
+          1,
+          NOW,
+          NOW,
+        ),
+      );
 
       await attemptRepo.save(
         new QuizAttempt(
-          'att-1',
-          'quiz-1',
+          '00000000-0000-0000-0000-00000000a101',
+          '00000000-0000-0000-0000-000000009001',
           USER_ID,
           {},
           0.5,
@@ -362,8 +442,8 @@ describe('Document repositories (integration)', () => {
       );
       await attemptRepo.save(
         new QuizAttempt(
-          'att-2',
-          'quiz-1',
+          '00000000-0000-0000-0000-00000000a102',
+          '00000000-0000-0000-0000-000000009001',
           USER_ID,
           {},
           1.0,
@@ -374,8 +454,11 @@ describe('Document repositories (integration)', () => {
         ),
       );
 
-      const found = await attemptRepo.findByUserAndQuiz(USER_ID, 'quiz-1');
-      expect(found[0].id).toBe('att-2'); // newer first
+      const found = await attemptRepo.findByUserAndQuiz(
+        USER_ID,
+        '00000000-0000-0000-0000-000000009001',
+      );
+      expect(found[0].id).toBe('00000000-0000-0000-0000-00000000a102'); // newer first
     });
   });
 });

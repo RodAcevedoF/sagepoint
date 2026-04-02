@@ -30,7 +30,7 @@ describe('PrismaUserRepository (integration)', () => {
     }> = {},
   ) {
     return new User(
-      overrides.id ?? 'u1',
+      overrides.id ?? '00000000-0000-0000-0000-0000000a0001',
       overrides.email ?? 'test@example.com',
       overrides.name ?? 'Test User',
       overrides.role ?? UserRole.USER,
@@ -72,7 +72,9 @@ describe('PrismaUserRepository (integration)', () => {
       const user = buildUser({ name: 'Alice', email: 'alice@test.com' });
       await userRepo.save(user);
 
-      const found = await userRepo.findById('u1');
+      const found = await userRepo.findById(
+        '00000000-0000-0000-0000-0000000a0001',
+      );
 
       expect(found).not.toBeNull();
       expect(found!.name).toBe('Alice');
@@ -91,7 +93,9 @@ describe('PrismaUserRepository (integration)', () => {
       });
       await userRepo.save(updated);
 
-      const found = await userRepo.findById('u1');
+      const found = await userRepo.findById(
+        '00000000-0000-0000-0000-0000000a0001',
+      );
       expect(found!.name).toBe('Updated Name');
       expect(found!.learningGoal).toBe('Learn ML');
     });
@@ -129,15 +133,25 @@ describe('PrismaUserRepository (integration)', () => {
 
   describe('interests (nested relation)', () => {
     it('saves and retrieves user interests', async () => {
-      const cat1 = buildCategory('cat-1', 'Web Dev', 'web-dev');
-      const cat2 = buildCategory('cat-2', 'ML', 'ml');
+      const cat1 = buildCategory(
+        '00000000-0000-0000-0000-00000000ca01',
+        'Web Dev',
+        'web-dev',
+      );
+      const cat2 = buildCategory(
+        '00000000-0000-0000-0000-00000000ca02',
+        'ML',
+        'ml',
+      );
       await catRepo.save(cat1);
       await catRepo.save(cat2);
 
       const user = buildUser({ interests: [cat1, cat2] });
       await userRepo.save(user);
 
-      const found = await userRepo.findById('u1');
+      const found = await userRepo.findById(
+        '00000000-0000-0000-0000-0000000a0001',
+      );
       expect(found!.interests).toHaveLength(2);
       expect(found!.interests.map((i) => i.slug).sort()).toEqual([
         'ml',
@@ -146,9 +160,21 @@ describe('PrismaUserRepository (integration)', () => {
     });
 
     it('replaces interests on update', async () => {
-      const cat1 = buildCategory('cat-1', 'Web Dev', 'web-dev');
-      const cat2 = buildCategory('cat-2', 'ML', 'ml');
-      const cat3 = buildCategory('cat-3', 'DevOps', 'devops');
+      const cat1 = buildCategory(
+        '00000000-0000-0000-0000-00000000ca01',
+        'Web Dev',
+        'web-dev',
+      );
+      const cat2 = buildCategory(
+        '00000000-0000-0000-0000-00000000ca02',
+        'ML',
+        'ml',
+      );
+      const cat3 = buildCategory(
+        '00000000-0000-0000-0000-00000000ca03',
+        'DevOps',
+        'devops',
+      );
       await catRepo.save(cat1);
       await catRepo.save(cat2);
       await catRepo.save(cat3);
@@ -159,7 +185,9 @@ describe('PrismaUserRepository (integration)', () => {
       // Update to cat2, cat3 only
       await userRepo.save(buildUser({ interests: [cat2, cat3] }));
 
-      const found = await userRepo.findById('u1');
+      const found = await userRepo.findById(
+        '00000000-0000-0000-0000-0000000a0001',
+      );
       expect(found!.interests).toHaveLength(2);
       expect(found!.interests.map((i) => i.slug).sort()).toEqual([
         'devops',

@@ -48,14 +48,14 @@ describe('PrismaCategoryRepository (integration)', () => {
   describe('save + findById', () => {
     it('creates a new category and retrieves it', async () => {
       const cat = buildCategory({
-        id: 'cat-1',
+        id: '00000000-0000-0000-0000-00000000ca01',
         name: 'Web Dev',
         slug: 'web-dev',
         description: 'Frontend & backend',
       });
 
       await repo.save(cat);
-      const found = await repo.findById('cat-1');
+      const found = await repo.findById('00000000-0000-0000-0000-00000000ca01');
 
       expect(found).not.toBeNull();
       expect(found!.name).toBe('Web Dev');
@@ -65,20 +65,20 @@ describe('PrismaCategoryRepository (integration)', () => {
 
     it('updates an existing category on second save', async () => {
       const cat = buildCategory({
-        id: 'cat-1',
+        id: '00000000-0000-0000-0000-00000000ca01',
         name: 'Web Dev',
         slug: 'web-dev',
       });
       await repo.save(cat);
 
       const updated = buildCategory({
-        id: 'cat-1',
+        id: '00000000-0000-0000-0000-00000000ca01',
         name: 'Web Development',
         slug: 'web-dev',
       });
       await repo.save(updated);
 
-      const found = await repo.findById('cat-1');
+      const found = await repo.findById('00000000-0000-0000-0000-00000000ca01');
       expect(found!.name).toBe('Web Development');
     });
   });
@@ -86,12 +86,16 @@ describe('PrismaCategoryRepository (integration)', () => {
   describe('findBySlug', () => {
     it('returns category by slug', async () => {
       await repo.save(
-        buildCategory({ id: 'cat-1', name: 'ML', slug: 'machine-learning' }),
+        buildCategory({
+          id: '00000000-0000-0000-0000-00000000ca01',
+          name: 'ML',
+          slug: 'machine-learning',
+        }),
       );
 
       const found = await repo.findBySlug('machine-learning');
       expect(found).not.toBeNull();
-      expect(found!.id).toBe('cat-1');
+      expect(found!.id).toBe('00000000-0000-0000-0000-00000000ca01');
     });
 
     it('returns null for non-existent slug', async () => {
@@ -102,8 +106,20 @@ describe('PrismaCategoryRepository (integration)', () => {
 
   describe('list', () => {
     it('returns all categories', async () => {
-      await repo.save(buildCategory({ id: 'cat-1', name: 'A', slug: 'a' }));
-      await repo.save(buildCategory({ id: 'cat-2', name: 'B', slug: 'b' }));
+      await repo.save(
+        buildCategory({
+          id: '00000000-0000-0000-0000-00000000ca01',
+          name: 'A',
+          slug: 'a',
+        }),
+      );
+      await repo.save(
+        buildCategory({
+          id: '00000000-0000-0000-0000-00000000ca02',
+          name: 'B',
+          slug: 'b',
+        }),
+      );
 
       const all = await repo.list();
       expect(all).toHaveLength(2);
@@ -117,11 +133,17 @@ describe('PrismaCategoryRepository (integration)', () => {
 
   describe('delete', () => {
     it('removes a category', async () => {
-      await repo.save(buildCategory({ id: 'cat-1', name: 'X', slug: 'x' }));
+      await repo.save(
+        buildCategory({
+          id: '00000000-0000-0000-0000-00000000ca01',
+          name: 'X',
+          slug: 'x',
+        }),
+      );
 
-      await repo.delete('cat-1');
+      await repo.delete('00000000-0000-0000-0000-00000000ca01');
 
-      const found = await repo.findById('cat-1');
+      const found = await repo.findById('00000000-0000-0000-0000-00000000ca01');
       expect(found).toBeNull();
     });
   });
