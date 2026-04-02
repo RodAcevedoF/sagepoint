@@ -32,57 +32,72 @@ ALTER TABLE "invitations" DROP CONSTRAINT IF EXISTS "invitations_acceptedById_fk
 
 -- ═══════════════════════════════════════════════════════════════════════════════
 -- Step 2: Convert PK columns from TEXT → UUID
+-- Must DROP DEFAULT first — the old default (gen_random_uuid()::text) can't
+-- be auto-cast to UUID.
 -- ═══════════════════════════════════════════════════════════════════════════════
 
 ALTER TABLE "users"
+  ALTER COLUMN "id" DROP DEFAULT,
   ALTER COLUMN "id" SET DATA TYPE UUID USING "id"::uuid,
   ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
 
 ALTER TABLE "user_preferences"
+  ALTER COLUMN "id" DROP DEFAULT,
   ALTER COLUMN "id" SET DATA TYPE UUID USING "id"::uuid,
   ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
 
 ALTER TABLE "documents"
+  ALTER COLUMN "id" DROP DEFAULT,
   ALTER COLUMN "id" SET DATA TYPE UUID USING "id"::uuid,
   ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
 
 ALTER TABLE "document_summaries"
+  ALTER COLUMN "id" DROP DEFAULT,
   ALTER COLUMN "id" SET DATA TYPE UUID USING "id"::uuid,
   ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
 
 ALTER TABLE "quizzes"
+  ALTER COLUMN "id" DROP DEFAULT,
   ALTER COLUMN "id" SET DATA TYPE UUID USING "id"::uuid,
   ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
 
 ALTER TABLE "questions"
+  ALTER COLUMN "id" DROP DEFAULT,
   ALTER COLUMN "id" SET DATA TYPE UUID USING "id"::uuid,
   ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
 
 ALTER TABLE "quiz_attempts"
+  ALTER COLUMN "id" DROP DEFAULT,
   ALTER COLUMN "id" SET DATA TYPE UUID USING "id"::uuid,
   ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
 
 ALTER TABLE "categories"
+  ALTER COLUMN "id" DROP DEFAULT,
   ALTER COLUMN "id" SET DATA TYPE UUID USING "id"::uuid,
   ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
 
 ALTER TABLE "news_articles"
+  ALTER COLUMN "id" DROP DEFAULT,
   ALTER COLUMN "id" SET DATA TYPE UUID USING "id"::uuid,
   ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
 
 ALTER TABLE "roadmaps"
+  ALTER COLUMN "id" DROP DEFAULT,
   ALTER COLUMN "id" SET DATA TYPE UUID USING "id"::uuid,
   ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
 
 ALTER TABLE "resources"
+  ALTER COLUMN "id" DROP DEFAULT,
   ALTER COLUMN "id" SET DATA TYPE UUID USING "id"::uuid,
   ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
 
 ALTER TABLE "step_quiz_attempts"
+  ALTER COLUMN "id" DROP DEFAULT,
   ALTER COLUMN "id" SET DATA TYPE UUID USING "id"::uuid,
   ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
 
 ALTER TABLE "invitations"
+  ALTER COLUMN "id" DROP DEFAULT,
   ALTER COLUMN "id" SET DATA TYPE UUID USING "id"::uuid,
   ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
 
