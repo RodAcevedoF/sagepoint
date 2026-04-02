@@ -8,6 +8,11 @@ export interface UpdateUserDto {
   interests?: string[];
 }
 
+interface UploadResult {
+  path: string;
+  url?: string;
+}
+
 export const userApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     updateProfile: builder.mutation<UserDto, UpdateUserDto>({
@@ -18,7 +23,20 @@ export const userApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["User", "Insights"],
     }),
+    uploadAvatar: builder.mutation<UploadResult, File>({
+      query: (file) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("category", "avatars");
+        formData.append("isPublic", "true");
+        return {
+          url: "/storage/upload",
+          method: "POST",
+          body: formData,
+        };
+      },
+    }),
   }),
 });
 
-export const { useUpdateProfileMutation } = userApi;
+export const { useUpdateProfileMutation, useUploadAvatarMutation } = userApi;

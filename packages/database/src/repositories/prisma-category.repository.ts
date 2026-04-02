@@ -31,6 +31,23 @@ export class PrismaCategoryRepository implements ICategoryRepository {
     return this.toDomain(saved);
   }
 
+  async findOrCreateBySlug(category: Category): Promise<Category> {
+    const saved = await this.prisma.category.upsert({
+      where: { slug: category.slug },
+      create: {
+        id: category.id,
+        name: category.name,
+        slug: category.slug,
+        description: category.description,
+        parentId: category.parentId,
+        createdAt: category.createdAt,
+        updatedAt: category.updatedAt,
+      },
+      update: {},
+    });
+    return this.toDomain(saved);
+  }
+
   async findById(id: string): Promise<Category | null> {
     const found = await this.prisma.category.findUnique({ where: { id } });
     return found ? this.toDomain(found) : null;

@@ -29,10 +29,7 @@ export class InterestResolverService {
 
   private async findOrCreate(name: string): Promise<Category> {
     const slug = Category.slugify(name);
-    const existing = await this.categoryRepository.findBySlug(slug);
-    if (existing) return existing;
-
     const category = Category.create(randomUUID(), name, slug);
-    return this.categoryRepository.save(category);
+    return this.categoryRepository.findOrCreateBySlug(category);
   }
 }
