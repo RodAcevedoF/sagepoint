@@ -158,6 +158,7 @@ export function TimelineStep({
             subSteps={subSteps}
             subStepProgress={subStepProgress}
             parentOrder={parentOrder ?? step.order}
+            roadmapId={roadmapId}
           />
         </Box>,
         {
@@ -219,6 +220,7 @@ export function TimelineStep({
                   subSteps={subSteps}
                   subStepProgress={subStepProgress}
                   parentOrder={parentOrder ?? step.order}
+                  roadmapId={roadmapId}
                 />
               </MotionBox>
             )}

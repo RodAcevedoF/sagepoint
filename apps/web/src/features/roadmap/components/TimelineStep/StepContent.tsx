@@ -22,6 +22,7 @@ interface StepContentProps {
   subSteps?: RoadmapStep[];
   subStepProgress?: Record<string, StepStatus>;
   parentOrder?: number;
+  roadmapId?: string;
 }
 
 export function StepContent({
@@ -34,6 +35,7 @@ export function StepContent({
   subSteps = [],
   subStepProgress = {},
   parentOrder = 0,
+  roadmapId = "",
 }: StepContentProps) {
   const theme = useTheme();
   const styles = makeStyles(theme, statusColor);
@@ -95,6 +97,7 @@ export function StepContent({
           subSteps={subSteps}
           stepProgress={subStepProgress}
           parentOrder={parentOrder}
+          roadmapId={roadmapId}
         />
       ) : (
         onExpand && (

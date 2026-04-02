@@ -5,6 +5,7 @@ import { Box, Typography, useTheme } from "@mui/material";
 import { ChevronDown, GitBranch } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { StepStatus, type RoadmapStep } from "@sagepoint/domain";
+import { useUpdateProgressCommand } from "@/application/roadmap";
 import { SubConceptItem } from "./SubConceptItem";
 import { makeStyles } from "./SubConceptAccordion.styles";
 
@@ -14,15 +15,19 @@ interface SubConceptAccordionProps {
   subSteps: RoadmapStep[];
   stepProgress: Record<string, StepStatus>;
   parentOrder: number;
+  roadmapId: string;
 }
 
 export function SubConceptAccordion({
   subSteps,
   stepProgress,
   parentOrder,
+  roadmapId,
 }: SubConceptAccordionProps) {
   const theme = useTheme();
   const [open, setOpen] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+  const { execute: updateProgress } = useUpdateProgressCommand();
 
   if (subSteps.length === 0) return null;
 
@@ -32,13 +37,28 @@ export function SubConceptAccordion({
   const total = subSteps.length;
   const styles = makeStyles(theme, completedCount === total);
 
+  const handleToggle = async (conceptId: string) => {
+    const current = stepProgress[conceptId] ?? StepStatus.NOT_STARTED;
+    const next =
+      current === StepStatus.COMPLETED
+        ? StepStatus.NOT_STARTED
+        : StepStatus.COMPLETED;
+
+    setTogglingId(conceptId);
+    try {
+      await updateProgress(roadmapId, conceptId, next);
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
   return (
     <Box sx={styles.container}>
       <Box onClick={() => setOpen((prev) => !prev)} sx={styles.header}>
         <Box sx={styles.headerLeft}>
           <GitBranch size={14} color={theme.palette.secondary.light} />
           <Typography variant="caption" sx={styles.titleText}>
-            {total} sub-topic{total !== 1 ? "s" : ""}
+            {total} recommended sub-topic{total !== 1 ? "s" : ""}
           </Typography>
           <Typography variant="caption" sx={styles.progressText}>
             {completedCount}/{total} done
@@ -72,6 +92,8 @@ export function SubConceptAccordion({
                     stepProgress[sub.concept.id] ?? StepStatus.NOT_STARTED
                   }
                   label={`${parentOrder}.${i + 1}`}
+                  onToggle={() => handleToggle(sub.concept.id)}
+                  isLoading={togglingId === sub.concept.id}
                 />
               ))}
             </Box>

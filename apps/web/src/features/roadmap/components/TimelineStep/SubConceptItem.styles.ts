@@ -12,9 +12,11 @@ export const makeStyles = (theme: Theme, status: StepStatus) => {
       py: 1,
       px: 1.5,
       borderRadius: 2,
+      cursor: "pointer",
+      userSelect: "none",
       transition: "background-color 0.15s",
       "&:hover": {
-        bgcolor: alpha(theme.palette.primary.light, 0.04),
+        bgcolor: alpha(theme.palette.primary.light, 0.06),
       },
     },
     label: {

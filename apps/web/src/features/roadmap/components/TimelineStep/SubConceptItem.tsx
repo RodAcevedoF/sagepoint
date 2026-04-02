@@ -1,6 +1,12 @@
 "use client";
 
-import { Box, Typography, Chip, useTheme } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Chip,
+  CircularProgress,
+  useTheme,
+} from "@mui/material";
 import { CheckCircle2, Circle, Play, SkipForward, Clock } from "lucide-react";
 import { StepStatus, type RoadmapStep } from "@sagepoint/domain";
 import { makeStyles, getStatusColor } from "./SubConceptItem.styles";
@@ -9,6 +15,8 @@ interface SubConceptItemProps {
   step: RoadmapStep;
   status: StepStatus;
   label: string;
+  onToggle?: () => void;
+  isLoading?: boolean;
 }
 
 const STATUS_ICONS = {
@@ -26,7 +34,13 @@ function formatDuration(minutes?: number): string {
   return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
 }
 
-export function SubConceptItem({ step, status, label }: SubConceptItemProps) {
+export function SubConceptItem({
+  step,
+  status,
+  label,
+  onToggle,
+  isLoading,
+}: SubConceptItemProps) {
   const theme = useTheme();
   const styles = makeStyles(theme, status);
   const statusColor = getStatusColor(theme, status);
@@ -34,12 +48,16 @@ export function SubConceptItem({ step, status, label }: SubConceptItemProps) {
   const duration = formatDuration(step.estimatedDuration);
 
   return (
-    <Box sx={styles.container}>
-      <StatusIcon
-        size={16}
-        color={statusColor}
-        fill={status === StepStatus.IN_PROGRESS ? statusColor : "none"}
-      />
+    <Box sx={styles.container} onClick={isLoading ? undefined : onToggle}>
+      {isLoading ? (
+        <CircularProgress size={16} sx={{ color: statusColor }} />
+      ) : (
+        <StatusIcon
+          size={16}
+          color={statusColor}
+          fill={status === StepStatus.IN_PROGRESS ? statusColor : "none"}
+        />
+      )}
 
       <Typography variant="body2" sx={styles.label}>
         {label}
