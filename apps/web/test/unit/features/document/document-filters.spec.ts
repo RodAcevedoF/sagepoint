@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   isDocumentProcessing,
   filterAndPartitionDocuments,
-} from "@/features/document/utils/document-filters";
+} from "@/features/document/utils/documentFilters";
 
 describe("isDocumentProcessing", () => {
   it.each(["PENDING", "PARSING", "ANALYZING", "SUMMARIZING"])(

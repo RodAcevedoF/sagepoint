@@ -1,172 +1,200 @@
-import type { ProcessingStage, QuestionType } from '@sagepoint/domain';
-import type { CursorPaginatedResult } from '@sagepoint/domain';
-import { baseApi } from './baseApi';
+import type { ProcessingStage, QuestionType } from "@sagepoint/domain";
+import type { CursorPaginatedResult } from "@sagepoint/domain";
+import { baseApi } from "./baseApi";
 
 // DTOs
 export interface DocumentDetailDto {
-	id: string;
-	filename: string;
-	status: string;
-	storagePath: string;
-	userId: string;
-	processingStage: ProcessingStage;
-	mimeType?: string;
-	fileSize?: number;
-	conceptCount?: number;
-	createdAt: string;
-	updatedAt: string;
+  id: string;
+  filename: string;
+  status: string;
+  storagePath: string;
+  userId: string;
+  processingStage: ProcessingStage;
+  mimeType?: string;
+  fileSize?: number;
+  conceptCount?: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface DocumentSummaryDto {
-	id: string;
-	documentId: string;
-	overview: string;
-	keyPoints: string[];
-	topicArea: string;
-	difficulty: string;
-	estimatedReadTime?: number;
-	conceptCount: number;
-	createdAt: string;
+  id: string;
+  documentId: string;
+  overview: string;
+  keyPoints: string[];
+  topicArea: string;
+  difficulty: string;
+  estimatedReadTime?: number;
+  conceptCount: number;
+  createdAt: string;
 }
 
 export interface QuizDto {
-	id: string;
-	documentId: string;
-	title: string;
-	description?: string;
-	questionCount: number;
-	createdAt: string;
-	updatedAt: string;
+  id: string;
+  documentId: string;
+  title: string;
+  description?: string;
+  questionCount: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface QuestionOptionDto {
-	label: string;
-	text: string;
-	isCorrect: boolean;
+  label: string;
+  text: string;
+  isCorrect: boolean;
 }
 
 export interface QuestionDto {
-	id: string;
-	quizId: string;
-	type: QuestionType;
-	text: string;
-	options: QuestionOptionDto[];
-	explanation?: string;
-	conceptId?: string;
-	order: number;
-	difficulty: string;
-	createdAt: string;
+  id: string;
+  quizId: string;
+  type: QuestionType;
+  text: string;
+  options: QuestionOptionDto[];
+  explanation?: string;
+  conceptId?: string;
+  order: number;
+  difficulty: string;
+  createdAt: string;
 }
 
 export interface QuizWithQuestionsDto {
-	quiz: QuizDto;
-	questions: QuestionDto[];
+  quiz: QuizDto;
+  questions: QuestionDto[];
 }
 
 export interface QuizAttemptDto {
-	id: string;
-	quizId: string;
-	userId: string;
-	answers: Record<string, string>;
-	score: number;
-	totalQuestions: number;
-	correctAnswers: number;
-	completedAt?: string;
-	createdAt: string;
+  id: string;
+  quizId: string;
+  userId: string;
+  answers: Record<string, string>;
+  score: number;
+  totalQuestions: number;
+  correctAnswers: number;
+  completedAt?: string;
+  createdAt: string;
 }
 
 export interface SubmitQuizAttemptDto {
-	answers: Record<string, string>;
+  answers: Record<string, string>;
 }
 
 export const documentApi = baseApi.injectEndpoints({
-	endpoints: (builder) => ({
-		getUserDocuments: builder.query<
-			CursorPaginatedResult<DocumentDetailDto>,
-			{ limit?: number; cursor?: string } | void
-		>({
-			query: (params) => ({
-				url: '/documents/user/me',
-				params: params || undefined,
-			}),
-			serializeQueryArgs: ({ endpointName }) => endpointName,
-			merge: (current, incoming) => {
-				if (!incoming.nextCursor && !current.data.length) return incoming;
-				if (!incoming.data.length) return current;
-				const existingIds = new Set(current.data.map((d) => d.id));
-				const newDocs = incoming.data.filter((d) => !existingIds.has(d.id));
-				if (!newDocs.length) return current;
-				current.data.push(...newDocs);
-				current.nextCursor = incoming.nextCursor;
-				current.hasMore = incoming.hasMore;
-				current.total = incoming.total;
-			},
-			forceRefetch: ({ currentArg, previousArg }) => currentArg !== previousArg,
-			providesTags: (result) =>
-				result ?
-					[
-						...result.data.map(({ id }) => ({
-							type: 'Document' as const,
-							id,
-						})),
-						{ type: 'Document', id: 'LIST' },
-					]
-				:	[{ type: 'Document', id: 'LIST' }],
-		}),
-		uploadDocument: builder.mutation<DocumentDetailDto, FormData>({
-			query: (formData) => ({
-				url: '/documents',
-				method: 'POST',
-				body: formData,
-			}),
-			invalidatesTags: [{ type: 'Document', id: 'LIST' }],
-		}),
-		getDocumentById: builder.query<DocumentDetailDto, string>({
-			query: (id) => `/documents/${id}`,
-			providesTags: (_result, _error, id) => [{ type: 'Document', id }],
-		}),
-		deleteDocument: builder.mutation<{ success: boolean }, string>({
-			query: (id) => ({
-				url: `/documents/${id}`,
-				method: 'DELETE',
-			}),
-			invalidatesTags: [{ type: 'Document', id: 'LIST' }],
-		}),
-		getDocumentSummary: builder.query<DocumentSummaryDto | null, string>({
-			query: (id) => `/documents/${id}/summary`,
-			providesTags: (_result, _error, id) => [{ type: 'DocumentSummary', id }],
-		}),
-		getDocumentQuizzes: builder.query<QuizDto[], string>({
-			query: (id) => `/documents/${id}/quizzes`,
-			providesTags: (_result, _error, id) => [{ type: 'Quiz', id }],
-		}),
-		getQuizWithQuestions: builder.query<QuizWithQuestionsDto, { documentId: string; quizId: string }>({
-			query: ({ documentId, quizId }) => `/documents/${documentId}/quizzes/${quizId}`,
-			providesTags: (_result, _error, { quizId }) => [{ type: 'Quiz', id: quizId }],
-		}),
-		submitQuizAttempt: builder.mutation<QuizAttemptDto, { documentId: string; quizId: string; answers: Record<string, string> }>({
-			query: ({ documentId, quizId, answers }) => ({
-				url: `/documents/${documentId}/quizzes/${quizId}/attempt`,
-				method: 'POST',
-				body: { answers },
-			}),
-			invalidatesTags: (_result, _error, { quizId }) => [{ type: 'QuizAttempt', id: quizId }],
-		}),
-		getQuizAttempts: builder.query<QuizAttemptDto[], { documentId: string; quizId: string }>({
-			query: ({ documentId, quizId }) => `/documents/${documentId}/quizzes/${quizId}/attempts`,
-			providesTags: (_result, _error, { quizId }) => [{ type: 'QuizAttempt', id: quizId }],
-		}),
-	}),
+  endpoints: (builder) => ({
+    getUserDocuments: builder.query<
+      CursorPaginatedResult<DocumentDetailDto>,
+      { limit?: number; cursor?: string } | void
+    >({
+      query: (params) => ({
+        url: "/documents/user/me",
+        params: params || undefined,
+      }),
+      serializeQueryArgs: ({ endpointName }) => endpointName,
+      merge: (current, incoming, { arg }) => {
+        // No cursor = fresh fetch (initial load or cache invalidation) → replace entirely
+        const isFreshFetch = !arg || !("cursor" in arg) || !arg.cursor;
+        if (isFreshFetch) return incoming;
+
+        // Cursor pagination: append next page
+        const existingIds = new Set(current.data.map((d) => d.id));
+        for (const doc of incoming.data) {
+          if (!existingIds.has(doc.id)) current.data.push(doc);
+        }
+
+        current.nextCursor = incoming.nextCursor;
+        current.hasMore = incoming.hasMore;
+        current.total = incoming.total;
+      },
+      forceRefetch: ({ currentArg, previousArg }) => {
+        // Always refetch when args change (next page).
+        // Also refetch when args are the same — needed for tag invalidation
+        // to work with serializeQueryArgs (same cache key).
+        if (currentArg !== previousArg) return true;
+        // When both are void/undefined (fresh fetch after invalidation), allow it
+        return !currentArg;
+      },
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.data.map(({ id }) => ({
+                type: "Document" as const,
+                id,
+              })),
+              { type: "Document", id: "LIST" },
+            ]
+          : [{ type: "Document", id: "LIST" }],
+    }),
+    uploadDocument: builder.mutation<DocumentDetailDto, FormData>({
+      query: (formData) => ({
+        url: "/documents",
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: [{ type: "Document", id: "LIST" }],
+    }),
+    getDocumentById: builder.query<DocumentDetailDto, string>({
+      query: (id) => `/documents/${id}`,
+      providesTags: (_result, _error, id) => [{ type: "Document", id }],
+    }),
+    deleteDocument: builder.mutation<{ success: boolean }, string>({
+      query: (id) => ({
+        url: `/documents/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: [{ type: "Document", id: "LIST" }],
+    }),
+    getDocumentSummary: builder.query<DocumentSummaryDto | null, string>({
+      query: (id) => `/documents/${id}/summary`,
+      providesTags: (_result, _error, id) => [{ type: "DocumentSummary", id }],
+    }),
+    getDocumentQuizzes: builder.query<QuizDto[], string>({
+      query: (id) => `/documents/${id}/quizzes`,
+      providesTags: (_result, _error, id) => [{ type: "Quiz", id }],
+    }),
+    getQuizWithQuestions: builder.query<
+      QuizWithQuestionsDto,
+      { documentId: string; quizId: string }
+    >({
+      query: ({ documentId, quizId }) =>
+        `/documents/${documentId}/quizzes/${quizId}`,
+      providesTags: (_result, _error, { quizId }) => [
+        { type: "Quiz", id: quizId },
+      ],
+    }),
+    submitQuizAttempt: builder.mutation<
+      QuizAttemptDto,
+      { documentId: string; quizId: string; answers: Record<string, string> }
+    >({
+      query: ({ documentId, quizId, answers }) => ({
+        url: `/documents/${documentId}/quizzes/${quizId}/attempt`,
+        method: "POST",
+        body: { answers },
+      }),
+      invalidatesTags: (_result, _error, { quizId }) => [
+        { type: "QuizAttempt", id: quizId },
+      ],
+    }),
+    getQuizAttempts: builder.query<
+      QuizAttemptDto[],
+      { documentId: string; quizId: string }
+    >({
+      query: ({ documentId, quizId }) =>
+        `/documents/${documentId}/quizzes/${quizId}/attempts`,
+      providesTags: (_result, _error, { quizId }) => [
+        { type: "QuizAttempt", id: quizId },
+      ],
+    }),
+  }),
 });
 
 export const {
-	useGetUserDocumentsQuery,
-	useUploadDocumentMutation,
-	useGetDocumentByIdQuery,
-	useDeleteDocumentMutation,
-	useGetDocumentSummaryQuery,
-	useGetDocumentQuizzesQuery,
-	useGetQuizWithQuestionsQuery,
-	useSubmitQuizAttemptMutation,
-	useGetQuizAttemptsQuery,
+  useGetUserDocumentsQuery,
+  useUploadDocumentMutation,
+  useGetDocumentByIdQuery,
+  useDeleteDocumentMutation,
+  useGetDocumentSummaryQuery,
+  useGetDocumentQuizzesQuery,
+  useGetQuizWithQuestionsQuery,
+  useSubmitQuizAttemptMutation,
+  useGetQuizAttemptsQuery,
 } = documentApi;

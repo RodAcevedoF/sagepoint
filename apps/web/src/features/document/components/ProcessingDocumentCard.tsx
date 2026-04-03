@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import {
   Box,
   Typography,
@@ -10,7 +11,7 @@ import {
 import { FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/common/components";
-import { useWatchDocumentProcessingCommand } from "@/application/document";
+import { useDocumentEvents } from "@/common/hooks";
 import type { DocumentDetailDto } from "@/infrastructure/api/documentApi";
 import type { DocumentEventStage } from "@/common/hooks";
 
@@ -18,7 +19,7 @@ const STAGE_LABELS: Record<string, string> = {
   parsing: "Parsing document...",
   analyzing: "Analyzing content...",
   summarized: "Summary ready, generating quiz...",
-  ready: "Ready",
+  ready: "Ready!",
 };
 
 function stageProgress(stage: DocumentEventStage | null): number {
@@ -38,14 +39,24 @@ function stageProgress(stage: DocumentEventStage | null): number {
 
 interface ProcessingDocumentCardProps {
   document: DocumentDetailDto;
+  onComplete?: () => void;
 }
 
 export function ProcessingDocumentCard({
   document,
+  onComplete,
 }: ProcessingDocumentCardProps) {
   const theme = useTheme();
   const router = useRouter();
-  const { stage } = useWatchDocumentProcessingCommand(document.id);
+  const hasNotified = useRef(false);
+  const { status, stage } = useDocumentEvents(document.id);
+
+  useEffect(() => {
+    if (status === "completed" && !hasNotified.current) {
+      hasNotified.current = true;
+      onComplete?.();
+    }
+  }, [status, onComplete]);
 
   const progress = stageProgress(stage);
   const label = (stage && STAGE_LABELS[stage]) || "Starting...";
