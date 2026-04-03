@@ -14,12 +14,18 @@ export interface BlueprintNodeData extends Record<string, unknown> {
   difficulty?: string;
   order?: number | string;
   metadata?: Record<string, unknown>;
+  /** Set by BlueprintGraph when a node is focused (click-to-focus) */
+  _focused?: boolean;
+  /** Set by BlueprintGraph when another node is focused (this node is dimmed) */
+  _dimmed?: boolean;
 }
 
 export type BlueprintNode = Node<BlueprintNodeData>;
 
 export interface BlueprintEdgeData extends Record<string, unknown> {
   type?: "dependency" | "related" | "same_as";
+  /** Set by BlueprintGraph when the edge is not connected to the focused node */
+  _dimmed?: boolean;
 }
 
 export type BlueprintEdge = Edge<BlueprintEdgeData>;

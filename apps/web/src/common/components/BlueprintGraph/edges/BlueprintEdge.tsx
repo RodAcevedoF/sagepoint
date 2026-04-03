@@ -34,12 +34,14 @@ function BlueprintEdgeComponent({
 }: EdgeProps) {
   const theme = useTheme();
   const edgeData = data as BlueprintEdgeData | undefined;
-  const color = getEdgeColor(
+  const isDimmed = edgeData?._dimmed ?? false;
+  const baseColor = getEdgeColor(
     alpha(theme.palette.accent, 0.5),
     alpha(theme.palette.info.light, 0.5),
     alpha(theme.palette.secondary.light, 0.5),
     edgeData?.type,
   );
+  const color = isDimmed ? alpha(baseColor, 0.15) : baseColor;
 
   const [edgePath] = getBezierPath({
     sourceX,
@@ -60,18 +62,21 @@ function BlueprintEdgeComponent({
           stroke: color,
           strokeWidth: 1.5,
           strokeDasharray: "6 4",
+          transition: "stroke 0.3s",
         }}
       />
-      <path
-        d={edgePath}
-        fill="none"
-        stroke={color}
-        strokeWidth={1.5}
-        strokeDasharray="6 4"
-        style={{
-          animation: "blueprintDash 1.5s linear infinite",
-        }}
-      />
+      {!isDimmed && (
+        <path
+          d={edgePath}
+          fill="none"
+          stroke={color}
+          strokeWidth={1.5}
+          strokeDasharray="6 4"
+          style={{
+            animation: "blueprintDash 1.5s linear infinite",
+          }}
+        />
+      )}
       <style>{`
         @keyframes blueprintDash {
           to { stroke-dashoffset: -20; }

@@ -9,6 +9,7 @@ import {
   BackgroundVariant,
   useNodesState,
   useEdgesState,
+  ReactFlowProvider,
   type NodeMouseHandler,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
@@ -19,6 +20,7 @@ import { BlueprintNode } from "./nodes/BlueprintNode";
 import { BlueprintEdge } from "./edges/BlueprintEdge";
 import { applyElkLayout } from "./layout/elk-layout";
 import { makeStyles } from "./BlueprintGraph.styles";
+import { useFocusNavigation } from "./useFocusNavigation";
 import type {
   BlueprintGraphProps,
   BlueprintNodeData,
@@ -29,7 +31,7 @@ import type {
 const nodeTypes = { blueprint: BlueprintNode };
 const edgeTypes = { blueprint: BlueprintEdge };
 
-export function BlueprintGraph({
+function BlueprintGraphInner({
   nodes: inputNodes,
   edges: inputEdges,
   direction = "TB",
@@ -42,10 +44,18 @@ export function BlueprintGraph({
 }: BlueprintGraphProps) {
   const theme = useTheme();
   const styles = makeStyles(theme);
+
   const [nodes, setNodes, onNodesChange] = useNodesState<BlueprintNodeType>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<BlueprintEdgeType>([]);
   const [isLayoutReady, setIsLayoutReady] = useState(false);
 
+  const {
+    handleNodeClick: onFocusClick,
+    handlePaneClick,
+    resetFocus,
+  } = useFocusNavigation({ nodes, edges, setNodes, setEdges });
+
+  // Layout effect
   useEffect(() => {
     let cancelled = false;
 
@@ -61,6 +71,7 @@ export function BlueprintGraph({
     applyElkLayout(taggedNodes, taggedEdges, direction).then(
       (layoutedNodes) => {
         if (cancelled) return;
+        resetFocus();
         setNodes(layoutedNodes);
         setEdges(taggedEdges);
         setIsLayoutReady(true);
@@ -70,13 +81,15 @@ export function BlueprintGraph({
     return () => {
       cancelled = true;
     };
-  }, [inputNodes, inputEdges, direction, setNodes, setEdges]);
+  }, [inputNodes, inputEdges, direction, setNodes, setEdges, resetFocus]);
 
+  // Node click: focus + external callback
   const handleNodeClick: NodeMouseHandler<BlueprintNodeType> = useCallback(
     (_, node) => {
+      onFocusClick(node.id);
       onNodeClick?.(node.id, node.data as BlueprintNodeData);
     },
-    [onNodeClick],
+    [onFocusClick, onNodeClick],
   );
 
   if (!isLayoutReady) {
@@ -107,6 +120,7 @@ export function BlueprintGraph({
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onNodeClick={handleNodeClick}
+        onPaneClick={handlePaneClick}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         fitView={fitViewOnInit}
@@ -134,5 +148,13 @@ export function BlueprintGraph({
         )}
       </ReactFlow>
     </Box>
+  );
+}
+
+export function BlueprintGraph(props: BlueprintGraphProps) {
+  return (
+    <ReactFlowProvider>
+      <BlueprintGraphInner {...props} />
+    </ReactFlowProvider>
   );
 }

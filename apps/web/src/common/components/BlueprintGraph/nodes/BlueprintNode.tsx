@@ -39,7 +39,7 @@ function BlueprintNodeComponent({ data }: NodeProps) {
   const theme = useTheme();
   const nodeData = data as BlueprintNodeData;
   const status = nodeData.status ?? "default";
-  const styles = makeStyles(theme, status);
+  const styles = makeStyles(theme, status, nodeData._focused, nodeData._dimmed);
   const statusColor = getStatusColor(theme, status);
 
   const difficultyColor = nodeData.difficulty

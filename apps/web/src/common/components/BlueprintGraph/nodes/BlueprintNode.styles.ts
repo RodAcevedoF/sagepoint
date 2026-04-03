@@ -45,20 +45,29 @@ export interface BlueprintNodeStyles {
 export const makeStyles = (
   theme: Theme,
   status: BlueprintNodeStatus,
+  focused?: boolean,
+  dimmed?: boolean,
 ): BlueprintNodeStyles => {
   const color = getStatusColor(theme, status);
 
   return {
     card: {
       background: alpha("#0a1628", 0.95),
-      border: `1.5px solid ${alpha(color, 0.5)}`,
+      border: focused
+        ? `2px solid ${color}`
+        : `1.5px solid ${alpha(color, 0.5)}`,
       borderRadius: 12,
       padding: "12px 16px",
       minWidth: 180,
       maxWidth: 240,
-      boxShadow: `0 0 16px ${alpha(color, 0.25)}`,
-      transition: "box-shadow 0.2s, border-color 0.2s",
+      boxShadow: focused
+        ? `0 0 24px ${alpha(color, 0.5)}, 0 0 48px ${alpha(color, 0.2)}`
+        : `0 0 16px ${alpha(color, 0.25)}`,
+      transition:
+        "box-shadow 0.3s, border-color 0.3s, opacity 0.3s, filter 0.3s",
       cursor: "pointer",
+      opacity: dimmed ? 0.25 : 1,
+      filter: dimmed ? "grayscale(0.6)" : "none",
     },
     label: {
       fontFamily: '"JetBrains Mono", "Fira Code", monospace',
