@@ -1,6 +1,12 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  type ReactNode,
+} from "react";
 
 interface AppBarContextValue {
   activeItem: string | null;
@@ -14,7 +20,7 @@ const AppBarContext = createContext<AppBarContextValue | null>(null);
 export function useAppBar() {
   const context = useContext(AppBarContext);
   if (!context) {
-    throw new Error('useAppBar must be used within an AppBarProvider');
+    throw new Error("useAppBar must be used within an AppBarProvider");
   }
   return context;
 }
@@ -24,9 +30,19 @@ interface AppBarProviderProps {
   defaultActive?: string | null;
 }
 
-export function AppBarProvider({ children, defaultActive = null }: AppBarProviderProps) {
+export function AppBarProvider({
+  children,
+  defaultActive = null,
+}: AppBarProviderProps) {
+  const [prevDefault, setPrevDefault] = useState(defaultActive);
   const [activeItem, setActiveItem] = useState<string | null>(defaultActive);
   const [isExpanded, setIsExpanded] = useState(false);
+
+  // Sync active item when route changes (defaultActive is derived from pathname)
+  if (prevDefault !== defaultActive) {
+    setPrevDefault(defaultActive);
+    setActiveItem(defaultActive);
+  }
 
   const handleSetActive = useCallback((id: string | null) => {
     setActiveItem(id);
