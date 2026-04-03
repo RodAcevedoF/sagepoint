@@ -65,7 +65,7 @@ export interface IRoadmapService {
   generateFromTopic(input: GenerateTopicRoadmapInput): Promise<Roadmap>;
   findById(id: string): Promise<Roadmap | null>;
   findByDocumentId(documentId: string): Promise<Roadmap[]>;
-  delete(id: string): Promise<void>;
+  delete(id: string, userId: string): Promise<void>;
   getGraph(documentId: string): Promise<{
     nodes: Concept[];
     edges: { from: string; to: string; type: string }[];

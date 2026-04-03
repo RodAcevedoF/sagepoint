@@ -1,10 +1,10 @@
 "use client";
 
-import { createElement } from "react";
+import { createElement, useState } from "react";
 import { Box, Typography, IconButton, alpha, useTheme } from "@mui/material";
 import { Trash2, ArrowRight, Layers, HardDrive } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Card, useSnackbar } from "@/common/components";
+import { Card, ConfirmDialog, useSnackbar } from "@/common/components";
 import { useDocumentEvents, useAppDispatch } from "@/common/hooks";
 import { useDeleteDocumentCommand } from "@/application/document";
 import { documentApi } from "@/infrastructure/api/documentApi";
@@ -83,9 +83,15 @@ export function DocumentCard({ document }: DocumentCardProps) {
 
   const styles = makeStyles(stageColor, theme);
 
-  const handleDelete = async (e: React.MouseEvent) => {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!window.confirm(`Delete "${document.filename}"?`)) return;
+    setConfirmOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    setConfirmOpen(false);
     try {
       await deleteDocument(document.id);
       showSnackbar("Document deleted", { severity: "success" });
@@ -125,7 +131,7 @@ export function DocumentCard({ document }: DocumentCardProps) {
             </Box>
             <IconButton
               size="small"
-              onClick={handleDelete}
+              onClick={handleDeleteClick}
               className="delete-btn"
               sx={styles.deleteButton}
             >
@@ -166,6 +172,20 @@ export function DocumentCard({ document }: DocumentCardProps) {
           </Box>
         </Card.Footer>
       </Card>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title="Delete Document"
+        description={
+          <>
+            Are you sure you want to delete <strong>{document.filename}</strong>
+            ? This action cannot be undone.
+          </>
+        }
+        confirmLabel="Delete"
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setConfirmOpen(false)}
+      />
     </Box>
   );
 }

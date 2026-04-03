@@ -98,8 +98,8 @@ export class RoadmapService implements IRoadmapService {
     return await this.getRoadmapUseCase.byDocumentId(documentId);
   }
 
-  async delete(id: string): Promise<void> {
-    return await this.deleteRoadmapUseCase.execute(id);
+  async delete(id: string, userId: string): Promise<void> {
+    return await this.deleteRoadmapUseCase.execute(id, userId);
   }
 
   // Phase 3: Progress tracking

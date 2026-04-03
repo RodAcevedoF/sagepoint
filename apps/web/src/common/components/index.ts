@@ -27,6 +27,7 @@ export { SmartHomeButton, GoBackButton } from "./Navigation";
 export { LearningCTA } from "./CTA/LearningCTA";
 export { PublicLayout } from "./layouts";
 export { SectionTitle } from "./Typography";
+export { ConfirmDialog, type ConfirmDialogProps } from "./ConfirmDialog";
 export { DevTools } from "./DevTools";
 export { BlueprintGraph } from "./BlueprintGraph";
 export type {

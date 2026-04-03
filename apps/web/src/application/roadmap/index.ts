@@ -18,4 +18,5 @@ export { useGenerateTopicRoadmapCommand } from "./commands/generate-topic-roadma
 export { useRefreshResourcesCommand } from "./commands/refresh-resources.command";
 export { useExpandConceptCommand } from "./commands/expand-concept.command";
 export { useStepQuizCommand } from "./commands/step-quiz.command";
+export { useDeleteRoadmapCommand } from "./commands/delete-roadmap.command";
 export { useWatchGenerationCommand } from "./commands/watch-generation.command";

@@ -334,8 +334,8 @@ export class RoadmapController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  async delete(@Param('id') id: string) {
-    await this.roadmapService.delete(id);
+  async delete(@Param('id') id: string, @CurrentUser() user: RequestUser) {
+    await this.roadmapService.delete(id, user.id);
     return { deleted: true };
   }
 
