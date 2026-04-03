@@ -158,7 +158,10 @@ export function Dashboard() {
                 <DashboardProgress data={progressItems} />
               </Grid>
               <Grid size={{ xs: 12, md: 6 }}>
-                <DashboardActivity roadmaps={recentRoadmaps} />
+                <DashboardActivity
+                  roadmaps={recentRoadmaps}
+                  onRoadmapComplete={refetchRoadmaps}
+                />
               </Grid>
               {hasDocuments && (
                 <Grid size={{ xs: 12, md: 12 }}>

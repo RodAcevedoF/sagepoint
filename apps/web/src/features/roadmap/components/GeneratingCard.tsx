@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import {
   Box,
   Typography,
@@ -10,7 +11,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { AlertCircle } from "lucide-react";
-import { useWatchGenerationCommand } from "@/application/roadmap";
+import { useRoadmapEvents } from "@/common/hooks";
 import { makeStyles } from "./GeneratingCard.styles";
 
 import type { UserRoadmapDto } from "@/infrastructure/api/roadmapApi";
@@ -40,14 +41,23 @@ function stageProgress(stage: RoadmapEventStage | null): number {
 
 interface GeneratingCardProps {
   data: UserRoadmapDto;
+  onComplete?: () => void;
 }
 
-export function GeneratingCard({ data }: GeneratingCardProps) {
+export function GeneratingCard({ data, onComplete }: GeneratingCardProps) {
   const theme = useTheme();
   const { roadmap } = data;
   const isFailed = roadmap.generationStatus === "failed";
+  const hasNotified = useRef(false);
 
-  const { stage } = useWatchGenerationCommand(isFailed ? null : roadmap.id);
+  const { status, stage } = useRoadmapEvents(isFailed ? null : roadmap.id);
+
+  useEffect(() => {
+    if (status === "completed" && !hasNotified.current) {
+      hasNotified.current = true;
+      onComplete?.();
+    }
+  }, [status, onComplete]);
 
   const styles = makeStyles(isFailed, theme);
   const progress = stageProgress(stage);

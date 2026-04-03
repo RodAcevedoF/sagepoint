@@ -36,11 +36,13 @@ const styles = {
 interface DashboardActivityProps {
   roadmaps: RecentRoadmapItem[];
   maxItems?: number;
+  onRoadmapComplete?: () => void;
 }
 
 export function DashboardActivity({
   roadmaps,
   maxItems = 3,
+  onRoadmapComplete,
 }: DashboardActivityProps) {
   const router = useRouter();
   const visible = roadmaps.slice(0, maxItems);
@@ -65,6 +67,7 @@ export function DashboardActivity({
             key={item.id}
             item={item}
             onClick={(id) => router.push(`/roadmaps/${id}`)}
+            onComplete={onRoadmapComplete}
           />
         ))}
       </Stack>

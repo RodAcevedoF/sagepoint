@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import {
   Box,
   Typography,
@@ -11,7 +12,7 @@ import {
 import { Map, AlertCircle } from "lucide-react";
 import { Card } from "@/common/components";
 import { palette } from "@/common/theme";
-import { useWatchGenerationCommand } from "@/application/roadmap";
+import { useRoadmapEvents } from "@/common/hooks";
 import type { RecentRoadmapItem } from "../types/dashboard.types";
 import { formatRelativeDate } from "../utils/dashboard.utils";
 import type { RoadmapEventStage } from "@/common/hooks";
@@ -41,6 +42,7 @@ function stageProgress(stage: RoadmapEventStage | null): number {
 interface RoadmapActivityCardProps {
   item: RecentRoadmapItem;
   onClick: (id: string) => void;
+  onComplete?: () => void;
 }
 
 const styles = {
@@ -72,13 +74,27 @@ const styles = {
   },
 };
 
-function GeneratingActivityCard({ item }: { item: RecentRoadmapItem }) {
+function GeneratingActivityCard({
+  item,
+  onComplete,
+}: {
+  item: RecentRoadmapItem;
+  onComplete?: () => void;
+}) {
   const isGenerating =
     item.generationStatus === "pending" ||
     item.generationStatus === "processing";
   const isFailed = item.generationStatus === "failed";
+  const hasNotified = useRef(false);
 
-  const { stage } = useWatchGenerationCommand(isGenerating ? item.id : null);
+  const { status, stage } = useRoadmapEvents(isGenerating ? item.id : null);
+
+  useEffect(() => {
+    if (status === "completed" && !hasNotified.current) {
+      hasNotified.current = true;
+      onComplete?.();
+    }
+  }, [status, onComplete]);
 
   const label = (stage && STAGE_LABELS[stage]) || "Starting...";
   const progress = stageProgress(stage);
@@ -134,9 +150,10 @@ function GeneratingActivityCard({ item }: { item: RecentRoadmapItem }) {
 export function RoadmapActivityCard({
   item,
   onClick,
+  onComplete,
 }: RoadmapActivityCardProps) {
   if (item.generationStatus !== "completed") {
-    return <GeneratingActivityCard item={item} />;
+    return <GeneratingActivityCard item={item} onComplete={onComplete} />;
   }
 
   return (
