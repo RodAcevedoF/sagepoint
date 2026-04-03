@@ -22,7 +22,10 @@ import { CurrentUser } from '@/features/auth/decorators/current-user.decorator';
 import type { RequestUser } from '@/features/auth/domain/request-user';
 import { User, UserRole } from '@sagepoint/domain';
 import { RegisterDto } from '@/features/auth/app/dto/register.dto';
-import { toUserResponseDto } from '@/features/user/app/dto/user-response.dto';
+import {
+  USER_DTO_MAPPER,
+  type IUserDtoMapper,
+} from '@/features/user/app/dto/user-dto.mapper';
 
 /**
  * When RESTRICT_AUTH_TO_ADMIN=true, only admin accounts can login/register.
@@ -36,6 +39,7 @@ export class AuthController {
   constructor(
     @Inject(AUTH_SERVICE) private readonly authService: IAuthService,
     @Inject(USER_SERVICE) private readonly userService: IUserService,
+    @Inject(USER_DTO_MAPPER) private readonly mapper: IUserDtoMapper,
   ) {}
 
   @Post('register')
@@ -98,7 +102,7 @@ export class AuthController {
     return {
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,
-      user: toUserResponseDto(result.user),
+      user: await this.mapper.toDto(result.user),
     };
   }
 
@@ -109,7 +113,7 @@ export class AuthController {
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
-    return toUserResponseDto(user);
+    return this.mapper.toDto(user);
   }
 
   @Post('logout')
@@ -134,7 +138,7 @@ export class AuthController {
     return {
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,
-      user: toUserResponseDto(result.user),
+      user: await this.mapper.toDto(result.user),
     };
   }
 

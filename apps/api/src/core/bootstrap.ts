@@ -68,7 +68,7 @@ export function bootstrap(): AppDependencies {
   });
 
   // User dependencies
-  const userDeps = makeUserDependencies();
+  const userDeps = makeUserDependencies(fileStorage);
 
   // Initialize Neo4j
   const neo4jService = new Neo4jService({

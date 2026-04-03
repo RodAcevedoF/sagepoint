@@ -44,8 +44,15 @@ const mockFileFn = jest.fn((path: string) => {
   };
 });
 
+let mockIamPolicy: { bindings?: { role: string; members?: string[] }[] } = {
+  bindings: [],
+};
+
 const mockBucket = jest.fn(() => ({
   file: mockFileFn,
+  iam: {
+    getPolicy: jest.fn(async () => [mockIamPolicy]),
+  },
 }));
 
 jest.mock("@google-cloud/storage", () => ({
@@ -67,6 +74,7 @@ describe("GCSStorage", () => {
 
   beforeEach(() => {
     mockFiles.clear();
+    mockIamPolicy = { bindings: [] };
     jest.clearAllMocks();
     storage = new GCSStorage(config);
   });
@@ -81,8 +89,9 @@ describe("GCSStorage", () => {
       expect(mf.savedContent).toEqual(content);
       expect(mf.savedOptions).toMatchObject({
         contentType: "application/pdf",
-        public: false,
       });
+      // No per-object `public` flag — bucket uses uniform bucket-level access
+      expect(mf.savedOptions).not.toHaveProperty("public");
     });
 
     it("returns the path for private uploads", async () => {
@@ -153,9 +162,11 @@ describe("GCSStorage", () => {
   });
 
   describe("getUrl", () => {
-    it("returns public URL when file has allUsers ACL", async () => {
-      getOrCreateMockFile("public/img.png").metadata = {
-        acl: [{ entity: "allUsers", role: "READER" }],
+    it("returns public URL when bucket has allUsers objectViewer policy", async () => {
+      mockIamPolicy = {
+        bindings: [
+          { role: "roles/storage.objectViewer", members: ["allUsers"] },
+        ],
       };
 
       const url = await storage.getUrl("public/img.png");

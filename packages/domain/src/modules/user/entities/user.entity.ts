@@ -87,7 +87,9 @@ export class User {
       this.email,
       updates.name ?? this.name,
       this.role,
-      updates.avatarUrl ?? this.avatarUrl,
+      updates.avatarUrl === ""
+        ? undefined
+        : (updates.avatarUrl ?? this.avatarUrl),
       this.isActive,
       this.isVerified,
       this.verificationToken,

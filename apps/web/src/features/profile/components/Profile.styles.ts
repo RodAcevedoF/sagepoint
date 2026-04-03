@@ -53,6 +53,10 @@ export const makeStyles = (theme: Theme) => ({
     "&:hover .avatar-overlay": {
       opacity: 1,
     },
+    "&:hover .avatar-remove": {
+      opacity: 1,
+      transform: "scale(1)",
+    },
   },
   avatar: {
     width: 140,

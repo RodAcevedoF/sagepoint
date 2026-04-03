@@ -19,6 +19,10 @@ export interface UserResponseDto {
   updatedAt: Date;
 }
 
+/**
+ * Simple sync mapper — does NOT resolve avatar signed URLs.
+ * Use UserDtoMapper.toDto() when avatar URL resolution is needed.
+ */
 export function toUserResponseDto(user: User): UserResponseDto {
   return {
     id: user.id,

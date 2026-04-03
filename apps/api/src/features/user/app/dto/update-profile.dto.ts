@@ -1,7 +1,6 @@
 import {
   IsString,
   IsOptional,
-  IsUrl,
   IsArray,
   ArrayMaxSize,
   MaxLength,
@@ -19,7 +18,8 @@ export class UpdateProfileDto {
   learningGoal?: string;
 
   @IsOptional()
-  @IsUrl()
+  @IsString()
+  @MaxLength(500)
   avatarUrl?: string;
 
   @IsOptional()
