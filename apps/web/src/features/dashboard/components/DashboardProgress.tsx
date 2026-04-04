@@ -1,15 +1,12 @@
 "use client";
 
 import { Box, Typography, Stack } from "@mui/material";
+import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Card } from "@/common/components";
 import { palette } from "@/common/theme";
 import type { RoadmapProgressItem } from "../types/dashboard.types";
 import { RoadmapProgressCard } from "./RoadmapProgressCard";
-
-// ============================================================================
-// Styles
-// ============================================================================
 
 const styles = {
   card: {
@@ -41,10 +38,6 @@ const PROGRESS_COLORS = [
 
 const MAX_ITEMS = 3;
 
-// ============================================================================
-// Component
-// ============================================================================
-
 interface DashboardProgressProps {
   data: RoadmapProgressItem[];
 }
@@ -54,32 +47,39 @@ export function DashboardProgress({ data }: DashboardProgressProps) {
   const visible = data.slice(0, MAX_ITEMS);
 
   return (
-    <Card variant="glass" hoverable={false} sx={styles.card}>
-      <Box sx={styles.header}>
-        <Box>
-          <Typography variant="h6" sx={styles.title}>
-            Roadmap Progress
-          </Typography>
-          <Typography sx={styles.subtitle}>
-            {data.length} roadmap{data.length !== 1 ? "s" : ""}
-          </Typography>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, delay: 0.15, ease: "easeOut" }}
+      style={{ height: "100%" }}
+    >
+      <Card variant="glass" hoverable={false} sx={styles.card}>
+        <Box sx={styles.header}>
+          <Box>
+            <Typography variant="h6" sx={styles.title}>
+              Roadmap Progress
+            </Typography>
+            <Typography sx={styles.subtitle}>
+              {data.length} roadmap{data.length !== 1 ? "s" : ""}
+            </Typography>
+          </Box>
         </Box>
-      </Box>
 
-      <Stack
-        spacing={2}
-        sx={{ overflowY: "auto", overflowX: "hidden", flex: 1 }}
-      >
-        {visible.map((item, index) => (
-          <RoadmapProgressCard
-            key={item.id}
-            item={item}
-            color={PROGRESS_COLORS[index % PROGRESS_COLORS.length]}
-            index={index}
-            onClick={(id) => router.push(`/roadmaps/${id}`)}
-          />
-        ))}
-      </Stack>
-    </Card>
+        <Stack
+          spacing={2}
+          sx={{ overflowY: "auto", overflowX: "hidden", flex: 1 }}
+        >
+          {visible.map((item, index) => (
+            <RoadmapProgressCard
+              key={item.id}
+              item={item}
+              color={PROGRESS_COLORS[index % PROGRESS_COLORS.length]}
+              index={index}
+              onClick={(id) => router.push(`/roadmaps/${id}`)}
+            />
+          ))}
+        </Stack>
+      </Card>
+    </motion.div>
   );
 }

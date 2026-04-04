@@ -93,13 +93,14 @@ describe("Dashboard", () => {
     });
   });
 
-  it("hides recent documents section when no documents", async () => {
+  it("shows empty state when no documents", async () => {
     setupHandlers({ documents: [] });
     renderWithProviders(<Dashboard />);
 
     await waitFor(() => {
       expect(screen.getByText("Roadmap Progress")).toBeInTheDocument();
     });
-    expect(screen.queryByText("Recent Documents")).not.toBeInTheDocument();
+    expect(screen.getByText("Recent Documents")).toBeInTheDocument();
+    expect(screen.getByText("No documents yet")).toBeInTheDocument();
   });
 });

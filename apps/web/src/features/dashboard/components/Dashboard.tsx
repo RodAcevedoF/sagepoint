@@ -28,17 +28,12 @@ import {
   computeDifficultyDistribution,
 } from "../utils/dashboard.utils";
 
-// ============================================================================
-// Component
-// ============================================================================
-
 export function Dashboard() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showSnackbar } = useSnackbar();
   const { user } = useAppSelector((state) => state.auth);
 
-  // Refetch profile to get latest onboarding status
   const { isLoading: isLoadingProfile } = useProfileQuery();
 
   const isCreatingFirstRoadmap = searchParams.get("creating") === "roadmap";
@@ -136,8 +131,6 @@ export function Dashboard() {
   const hasCompletedRoadmaps = userRoadmaps.some(
     (r) => r.roadmap.generationStatus === "completed",
   );
-  const hasDocuments = userDocuments.length > 0;
-
   return (
     <DashboardLayout>
       {/* Greeting */}
@@ -151,29 +144,23 @@ export function Dashboard() {
 
       {hasCompletedRoadmaps ? (
         <Grid container spacing={3}>
-          {/* Left Column - Progress & Activity */}
-          <Grid size={{ xs: 12, lg: 8 }}>
-            <Grid container spacing={3}>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <DashboardProgress data={progressItems} />
-              </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <DashboardActivity
-                  roadmaps={recentRoadmaps}
-                  onRoadmapComplete={refetchRoadmaps}
-                />
-              </Grid>
-              {hasDocuments && (
-                <Grid size={{ xs: 12, md: 12 }}>
-                  <DashboardRecentDocuments documents={userDocuments} />
-                </Grid>
-              )}
-            </Grid>
+          {/* Row 1 — Progress & Activity (equal halves) */}
+          <Grid size={{ xs: 12, md: 6 }}>
+            <DashboardProgress data={progressItems} />
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <DashboardActivity
+              roadmaps={recentRoadmaps}
+              onRoadmapComplete={refetchRoadmaps}
+            />
           </Grid>
 
-          {/* Right Column - Difficulty Distribution */}
+          {/* Row 2 — Documents (2/3) & Topic Diversity (1/3) */}
+          <Grid size={{ xs: 12, md: 8 }} sx={{ display: "flex" }}>
+            <DashboardRecentDocuments documents={userDocuments} />
+          </Grid>
           {difficultyDistribution.length > 0 && (
-            <Grid size={{ xs: 12, lg: 4 }}>
+            <Grid size={{ xs: 12, md: 4 }} sx={{ display: "flex" }}>
               <DashboardTopics
                 distribution={difficultyDistribution}
                 overallProgress={metrics.overallProgress}
@@ -181,12 +168,12 @@ export function Dashboard() {
             </Grid>
           )}
 
-          {/* News — driven by user interests from onboarding */}
+          {/* Row 3 — Learning Insights */}
           <Grid size={{ xs: 12 }}>
             <DashboardNews />
           </Grid>
 
-          {/* Full Width - Quick Actions */}
+          {/* Row 4 — Quick Actions */}
           <Grid size={{ xs: 12 }}>
             <DashboardQuickActions />
           </Grid>
