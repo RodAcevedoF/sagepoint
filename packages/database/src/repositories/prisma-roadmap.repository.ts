@@ -92,6 +92,22 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
     return data.map((r) => this.mapToDomain(r));
   }
 
+  async searchPublic(query: string, limit = 5): Promise<Roadmap[]> {
+    const data = await this.prisma.roadmap.findMany({
+      where: {
+        visibility: "PUBLIC",
+        generationStatus: "COMPLETED",
+        OR: [
+          { title: { contains: query, mode: "insensitive" } },
+          { description: { contains: query, mode: "insensitive" } },
+        ],
+      },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    });
+    return data.map((r) => this.mapToDomain(r));
+  }
+
   async updateVisibility(
     id: string,
     visibility: RoadmapVisibility,

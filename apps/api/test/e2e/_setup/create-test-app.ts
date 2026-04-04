@@ -459,6 +459,14 @@ function patchBootstrapSingleton() {
       },
       getInsightsUseCase: { execute: () => Promise.resolve([]) },
     },
+    social: {
+      likeService: {
+        toggleLike: () => Promise.resolve({ liked: false, likeCount: 0 }),
+        getLikeStatus: () => Promise.resolve({ liked: false, likeCount: 0 }),
+        getLikeCountsBatch: () => Promise.resolve({}),
+        getLikedRoadmaps: () => Promise.resolve([]),
+      },
+    },
     invitation: {
       invitationRepository: new FakeInvitationRepository(),
       createInvitationUseCase: { execute: () => Promise.resolve({}) },

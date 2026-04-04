@@ -38,6 +38,11 @@ import {
 } from '@sagepoint/domain';
 import { UpdateVisibilityUseCase } from '@/features/roadmap/app/usecases/update-visibility.usecase';
 import { GetPublicRoadmapsUseCase } from '@/features/roadmap/app/usecases/get-public-roadmaps.usecase';
+import { SearchPublicRoadmapsUseCase } from '@/features/roadmap/app/usecases/search-public-roadmaps.usecase';
+import { AdoptRoadmapUseCase } from '@/features/roadmap/app/usecases/adopt-roadmap.usecase';
+import { UnadoptRoadmapUseCase } from '@/features/roadmap/app/usecases/unadopt-roadmap.usecase';
+import { IsRoadmapAdoptedUseCase } from '@/features/roadmap/app/usecases/is-roadmap-adopted.usecase';
+import { InternalServerErrorException } from '@nestjs/common';
 import {
   GenerateRoadmapInput,
   GenerateTopicRoadmapInput,
@@ -67,6 +72,10 @@ export class RoadmapService implements IRoadmapService {
     private readonly submitStepQuizUseCase?: SubmitStepQuizUseCase,
     private readonly updateVisibilityUseCase?: UpdateVisibilityUseCase,
     private readonly getPublicRoadmapsUseCase?: GetPublicRoadmapsUseCase,
+    private readonly searchPublicRoadmapsUseCase?: SearchPublicRoadmapsUseCase,
+    private readonly adoptRoadmapUseCase?: AdoptRoadmapUseCase,
+    private readonly unadoptRoadmapUseCase?: UnadoptRoadmapUseCase,
+    private readonly isRoadmapAdoptedUseCase?: IsRoadmapAdoptedUseCase,
   ) {}
 
   async getGraph(documentId: string): Promise<{
@@ -185,5 +194,38 @@ export class RoadmapService implements IRoadmapService {
       throw new Error('Public roadmaps is not available');
     }
     return await this.getPublicRoadmapsUseCase.execute();
+  }
+
+  // Search & adopt
+  async searchPublicRoadmaps(
+    query: string,
+    limit?: number,
+  ): Promise<Roadmap[]> {
+    if (!this.searchPublicRoadmapsUseCase) {
+      throw new InternalServerErrorException('Search is not available');
+    }
+    return await this.searchPublicRoadmapsUseCase.execute(query, limit);
+  }
+
+  async adoptRoadmap(
+    userId: string,
+    roadmapId: string,
+  ): Promise<{ adopted: boolean }> {
+    if (!this.adoptRoadmapUseCase) {
+      throw new InternalServerErrorException('Adopt is not available');
+    }
+    return await this.adoptRoadmapUseCase.execute(userId, roadmapId);
+  }
+
+  async unadoptRoadmap(userId: string, roadmapId: string): Promise<void> {
+    if (!this.unadoptRoadmapUseCase) {
+      throw new InternalServerErrorException('Unadopt is not available');
+    }
+    return await this.unadoptRoadmapUseCase.execute(userId, roadmapId);
+  }
+
+  async isRoadmapAdopted(userId: string, roadmapId: string): Promise<boolean> {
+    if (!this.isRoadmapAdoptedUseCase) return false;
+    return this.isRoadmapAdoptedUseCase.execute(userId, roadmapId);
   }
 }

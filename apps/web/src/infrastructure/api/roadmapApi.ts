@@ -276,6 +276,31 @@ export const roadmapApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: [{ type: "Roadmap", id: "LIST" }],
     }),
+
+    // Search & adopt
+    searchPublicRoadmaps: builder.query<
+      RoadmapDto[],
+      { q: string; limit?: number }
+    >({
+      query: ({ q, limit = 5 }) => ({
+        url: "/roadmaps/search",
+        params: { q, limit },
+      }),
+    }),
+    adoptRoadmap: builder.mutation<{ adopted: boolean }, string>({
+      query: (roadmapId) => ({
+        url: `/roadmaps/${roadmapId}/adopt`,
+        method: "POST",
+      }),
+      invalidatesTags: [{ type: "Roadmap", id: "LIST" }],
+    }),
+    unadoptRoadmap: builder.mutation<{ adopted: boolean }, string>({
+      query: (roadmapId) => ({
+        url: `/roadmaps/${roadmapId}/adopt`,
+        method: "DELETE",
+      }),
+      invalidatesTags: [{ type: "Roadmap", id: "LIST" }],
+    }),
   }),
 });
 
@@ -299,4 +324,8 @@ export const {
   useGenerateStepQuizMutation,
   useSubmitStepQuizMutation,
   useDeleteRoadmapMutation,
+  // Search & adopt
+  useLazySearchPublicRoadmapsQuery,
+  useAdoptRoadmapMutation,
+  useUnadoptRoadmapMutation,
 } = roadmapApi;

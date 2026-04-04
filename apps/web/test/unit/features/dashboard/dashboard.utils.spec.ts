@@ -74,14 +74,17 @@ describe("computeMetrics", () => {
     expect(result.totalHoursLearned).toBe(3);
   });
 
-  it("counts active roadmaps when progress exists", () => {
+  it("counts active roadmaps (completed generation, not 100% progress)", () => {
     const active = makeDashboardRoadmap({
-      progress: { completedSteps: 1, inProgressSteps: 0 },
+      progress: { completedSteps: 1, progressPercentage: 50 },
     });
-    const inactive = makeDashboardRoadmap({
-      progress: { completedSteps: 0, inProgressSteps: 0 },
+    const finished = makeDashboardRoadmap({
+      progress: { completedSteps: 4, totalSteps: 4, progressPercentage: 100 },
     });
-    expect(computeMetrics([active, inactive]).activeRoadmaps).toBe(1);
+    const pending = makeDashboardRoadmap({
+      roadmap: { generationStatus: "pending" },
+    });
+    expect(computeMetrics([active, finished, pending]).activeRoadmaps).toBe(1);
   });
 
   it("computes overall progress as percentage", () => {

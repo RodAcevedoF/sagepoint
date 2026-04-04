@@ -10,6 +10,7 @@ import {
   NotFoundException,
   UseGuards,
   Sse,
+  Query,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { QueueEvents } from 'bullmq';
@@ -25,6 +26,7 @@ import {
   ROADMAP_SERVICE,
   type IRoadmapService,
 } from '@/features/roadmap/domain/inbound/roadmap.service';
+import { SearchPublicRoadmapsDto } from '@/features/roadmap/app/dto/search-public-roadmaps.dto';
 
 interface GenerateRoadmapDto {
   documentId: string;
@@ -212,6 +214,30 @@ export class RoadmapController {
   @Get('public')
   async getPublicRoadmaps() {
     return this.roadmapService.getPublicRoadmaps();
+  }
+
+  @Get('search')
+  async searchPublicRoadmaps(@Query() dto: SearchPublicRoadmapsDto) {
+    return this.roadmapService.searchPublicRoadmaps(dto.q, dto.limit);
+  }
+
+  @Post(':id/adopt')
+  @UseGuards(JwtAuthGuard)
+  async adoptRoadmap(
+    @Param('id') id: string,
+    @CurrentUser() user: RequestUser,
+  ) {
+    return this.roadmapService.adoptRoadmap(user.id, id);
+  }
+
+  @Delete(':id/adopt')
+  @UseGuards(JwtAuthGuard)
+  async unadoptRoadmap(
+    @Param('id') id: string,
+    @CurrentUser() user: RequestUser,
+  ) {
+    await this.roadmapService.unadoptRoadmap(user.id, id);
+    return { adopted: false };
   }
 
   @Get('user/me')

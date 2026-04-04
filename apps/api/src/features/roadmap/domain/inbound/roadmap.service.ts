@@ -99,6 +99,15 @@ export interface IRoadmapService {
   ): Promise<Roadmap>;
   getPublicRoadmaps(): Promise<Roadmap[]>;
 
+  // Search & adopt
+  searchPublicRoadmaps(query: string, limit?: number): Promise<Roadmap[]>;
+  adoptRoadmap(
+    userId: string,
+    roadmapId: string,
+  ): Promise<{ adopted: boolean }>;
+  unadoptRoadmap(userId: string, roadmapId: string): Promise<void>;
+  isRoadmapAdopted(userId: string, roadmapId: string): Promise<boolean>;
+
   // Step quiz
   generateStepQuiz(
     input: GenerateStepQuizInput,

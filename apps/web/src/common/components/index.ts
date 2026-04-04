@@ -29,6 +29,8 @@ export { PublicLayout } from "./layouts";
 export { SectionTitle } from "./Typography";
 export { ConfirmDialog, type ConfirmDialogProps } from "./ConfirmDialog";
 export { DevTools } from "./DevTools";
+export { SearchInput } from "./SearchInput";
+export { FilterChips, type FilterChipOption } from "./FilterChips";
 export { BlueprintGraph } from "./BlueprintGraph";
 export type {
   BlueprintNode,
