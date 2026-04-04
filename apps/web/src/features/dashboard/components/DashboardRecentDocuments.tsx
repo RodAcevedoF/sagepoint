@@ -1,49 +1,22 @@
 "use client";
 
 import { Box, Typography, Stack, alpha } from "@mui/material";
+import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { FileText, FileSpreadsheet, FileImage, FileType, File, ArrowRight } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import { Card } from "@/common/components";
+import { ArrowRight, FileStack } from "lucide-react";
+import { Card, EmptyState } from "@/common/components";
 import { ProcessingStatusBadge } from "@/features/document";
 import { palette } from "@/common/theme";
 import type { DocumentDetailDto } from "@/infrastructure/api/documentApi";
-
-// ============================================================================
-// Helpers
-// ============================================================================
-
-function getMimeIcon(mimeType?: string): LucideIcon {
-  if (!mimeType) return File;
-  if (mimeType.includes("pdf")) return FileText;
-  if (mimeType.includes("spreadsheet") || mimeType.includes("xlsx")) return FileSpreadsheet;
-  if (mimeType.startsWith("image/")) return FileImage;
-  if (mimeType.includes("word") || mimeType.includes("docx")) return FileType;
-  return File;
-}
-
-function formatRelativeDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffHours < 1) return "Just now";
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays === 1) return "Yesterday";
-  if (diffDays < 7) return `${diffDays} days ago`;
-  return date.toLocaleDateString();
-}
-
-// ============================================================================
-// Styles
-// ============================================================================
+import { getMimeIcon, formatRelativeDate } from "../utils/dashboard.utils";
 
 const styles = {
   card: {
     p: 3,
     height: "100%",
+    display: "flex",
+    flexDirection: "column",
+    flex: 1,
   },
   header: {
     display: "flex",
@@ -87,64 +60,92 @@ const styles = {
   },
 };
 
-// ============================================================================
-// Component
-// ============================================================================
-
 interface DashboardRecentDocumentsProps {
   documents: DocumentDetailDto[];
 }
 
-export function DashboardRecentDocuments({ documents }: DashboardRecentDocumentsProps) {
+export function DashboardRecentDocuments({
+  documents,
+}: DashboardRecentDocumentsProps) {
   const router = useRouter();
 
   const recentDocs = [...documents]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 3);
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    )
+    .slice(0, 4);
 
   return (
-    <Card variant="glass" hoverable={false} sx={styles.card}>
-      <Box sx={styles.header}>
-        <Typography variant="h6" sx={styles.title}>
-          Recent Documents
-        </Typography>
-        <Typography
-          sx={styles.viewAll}
-          onClick={() => router.push("/documents")}
-        >
-          View all <ArrowRight size={14} />
-        </Typography>
-      </Box>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, delay: 0.35, ease: "easeOut" }}
+      style={{
+        height: "100%",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <Card variant="glass" hoverable={false} sx={styles.card}>
+        <Box sx={styles.header}>
+          <Typography variant="h6" sx={styles.title}>
+            Recent Documents
+          </Typography>
+          <Typography
+            sx={styles.viewAll}
+            onClick={() => router.push("/documents")}
+          >
+            View all <ArrowRight size={14} />
+          </Typography>
+        </Box>
 
-      <Stack spacing={2}>
-        {recentDocs.map((doc) => {
-          const Icon = getMimeIcon(doc.mimeType);
-          return (
-            <Box
-              key={doc.id}
-              sx={styles.docItem}
-              onClick={() => router.push(`/documents/${doc.id}`)}
-            >
-              <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-                <Box sx={styles.docIcon}>
-                  <Icon size={20} />
-                </Box>
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography variant="subtitle2" fontWeight={600} noWrap>
-                    {doc.filename}
-                  </Typography>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
-                    <ProcessingStatusBadge stage={doc.processingStage} />
-                    <Typography variant="caption" color="text.secondary">
-                      {formatRelativeDate(doc.createdAt)}
-                    </Typography>
+        {recentDocs.length === 0 ? (
+          <EmptyState
+            title="No documents yet"
+            description="Upload a PDF, DOCX, or XLSX to extract concepts"
+            icon={FileStack}
+          />
+        ) : (
+          <Stack spacing={2}>
+            {recentDocs.map((doc) => {
+              const Icon = getMimeIcon(doc.mimeType);
+              return (
+                <Box
+                  key={doc.id}
+                  sx={styles.docItem}
+                  onClick={() => router.push(`/documents/${doc.id}`)}
+                >
+                  <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+                    <Box sx={styles.docIcon}>
+                      <Icon size={20} />
+                    </Box>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography variant="subtitle2" fontWeight={600} noWrap>
+                        {doc.filename}
+                      </Typography>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          mt: 0.5,
+                        }}
+                      >
+                        <ProcessingStatusBadge stage={doc.processingStage} />
+                        <Typography variant="caption" color="text.secondary">
+                          {formatRelativeDate(doc.createdAt)}
+                        </Typography>
+                      </Box>
+                    </Box>
                   </Box>
                 </Box>
-              </Box>
-            </Box>
-          );
-        })}
-      </Stack>
-    </Card>
+              );
+            })}
+          </Stack>
+        )}
+      </Card>
+    </motion.div>
   );
 }

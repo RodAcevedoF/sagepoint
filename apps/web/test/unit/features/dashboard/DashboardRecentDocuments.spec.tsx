@@ -50,8 +50,19 @@ const docs: DocumentDetailDto[] = [
     userId: "u1",
     processingStage: "READY" as never,
     mimeType: "application/pdf",
-    createdAt: "2026-01-01T10:00:00Z",
-    updatedAt: "2026-01-01T10:00:00Z",
+    createdAt: "2026-02-01T10:00:00Z",
+    updatedAt: "2026-02-01T10:00:00Z",
+  },
+  {
+    id: "d5",
+    filename: "ancient-notes.pdf",
+    status: "COMPLETED",
+    storagePath: "/files/ancient-notes.pdf",
+    userId: "u1",
+    processingStage: "READY" as never,
+    mimeType: "application/pdf",
+    createdAt: "2025-12-01T10:00:00Z",
+    updatedAt: "2025-12-01T10:00:00Z",
   },
 ];
 
@@ -61,12 +72,13 @@ describe("DashboardRecentDocuments", () => {
     expect(screen.getByText("Recent Documents")).toBeInTheDocument();
   });
 
-  it("shows only the 3 most recent documents", () => {
+  it("shows only the 4 most recent documents", () => {
     render(<DashboardRecentDocuments documents={docs} />);
     expect(screen.getByText("react-guide.pdf")).toBeInTheDocument();
     expect(screen.getByText("node-tutorial.docx")).toBeInTheDocument();
     expect(screen.getByText("data-analysis.xlsx")).toBeInTheDocument();
-    expect(screen.queryByText("old-doc.pdf")).not.toBeInTheDocument();
+    expect(screen.getByText("old-doc.pdf")).toBeInTheDocument();
+    expect(screen.queryByText("ancient-notes.pdf")).not.toBeInTheDocument();
   });
 
   it("shows processing stage badges", () => {

@@ -1,6 +1,7 @@
 "use client";
 
 import { Box, Typography, Stack } from "@mui/material";
+import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { Card } from "@/common/components";
@@ -48,29 +49,36 @@ export function DashboardActivity({
   const visible = roadmaps.slice(0, maxItems);
 
   return (
-    <Card variant="glass" hoverable={false} sx={styles.card}>
-      <Box sx={styles.header}>
-        <Typography variant="h6" sx={styles.title}>
-          Recent Activity
-        </Typography>
-        <Box sx={styles.viewAll} onClick={() => router.push("/roadmaps")}>
-          View all <ArrowRight size={14} />
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, delay: 0.25, ease: "easeOut" }}
+      style={{ height: "100%" }}
+    >
+      <Card variant="glass" hoverable={false} sx={styles.card}>
+        <Box sx={styles.header}>
+          <Typography variant="h6" sx={styles.title}>
+            Recent Activity
+          </Typography>
+          <Box sx={styles.viewAll} onClick={() => router.push("/roadmaps")}>
+            View all <ArrowRight size={14} />
+          </Box>
         </Box>
-      </Box>
 
-      <Stack
-        spacing={2}
-        sx={{ overflowY: "auto", overflowX: "hidden", flex: 1, p: 1 }}
-      >
-        {visible.map((item) => (
-          <RoadmapActivityCard
-            key={item.id}
-            item={item}
-            onClick={(id) => router.push(`/roadmaps/${id}`)}
-            onComplete={onRoadmapComplete}
-          />
-        ))}
-      </Stack>
-    </Card>
+        <Stack
+          spacing={2}
+          sx={{ overflowY: "auto", overflowX: "hidden", flex: 1, p: 1 }}
+        >
+          {visible.map((item) => (
+            <RoadmapActivityCard
+              key={item.id}
+              item={item}
+              onClick={(id) => router.push(`/roadmaps/${id}`)}
+              onComplete={onRoadmapComplete}
+            />
+          ))}
+        </Stack>
+      </Card>
+    </motion.div>
   );
 }

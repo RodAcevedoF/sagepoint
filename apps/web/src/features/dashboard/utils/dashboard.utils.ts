@@ -5,9 +5,41 @@ import type {
   RecentRoadmapItem,
   TopicDistribution,
 } from "../types/dashboard.types";
+import {
+  FileText,
+  FileSpreadsheet,
+  FileImage,
+  FileType,
+  File,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { palette } from "@/common/theme";
 
 const DIFFICULTY_COLORS: Record<string, string> = palette.difficulty;
+
+export function getMimeIcon(mimeType?: string): LucideIcon {
+  if (!mimeType) return File;
+  if (mimeType.includes("pdf")) return FileText;
+  if (mimeType.includes("spreadsheet") || mimeType.includes("xlsx"))
+    return FileSpreadsheet;
+  if (mimeType.startsWith("image/")) return FileImage;
+  if (mimeType.includes("word") || mimeType.includes("docx")) return FileType;
+  return File;
+}
+
+export function formatRelativeDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffHours < 1) return "Just now";
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  return date.toLocaleDateString();
+}
 
 export function computeMetrics(roadmaps: DashboardRoadmap[]): UserMetrics {
   let totalHoursLearned = 0;
@@ -62,20 +94,6 @@ export function computeRoadmapProgress(
     .slice(0, limit);
 }
 
-export function formatRelativeDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffHours < 1) return "Just now";
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays === 1) return "Yesterday";
-  if (diffDays < 7) return `${diffDays} days ago`;
-  return date.toLocaleDateString();
-}
-
 export function computeRecentRoadmaps(
   roadmaps: DashboardRoadmap[],
   limit = 3,
@@ -120,4 +138,11 @@ export function computeDifficultyDistribution(
       color: DIFFICULTY_COLORS[name] ?? DIFFICULTY_COLORS.unknown,
     }))
     .sort((a, b) => b.value - a.value);
+}
+
+export function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
 }

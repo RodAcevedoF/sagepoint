@@ -1,14 +1,11 @@
 "use client";
 
 import { Box, Typography, Grid } from "@mui/material";
+import { motion } from "framer-motion";
 import { Clock, BookCheck, Map, CheckCircle } from "lucide-react";
 import { Card } from "@/common/components";
 import { palette } from "@/common/theme";
 import type { UserMetrics } from "../types/dashboard.types";
-
-// ============================================================================
-// Styles
-// ============================================================================
 
 const styles = {
   card: {
@@ -24,10 +21,6 @@ const styles = {
     fontSize: "0.875rem",
   },
 };
-
-// ============================================================================
-// Data
-// ============================================================================
 
 const metricConfigs = [
   {
@@ -56,10 +49,6 @@ const metricConfigs = [
   },
 ] as const;
 
-// ============================================================================
-// Component
-// ============================================================================
-
 interface DashboardMetricsProps {
   metrics: UserMetrics;
 }
@@ -67,27 +56,37 @@ interface DashboardMetricsProps {
 export function DashboardMetrics({ metrics }: DashboardMetricsProps) {
   return (
     <Grid container spacing={3} sx={{ mb: 4 }}>
-      {metricConfigs.map((config) => {
+      {metricConfigs.map((config, index) => {
         const Icon = config.icon;
         const value = metrics[config.key];
 
         return (
           <Grid key={config.key} size={{ xs: 6, md: 3 }}>
-            <Card variant="glass" hoverable={false} sx={styles.card}>
-              <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
-                <Card.IconBox sx={{ width: 48, height: 48 }}>
-                  <Icon size={24} />
-                </Card.IconBox>
-                <Box>
-                  <Typography sx={styles.metricValue}>
-                    {config.format(value)}
-                  </Typography>
-                  <Typography sx={styles.metricLabel}>
-                    {config.label}
-                  </Typography>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.4,
+                delay: index * 0.08,
+                ease: "easeOut",
+              }}
+            >
+              <Card variant="glass" hoverable={false} sx={styles.card}>
+                <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
+                  <Card.IconBox sx={{ width: 48, height: 48 }}>
+                    <Icon size={24} />
+                  </Card.IconBox>
+                  <Box>
+                    <Typography sx={styles.metricValue}>
+                      {config.format(value)}
+                    </Typography>
+                    <Typography sx={styles.metricLabel}>
+                      {config.label}
+                    </Typography>
+                  </Box>
                 </Box>
-              </Box>
-            </Card>
+              </Card>
+            </motion.div>
           </Grid>
         );
       })}
