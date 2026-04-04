@@ -15,6 +15,7 @@ import { HealthModule } from '@/features/health/health.module';
 import { InsightsModule } from '@/features/insights/insights.module';
 import { InvitationModule } from '@/features/invitation/invitation.module';
 import { CategoryModule } from '@/features/category/category.module';
+import { SocialModule } from '@/features/social/social.module';
 import { CacheModule } from '@/core/infra/cache/cache.module';
 import { DomainExceptionFilter } from '@/core/filters/domain-exception.filter';
 
@@ -74,6 +75,7 @@ const isDev = process.env.NODE_ENV !== 'production';
     InsightsModule,
     InvitationModule,
     CategoryModule,
+    SocialModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: SentryGlobalFilter },

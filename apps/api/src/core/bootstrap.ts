@@ -31,6 +31,10 @@ import {
   makeInvitationDependencies,
   type InvitationDependencies,
 } from '@/features/invitation/dependencies';
+import {
+  makeSocialDependencies,
+  type SocialDependencies,
+} from '@/features/social/dependencies';
 import { GCSStorage } from '@sagepoint/storage';
 import { NewsdataApiAdapter } from '@sagepoint/ai';
 import type { IFileStorage, INewsService } from '@sagepoint/domain';
@@ -49,6 +53,7 @@ export interface AppDependencies {
   admin: AdminDependencies;
   insights: InsightsDependencies;
   invitation: InvitationDependencies;
+  social: SocialDependencies;
   fileStorage: IFileStorage;
   neo4jService: Neo4jService;
   newsService: INewsService;
@@ -107,6 +112,7 @@ export function bootstrap(): AppDependencies {
       cacheService,
       newsService,
     ),
+    social: makeSocialDependencies(roadmapDeps.roadmapService),
     invitation: makeInvitationDependencies(
       userDeps.userRepository,
       process.env.EMAIL_PROVIDER === 'resend'

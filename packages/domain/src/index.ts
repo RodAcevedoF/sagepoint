@@ -40,6 +40,10 @@ export * from "./modules/invitation/entities/invitation.entity";
 export * from "./modules/invitation/types";
 export * from "./modules/invitation/ports/invitation.repository";
 
+// Social
+export * from "./modules/social/entities/like.entity";
+export * from "./modules/social/ports/like.repository";
+
 // Common
 export * from "./common/pagination";
 

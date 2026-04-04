@@ -18,6 +18,7 @@ import { useRoadmapWithProgressQuery } from "@/application/roadmap";
 import { EmptyState, ErrorState, Loader, Button } from "@/common/components";
 import { ButtonVariants, ButtonIconPositions } from "@/common/types";
 import { TimelineStep } from "./TimelineStep/TimelineStep";
+import { LikeButton } from "./LikeButton";
 import { SuggestionsPanel } from "./SuggestionsPanel";
 import { makeStyles } from "./RoadmapDetail.styles";
 
@@ -149,9 +150,12 @@ export function RoadmapDetail({ roadmapId }: RoadmapDetailProps) {
         <Box sx={styles.headerContent}>
           {/* Text content */}
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="h4" sx={styles.title}>
-              {roadmap.title}
-            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography variant="h4" sx={styles.title}>
+                {roadmap.title}
+              </Typography>
+              <LikeButton roadmapId={roadmap.id} />
+            </Box>
             {roadmap.description && (
               <Typography variant="body1" sx={styles.description}>
                 {roadmap.description}

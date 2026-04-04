@@ -15,3 +15,4 @@ export { PrismaRoadmapRepository } from "./repositories/prisma-roadmap.repositor
 export { PrismaProgressRepository } from "./repositories/prisma-progress.repository";
 export { PrismaResourceRepository } from "./repositories/prisma-resource.repository";
 export { PrismaStepQuizAttemptRepository } from "./repositories/prisma-step-quiz-attempt.repository";
+export { PrismaLikeRepository } from "./repositories/prisma-like.repository";
