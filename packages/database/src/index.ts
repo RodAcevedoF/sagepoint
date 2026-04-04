@@ -17,3 +17,4 @@ export { PrismaResourceRepository } from "./repositories/prisma-resource.reposit
 export { PrismaStepQuizAttemptRepository } from "./repositories/prisma-step-quiz-attempt.repository";
 export { PrismaLikeRepository } from "./repositories/prisma-like.repository";
 export { PrismaAdoptionRepository } from "./repositories/prisma-adoption.repository";
+export { PrismaCategoryRoomRepository } from "./repositories/prisma-category-room.repository";
