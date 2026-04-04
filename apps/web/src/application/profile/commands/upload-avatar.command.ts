@@ -8,9 +8,9 @@ export function useUploadAvatarCommand() {
   const [updateProfile] = useUpdateProfileMutation();
 
   const execute = async (file: File) => {
-    const { url } = await uploadAvatar(file).unwrap();
-    if (!url) throw new Error("Upload did not return a public URL");
-    await updateProfile({ avatarUrl: url }).unwrap();
+    const { path } = await uploadAvatar(file).unwrap();
+    if (!path) throw new Error("Upload did not return a storage path");
+    await updateProfile({ avatarUrl: path }).unwrap();
   };
 
   return { execute };

@@ -10,10 +10,11 @@ import {
   CircularProgress,
   useTheme,
 } from "@mui/material";
-import { Camera, Shield, CheckCircle, Verified } from "lucide-react";
+import { Camera, X, Shield, CheckCircle, Verified } from "lucide-react";
 import { Card, useSnackbar } from "@/common/components";
 import type { UserDto } from "@/application/profile/queries/get-profile.query";
 import { useUploadAvatarCommand } from "@/application/profile/commands/upload-avatar.command";
+import { useUpdateProfileCommand } from "@/application/profile/commands/update-profile.command";
 import { makeStyles } from "./Profile.styles";
 
 const MAX_AVATAR_SIZE = 5 * 1024 * 1024; // 5MB
@@ -28,7 +29,9 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
   const styles = makeStyles(theme);
   const { showSnackbar } = useSnackbar();
   const { execute: uploadAvatar } = useUploadAvatarCommand();
+  const { execute: updateProfile } = useUpdateProfileCommand();
   const [uploading, setUploading] = useState(false);
+  const [localPreview, setLocalPreview] = useState<string | null>(null);
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -49,16 +52,36 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
       return;
     }
 
+    // Show instant local preview
+    const preview = URL.createObjectURL(file);
+    setLocalPreview(preview);
+
     setUploading(true);
     try {
       await uploadAvatar(file);
       showSnackbar("Avatar updated", { severity: "success" });
     } catch {
+      setLocalPreview(null);
       showSnackbar("Failed to upload avatar", { severity: "error" });
     } finally {
       setUploading(false);
     }
   };
+
+  const handleAvatarRemove = async () => {
+    setUploading(true);
+    setLocalPreview(null);
+    try {
+      await updateProfile({ avatarUrl: "" });
+      showSnackbar("Avatar removed", { severity: "success" });
+    } catch {
+      showSnackbar("Failed to remove avatar", { severity: "error" });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const hasAvatar = !!(localPreview ?? user.avatarUrl);
 
   const initials = user.name
     .split(" ")
@@ -74,9 +97,40 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
       <Card.Content sx={{ textAlign: "center", py: 5, px: 3 }}>
         {/* Avatar with edit overlay */}
         <Box sx={styles.avatarWrapper}>
-          <Avatar src={user.avatarUrl} sx={styles.avatar}>
+          <Avatar src={localPreview ?? user.avatarUrl} sx={styles.avatar}>
             {initials}
           </Avatar>
+
+          {/* Remove button — visible on hover */}
+          {hasAvatar && !uploading && (
+            <Box
+              className="avatar-remove"
+              onClick={handleAvatarRemove}
+              sx={{
+                position: "absolute",
+                top: 4,
+                right: 4,
+                width: 28,
+                height: 28,
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                bgcolor: alpha(theme.palette.error.main, 0.85),
+                cursor: "pointer",
+                zIndex: 2,
+                opacity: 0,
+                transform: "scale(0.8)",
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  bgcolor: theme.palette.error.main,
+                  transform: "scale(1.1)",
+                },
+              }}
+            >
+              <X size={16} color="#fff" />
+            </Box>
+          )}
 
           {/* Edit overlay */}
           <Box

@@ -17,7 +17,10 @@ import { JwtAuthGuard } from '@/features/auth/infra/guards/jwt-auth.guard';
 import { CurrentUser } from '@/features/auth/decorators/current-user.decorator';
 import type { RequestUser } from '@/features/auth/domain/request-user';
 import { UpdateProfileDto } from '@/features/user/app/dto/update-profile.dto';
-import { toUserResponseDto } from '@/features/user/app/dto/user-response.dto';
+import {
+  USER_DTO_MAPPER,
+  type IUserDtoMapper,
+} from '@/features/user/app/dto/user-dto.mapper';
 
 interface CreateUserDto {
   email: string;
@@ -29,6 +32,8 @@ export class UserController {
   constructor(
     @Inject(USER_SERVICE)
     private readonly userService: IUserService,
+    @Inject(USER_DTO_MAPPER)
+    private readonly mapper: IUserDtoMapper,
   ) {}
 
   @Post()
@@ -43,7 +48,7 @@ export class UserController {
     @Body() dto: UpdateProfileDto,
   ) {
     const user = await this.userService.updateProfile(reqUser.id, dto);
-    return toUserResponseDto(user);
+    return this.mapper.toDto(user);
   }
 
   @Get(':id')

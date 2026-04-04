@@ -1,5 +1,5 @@
-import { Storage, Bucket } from '@google-cloud/storage';
-import type { IFileStorage, UploadOptions } from '@sagepoint/domain';
+import { Storage, Bucket } from "@google-cloud/storage";
+import type { IFileStorage, UploadOptions } from "@sagepoint/domain";
 
 export interface GCSStorageConfig {
   projectId: string;
@@ -37,7 +37,8 @@ export class GCSStorage implements IFileStorage {
       metadata: {
         metadata: options?.metadata,
       },
-      public: options?.isPublic ?? false,
+      // Do NOT set `public: true` — bucket uses uniform bucket-level access.
+      // Public access is controlled by the bucket IAM policy, not per-object ACLs.
     });
 
     if (options?.isPublic) {
@@ -61,16 +62,24 @@ export class GCSStorage implements IFileStorage {
   async getUrl(path: string, expiresInSeconds = 3600): Promise<string> {
     const file = this.bucket.file(path);
 
-    const [metadata] = await file.getMetadata();
-
-    // If the file has public access, return direct URL
-    if (metadata.acl?.some((entry: { entity?: string }) => entry.entity === 'allUsers')) {
-      return `https://storage.googleapis.com/${this.bucketName}/${path}`;
+    // With uniform bucket-level access, check if the bucket is publicly readable.
+    // If so, return the direct public URL; otherwise, generate a signed URL.
+    try {
+      const [policy] = await this.bucket.iam.getPolicy();
+      const isPublicBucket = policy.bindings?.some(
+        (b) =>
+          b.role === "roles/storage.objectViewer" &&
+          b.members?.includes("allUsers"),
+      );
+      if (isPublicBucket) {
+        return `https://storage.googleapis.com/${this.bucketName}/${path}`;
+      }
+    } catch {
+      // Fall through to signed URL if policy check fails
     }
 
-    // Otherwise, generate a signed URL
     const [signedUrl] = await file.getSignedUrl({
-      action: 'read',
+      action: "read",
       expires: Date.now() + expiresInSeconds * 1000,
     });
 

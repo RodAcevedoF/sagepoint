@@ -362,7 +362,13 @@ function patchBootstrapSingleton() {
       roadmapService: fakeRoadmapService,
       roadmapRepository: new FakeRoadmapRepository(),
     },
-    user: { userService: fakeUserService, userRepository: fakeUserRepo },
+    user: {
+      userService: fakeUserService,
+      userRepository: fakeUserRepo,
+      userDtoMapper: {
+        toDto: (user: Record<string, unknown>) => Promise.resolve(user),
+      },
+    },
     storage: { storageService: fakeStorageService },
     category: {
       categoryService: {

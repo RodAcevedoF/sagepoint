@@ -1,5 +1,6 @@
 import type { IUserService } from '@/features/user/domain/inbound/user.service';
-import type { IUserRepository } from '@sagepoint/domain';
+import type { IUserRepository, IFileStorage } from '@sagepoint/domain';
+import { UserDtoMapper } from './app/dto/user-dto.mapper';
 import { UserService } from '@/features/user/infra/driver/user.service';
 import { CreateUserUseCase } from './app/usecases/create-user.usecase';
 import { GetUserUseCase } from './app/usecases/get-user.usecase';
@@ -16,9 +17,12 @@ import {
 export interface UserDependencies {
   userService: IUserService;
   userRepository: IUserRepository;
+  userDtoMapper: UserDtoMapper;
 }
 
-export function makeUserDependencies(): UserDependencies {
+export function makeUserDependencies(
+  fileStorage: IFileStorage,
+): UserDependencies {
   const prismaService = new PrismaService();
   const userRepository = new PrismaUserRepository(prismaService);
   const categoryRepository = new PrismaCategoryRepository(prismaService);
@@ -27,7 +31,11 @@ export function makeUserDependencies(): UserDependencies {
   const createUserUseCase = new CreateUserUseCase(userRepository);
   const getUserUseCase = new GetUserUseCase(userRepository);
   const updateUserUseCase = new UpdateUserUseCase(userRepository);
-  const updateMeUseCase = new UpdateMeUseCase(userRepository, interestResolver);
+  const updateMeUseCase = new UpdateMeUseCase(
+    userRepository,
+    interestResolver,
+    fileStorage,
+  );
   const completeOnboardingUseCase = new CompleteOnboardingUseCase(
     userRepository,
     interestResolver,
@@ -41,8 +49,11 @@ export function makeUserDependencies(): UserDependencies {
     completeOnboardingUseCase,
   );
 
+  const userDtoMapper = new UserDtoMapper(fileStorage);
+
   return {
     userService,
     userRepository,
+    userDtoMapper,
   };
 }
