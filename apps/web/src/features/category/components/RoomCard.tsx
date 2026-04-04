@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Typography, alpha } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { BookOpen, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/common/components";

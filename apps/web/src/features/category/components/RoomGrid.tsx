@@ -3,7 +3,7 @@
 import { Box, Grid, Typography, Skeleton, alpha } from "@mui/material";
 import { LayoutGrid, Compass } from "lucide-react";
 import { motion } from "framer-motion";
-import { EmptyState, SectionTitle, GoBackButton } from "@/common/components";
+import { EmptyState, GoBackButton } from "@/common/components";
 import { useGetCategoryRoomsQuery } from "@/infrastructure/api/categoryRoomApi";
 import { palette } from "@/common/theme";
 import { RoomCard } from "./RoomCard";
