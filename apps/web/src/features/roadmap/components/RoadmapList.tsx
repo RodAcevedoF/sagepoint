@@ -120,11 +120,13 @@ export function RoadmapList() {
       <RoadmapHero />
 
       {usedCategories.length > 0 && !isLoading && (
-        <CategoryFilter
-          categories={usedCategories}
-          selectedCategory={selectedCategory}
-          onSelect={setSelectedCategory}
-        />
+        <Box sx={{ mb: 4 }}>
+          <CategoryFilter
+            categories={usedCategories}
+            selectedCategory={selectedCategory}
+            onSelect={setSelectedCategory}
+          />
+        </Box>
       )}
 
       {isLoading && (

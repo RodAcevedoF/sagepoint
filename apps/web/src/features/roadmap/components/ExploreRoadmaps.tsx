@@ -227,13 +227,15 @@ export function ExploreRoadmaps() {
       )}
 
       {usedCategories.length > 0 && !isLoading && (
-        <CategoryFilter
-          categories={usedCategories}
-          selectedCategory={selectedCategory}
-          onSelect={handleCategoryChange}
-          counts={categoryCounts}
-          totalCount={roadmaps?.length}
-        />
+        <Box sx={{ mb: 4 }}>
+          <CategoryFilter
+            categories={usedCategories}
+            selectedCategory={selectedCategory}
+            onSelect={handleCategoryChange}
+            counts={categoryCounts}
+            totalCount={roadmaps?.length}
+          />
+        </Box>
       )}
 
       {isLoading && (

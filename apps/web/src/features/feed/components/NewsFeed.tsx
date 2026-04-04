@@ -1,30 +1,19 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  Box,
-  Typography,
-  Grid,
-  Chip,
-  alpha,
-  useTheme,
-  keyframes,
-  type Theme,
-} from "@mui/material";
+import { Box, Typography, Grid, alpha, keyframes } from "@mui/material";
 import { Rss } from "lucide-react";
 import {
   Card,
   EmptyState,
+  FilterChips,
   SectionTitle,
   GoBackButton,
 } from "@/common/components";
 import { useInsightsQuery } from "@/application/insights/queries/get-insights.query";
 import { NewsArticleCard } from "@/features/dashboard/components/DahsboardNews/NewsArticleCard";
 import { NewsCardSkeleton } from "@/features/dashboard/components/DahsboardNews/NewsCardSkeleton";
-import {
-  formatSlug,
-  getCategoryColor,
-} from "@/features/dashboard/components/DahsboardNews/news.utils";
+import { formatSlug } from "@/features/dashboard/components/DahsboardNews/news.utils";
 import { palette } from "@/common/theme";
 
 const float = keyframes`
@@ -34,7 +23,7 @@ const float = keyframes`
   100% { transform: translate(0, 0) scale(1); }
 `;
 
-const makeStyles = (theme: Theme) => ({
+const makeStyles = () => ({
   hero: {
     position: "relative",
     overflow: "hidden",
@@ -107,33 +96,6 @@ const makeStyles = (theme: Theme) => ({
     bgcolor: color,
     boxShadow: `0 0 8px ${alpha(color, 0.5)}`,
   }),
-  chipContainer: {
-    display: "flex",
-    gap: 0.75,
-    mb: 4,
-    flexWrap: "wrap",
-  },
-  chip: (isSelected: boolean, color?: string) => ({
-    fontWeight: 600,
-    fontSize: "0.8rem",
-    bgcolor: isSelected
-      ? alpha(color ?? theme.palette.primary.main, 0.15)
-      : "transparent",
-    color: isSelected
-      ? (color ?? theme.palette.primary.light)
-      : theme.palette.text.secondary,
-    border: `1px solid ${alpha(
-      isSelected
-        ? (color ?? theme.palette.primary.main)
-        : theme.palette.text.secondary,
-      isSelected ? 0.35 : 0.15,
-    )}`,
-    transition: "all 0.25s ease",
-    "&:hover": {
-      bgcolor: alpha(color ?? theme.palette.primary.main, 0.1),
-      borderColor: alpha(color ?? theme.palette.primary.main, 0.3),
-    },
-  }),
   gridItem: (index: number) => ({
     animation: `feedFadeIn 0.4s ease-out ${index * 0.05}s both`,
     "@keyframes feedFadeIn": {
@@ -150,8 +112,7 @@ const makeStyles = (theme: Theme) => ({
 });
 
 export function NewsFeed() {
-  const theme = useTheme();
-  const styles = makeStyles(theme);
+  const styles = makeStyles();
   const { data: articles, isLoading } = useInsightsQuery();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
@@ -172,7 +133,7 @@ export function NewsFeed() {
   }, [articles]);
 
   return (
-    <Box>
+    <Box sx={{ mb: 10 }}>
       {/* Hero Section */}
       <Box sx={styles.hero}>
         <Box sx={styles.heroOrb1} />
@@ -213,34 +174,29 @@ export function NewsFeed() {
 
       {/* Category Filters */}
       {!isLoading && categories.length > 0 && (
-        <Box sx={styles.chipContainer}>
-          <Chip
-            label="All"
-            size="small"
-            onClick={() => setSelectedCategory(null)}
-            sx={styles.chip(!selectedCategory)}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            mb: 4,
+            flexWrap: "wrap",
+          }}
+        >
+          <FilterChips
+            options={[
+              { label: "All", value: "__all__", count: articles?.length },
+              ...categories.map((slug) => ({
+                label: formatSlug(slug),
+                value: slug,
+                count: articles?.filter((a) => a.categorySlug === slug).length,
+              })),
+            ]}
+            value={selectedCategory ?? "__all__"}
+            onChange={(v) => setSelectedCategory(v === "__all__" ? null : v)}
           />
-          {categories.map((slug) => (
-            <Chip
-              key={slug}
-              label={formatSlug(slug)}
-              size="small"
-              onClick={() => setSelectedCategory(slug)}
-              sx={styles.chip(
-                selectedCategory === slug,
-                getCategoryColor(slug),
-              )}
-            />
-          ))}
           {selectedCategory && (
-            <Typography
-              variant="body2"
-              sx={{
-                alignSelf: "center",
-                color: "text.secondary",
-                ml: 1,
-              }}
-            >
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
               {filtered.length} result{filtered.length !== 1 ? "s" : ""}
             </Typography>
           )}
