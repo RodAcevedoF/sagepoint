@@ -226,6 +226,20 @@ export class FakeRoadmapRepository implements IRoadmapRepository {
     );
   }
 
+  searchPublic(query: string, limit = 5): Promise<Roadmap[]> {
+    const q = query.toLowerCase();
+    return Promise.resolve(
+      this.roadmaps
+        .filter(
+          (r) =>
+            r.visibility === RoadmapVisibility.PUBLIC &&
+            (r.title.toLowerCase().includes(q) ||
+              r.description?.toLowerCase().includes(q)),
+        )
+        .slice(0, limit),
+    );
+  }
+
   updateVisibility(
     id: string,
     visibility: RoadmapVisibility,
