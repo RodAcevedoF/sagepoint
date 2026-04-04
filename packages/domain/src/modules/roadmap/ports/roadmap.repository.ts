@@ -28,6 +28,8 @@ export interface IRoadmapRepository {
   updateGeneration(id: string, data: RoadmapGenerationUpdate): Promise<void>;
   delete(id: string): Promise<void>;
 
+  searchPublic(query: string, limit?: number): Promise<Roadmap[]>;
+
   saveConcept(concept: Concept): Promise<Concept>;
   findConceptsByDocumentId(documentId: string): Promise<Concept[]>;
   saveConceptRelation(

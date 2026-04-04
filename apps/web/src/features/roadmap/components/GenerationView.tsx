@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Button } from "@/common/components";
 import { ButtonTypes, ButtonIconPositions, ButtonSizes } from "@/common/types";
+import { RoadmapRecommendations } from "./RoadmapRecommendations";
 import { useGenerateTopicRoadmapCommand } from "@/application/roadmap";
 import { useRoadmapEvents } from "@/common/hooks";
 import {
@@ -163,6 +164,8 @@ export function GenerationView({
               disabled={isLoading}
               sx={styles.textField}
             />
+
+            <RoadmapRecommendations topic={topic} disabled={isLoading} />
 
             <TextField
               fullWidth

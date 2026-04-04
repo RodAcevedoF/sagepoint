@@ -24,6 +24,10 @@ import { GenerateStepQuizUseCase } from '@/features/roadmap/app/usecases/generat
 import { SubmitStepQuizUseCase } from '@/features/roadmap/app/usecases/submit-step-quiz.usecase';
 import { UpdateVisibilityUseCase } from '@/features/roadmap/app/usecases/update-visibility.usecase';
 import { GetPublicRoadmapsUseCase } from '@/features/roadmap/app/usecases/get-public-roadmaps.usecase';
+import { SearchPublicRoadmapsUseCase } from '@/features/roadmap/app/usecases/search-public-roadmaps.usecase';
+import { AdoptRoadmapUseCase } from '@/features/roadmap/app/usecases/adopt-roadmap.usecase';
+import { UnadoptRoadmapUseCase } from '@/features/roadmap/app/usecases/unadopt-roadmap.usecase';
+import { IsRoadmapAdoptedUseCase } from '@/features/roadmap/app/usecases/is-roadmap-adopted.usecase';
 import { Neo4jService, Neo4jConceptRepository } from '@sagepoint/graph';
 import { GetGraphUseCase } from './app/usecases/get-graph.usecase';
 import {
@@ -36,6 +40,7 @@ import {
   PrismaResourceRepository,
   PrismaProgressRepository,
   PrismaStepQuizAttemptRepository,
+  PrismaAdoptionRepository,
 } from '@sagepoint/database';
 import { BullMqRoadmapGenerationQueue } from '@/core/infra/queue/bull-mq-roadmap.queue';
 import { Queue } from 'bullmq';
@@ -169,6 +174,20 @@ export function makeRoadmapDependencies(
     roadmapRepository,
   );
 
+  // Search & adopt
+  const adoptionRepository = new PrismaAdoptionRepository(prismaService);
+  const searchPublicRoadmapsUseCase = new SearchPublicRoadmapsUseCase(
+    roadmapRepository,
+  );
+  const adoptRoadmapUseCase = new AdoptRoadmapUseCase(
+    roadmapRepository,
+    adoptionRepository,
+  );
+  const unadoptRoadmapUseCase = new UnadoptRoadmapUseCase(adoptionRepository);
+  const isRoadmapAdoptedUseCase = new IsRoadmapAdoptedUseCase(
+    adoptionRepository,
+  );
+
   const roadmapService = new RoadmapService(
     generateRoadmapUseCase,
     generateTopicRoadmapUseCase,
@@ -186,6 +205,10 @@ export function makeRoadmapDependencies(
     submitStepQuizUseCase,
     updateVisibilityUseCase,
     getPublicRoadmapsUseCase,
+    searchPublicRoadmapsUseCase,
+    adoptRoadmapUseCase,
+    unadoptRoadmapUseCase,
+    isRoadmapAdoptedUseCase,
   );
 
   return {

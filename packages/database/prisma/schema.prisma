@@ -93,6 +93,7 @@ model User {
   invitationsSent     Invitation[] @relation("InvitedByUser")
   invitationsAccepted Invitation[] @relation("AcceptedInvitation")
   roadmapLikes        RoadmapLike[]
+  adoptedRoadmaps     UserAdoptedRoadmap[]
 
   @@index([verificationToken])
   @@index([onboardingStatus])
@@ -286,6 +287,7 @@ model Roadmap {
   progress          UserRoadmapProgress[]
   stepQuizAttempts  StepQuizAttempt[]
   likes             RoadmapLike[]
+  adoptedBy         UserAdoptedRoadmap[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -394,4 +396,18 @@ model RoadmapLike {
   @@index([roadmapId])
   @@index([userId])
   @@map("roadmap_likes")
+}
+
+model UserAdoptedRoadmap {
+  userId    String   @db.Uuid
+  roadmapId String   @db.Uuid
+  adoptedAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roadmap Roadmap @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roadmapId])
+  @@index([userId])
+  @@index([roadmapId])
+  @@map("user_adopted_roadmaps")
 }

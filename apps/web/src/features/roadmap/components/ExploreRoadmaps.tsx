@@ -6,30 +6,19 @@ import {
   Box,
   Grid,
   Typography,
-  Chip,
   Pagination,
   type Theme,
   type SxProps,
 } from "@mui/material";
-import { Compass, Globe, BookOpen } from "lucide-react";
+import { Compass, Globe } from "lucide-react";
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
 import { usePublicRoadmapsQuery } from "@/application/roadmap";
 import { useCategoriesQuery } from "@/application/onboarding/queries/get-categories.query";
-import { ErrorState } from "@/common/components";
-import { Card } from "@/common/components";
+import { ErrorState, SearchInput } from "@/common/components";
 import { palette } from "@/common/theme";
 import { RoadmapCardSkeleton } from "./RoadmapCardSkeleton";
 import { CategoryFilter } from "./CategoryFilter";
-import {
-  formatDuration,
-  formatRelativeTime,
-  getDifficultyDistribution,
-  DIFFICULTY_COLORS,
-} from "../utils/roadmap.utils";
-import { LikeButton } from "./LikeButton";
-
-import type { RoadmapDto } from "@/infrastructure/api/roadmapApi";
+import { ExploreCard } from "./ExploreCard";
 
 const MotionBox = motion.create(Box);
 const MotionGrid = motion.create(Grid);
@@ -48,7 +37,7 @@ const staggerItem = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.35 } },
 };
 
-const makeStyles = (): Record<string, SxProps<Theme>> => ({
+const styles: Record<string, SxProps<Theme>> = {
   heroContainer: {
     mb: 6,
     position: "relative",
@@ -134,145 +123,42 @@ const makeStyles = (): Record<string, SxProps<Theme>> => ({
       },
     },
   },
-});
-
-interface ExploreCardProps {
-  roadmap: RoadmapDto;
-}
-
-function ExploreCard({ roadmap }: ExploreCardProps) {
-  const router = useRouter();
-  const difficultyDist = getDifficultyDistribution(roadmap.steps);
-
-  return (
-    <Card
-      onClick={() => router.push(`/roadmaps/${roadmap.id}`)}
-      sx={{
-        cursor: "pointer",
-        transition: "all 0.3s ease",
-        "&:hover": { transform: "translateY(-4px)" },
-      }}
-      variant="glass"
-    >
-      <Card.Content>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-          <Globe size={14} color={palette.success.main} />
-          <Typography
-            variant="caption"
-            sx={{ color: palette.success.main, fontWeight: 700 }}
-          >
-            Public
-          </Typography>
-        </Box>
-        <Typography
-          variant="h6"
-          sx={{ fontWeight: 700, mb: 1, letterSpacing: "-0.3px" }}
-        >
-          {roadmap.title}
-        </Typography>
-        {roadmap.description && (
-          <Typography
-            variant="body2"
-            sx={{
-              color: palette.text.secondary,
-              mb: 2,
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-            }}
-          >
-            {roadmap.description}
-          </Typography>
-        )}
-
-        <Box sx={{ display: "flex", gap: 1, mb: 1.5, flexWrap: "wrap" }}>
-          <Chip
-            size="small"
-            icon={<BookOpen size={14} />}
-            label={`${roadmap.steps.length} steps`}
-            sx={{
-              bgcolor: alpha(palette.info.main, 0.1),
-              color: palette.info.light,
-              fontWeight: 600,
-              fontSize: "0.8rem",
-              border: "none",
-            }}
-          />
-          {roadmap.totalEstimatedDuration && (
-            <Chip
-              size="small"
-              label={formatDuration(roadmap.totalEstimatedDuration)}
-              sx={{
-                bgcolor: alpha(palette.text.secondary, 0.08),
-                color: palette.text.secondary,
-                fontWeight: 600,
-                fontSize: "0.8rem",
-                border: "none",
-              }}
-            />
-          )}
-        </Box>
-
-        {Object.keys(difficultyDist).length > 0 && (
-          <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
-            {Object.entries(difficultyDist).map(([difficulty, count]) => (
-              <Chip
-                key={difficulty}
-                size="small"
-                label={`${count} ${difficulty}`}
-                sx={{
-                  height: 22,
-                  fontSize: "0.7rem",
-                  fontWeight: 600,
-                  bgcolor: alpha(
-                    DIFFICULTY_COLORS[difficulty] || palette.text.secondary,
-                    0.1,
-                  ),
-                  color:
-                    DIFFICULTY_COLORS[difficulty] || palette.text.secondary,
-                  border: "none",
-                }}
-              />
-            ))}
-          </Box>
-        )}
-      </Card.Content>
-
-      <Card.Footer
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <Typography variant="caption" sx={{ color: palette.text.secondary }}>
-          {formatRelativeTime(roadmap.createdAt)}
-        </Typography>
-        <LikeButton roadmapId={roadmap.id} compact />
-      </Card.Footer>
-    </Card>
-  );
-}
+};
 
 export function ExploreRoadmaps() {
   const { data: roadmaps, isLoading, error } = usePublicRoadmapsQuery();
   const { data: categories } = useCategoriesQuery();
-  const styles = makeStyles();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
 
-  // Reset to page 1 when category changes
+  // Reset to page 1 when category or search changes
   const handleCategoryChange = (categoryId: string | null) => {
     setSelectedCategory(categoryId);
     setPage(1);
   };
 
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setPage(1);
+  };
+
   const filteredRoadmaps = useMemo(() => {
     if (!roadmaps) return undefined;
-    if (!selectedCategory) return roadmaps;
-    return roadmaps.filter((r) => r.categoryId === selectedCategory);
-  }, [roadmaps, selectedCategory]);
+    let result = roadmaps;
+    if (selectedCategory) {
+      result = result.filter((r) => r.categoryId === selectedCategory);
+    }
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (r) =>
+          r.title.toLowerCase().includes(q) ||
+          r.description?.toLowerCase().includes(q),
+      );
+    }
+    return result;
+  }, [roadmaps, selectedCategory, searchQuery]);
 
   // Compute category counts from the full roadmap list
   const categoryCounts = useMemo(() => {
@@ -329,6 +215,16 @@ export function ExploreRoadmaps() {
           </Typography>
         </Box>
       </MotionBox>
+
+      {!isLoading && (
+        <Box sx={{ mb: 3, maxWidth: 480 }}>
+          <SearchInput
+            placeholder="Search roadmaps by title or topic..."
+            onSearch={handleSearch}
+            debounceMs={300}
+          />
+        </Box>
+      )}
 
       {usedCategories.length > 0 && !isLoading && (
         <CategoryFilter
@@ -389,7 +285,7 @@ export function ExploreRoadmaps() {
         paginatedRoadmaps.length > 0 && (
           <>
             <MotionGrid
-              key={`${selectedCategory}-${page}`}
+              key={`${selectedCategory}-${searchQuery}-${page}`}
               container
               spacing={3}
               variants={staggerContainer}

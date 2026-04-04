@@ -32,6 +32,8 @@ export * from "./modules/roadmap/ports/concept.repository";
 export * from "./modules/roadmap/ports/resource.repository";
 export * from "./modules/roadmap/ports/progress.repository";
 export * from "./modules/roadmap/ports/roadmap-generation-queue.port";
+export * from "./modules/roadmap/entities/adoption.entity";
+export * from "./modules/roadmap/ports/adoption.repository";
 export * from "./modules/roadmap/entities/step-quiz-attempt.entity";
 export * from "./modules/roadmap/ports/step-quiz-attempt.repository";
 

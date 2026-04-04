@@ -59,7 +59,10 @@ export function computeMetrics(roadmaps: DashboardRoadmap[]): UserMetrics {
     totalPossibleSteps += progress.totalSteps;
     topicsCompleted += progress.completedSteps;
 
-    if (progress.inProgressSteps > 0 || progress.completedSteps > 0) {
+    if (
+      roadmap.generationStatus === "completed" &&
+      progress.progressPercentage < 100
+    ) {
       activeRoadmaps++;
     }
   }
