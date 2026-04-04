@@ -10,7 +10,7 @@ import {
   type Theme,
   type SxProps,
 } from "@mui/material";
-import { Compass, Globe } from "lucide-react";
+import { Compass, Globe, Users, Heart } from "lucide-react";
 import { motion } from "framer-motion";
 import { usePublicRoadmapsQuery } from "@/application/roadmap";
 import { useCategoriesQuery } from "@/application/onboarding/queries/get-categories.query";
@@ -61,6 +61,18 @@ const styles: Record<string, SxProps<Theme>> = {
     borderRadius: "50%",
     background: `radial-gradient(circle, ${alpha(palette.secondary.main, 0.15)} 0%, transparent 70%)`,
     filter: "blur(60px)",
+    pointerEvents: "none",
+    zIndex: 0,
+  },
+  secondaryOrb: {
+    position: "absolute",
+    bottom: -150,
+    left: -100,
+    width: 350,
+    height: 350,
+    borderRadius: "50%",
+    background: `radial-gradient(circle, ${alpha(palette.success.main, 0.08)} 0%, transparent 70%)`,
+    filter: "blur(50px)",
     pointerEvents: "none",
     zIndex: 0,
   },
@@ -199,6 +211,68 @@ export function ExploreRoadmaps() {
       >
         <Box sx={styles.heroContent}>
           <Box sx={styles.gradientOrb} />
+          <Box sx={styles.secondaryOrb} />
+
+          {/* Floating Icons */}
+          <motion.div
+            animate={{
+              y: [0, -18, 0],
+              rotate: [0, 12, 0],
+              opacity: [0.08, 0.18, 0.08],
+            }}
+            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+            style={
+              {
+                position: "absolute",
+                top: "15%",
+                right: "12%",
+                color: palette.secondary.light,
+                pointerEvents: "none",
+              } as React.CSSProperties
+            }
+          >
+            <Globe size={52} />
+          </motion.div>
+          <motion.div
+            animate={{ x: [0, 25, 0], opacity: [0.05, 0.12, 0.05] }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 2,
+            }}
+            style={
+              {
+                position: "absolute",
+                bottom: "22%",
+                right: "22%",
+                color: palette.success.light,
+                pointerEvents: "none",
+              } as React.CSSProperties
+            }
+          >
+            <Users size={40} />
+          </motion.div>
+          <motion.div
+            animate={{ y: [0, 15, 0], opacity: [0.04, 0.1, 0.04] }}
+            transition={{
+              duration: 5,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 1,
+            }}
+            style={
+              {
+                position: "absolute",
+                top: "25%",
+                left: "8%",
+                color: palette.info.light,
+                pointerEvents: "none",
+              } as React.CSSProperties
+            }
+          >
+            <Heart size={32} />
+          </motion.div>
 
           <Box sx={styles.badge}>
             <Compass size={14} />

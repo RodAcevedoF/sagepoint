@@ -6,15 +6,19 @@ import {
   AdminSidebar,
   AdminMobileNav,
 } from "@/features/admin/components/AdminSidebar";
+import { Footer } from "@/common/components/Footer";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <Container maxWidth="lg" sx={{ py: 4, pb: { xs: 12, md: 4 } }}>
-      <AdminMobileNav />
-      <Box sx={{ display: "flex", gap: 3 }}>
-        <AdminSidebar />
-        <Box sx={{ flex: 1, minWidth: 0 }}>{children}</Box>
-      </Box>
-    </Container>
+    <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+      <Container maxWidth="lg" sx={{ py: 4, pb: { xs: 12, md: 4 }, flex: 1 }}>
+        <AdminMobileNav />
+        <Box sx={{ display: "flex", gap: 3 }}>
+          <AdminSidebar />
+          <Box sx={{ flex: 1, minWidth: 0 }}>{children}</Box>
+        </Box>
+      </Container>
+      <Footer />
+    </Box>
   );
 }
