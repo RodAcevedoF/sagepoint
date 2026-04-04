@@ -4,17 +4,21 @@ import { lazy, Suspense, useState, useMemo } from "react";
 import {
   Box,
   Grid,
-  TextField,
   Chip,
   Typography,
   alpha,
   useTheme,
-  InputAdornment,
   CircularProgress,
 } from "@mui/material";
-import { FileText, Upload, Search } from "lucide-react";
+import { FileText, Upload } from "lucide-react";
 import { motion } from "framer-motion";
-import { EmptyState, ErrorState, Loader, useModal } from "@/common/components";
+import {
+  EmptyState,
+  ErrorState,
+  Loader,
+  useModal,
+  SearchInput,
+} from "@/common/components";
 import { useInfiniteScroll } from "@/common/hooks";
 import { useUserDocumentsQuery } from "@/application/document";
 import { DocumentHero } from "./DocumentHero";
@@ -132,22 +136,13 @@ export function DocumentList() {
               alignItems: "center",
             }}
           >
-            <TextField
-              size="small"
-              placeholder="Search documents..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Search size={16} color={theme.palette.text.secondary} />
-                    </InputAdornment>
-                  ),
-                },
-              }}
-              sx={{ minWidth: 220, flex: 1, maxWidth: 320 }}
-            />
+            <Box sx={{ minWidth: 220, flex: 1, maxWidth: 320 }}>
+              <SearchInput
+                placeholder="Search documents..."
+                onSearch={setSearchQuery}
+                debounceMs={300}
+              />
+            </Box>
             <Box sx={{ display: "flex", gap: 0.75 }}>
               {filterChips.map((chip) => (
                 <Chip
