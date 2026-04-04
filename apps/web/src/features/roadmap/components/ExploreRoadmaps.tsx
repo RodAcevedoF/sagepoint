@@ -10,7 +10,15 @@ import {
   type Theme,
   type SxProps,
 } from "@mui/material";
-import { Compass, Globe, Users, Heart } from "lucide-react";
+import {
+  Compass,
+  Globe,
+  Users,
+  Heart,
+  LayoutGrid,
+  ArrowRight,
+} from "lucide-react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { usePublicRoadmapsQuery } from "@/application/roadmap";
 import { useCategoriesQuery } from "@/application/onboarding/queries/get-categories.query";
@@ -289,6 +297,40 @@ export function ExploreRoadmaps() {
           </Typography>
         </Box>
       </MotionBox>
+
+      {/* Browse by Category */}
+      {!isLoading && (
+        <Box
+          component={Link}
+          href="/explore/rooms"
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+            mb: 3,
+            px: 2.5,
+            py: 1.5,
+            borderRadius: 3,
+            bgcolor: alpha(palette.warning.main, 0.06),
+            border: `1px solid ${alpha(palette.warning.main, 0.12)}`,
+            textDecoration: "none",
+            color: palette.warning.light,
+            fontWeight: 600,
+            fontSize: "0.875rem",
+            transition: "all 0.2s ease",
+            width: "fit-content",
+            "&:hover": {
+              bgcolor: alpha(palette.warning.main, 0.1),
+              borderColor: alpha(palette.warning.main, 0.25),
+              transform: "translateX(4px)",
+            },
+          }}
+        >
+          <LayoutGrid size={16} />
+          Browse by Category
+          <ArrowRight size={16} />
+        </Box>
+      )}
 
       {!isLoading && (
         <Box sx={{ mb: 3, maxWidth: 480 }}>

@@ -8,6 +8,7 @@ export * from "./modules/auth/types/auth.types";
 // Category
 export * from "./modules/category/entities/category.entity";
 export * from "./modules/category/ports/category.repository";
+export * from "./modules/category/ports/category-room.repository";
 
 // Document
 export * from "./modules/document/entities/document.entity";
