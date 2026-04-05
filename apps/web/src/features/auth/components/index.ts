@@ -5,3 +5,4 @@ export { RegisterForm } from "./RegisterForm";
 export { AuthInitializer } from "./AuthInitializer";
 export { AuthGuard } from "./AuthGuard";
 export { GuestGuard } from "./GuestGuard";
+export { AuthRedirect } from "./AuthRedirect";
