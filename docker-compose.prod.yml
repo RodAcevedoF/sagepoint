@@ -38,7 +38,6 @@ services:
       - "127.0.0.1:3002:3002"
     env_file: .env.staging
     environment:
-      NODE_ENV: development
       PORT: 3002
       REDIS_HOST: shared_redis
       NEO4J_URI: bolt://shared_neo4j:7687
@@ -53,7 +52,6 @@ services:
     restart: unless-stopped
     env_file: .env.staging
     environment:
-      NODE_ENV: development
       REDIS_HOST: shared_redis
       NEO4J_URI: bolt://shared_neo4j:7687
     volumes:
