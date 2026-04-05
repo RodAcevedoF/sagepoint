@@ -199,6 +199,7 @@ jobs:
               sleep 2
             done
             docker compose -f docker-compose.prod.yml exec -T api-staging node scripts/migrate.js up --author ci
+            docker image prune -f
 
   deploy-production:
     needs: build-and-push
@@ -235,3 +236,4 @@ jobs:
               sleep 2
             done
             docker compose -f docker-compose.prod.yml exec -T api node scripts/migrate.js up --author ci
+            docker image prune -f
