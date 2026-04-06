@@ -168,6 +168,9 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/develop'
+    concurrency:
+      group: vps-deploy
+      cancel-in-progress: false
 
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -199,12 +202,15 @@ jobs:
               sleep 2
             done
             docker compose -f docker-compose.prod.yml exec -T api-staging node scripts/migrate.js up --author ci
-            docker image prune -f
+            docker image prune -f || true
 
   deploy-production:
     needs: build-and-push
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' || github.event_name == 'release'
+    concurrency:
+      group: vps-deploy
+      cancel-in-progress: false
 
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -236,4 +242,4 @@ jobs:
               sleep 2
             done
             docker compose -f docker-compose.prod.yml exec -T api node scripts/migrate.js up --author ci
-            docker image prune -f
+            docker image prune -f || true
