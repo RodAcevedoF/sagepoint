@@ -1,5 +1,6 @@
 import type { ICategoryService } from '@/features/category/domain/inbound/category.service';
 import type { ICategoryRepository, ICacheService } from '@sagepoint/domain';
+import type { PrismaClient } from '@sagepoint/database';
 import { CategoryService } from '@/features/category/infra/driver/category.service';
 import { GetCategoriesUseCase } from './app/usecases/get-categories.usecase';
 import { CreateCategoryUseCase } from './app/usecases/create-category.usecase';
@@ -9,7 +10,6 @@ import {
   PrismaCategoryRepository,
   PrismaCategoryRoomRepository,
 } from '@sagepoint/database';
-import { PrismaService } from '@/core/infra/database/prisma.service';
 
 export interface CategoryDependencies {
   categoryService: ICategoryService;
@@ -17,9 +17,9 @@ export interface CategoryDependencies {
 }
 
 export function makeCategoryDependencies(
+  prismaService: PrismaClient,
   cache?: ICacheService,
 ): CategoryDependencies {
-  const prismaService = new PrismaService();
   const categoryRepository = new PrismaCategoryRepository(prismaService);
   const roomRepository = new PrismaCategoryRoomRepository(prismaService);
 

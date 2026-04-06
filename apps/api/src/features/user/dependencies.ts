@@ -1,5 +1,6 @@
 import type { IUserService } from '@/features/user/domain/inbound/user.service';
 import type { IUserRepository, IFileStorage } from '@sagepoint/domain';
+import type { PrismaClient } from '@sagepoint/database';
 import { UserDtoMapper } from './app/dto/user-dto.mapper';
 import { UserService } from '@/features/user/infra/driver/user.service';
 import { CreateUserUseCase } from './app/usecases/create-user.usecase';
@@ -8,7 +9,6 @@ import { UpdateUserUseCase } from './app/usecases/update-user.usecase';
 import { UpdateMeUseCase } from './app/usecases/update-me.usecase';
 import { CompleteOnboardingUseCase } from './app/usecases/complete-onboarding.usecase';
 import { InterestResolverService } from './app/services/interest-resolver.service';
-import { PrismaService } from '@/core/infra/database/prisma.service';
 import {
   PrismaUserRepository,
   PrismaCategoryRepository,
@@ -21,9 +21,9 @@ export interface UserDependencies {
 }
 
 export function makeUserDependencies(
+  prismaService: PrismaClient,
   fileStorage: IFileStorage,
 ): UserDependencies {
-  const prismaService = new PrismaService();
   const userRepository = new PrismaUserRepository(prismaService);
   const categoryRepository = new PrismaCategoryRepository(prismaService);
   const interestResolver = new InterestResolverService(categoryRepository);

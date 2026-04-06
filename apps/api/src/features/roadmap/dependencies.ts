@@ -8,6 +8,7 @@ import type {
   IProgressRepository,
   ICacheService,
 } from '@sagepoint/domain';
+import type { PrismaClient } from '@sagepoint/database';
 import { RoadmapService } from '@/features/roadmap/infra/driver/roadmap.service';
 
 import { GenerateRoadmapUseCase } from '@/features/roadmap/app/usecases/generate-roadmap.usecase';
@@ -34,7 +35,6 @@ import {
   createAiAdapters,
   CachedResourceDiscoveryAdapter,
 } from '@sagepoint/ai';
-import { PrismaService } from '@/core/infra/database/prisma.service';
 import {
   PrismaRoadmapRepository,
   PrismaResourceRepository,
@@ -56,10 +56,10 @@ export interface RoadmapDependencies {
 }
 
 export function makeRoadmapDependencies(
+  prismaService: PrismaClient,
   neo4jService: Neo4jService,
   cacheService?: ICacheService,
 ): RoadmapDependencies {
-  const prismaService = new PrismaService();
   const roadmapRepository = new PrismaRoadmapRepository(prismaService);
   const conceptRepository = new Neo4jConceptRepository(neo4jService);
   const resourceRepository = new PrismaResourceRepository(prismaService);

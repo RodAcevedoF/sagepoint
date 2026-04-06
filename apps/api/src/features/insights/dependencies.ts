@@ -6,8 +6,8 @@ import type {
   ICacheService,
   INewsService,
 } from '@sagepoint/domain';
+import type { PrismaClient } from '@sagepoint/database';
 import { PrismaNewsArticleRepository } from '@sagepoint/database';
-import { PrismaService } from '@/core/infra/database/prisma.service';
 import { GetInsightsUseCase } from './app/usecases/get-insights.usecase';
 
 export interface InsightsDependencies {
@@ -16,13 +16,13 @@ export interface InsightsDependencies {
 }
 
 export function makeInsightsDependencies(
+  prismaService: PrismaClient,
   userRepo: IUserRepository,
   roadmapRepo: IRoadmapRepository,
   categoryRepo: ICategoryRepository,
   cache: ICacheService,
   newsService: INewsService,
 ): InsightsDependencies {
-  const prismaService = new PrismaService();
   const newsArticleRepository = new PrismaNewsArticleRepository(prismaService);
 
   const getInsightsUseCase = new GetInsightsUseCase(

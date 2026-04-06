@@ -43,6 +43,7 @@ import { RedisCacheService } from '@/core/infra/cache/redis-cache.service';
 import { BcryptPasswordHasher } from '@/features/auth/infra/driven/bcrypt-password.hasher';
 import { MockEmailService } from '@/features/auth/infra/driven/mock-email.service';
 import { ResendEmailService } from '@/features/auth/infra/driven/resend-email.service';
+import { PrismaService } from '@/core/infra/database/prisma.service';
 
 export interface AppDependencies {
   roadmap: RoadmapDependencies;
@@ -66,6 +67,9 @@ export function bootstrap(): AppDependencies {
     return dependencies;
   }
 
+  // Shared infrastructure
+  const prismaService = new PrismaService();
+
   const fileStorage: IFileStorage = new GCSStorage({
     projectId: process.env.GCP_PROJECT_ID!,
     bucketName: process.env.GCS_BUCKET_NAME!,
@@ -73,7 +77,7 @@ export function bootstrap(): AppDependencies {
   });
 
   // User dependencies
-  const userDeps = makeUserDependencies(fileStorage);
+  const userDeps = makeUserDependencies(prismaService, fileStorage);
 
   // Initialize Neo4j
   const neo4jService = new Neo4jService({
@@ -95,25 +99,31 @@ export function bootstrap(): AppDependencies {
     apiKey: process.env.NEWSDATAIO_API_KEY ?? '',
   });
 
-  const roadmapDeps = makeRoadmapDependencies(neo4jService, cacheService);
-  const categoryDeps = makeCategoryDependencies(cacheService);
+  const roadmapDeps = makeRoadmapDependencies(
+    prismaService,
+    neo4jService,
+    cacheService,
+  );
+  const categoryDeps = makeCategoryDependencies(prismaService, cacheService);
 
   dependencies = {
     roadmap: roadmapDeps,
-    document: makeDocumentDependencies(fileStorage),
+    document: makeDocumentDependencies(prismaService, fileStorage),
     user: userDeps,
     storage: makeStorageDependencies(fileStorage),
     category: categoryDeps,
-    admin: makeAdminDependencies(),
+    admin: makeAdminDependencies(prismaService),
     insights: makeInsightsDependencies(
+      prismaService,
       userDeps.userRepository,
       roadmapDeps.roadmapRepository,
       categoryDeps.categoryRepository,
       cacheService,
       newsService,
     ),
-    social: makeSocialDependencies(roadmapDeps.roadmapService),
+    social: makeSocialDependencies(prismaService, roadmapDeps.roadmapService),
     invitation: makeInvitationDependencies(
+      prismaService,
       userDeps.userRepository,
       process.env.EMAIL_PROVIDER === 'resend'
         ? new ResendEmailService({

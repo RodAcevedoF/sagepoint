@@ -1,6 +1,6 @@
 import type { IInvitationRepository, IUserRepository } from '@sagepoint/domain';
+import type { PrismaClient } from '@sagepoint/database';
 import { PrismaInvitationRepository } from '@sagepoint/database';
-import { PrismaService } from '@/core/infra/database/prisma.service';
 import type { IEmailService } from '@/features/auth/domain/outbound/email.service.port';
 import type { IPasswordHasher } from '@/features/auth/domain/outbound/password-hasher.port';
 import { AcceptInvitationUseCase } from './app/usecases/accept-invitation.usecase';
@@ -21,11 +21,11 @@ export interface InvitationDependencies {
 }
 
 export function makeInvitationDependencies(
+  prismaService: PrismaClient,
   userRepo: IUserRepository,
   emailService: IEmailService,
   passwordHasher: IPasswordHasher,
 ): InvitationDependencies {
-  const prismaService = new PrismaService();
   const invitationRepository = new PrismaInvitationRepository(prismaService);
 
   return {

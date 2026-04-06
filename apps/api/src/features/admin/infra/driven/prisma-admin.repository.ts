@@ -1,5 +1,4 @@
-import { Prisma } from '@sagepoint/database';
-import { PrismaService } from '@/core/infra/database/prisma.service';
+import { Prisma, type PrismaClient } from '@sagepoint/database';
 import type {
   IAdminRepository,
   AdminUserView,
@@ -20,7 +19,7 @@ const USER_SELECT = {
 } as const;
 
 export class PrismaAdminRepository implements IAdminRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaClient) {}
 
   // --- Stats ---
 

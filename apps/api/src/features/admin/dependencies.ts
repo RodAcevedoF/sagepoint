@@ -2,7 +2,7 @@ import { Queue } from 'bullmq';
 import type { IAdminService } from './domain/inbound/admin.service.port';
 import type { IAdminRepository } from './domain/outbound/admin.repository.port';
 import type { IQueueStatsProvider } from './domain/outbound/queue-stats.port';
-import { PrismaService } from '@/core/infra/database/prisma.service';
+import type { PrismaClient } from '@sagepoint/database';
 import { PrismaAdminRepository } from './infra/driven/prisma-admin.repository';
 import { BullMQQueueStatsProvider } from './infra/driven/bullmq-queue-stats.provider';
 import { AdminService } from './infra/driver/admin.service';
@@ -24,8 +24,9 @@ export interface AdminDependencies {
   queueStatsProvider: IQueueStatsProvider;
 }
 
-export function makeAdminDependencies(): AdminDependencies {
-  const prismaService = new PrismaService();
+export function makeAdminDependencies(
+  prismaService: PrismaClient,
+): AdminDependencies {
   const adminRepository = new PrismaAdminRepository(prismaService);
 
   const redisConnection = {

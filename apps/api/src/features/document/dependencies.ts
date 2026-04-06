@@ -7,6 +7,7 @@ import type {
   IQuizAttemptRepository,
   IFileStorage,
 } from '@sagepoint/domain';
+import type { PrismaClient } from '@sagepoint/database';
 import { DocumentService } from '@/features/document/infra/driver/document.service';
 import { UploadDocumentUseCase } from './app/usecases/upload-document.usecase';
 import { GetDocumentUseCase } from './app/usecases/get-document.usecase';
@@ -19,7 +20,6 @@ import { GetQuizAttemptsUseCase } from './app/usecases/get-quiz-attempts.usecase
 import { DeleteDocumentUseCase } from './app/usecases/delete-document.usecase';
 import { BullMqDocumentProcessingQueue } from '@/core/infra/queue/bull-mq.queue';
 import { Queue } from 'bullmq';
-import { PrismaService } from '@/core/infra/database/prisma.service';
 import {
   PrismaDocumentRepository,
   PrismaDocumentSummaryRepository,
@@ -38,9 +38,9 @@ export interface DocumentDependencies {
 }
 
 export function makeDocumentDependencies(
+  prismaService: PrismaClient,
   fileStorage: IFileStorage,
 ): DocumentDependencies {
-  const prismaService = new PrismaService();
   const documentRepository = new PrismaDocumentRepository(prismaService);
   const documentSummaryRepository = new PrismaDocumentSummaryRepository(
     prismaService,
