@@ -3,7 +3,12 @@ import {
   IDocumentRepository,
   IFileStorage,
   IDocumentProcessingQueue,
+  IUserRepository,
+  ResourceLimits,
+  DocumentLimitExceededError,
+  UserRole,
 } from '@sagepoint/domain';
+import type { IResourceLimitsRepository } from '@sagepoint/domain';
 import { randomUUID } from 'crypto';
 
 export interface UploadDocumentCommand {
@@ -19,9 +24,25 @@ export class UploadDocumentUseCase {
     private readonly documentRepository: IDocumentRepository,
     private readonly fileStorage: IFileStorage,
     private readonly processingQueue: IDocumentProcessingQueue,
+    private readonly resourceLimitsRepository: IResourceLimitsRepository,
+    private readonly userRepository: IUserRepository,
   ) {}
 
   async execute(command: UploadDocumentCommand): Promise<Document> {
+    // Enforce document limit (admins bypass)
+    const user = await this.userRepository.findById(command.userId);
+    if (user && user.role !== UserRole.ADMIN) {
+      const limits =
+        (await this.resourceLimitsRepository.findByUserId(command.userId)) ??
+        ResourceLimits.defaults(command.userId);
+      const currentCount = await this.documentRepository.countByUserId(
+        command.userId,
+      );
+      if (!limits.isDocumentAllowed(currentCount)) {
+        throw new DocumentLimitExceededError(limits.maxDocuments!);
+      }
+    }
+
     const id = randomUUID();
 
     // 1. Upload file to storage

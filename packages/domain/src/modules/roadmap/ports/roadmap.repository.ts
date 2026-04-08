@@ -37,4 +37,5 @@ export interface IRoadmapRepository {
     toConceptId: string,
     relationType: "DEPENDS_ON" | "NEXT_STEP",
   ): Promise<void>;
+  countByUserId(userId: string): Promise<number>;
 }

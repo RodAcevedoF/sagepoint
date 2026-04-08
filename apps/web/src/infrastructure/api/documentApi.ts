@@ -130,7 +130,7 @@ export const documentApi = baseApi.injectEndpoints({
         method: "POST",
         body: formData,
       }),
-      invalidatesTags: [{ type: "Document", id: "LIST" }],
+      invalidatesTags: [{ type: "Document", id: "LIST" }, "User"],
     }),
     getDocumentById: builder.query<DocumentDetailDto, string>({
       query: (id) => `/documents/${id}`,
@@ -141,7 +141,7 @@ export const documentApi = baseApi.injectEndpoints({
         url: `/documents/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: [{ type: "Document", id: "LIST" }],
+      invalidatesTags: [{ type: "Document", id: "LIST" }, "User"],
     }),
     getDocumentSummary: builder.query<DocumentSummaryDto | null, string>({
       query: (id) => `/documents/${id}/summary`,

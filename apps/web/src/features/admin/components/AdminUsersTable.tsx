@@ -14,20 +14,8 @@ import {
   Box,
   alpha,
   IconButton,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
-  Snackbar,
-  Alert,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-  Button,
 } from "@mui/material";
-import { Card } from "@/common/components";
+import { Card, ConfirmDialog, Loader, ErrorState } from "@/common/components";
 import { palette } from "@/common/theme";
 import { motion } from "framer-motion";
 import {
@@ -37,72 +25,40 @@ import {
   Calendar,
   CheckCircle2,
   MoreVertical,
-  Ban,
-  ShieldCheck,
-  ShieldOff,
-  UserCheck,
   Trash2,
 } from "lucide-react";
 import {
   useAdminUsersQuery,
   useUpdateAdminUserMutation,
 } from "@/application/admin";
-import { useDeleteAdminUserMutation } from "@/infrastructure/api/adminApi";
-import { Loader, ErrorState } from "@/common/components";
-
-function formatRelativeDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) return "Today";
-  if (diffDays === 1) return "Yesterday";
-  if (diffDays < 7) return `${diffDays} days ago`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-  const options: Intl.DateTimeFormatOptions = {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  };
-  return date.toLocaleDateString(undefined, options);
-}
-
-const styles = {
-  headerCell: {
-    color: palette.text.secondary,
-    fontWeight: 700,
-    fontSize: "0.85rem",
-    textTransform: "uppercase",
-    letterSpacing: "1px",
-    py: 2,
-    borderBottom: `1px solid ${alpha(palette.divider, 0.1)}`,
-  },
-  row: {
-    "&:hover": {
-      bgcolor: alpha(palette.primary.main, 0.04),
-    },
-    transition: "background-color 0.2s ease",
-  },
-  nameWrapper: {
-    display: "flex",
-    alignItems: "center",
-    gap: 1.5,
-  },
-};
+import {
+  useDeleteAdminUserMutation,
+  useUpdateUserLimitsMutation,
+} from "@/infrastructure/api/adminApi";
+import { adminTableStyles, formatRelativeDate } from "./adminTable.styles";
+import { StatusChip } from "./StatusChip";
+import { useAdminSnackbar } from "./useAdminSnackbar";
+import { UserActionsMenu } from "./UserActionsMenu";
+import { UserLimitsDialog } from "./UserLimitsDialog";
+import {
+  HEADERS,
+  activeColors,
+  getAvatarSx,
+  roleColors,
+  usersTableStyles,
+} from "./AdminUsersTable.styles";
 
 export function AdminUsersTable() {
   const { data: users, isLoading, isError } = useAdminUsersQuery();
   const [updateUser] = useUpdateAdminUserMutation();
   const [deleteUser] = useDeleteAdminUserMutation();
+  const [updateLimits] = useUpdateUserLimitsMutation();
+  const { show, SnackbarAlert } = useAdminSnackbar();
+
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean;
-    message: string;
-    severity: "success" | "error";
-  }>({ open: false, message: "", severity: "success" });
+  const [limitsDialogOpen, setLimitsDialogOpen] = useState(false);
 
   const selectedUser = users?.find((u) => u.id === selectedUserId);
 
@@ -134,28 +90,19 @@ export function AdminUsersTable() {
         id: selectedUser.id,
         data: { isActive: !selectedUser.isActive },
       }).unwrap();
-      setSnackbar({
-        open: true,
-        message: `User ${selectedUser.isActive ? "banned" : "unbanned"} successfully`,
-        severity: "success",
-      });
+      show(
+        `User ${selectedUser.isActive ? "banned" : "unbanned"} successfully`,
+        "success",
+      );
     } catch {
-      setSnackbar({
-        open: true,
-        message: `Failed to ${action} user`,
-        severity: "error",
-      });
+      show(`Failed to ${action} user`, "error");
     }
   };
 
   const handleToggleRole = async () => {
     if (!selectedUser) return;
     const newRole = selectedUser.role === "ADMIN" ? "USER" : "ADMIN";
-    if (
-      !window.confirm(
-        `Are you sure you want to change ${selectedUser.name}'s role to ${newRole}?`,
-      )
-    )
+    if (!window.confirm(`Change ${selectedUser.name}'s role to ${newRole}?`))
       return;
     handleMenuClose();
     try {
@@ -163,23 +110,10 @@ export function AdminUsersTable() {
         id: selectedUser.id,
         data: { role: newRole },
       }).unwrap();
-      setSnackbar({
-        open: true,
-        message: `Role changed to ${newRole} successfully`,
-        severity: "success",
-      });
+      show(`Role changed to ${newRole} successfully`, "success");
     } catch {
-      setSnackbar({
-        open: true,
-        message: "Failed to change role",
-        severity: "error",
-      });
+      show("Failed to change role", "error");
     }
-  };
-
-  const handleDeleteClick = () => {
-    handleMenuClose();
-    setDeleteDialogOpen(true);
   };
 
   const handleDeleteConfirm = async () => {
@@ -187,17 +121,24 @@ export function AdminUsersTable() {
     setDeleteDialogOpen(false);
     try {
       await deleteUser(selectedUserId).unwrap();
-      setSnackbar({
-        open: true,
-        message: "User deleted permanently",
-        severity: "success",
-      });
+      show("User deleted permanently", "success");
     } catch {
-      setSnackbar({
-        open: true,
-        message: "Failed to delete user",
-        severity: "error",
-      });
+      show("Failed to delete user", "error");
+    }
+    setSelectedUserId(null);
+  };
+
+  const handleLimitsConfirm = async (data: {
+    maxDocuments: number | null;
+    maxRoadmaps: number | null;
+  }) => {
+    if (!selectedUserId) return;
+    setLimitsDialogOpen(false);
+    try {
+      await updateLimits({ id: selectedUserId, data }).unwrap();
+      show("Resource limits updated", "success");
+    } catch {
+      show("Failed to update limits", "error");
     }
     setSelectedUserId(null);
   };
@@ -218,12 +159,7 @@ export function AdminUsersTable() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Card
-          variant="glass"
-          sx={{
-            borderTop: `1px solid ${alpha(palette.primary.main, 0.2)}`,
-          }}
-        >
+        <Card variant="glass" sx={usersTableStyles.card}>
           <Card.Header>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <User size={20} color={palette.primary.main} />
@@ -236,15 +172,7 @@ export function AdminUsersTable() {
               <Chip
                 label={`${users.length} total`}
                 size="small"
-                sx={{
-                  ml: 1,
-                  height: 20,
-                  fontSize: "0.85rem",
-                  fontWeight: 700,
-                  bgcolor: alpha(palette.success.main, 0.1),
-                  color: palette.success.light,
-                  border: "none",
-                }}
+                sx={usersTableStyles.countChip}
               />
             </Box>
           </Card.Header>
@@ -253,36 +181,25 @@ export function AdminUsersTable() {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={styles.headerCell}>Identity</TableCell>
-                    <TableCell sx={styles.headerCell}>Auth Detail</TableCell>
-                    <TableCell sx={styles.headerCell}>Permission</TableCell>
-                    <TableCell sx={styles.headerCell}>Status</TableCell>
-                    <TableCell sx={styles.headerCell}>Registration</TableCell>
-                    <TableCell sx={styles.headerCell}>Actions</TableCell>
+                    {HEADERS.map((h) => (
+                      <TableCell key={h} sx={adminTableStyles.headerCell}>
+                        {h}
+                      </TableCell>
+                    ))}
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {users.map((user) => (
-                    <TableRow key={user.id} sx={styles.row}>
+                    <TableRow key={user.id} sx={adminTableStyles.row}>
                       <TableCell>
-                        <Box sx={styles.nameWrapper}>
-                          <Avatar
-                            sx={{
-                              width: 36,
-                              height: 36,
-                              fontSize: "0.875rem",
-                              fontWeight: 700,
-                              bgcolor:
-                                user.role === "ADMIN"
-                                  ? alpha(palette.error.main, 0.2)
-                                  : alpha(palette.primary.main, 0.2),
-                              color:
-                                user.role === "ADMIN"
-                                  ? palette.error.light
-                                  : palette.primary.light,
-                              border: `1px solid ${alpha(user.role === "ADMIN" ? palette.error.main : palette.primary.main, 0.2)}`,
-                            }}
-                          >
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1.5,
+                          }}
+                        >
+                          <Avatar sx={getAvatarSx(user.role)}>
                             {user.name.charAt(0)}
                           </Avatar>
                           <Box>
@@ -294,9 +211,7 @@ export function AdminUsersTable() {
                             </Typography>
                             <Typography
                               variant="caption"
-                              sx={{
-                                color: palette.text.secondary,
-                              }}
+                              sx={{ color: palette.text.secondary }}
                             >
                               ID: {user.id.slice(0, 8)}...
                             </Typography>
@@ -317,39 +232,11 @@ export function AdminUsersTable() {
                           />
                           <Typography
                             variant="body2"
-                            sx={{
-                              color: palette.text.secondary,
-                            }}
+                            sx={{ color: palette.text.secondary }}
                           >
                             {user.email}
                           </Typography>
                         </Box>
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          icon={
-                            user.role === "ADMIN" ? (
-                              <Shield size={12} />
-                            ) : undefined
-                          }
-                          label={user.role}
-                          size="small"
-                          sx={{
-                            fontWeight: 700,
-                            fontSize: "0.8rem",
-                            letterSpacing: "0.5px",
-                            borderRadius: "6px",
-                            bgcolor:
-                              user.role === "ADMIN"
-                                ? alpha(palette.error.main, 0.1)
-                                : alpha(palette.text.secondary, 0.1),
-                            color:
-                              user.role === "ADMIN"
-                                ? palette.error.light
-                                : palette.text.secondary,
-                            border: "none",
-                          }}
-                        />
                       </TableCell>
                       <TableCell>
                         <Box
@@ -359,21 +246,23 @@ export function AdminUsersTable() {
                             gap: 1,
                           }}
                         >
-                          <Chip
+                          {user.role === "ADMIN" && (
+                            <Shield size={12} color={palette.error.light} />
+                          )}
+                          <StatusChip label={user.role} colorMap={roleColors} />
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                          }}
+                        >
+                          <StatusChip
                             label={user.isActive ? "Active" : "Banned"}
-                            size="small"
-                            sx={{
-                              fontWeight: 700,
-                              fontSize: "0.8rem",
-                              borderRadius: "6px",
-                              bgcolor: user.isActive
-                                ? alpha(palette.success.main, 0.1)
-                                : alpha(palette.error.main, 0.1),
-                              color: user.isActive
-                                ? palette.success.light
-                                : palette.error.light,
-                              border: "none",
-                            }}
+                            colorMap={activeColors}
                           />
                           {user.isVerified && (
                             <CheckCircle2 size={14} color={palette.info.main} />
@@ -394,9 +283,7 @@ export function AdminUsersTable() {
                           />
                           <Typography
                             variant="body2"
-                            sx={{
-                              color: palette.text.secondary,
-                            }}
+                            sx={{ color: palette.text.secondary }}
                           >
                             {formatRelativeDate(user.createdAt)}
                           </Typography>
@@ -419,110 +306,52 @@ export function AdminUsersTable() {
         </Card>
       </motion.div>
 
-      <Menu
+      <UserActionsMenu
         anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
+        user={selectedUser}
         onClose={handleMenuClose}
-        slotProps={{
-          paper: {
-            sx: {
-              bgcolor: palette.background.paper,
-              border: `1px solid ${alpha(palette.divider, 0.1)}`,
-            },
-          },
+        onBan={handleToggleBan}
+        onToggleRole={handleToggleRole}
+        onEditLimits={() => {
+          handleMenuClose();
+          setLimitsDialogOpen(true);
         }}
-      >
-        <MenuItem onClick={handleToggleBan}>
-          <ListItemIcon>
-            {selectedUser?.isActive ? (
-              <Ban size={16} color={palette.error.main} />
-            ) : (
-              <UserCheck size={16} color={palette.success.main} />
-            )}
-          </ListItemIcon>
-          <ListItemText>
-            {selectedUser?.isActive ? "Ban User" : "Unban User"}
-          </ListItemText>
-        </MenuItem>
-        <MenuItem onClick={handleToggleRole}>
-          <ListItemIcon>
-            {selectedUser?.role === "ADMIN" ? (
-              <ShieldOff size={16} color={palette.warning.main} />
-            ) : (
-              <ShieldCheck size={16} color={palette.info.main} />
-            )}
-          </ListItemIcon>
-          <ListItemText>
-            {selectedUser?.role === "ADMIN" ? "Revoke Admin" : "Make Admin"}
-          </ListItemText>
-        </MenuItem>
-        <MenuItem
-          onClick={handleDeleteClick}
-          sx={{ color: palette.error.light }}
-        >
-          <ListItemIcon>
-            <Trash2 size={16} color={palette.error.main} />
-          </ListItemIcon>
-          <ListItemText>Delete User</ListItemText>
-        </MenuItem>
-      </Menu>
+        onDelete={() => {
+          handleMenuClose();
+          setDeleteDialogOpen(true);
+        }}
+      />
 
-      <Dialog
+      <ConfirmDialog
         open={deleteDialogOpen}
-        onClose={() => {
+        title="Delete User Permanently"
+        description={
+          <>
+            This will permanently delete <strong>{selectedUser?.name}</strong> (
+            {selectedUser?.email}) and all their associated data. This action
+            cannot be undone.
+          </>
+        }
+        confirmLabel="Delete Permanently"
+        confirmIcon={Trash2}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => {
           setDeleteDialogOpen(false);
           setSelectedUserId(null);
         }}
-        slotProps={{
-          paper: {
-            sx: {
-              bgcolor: palette.background.paper,
-              border: `1px solid ${alpha(palette.error.main, 0.2)}`,
-              borderRadius: 3,
-            },
-          },
-        }}
-      >
-        <DialogTitle sx={{ fontWeight: 700 }}>
-          Delete User Permanently
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText sx={{ color: palette.text.secondary }}>
-            This will permanently delete <strong>{selectedUser?.name}</strong> (
-            {selectedUser?.email}) and all their associated data including
-            documents, roadmaps, and progress. This action cannot be undone.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button
-            onClick={() => {
-              setDeleteDialogOpen(false);
-              setSelectedUserId(null);
-            }}
-            sx={{ color: palette.text.secondary }}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleDeleteConfirm}
-            variant="contained"
-            color="error"
-            startIcon={<Trash2 size={16} />}
-          >
-            Delete Permanently
-          </Button>
-        </DialogActions>
-      </Dialog>
+      />
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
-      >
-        <Alert severity={snackbar.severity} variant="filled">
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      <UserLimitsDialog
+        open={limitsDialogOpen}
+        user={selectedUser}
+        onClose={() => {
+          setLimitsDialogOpen(false);
+          setSelectedUserId(null);
+        }}
+        onConfirm={handleLimitsConfirm}
+      />
+
+      {SnackbarAlert}
     </>
   );
 }

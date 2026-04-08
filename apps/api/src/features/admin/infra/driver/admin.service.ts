@@ -10,6 +10,7 @@ import type {
   PaginatedResult,
 } from '../../domain/outbound/admin.repository.port';
 import type { QueueStats } from '../../domain/outbound/queue-stats.port';
+import type { ResourceLimits } from '@sagepoint/domain';
 import { GetPlatformStatsUseCase } from '../../app/usecases/get-platform-stats.usecase';
 import { GetQueueStatsUseCase } from '../../app/usecases/get-queue-stats.usecase';
 import { GetAnalyticsUseCase } from '../../app/usecases/get-analytics.usecase';
@@ -21,6 +22,8 @@ import { DeleteRoadmapUseCase } from '../../app/usecases/delete-roadmap.usecase'
 import { ToggleRoadmapFeaturedUseCase } from '../../app/usecases/toggle-roadmap-featured.usecase';
 import { ListDocumentsUseCase } from '../../app/usecases/list-documents.usecase';
 import { DeleteDocumentUseCase } from '../../app/usecases/delete-document.usecase';
+import { GetUserLimitsUseCase } from '../../app/usecases/get-user-limits.usecase';
+import { UpdateUserLimitsUseCase } from '../../app/usecases/update-user-limits.usecase';
 
 export class AdminService implements IAdminService {
   constructor(
@@ -35,6 +38,8 @@ export class AdminService implements IAdminService {
     private readonly toggleRoadmapFeaturedUseCase: ToggleRoadmapFeaturedUseCase,
     private readonly listDocumentsUseCase: ListDocumentsUseCase,
     private readonly deleteDocumentUseCase: DeleteDocumentUseCase,
+    private readonly getUserLimitsUseCase: GetUserLimitsUseCase,
+    private readonly updateUserLimitsUseCase: UpdateUserLimitsUseCase,
   ) {}
 
   async getStats(): Promise<PlatformStats> {
@@ -97,5 +102,16 @@ export class AdminService implements IAdminService {
 
   async getAnalytics(days: number): Promise<AnalyticsResult> {
     return this.getAnalyticsUseCase.execute(days);
+  }
+
+  async getUserLimits(userId: string): Promise<ResourceLimits> {
+    return this.getUserLimitsUseCase.execute(userId);
+  }
+
+  async updateUserLimits(
+    userId: string,
+    data: { maxDocuments?: number | null; maxRoadmaps?: number | null },
+  ): Promise<ResourceLimits> {
+    return this.updateUserLimitsUseCase.execute({ userId, ...data });
   }
 }

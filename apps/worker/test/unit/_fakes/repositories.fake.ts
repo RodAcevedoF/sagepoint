@@ -82,6 +82,10 @@ export class FakeDocumentRepository implements IDocumentRepository {
   delete(_id: string): Promise<void> {
     return Promise.resolve();
   }
+
+  countByUserId(_userId: string): Promise<number> {
+    return Promise.resolve(0);
+  }
 }
 
 // ─── DocumentSummary ──────────────────────────────────────────────────────────
@@ -281,6 +285,10 @@ export class FakeRoadmapRepository implements IRoadmapRepository {
     _relationType: "DEPENDS_ON" | "NEXT_STEP",
   ): Promise<void> {
     return Promise.resolve();
+  }
+
+  countByUserId(_userId: string): Promise<number> {
+    return Promise.resolve(0);
   }
 }
 

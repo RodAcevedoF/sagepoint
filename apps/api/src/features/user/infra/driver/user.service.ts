@@ -3,6 +3,10 @@ import { GetUserUseCase } from '@/features/user/app/usecases/get-user.usecase';
 import { UpdateUserUseCase } from '@/features/user/app/usecases/update-user.usecase';
 import { UpdateMeUseCase } from '@/features/user/app/usecases/update-me.usecase';
 import { CompleteOnboardingUseCase } from '@/features/user/app/usecases/complete-onboarding.usecase';
+import {
+  GetResourceQuotaUseCase,
+  type ResourceQuota,
+} from '@/features/user/app/usecases/get-resource-quota.usecase';
 import { User } from '@sagepoint/domain';
 import {
   CreateUserInput,
@@ -18,6 +22,7 @@ export class UserService implements IUserService {
     private readonly updateUserUseCase: UpdateUserUseCase,
     private readonly updateMeUseCase: UpdateMeUseCase,
     private readonly completeOnboardingUseCase: CompleteOnboardingUseCase,
+    private readonly getResourceQuotaUseCase: GetResourceQuotaUseCase,
   ) {}
 
   async create(input: CreateUserInput): Promise<User> {
@@ -52,5 +57,9 @@ export class UserService implements IUserService {
     input: OnboardingInput,
   ): Promise<void> {
     await this.completeOnboardingUseCase.execute(userId, input);
+  }
+
+  async getQuota(userId: string): Promise<ResourceQuota> {
+    return this.getResourceQuotaUseCase.execute(userId);
   }
 }

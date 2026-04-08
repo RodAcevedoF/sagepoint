@@ -6,9 +6,14 @@ import {
   IRoadmapGenerationService,
   IResourceDiscoveryService,
   IResourceRepository,
+  IUserRepository,
   Resource,
+  ResourceLimits,
+  RoadmapLimitExceededError,
+  UserRole,
   UserContext,
 } from '@sagepoint/domain';
+import type { IResourceLimitsRepository } from '@sagepoint/domain';
 
 export interface GenerateRoadmapCommand {
   documentId: string;
@@ -23,11 +28,17 @@ export class GenerateRoadmapUseCase {
     private readonly roadmapRepository: IRoadmapRepository,
     private readonly conceptRepository: IConceptRepository,
     private readonly roadmapGenerationService: IRoadmapGenerationService,
-    private readonly resourceDiscoveryService?: IResourceDiscoveryService,
-    private readonly resourceRepository?: IResourceRepository,
+    private readonly resourceDiscoveryService:
+      | IResourceDiscoveryService
+      | undefined,
+    private readonly resourceRepository: IResourceRepository | undefined,
+    private readonly resourceLimitsRepository: IResourceLimitsRepository,
+    private readonly userRepository: IUserRepository,
   ) {}
 
   async execute(command: GenerateRoadmapCommand): Promise<Roadmap> {
+    await this.enforceRoadmapLimit(command.userId);
+
     const shouldDiscoverResources = command.discoverResources !== false;
 
     // 1. Fetch concepts and relationships from Neo4j
@@ -143,6 +154,21 @@ export class GenerateRoadmapUseCase {
     }
 
     return savedRoadmap;
+  }
+
+  private async enforceRoadmapLimit(userId: string | undefined): Promise<void> {
+    if (!userId) return;
+    const user = await this.userRepository.findById(userId);
+    if (!user || user.role === UserRole.ADMIN) return;
+
+    const limits =
+      (await this.resourceLimitsRepository.findByUserId(userId)) ??
+      ResourceLimits.defaults(userId);
+    const currentCount = await this.roadmapRepository.countByUserId(userId);
+
+    if (!limits.isRoadmapAllowed(currentCount)) {
+      throw new RoadmapLimitExceededError(limits.maxRoadmaps!);
+    }
   }
 
   private async discoverAndSaveResources(

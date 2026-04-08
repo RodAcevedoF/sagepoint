@@ -22,6 +22,7 @@ import {
   GetAdminRoadmapsDto,
   GetAdminDocumentsDto,
   GetAnalyticsDto,
+  UpdateUserLimitsDto,
 } from './dto';
 
 @Controller('admin')
@@ -85,5 +86,18 @@ export class AdminController {
   @Get('analytics')
   async getAnalytics(@Query() dto: GetAnalyticsDto) {
     return this.adminService.getAnalytics(dto.days ?? 30);
+  }
+
+  @Get('users/:id/limits')
+  async getUserLimits(@Param('id') id: string) {
+    return this.adminService.getUserLimits(id);
+  }
+
+  @Patch('users/:id/limits')
+  async updateUserLimits(
+    @Param('id') id: string,
+    @Body() dto: UpdateUserLimitsDto,
+  ) {
+    return this.adminService.updateUserLimits(id, dto);
   }
 }

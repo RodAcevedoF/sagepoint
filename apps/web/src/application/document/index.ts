@@ -5,7 +5,10 @@ export { useDocumentQuizzesQuery } from "./queries/get-document-quizzes.query";
 export { useQuizQuestionsQuery } from "./queries/get-quiz-questions.query";
 
 // Commands
-export { useUploadDocumentCommand } from "./commands/upload-document.command";
+export {
+  useUploadDocumentCommand,
+  DocumentLimitError,
+} from "./commands/upload-document.command";
 export { useDeleteDocumentCommand } from "./commands/delete-document.command";
 export { useSubmitQuizAttemptCommand } from "./commands/submit-quiz-attempt.command";
 export { useWatchDocumentProcessingCommand } from "./commands/watch-document-processing.command";

@@ -1,4 +1,5 @@
 import { User, UserRole } from '@sagepoint/domain';
+import type { ResourceQuota } from '@/features/user/app/usecases/get-resource-quota.usecase';
 export const USER_SERVICE = Symbol('USER_SERVICE');
 
 export interface CreateUserInput {
@@ -31,4 +32,5 @@ export interface IUserService {
   getByGoogleId(googleId: string): Promise<User | null>;
   updateProfile(userId: string, input: UpdateProfileInput): Promise<User>;
   completeOnboarding(userId: string, input: OnboardingInput): Promise<void>;
+  getQuota(userId: string): Promise<ResourceQuota>;
 }

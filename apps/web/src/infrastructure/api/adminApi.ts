@@ -106,6 +106,12 @@ export interface DirectUserDto {
   role: string;
 }
 
+export interface UserResourceLimitsDto {
+  userId: string;
+  maxDocuments: number | null;
+  maxRoadmaps: number | null;
+}
+
 export const adminApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getAdminStats: builder.query<AdminStatsDto, void>({
@@ -223,6 +229,24 @@ export const adminApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["AdminUsers", "AdminStats"],
     }),
+    getUserLimits: builder.query<UserResourceLimitsDto, string>({
+      query: (id) => `/admin/users/${id}/limits`,
+      providesTags: ["AdminUsers"],
+    }),
+    updateUserLimits: builder.mutation<
+      UserResourceLimitsDto,
+      {
+        id: string;
+        data: { maxDocuments?: number | null; maxRoadmaps?: number | null };
+      }
+    >({
+      query: ({ id, data }) => ({
+        url: `/admin/users/${id}/limits`,
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: ["AdminUsers"],
+    }),
   }),
 });
 
@@ -243,4 +267,6 @@ export const {
   useRevokeInvitationMutation,
   useCreateUserDirectMutation,
   useDeleteAdminUserMutation,
+  useGetUserLimitsQuery,
+  useUpdateUserLimitsMutation,
 } = adminApi;
