@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Box,
   Button,
@@ -51,14 +51,23 @@ export function UserLimitsDialog({
 }: UserLimitsDialogProps) {
   const [form, setForm] = useState<LimitsForm>(DEFAULT_FORM);
 
-  useEffect(() => {
-    if (open) setForm(DEFAULT_FORM);
-  }, [open]);
+  const handleClose = () => {
+    onClose();
+    setForm(DEFAULT_FORM);
+  };
+
+  const handleConfirm = (data: {
+    maxDocuments: number | null;
+    maxRoadmaps: number | null;
+  }) => {
+    onConfirm(data);
+    setForm(DEFAULT_FORM);
+  };
 
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={handleClose}
       slotProps={{
         paper: {
           sx: {
@@ -143,12 +152,12 @@ export function UserLimitsDialog({
         </Stack>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={onClose} sx={{ color: palette.text.secondary }}>
+        <Button onClick={handleClose} sx={{ color: palette.text.secondary }}>
           Cancel
         </Button>
         <Button
           onClick={() =>
-            onConfirm({
+            handleConfirm({
               maxDocuments: form.unlimitedDocs ? null : form.maxDocuments,
               maxRoadmaps: form.unlimitedRoadmaps ? null : form.maxRoadmaps,
             })
