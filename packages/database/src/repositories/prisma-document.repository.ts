@@ -123,6 +123,10 @@ export class PrismaDocumentRepository implements IDocumentRepository {
     await this.prisma.document.delete({ where: { id } });
   }
 
+  async countByUserId(userId: string): Promise<number> {
+    return this.prisma.document.count({ where: { userId } });
+  }
+
   private mapToDomain(data: PrismaDocument): Document {
     return new Document(
       data.id,

@@ -12,6 +12,7 @@ import type {
   IDocumentSummaryRepository,
   IConceptRepository,
   IInvitationRepository,
+  IResourceLimitsRepository,
   IFileStorage,
   IDocumentProcessingQueue,
   ICacheService,
@@ -43,6 +44,7 @@ import {
   Invitation,
   InvitationStatus,
   UserRole,
+  ResourceLimits,
 } from '@sagepoint/domain';
 import { RoadmapVisibility } from '@sagepoint/domain';
 import type { ITokenStore } from '../../../src/features/auth/domain/outbound/token-store.port';
@@ -90,6 +92,27 @@ export class FakeUserRepository implements IUserRepository {
 }
 
 // ─── Category ────────────────────────────────────────────────────────────────
+
+// ─── ResourceLimits ─────────────────────────────────────────────────────────
+
+export class FakeResourceLimitsRepository implements IResourceLimitsRepository {
+  private limits = new Map<string, ResourceLimits>();
+
+  seed(limits: ResourceLimits) {
+    this.limits.set(limits.userId, limits);
+  }
+
+  findByUserId(userId: string): Promise<ResourceLimits | null> {
+    return Promise.resolve(this.limits.get(userId) ?? null);
+  }
+
+  save(limits: ResourceLimits): Promise<void> {
+    this.limits.set(limits.userId, limits);
+    return Promise.resolve();
+  }
+}
+
+// ─── Category ───────────────────────────────────────────────────────────────
 
 export class FakeCategoryRepository implements ICategoryRepository {
   private categories: Category[] = [];
@@ -186,6 +209,12 @@ export class FakeDocumentRepository implements IDocumentRepository {
     return Promise.resolve();
   }
 
+  countByUserId(userId: string): Promise<number> {
+    return Promise.resolve(
+      this.documents.filter((d) => d.userId === userId).length,
+    );
+  }
+
   getAll(): Document[] {
     return [...this.documents];
   }
@@ -273,6 +302,12 @@ export class FakeRoadmapRepository implements IRoadmapRepository {
   }
   saveConceptRelation(): Promise<void> {
     return Promise.resolve();
+  }
+
+  countByUserId(userId: string): Promise<number> {
+    return Promise.resolve(
+      this.roadmaps.filter((r) => r.userId === userId).length,
+    );
   }
 }
 
@@ -961,6 +996,13 @@ export class FakeUserService implements IUserService {
 
   completeOnboarding(): Promise<void> {
     return Promise.resolve();
+  }
+
+  getQuota() {
+    return Promise.resolve({
+      documents: { used: 0, max: 5, remaining: 5 },
+      roadmaps: { used: 0, max: 3, remaining: 3 },
+    });
   }
 
   getById(id: string): User | undefined {

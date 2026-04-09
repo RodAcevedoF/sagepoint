@@ -103,12 +103,17 @@ export function bootstrap(): AppDependencies {
     prismaService,
     neo4jService,
     cacheService,
+    userDeps.userRepository,
   );
   const categoryDeps = makeCategoryDependencies(prismaService, cacheService);
 
   dependencies = {
     roadmap: roadmapDeps,
-    document: makeDocumentDependencies(prismaService, fileStorage),
+    document: makeDocumentDependencies(
+      prismaService,
+      fileStorage,
+      userDeps.userRepository,
+    ),
     user: userDeps,
     storage: makeStorageDependencies(fileStorage),
     category: categoryDeps,

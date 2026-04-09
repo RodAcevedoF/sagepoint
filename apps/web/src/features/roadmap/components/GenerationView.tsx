@@ -1,28 +1,22 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import {
-  Box,
-  TextField,
-  Typography,
-  useTheme,
-  Button as MuiButton,
-} from "@mui/material";
-import { Sparkles, ArrowLeft } from "lucide-react";
+import { Box, useTheme, Button as MuiButton } from "@mui/material";
+import { ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Button } from "@/common/components";
-import { ButtonTypes, ButtonIconPositions, ButtonSizes } from "@/common/types";
-import { RoadmapRecommendations } from "./RoadmapRecommendations";
-import { useGenerateTopicRoadmapCommand } from "@/application/roadmap";
-import { useRoadmapEvents } from "@/common/hooks";
 import {
-  ExperienceLevelSelector,
+  useGenerateTopicRoadmapCommand,
+  RoadmapLimitError,
+} from "@/application/roadmap";
+import { useRoadmapEvents } from "@/common/hooks";
+import { useGetResourceQuotaQuery } from "@/infrastructure/api/userApi";
+import {
   isExperienceLevel,
   type ExperienceLevel,
 } from "./ExperienceLevelSelector";
 import { GeneratingTimeline } from "./GeneratingTimeline";
-import { makeStyles } from "./GenerationView.styles";
+import { GenerationForm } from "./GenerationForm";
 
 const MotionBox = motion.create(Box);
 
@@ -40,7 +34,6 @@ export function GenerationView({
   fromOnboarding,
 }: GenerationViewProps) {
   const theme = useTheme();
-  const styles = makeStyles(theme);
   const router = useRouter();
   const [topic, setTopic] = useState(initialTopic || "");
   const [title, setTitle] = useState("");
@@ -51,7 +44,9 @@ export function GenerationView({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [roadmapId, setRoadmapId] = useState<string | null>(null);
 
-  const { execute, isLoading, error } = useGenerateTopicRoadmapCommand();
+  const { execute, isLoading } = useGenerateTopicRoadmapCommand();
+  const { data: quota } = useGetResourceQuotaQuery();
+  const roadmapLimitReached = quota?.roadmaps.remaining === 0;
   const {
     status: sseStatus,
     stage: sseStage,
@@ -97,23 +92,17 @@ export function GenerationView({
         } else {
           router.push("/roadmaps");
         }
-      } catch {
+      } catch (err: unknown) {
         setPhase("input");
         setErrorMessage(
-          "Something went wrong generating your roadmap. Please try again.",
+          err instanceof RoadmapLimitError
+            ? "Roadmap limit reached. Delete a roadmap or upgrade your plan."
+            : "Something went wrong generating your roadmap. Please try again.",
         );
       }
     },
     [topic, title, experienceLevel, execute, fromOnboarding, router],
   );
-
-  const headingTitle = fromOnboarding
-    ? "Let's create your first roadmap!"
-    : "Create a Learning Roadmap";
-
-  const headingSubtitle = fromOnboarding
-    ? "We've pre-filled your goal. Adjust if needed and hit generate!"
-    : "Tell us what you want to learn and AI will build a personalized path.";
 
   return (
     <AnimatePresence mode="wait">
@@ -139,67 +128,20 @@ export function GenerationView({
               Back to Roadmaps
             </MuiButton>
           )}
-          <Box component="form" onSubmit={handleSubmit} sx={styles.inputCard}>
-            <Box sx={styles.iconCenter}>
-              <Box sx={styles.iconWrapper}>
-                <Sparkles size={28} />
-              </Box>
-            </Box>
-
-            <Typography variant="h5" sx={styles.title}>
-              {headingTitle}
-            </Typography>
-
-            <Typography variant="body2" sx={styles.subtitle}>
-              {headingSubtitle}
-            </Typography>
-
-            <TextField
-              autoFocus
-              fullWidth
-              label="What do you want to learn?"
-              placeholder="e.g. React, Machine Learning, Docker..."
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              disabled={isLoading}
-              sx={styles.textField}
-            />
-
-            <RoadmapRecommendations topic={topic} disabled={isLoading} />
-
-            <TextField
-              fullWidth
-              label="Roadmap name (optional)"
-              placeholder="Auto-generated from topic if left blank"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              disabled={isLoading}
-              sx={styles.nameField}
-            />
-
-            <ExperienceLevelSelector
-              value={experienceLevel}
-              onChange={setExperienceLevel}
-              disabled={isLoading}
-            />
-
-            {(displayError || error) && (
-              <Typography variant="body2" sx={styles.errorText}>
-                {displayError || "Something went wrong. Please try again."}
-              </Typography>
-            )}
-
-            <Button
-              type={ButtonTypes.SUBMIT}
-              label="Generate Roadmap"
-              icon={Sparkles}
-              iconPos={ButtonIconPositions.START}
-              size={ButtonSizes.LARGE}
-              disabled={!topic.trim() || isLoading}
-              loading={isLoading}
-              fullWidth
-            />
-          </Box>
+          <GenerationForm
+            topic={topic}
+            title={title}
+            experienceLevel={experienceLevel}
+            isLoading={isLoading}
+            limitReached={roadmapLimitReached ?? false}
+            errorMessage={displayError}
+            quota={quota}
+            fromOnboarding={fromOnboarding}
+            onTopicChange={setTopic}
+            onTitleChange={setTitle}
+            onExperienceLevelChange={setExperienceLevel}
+            onSubmit={handleSubmit}
+          />
         </MotionBox>
       ) : (
         <GeneratingTimeline topic={topic} sseStage={sseStage} />

@@ -192,7 +192,7 @@ export const roadmapApi = baseApi.injectEndpoints({
         method: "POST",
         body,
       }),
-      invalidatesTags: [{ type: "Roadmap", id: "LIST" }],
+      invalidatesTags: [{ type: "Roadmap", id: "LIST" }, "User"],
     }),
     generateTopicRoadmap: builder.mutation<RoadmapDto, GenerateTopicRoadmapDto>(
       {
@@ -201,7 +201,7 @@ export const roadmapApi = baseApi.injectEndpoints({
           method: "POST",
           body,
         }),
-        invalidatesTags: [{ type: "Roadmap", id: "LIST" }],
+        invalidatesTags: [{ type: "Roadmap", id: "LIST" }, "User"],
       },
     ),
     updateStepProgress: builder.mutation<
@@ -274,7 +274,7 @@ export const roadmapApi = baseApi.injectEndpoints({
         url: `/roadmaps/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: [{ type: "Roadmap", id: "LIST" }],
+      invalidatesTags: [{ type: "Roadmap", id: "LIST" }, "User"],
     }),
 
     // Search & adopt

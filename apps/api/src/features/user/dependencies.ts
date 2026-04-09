@@ -8,10 +8,14 @@ import { GetUserUseCase } from './app/usecases/get-user.usecase';
 import { UpdateUserUseCase } from './app/usecases/update-user.usecase';
 import { UpdateMeUseCase } from './app/usecases/update-me.usecase';
 import { CompleteOnboardingUseCase } from './app/usecases/complete-onboarding.usecase';
+import { GetResourceQuotaUseCase } from './app/usecases/get-resource-quota.usecase';
 import { InterestResolverService } from './app/services/interest-resolver.service';
 import {
   PrismaUserRepository,
   PrismaCategoryRepository,
+  PrismaDocumentRepository,
+  PrismaRoadmapRepository,
+  PrismaResourceLimitsRepository,
 } from '@sagepoint/database';
 
 export interface UserDependencies {
@@ -40,6 +44,11 @@ export function makeUserDependencies(
     userRepository,
     interestResolver,
   );
+  const getResourceQuotaUseCase = new GetResourceQuotaUseCase(
+    new PrismaDocumentRepository(prismaService),
+    new PrismaRoadmapRepository(prismaService),
+    new PrismaResourceLimitsRepository(prismaService),
+  );
 
   const userService = new UserService(
     createUserUseCase,
@@ -47,6 +56,7 @@ export function makeUserDependencies(
     updateUserUseCase,
     updateMeUseCase,
     completeOnboardingUseCase,
+    getResourceQuotaUseCase,
   );
 
   const userDtoMapper = new UserDtoMapper(fileStorage);

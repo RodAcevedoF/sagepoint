@@ -7,6 +7,7 @@ import type {
   IResourceRepository,
   IProgressRepository,
   ICacheService,
+  IUserRepository,
 } from '@sagepoint/domain';
 import type { PrismaClient } from '@sagepoint/database';
 import { RoadmapService } from '@/features/roadmap/infra/driver/roadmap.service';
@@ -41,6 +42,8 @@ import {
   PrismaProgressRepository,
   PrismaStepQuizAttemptRepository,
   PrismaAdoptionRepository,
+  PrismaResourceLimitsRepository,
+  PrismaUserRepository,
 } from '@sagepoint/database';
 import { BullMqRoadmapGenerationQueue } from '@/core/infra/queue/bull-mq-roadmap.queue';
 import { Queue } from 'bullmq';
@@ -59,6 +62,7 @@ export function makeRoadmapDependencies(
   prismaService: PrismaClient,
   neo4jService: Neo4jService,
   cacheService?: ICacheService,
+  userRepository?: IUserRepository,
 ): RoadmapDependencies {
   const roadmapRepository = new PrismaRoadmapRepository(prismaService);
   const conceptRepository = new Neo4jConceptRepository(neo4jService);
@@ -100,6 +104,12 @@ export function makeRoadmapDependencies(
   });
   const generationQueue = new BullMqRoadmapGenerationQueue(roadmapQueue);
 
+  // Resource limits
+  const resourceLimitsRepository = new PrismaResourceLimitsRepository(
+    prismaService,
+  );
+  const userRepo = userRepository ?? new PrismaUserRepository(prismaService);
+
   // Use cases
   const generateRoadmapUseCase = new GenerateRoadmapUseCase(
     roadmapRepository,
@@ -107,6 +117,8 @@ export function makeRoadmapDependencies(
     roadmapGenerationService,
     resourceDiscoveryService,
     resourceRepository,
+    resourceLimitsRepository,
+    userRepo,
   );
   const generateTopicRoadmapUseCase = new GenerateTopicRoadmapUseCase(
     roadmapRepository,
@@ -118,6 +130,8 @@ export function makeRoadmapDependencies(
   const enqueueTopicRoadmapUseCase = new EnqueueTopicRoadmapUseCase(
     roadmapRepository,
     generationQueue,
+    resourceLimitsRepository,
+    userRepo,
   );
   const getRoadmapUseCase = new GetRoadmapUseCase(roadmapRepository);
   const deleteRoadmapUseCase = new DeleteRoadmapUseCase(roadmapRepository);

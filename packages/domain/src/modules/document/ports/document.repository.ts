@@ -28,4 +28,5 @@ export interface IDocumentRepository {
   ): Promise<CursorPaginatedResult<Document>>;
   updateStatus(id: string, fields: DocumentStatusUpdate): Promise<void>;
   delete(id: string): Promise<void>;
+  countByUserId(userId: string): Promise<number>;
 }

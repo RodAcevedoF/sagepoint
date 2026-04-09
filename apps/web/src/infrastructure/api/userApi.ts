@@ -13,6 +13,11 @@ interface UploadResult {
   url?: string;
 }
 
+export interface ResourceQuotaDto {
+  documents: { used: number; max: number | null; remaining: number | null };
+  roadmaps: { used: number; max: number | null; remaining: number | null };
+}
+
 export const userApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     updateProfile: builder.mutation<UserDto, UpdateUserDto>({
@@ -30,6 +35,10 @@ export const userApi = baseApi.injectEndpoints({
         body: { status: "PENDING" },
       }),
       invalidatesTags: ["User"],
+    }),
+    getResourceQuota: builder.query<ResourceQuotaDto, void>({
+      query: () => "/users/me/quota",
+      providesTags: ["User"],
     }),
     uploadAvatar: builder.mutation<UploadResult, File>({
       query: (file) => {
@@ -51,4 +60,5 @@ export const {
   useUpdateProfileMutation,
   useResetOnboardingMutation,
   useUploadAvatarMutation,
+  useGetResourceQuotaQuery,
 } = userApi;

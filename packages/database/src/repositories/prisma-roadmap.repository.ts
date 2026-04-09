@@ -172,6 +172,10 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
     return Promise.resolve();
   }
 
+  async countByUserId(userId: string): Promise<number> {
+    return this.prisma.roadmap.count({ where: { userId } });
+  }
+
   private serializeSteps(steps: RoadmapStep[]): object[] {
     return steps.map((step) => ({
       concept: {

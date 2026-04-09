@@ -32,6 +32,7 @@ export { DevTools } from "./DevTools";
 export { SearchInput } from "./SearchInput";
 export { FilterChips, type FilterChipOption } from "./FilterChips";
 export { BlueprintGraph } from "./BlueprintGraph";
+export { ResourceQuotaBar } from "./ResourceQuotaBar";
 export type {
   BlueprintNode,
   BlueprintEdge,

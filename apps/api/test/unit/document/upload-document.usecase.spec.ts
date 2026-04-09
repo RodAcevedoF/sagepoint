@@ -1,24 +1,41 @@
 import { UploadDocumentUseCase } from '../../../src/features/document/app/usecases/upload-document.usecase';
+import { User, UserRole } from '@sagepoint/domain';
 import {
   FakeDocumentRepository,
   FakeFileStorage,
   FakeProcessingQueue,
+  FakeResourceLimitsRepository,
+  FakeUserRepository,
 } from '../_fakes/repositories';
 
 describe('UploadDocumentUseCase', () => {
   let documentRepo: FakeDocumentRepository;
   let fileStorage: FakeFileStorage;
   let processingQueue: FakeProcessingQueue;
+  let resourceLimitsRepo: FakeResourceLimitsRepository;
+  let userRepo: FakeUserRepository;
   let useCase: UploadDocumentUseCase;
+
+  const testUser = User.create(
+    '00000000-0000-0000-0000-000000000001',
+    'test@example.com',
+    'Test User',
+    UserRole.USER,
+  );
 
   beforeEach(() => {
     documentRepo = new FakeDocumentRepository();
     fileStorage = new FakeFileStorage();
     processingQueue = new FakeProcessingQueue();
+    resourceLimitsRepo = new FakeResourceLimitsRepository();
+    userRepo = new FakeUserRepository();
+    userRepo.seed(testUser);
     useCase = new UploadDocumentUseCase(
       documentRepo,
       fileStorage,
       processingQueue,
+      resourceLimitsRepo,
+      userRepo,
     );
   });
 
@@ -27,7 +44,7 @@ describe('UploadDocumentUseCase', () => {
       const result = await useCase.execute({
         filename: 'test.pdf',
         mimeType: 'application/pdf',
-        userId: 'user1',
+        userId: '00000000-0000-0000-0000-000000000001',
         size: 1024,
         fileBuffer: Buffer.from('pdf-content'),
       });
@@ -39,7 +56,7 @@ describe('UploadDocumentUseCase', () => {
       const stored = await documentRepo.findById(result.id);
       expect(stored).not.toBeNull();
       expect(stored!.filename).toBe('test.pdf');
-      expect(stored!.userId).toBe('user1');
+      expect(stored!.userId).toBe('00000000-0000-0000-0000-000000000001');
 
       // Processing enqueued
       expect(processingQueue.jobs).toHaveLength(1);
@@ -52,7 +69,7 @@ describe('UploadDocumentUseCase', () => {
         filename: 'report.docx',
         mimeType:
           'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        userId: 'user1',
+        userId: '00000000-0000-0000-0000-000000000001',
         size: 2048,
         fileBuffer: Buffer.from('docx-content'),
       });

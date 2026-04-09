@@ -41,6 +41,12 @@ export class UserController {
     return await this.userService.create(dto);
   }
 
+  @Get('me/quota')
+  @UseGuards(JwtAuthGuard)
+  async getQuota(@CurrentUser() reqUser: RequestUser) {
+    return this.userService.getQuota(reqUser.id);
+  }
+
   @Patch('me')
   @UseGuards(JwtAuthGuard)
   async updateMe(

@@ -83,6 +83,7 @@ model User {
   onboardingStatus OnboardingStatus @default(PENDING)
   interests        UserInterest[]
   preferences      UserPreferences?
+  resourceLimits   UserResourceLimits?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -134,6 +135,20 @@ model UserPreferences {
   updatedAt DateTime @updatedAt
 
   @@map("user_preferences")
+}
+
+model UserResourceLimits {
+  id     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId String @unique @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  maxDocuments Int? // null = unlimited
+  maxRoadmaps  Int? // null = unlimited
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("user_resource_limits")
 }
 
 model Document {
