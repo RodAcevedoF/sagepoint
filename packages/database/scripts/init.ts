@@ -119,9 +119,7 @@ async function main() {
          VALUES ($1, $2, $3, $4, 'ADMIN', true, true, 'COMPLETED', now(), now())`,
         [randomUUID(), ADMIN_USER.email, ADMIN_USER.name, passwordHash],
       );
-
-      console.log(`  Created admin user: ${ADMIN_USER.email}`);
-      console.log(`  Password: ${ADMIN_USER.password}\n`);
+      console.log("Admin user created");
     }
 
     console.log("Sagepoint initialization complete!\n");
