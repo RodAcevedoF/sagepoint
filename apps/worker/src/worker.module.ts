@@ -1,4 +1,6 @@
 import { Module } from "@nestjs/common";
+import { APP_FILTER } from "@nestjs/core";
+import { SentryModule, SentryGlobalFilter } from "@sentry/nestjs/setup";
 import { ScheduleModule } from "@nestjs/schedule";
 import { BullModule } from "@nestjs/bullmq";
 import { LoggerModule } from "nestjs-pino";
@@ -98,6 +100,7 @@ const isDev = process.env.NODE_ENV !== "production";
         }),
       },
     }),
+    SentryModule.forRoot(),
     Neo4jModule,
     AiModule,
     ScheduleModule.forRoot(),
@@ -115,6 +118,7 @@ const isDev = process.env.NODE_ENV !== "production";
     }),
   ],
   providers: [
+    { provide: APP_FILTER, useClass: SentryGlobalFilter },
     DocumentProcessorService,
     RoadmapProcessorService,
     InsightsRefreshService,
