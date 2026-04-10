@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
-import { ErrorState } from "@/common/components/States/ErrorState";
+import { ErrorState } from "@/shared/components/ui/States/ErrorState";
 
 describe("ErrorState", () => {
   it("renders default title and description", () => {

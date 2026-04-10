@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Container } from "@mui/material";
-import { PublicLayout } from "@/common/components";
+import { PublicLayout } from "@/shared/components";
 import { BlogHeader, FeaturedPost, BlogGrid, type BlogPost } from "./index";
 
 const posts: BlogPost[] = [

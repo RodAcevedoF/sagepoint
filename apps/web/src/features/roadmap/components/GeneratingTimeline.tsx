@@ -10,7 +10,7 @@ import {
 } from "./GenerationStage";
 import { makeStyles } from "./GenerationView.styles";
 
-import type { RoadmapEventStage } from "@/common/hooks/useRoadmapEvents";
+import type { RoadmapEventStage } from "@/shared/hooks/useRoadmapEvents";
 
 const MotionBox = motion.create(Box);
 

@@ -6,7 +6,7 @@ import {
   AdminSidebar,
   AdminMobileNav,
 } from "@/features/admin/components/AdminSidebar";
-import { Footer } from "@/common/components/Footer";
+import { Footer } from "@/shared/components/layout/Footer";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (

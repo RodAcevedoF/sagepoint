@@ -11,11 +11,11 @@ import {
   useTheme,
 } from "@mui/material";
 import { AlertCircle } from "lucide-react";
-import { useRoadmapEvents } from "@/common/hooks";
+import { useRoadmapEvents } from "@/shared/hooks";
 import { makeStyles } from "./GeneratingCard.styles";
 
 import type { UserRoadmapDto } from "@/infrastructure/api/roadmapApi";
-import type { RoadmapEventStage } from "@/common/hooks";
+import type { RoadmapEventStage } from "@/shared/hooks";
 
 const STAGE_LABELS: Record<string, string> = {
   concepts: "Generating concepts...",

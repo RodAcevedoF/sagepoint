@@ -28,10 +28,10 @@ import {
   Tab,
   Tooltip,
 } from "@mui/material";
-import { Card } from "@/common/components";
-import { Button } from "@/common/components/Button";
-import { ButtonVariants } from "@/common/types";
-import { palette } from "@/common/theme";
+import { Card } from "@/shared/components";
+import { Button } from "@/shared/components/ui/Button";
+import { ButtonVariants } from "@/shared/types";
+import { palette } from "@/shared/theme";
 import { motion } from "framer-motion";
 import {
   MailPlus,
@@ -51,7 +51,7 @@ import {
   useRevokeInvitationMutation,
   useCreateUserDirectMutation,
 } from "@/application/admin";
-import { Loader, ErrorState, EmptyState } from "@/common/components";
+import { Loader, ErrorState, EmptyState } from "@/shared/components";
 
 const styles = {
   headerCell: {

@@ -3,7 +3,7 @@
 import { use } from "react";
 import { Box, Container } from "@mui/material";
 import { RoomDetail } from "@/features/category";
-import { Footer } from "@/common/components/Footer";
+import { Footer } from "@/shared/components/layout/Footer";
 
 export default function RoomDetailPage({
   params,

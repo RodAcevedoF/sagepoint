@@ -3,8 +3,8 @@ import { render } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { setupStore } from "@/infrastructure/store/store";
 import type { RootState } from "@/infrastructure/store/store";
-import { ModalContext } from "@/common/components/Modal/modal-context";
-import { SnackbarContext } from "@/common/components/Snackbar/snackbar-context";
+import { ModalContext } from "@/shared/components/ui/Modal/modal-context";
+import { SnackbarContext } from "@/shared/components/feedback/Snackbar/snackbar-context";
 import { vi } from "vitest";
 import type { ReactElement } from "react";
 

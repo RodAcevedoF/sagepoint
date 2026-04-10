@@ -2,9 +2,9 @@
 
 import { type ReactNode } from "react";
 import { Box, Container, Toolbar } from "@mui/material";
-import { palette } from "@/common/theme";
-import { Navbar, NavbarActions } from "@/common/components/Navbar";
-import { Footer } from "@/common/components/Footer";
+import { palette } from "@/shared/theme";
+import { Navbar, NavbarActions } from "@/shared/components/layout/Navbar";
+import { Footer } from "@/shared/components/layout/Footer";
 
 // ============================================================================
 // Styles

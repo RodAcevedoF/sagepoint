@@ -4,8 +4,8 @@ import { Box, Typography, alpha } from "@mui/material";
 import { Heart } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToggleLikeCommand, useLikeStatusQuery } from "@/application/social";
-import { useAppSelector } from "@/common/hooks";
-import { palette } from "@/common/theme";
+import { useAppSelector } from "@/shared/hooks";
+import { palette } from "@/shared/theme";
 
 interface LikeButtonProps {
   roadmapId: string;

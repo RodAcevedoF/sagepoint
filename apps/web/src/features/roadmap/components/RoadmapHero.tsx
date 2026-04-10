@@ -10,9 +10,9 @@ import {
 import { Sparkles, Route, Map, GitFork } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Button } from "@/common/components";
-import { ButtonIconPositions, ButtonSizes } from "@/common/types";
-import { palette } from "@/common/theme";
+import { Button } from "@/shared/components";
+import { ButtonIconPositions, ButtonSizes } from "@/shared/types";
+import { palette } from "@/shared/theme";
 
 const MotionBox = motion.create(Box);
 

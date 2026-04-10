@@ -3,8 +3,8 @@
 import { Stack } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { Rocket, LogIn } from "lucide-react";
-import { Button } from "@/common/components";
-import { ButtonVariants, ButtonSizes } from "@/common/types";
+import { Button } from "@/shared/components";
+import { ButtonVariants, ButtonSizes } from "@/shared/types";
 
 export function HeroActions() {
   const router = useRouter();

@@ -12,8 +12,8 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { palette } from "@/common/theme";
-import { Card } from "@/common/components/Card";
+import { palette } from "@/shared/theme";
+import { Card } from "@/shared/components/ui/Card";
 import { useOnboarding } from "../context/OnboardingContext";
 
 // ============================================================================
@@ -121,8 +121,15 @@ export function OnboardingCard({
   showBack = true,
   showSkip = true,
 }: OnboardingCardProps) {
-  const { goNext, goBack, skip, isSkipping, currentStepIndex, totalSteps, isFirstStep } =
-    useOnboarding();
+  const {
+    goNext,
+    goBack,
+    skip,
+    isSkipping,
+    currentStepIndex,
+    totalSteps,
+    isFirstStep,
+  } = useOnboarding();
 
   const progress = ((currentStepIndex + 1) / totalSteps) * 100;
 
@@ -148,8 +155,14 @@ export function OnboardingCard({
           sx={styles.progress}
         />
 
-        <motion.div variants={contentVariants} initial="initial" animate="animate">
-          <Card.IconBox sx={{ width: 64, height: 64, mb: 3 }}>{icon}</Card.IconBox>
+        <motion.div
+          variants={contentVariants}
+          initial="initial"
+          animate="animate"
+        >
+          <Card.IconBox sx={{ width: 64, height: 64, mb: 3 }}>
+            {icon}
+          </Card.IconBox>
 
           <Typography variant="h4" sx={styles.title}>
             {title}

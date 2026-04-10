@@ -13,7 +13,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { Sparkles, Check, Plus } from "lucide-react";
-import { Card, useSnackbar } from "@/common/components";
+import { Card, useSnackbar } from "@/shared/components";
 import { useCategoriesQuery } from "@/application/onboarding/queries/get-categories.query";
 import { useUpdateProfileCommand } from "@/application/profile/commands/update-profile.command";
 import type { UserDto } from "@/application/profile/queries/get-profile.query";

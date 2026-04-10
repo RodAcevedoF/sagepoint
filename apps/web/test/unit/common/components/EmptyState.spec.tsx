@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
-import { EmptyState } from "@/common/components/States/EmptyState";
+import { EmptyState } from "@/shared/components/ui/States/EmptyState";
 
 describe("EmptyState", () => {
   it("renders default title when no props given", () => {

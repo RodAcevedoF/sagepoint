@@ -18,7 +18,7 @@ import {
   useDeleteRoadmapCommand,
 } from "@/application/roadmap";
 import { useRouter } from "next/navigation";
-import { Card, ConfirmDialog, useSnackbar } from "@/common/components";
+import { Card, ConfirmDialog, useSnackbar } from "@/shared/components";
 import { makeStyles } from "./RoadmapCard.styles";
 
 import type { UserRoadmapDto } from "@/infrastructure/api/roadmapApi";

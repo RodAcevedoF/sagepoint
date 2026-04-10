@@ -2,8 +2,8 @@
 
 import type { RoadmapStep } from "@sagepoint/domain";
 import { StepStatus } from "@sagepoint/domain";
-import { BlueprintGraph } from "@/common/components/BlueprintGraph";
-import type { BlueprintNodeData } from "@/common/components/BlueprintGraph";
+import { BlueprintGraph } from "@/shared/components/data-display/BlueprintGraph";
+import type { BlueprintNodeData } from "@/shared/components/data-display/BlueprintGraph";
 import { useRoadmapGraphData } from "./useRoadmapGraphData";
 
 interface RoadmapGraphProps {

@@ -1,10 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
-import { FormContext } from "@/common/components/Form/FormContext";
-import { FormHeader } from "@/common/components/Form/FormHeader";
-import { FormError } from "@/common/components/Form/FormError";
-import { FormField } from "@/common/components/Form/FormField";
-import { FormDivider } from "@/common/components/Form/FormDivider";
+import { FormContext } from "@/shared/components/ui/Form/FormContext";
+import { FormHeader } from "@/shared/components/ui/Form/FormHeader";
+import { FormError } from "@/shared/components/ui/Form/FormError";
+import { FormField } from "@/shared/components/ui/Form/FormField";
+import { FormDivider } from "@/shared/components/ui/Form/FormDivider";
 
 function renderWithFormContext(ui: React.ReactElement, error?: string) {
   return render(

@@ -3,8 +3,8 @@
 import { Box, Typography } from "@mui/material";
 import { BookOpen, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Card } from "@/common/components";
-import { palette } from "@/common/theme";
+import { Card } from "@/shared/components";
+import { palette } from "@/shared/theme";
 import type { CategoryRoomDto } from "@/infrastructure/api/categoryRoomApi";
 
 const styles = {

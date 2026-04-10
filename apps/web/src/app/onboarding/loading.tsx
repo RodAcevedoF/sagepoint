@@ -1,6 +1,6 @@
 import { Box } from "@mui/material";
-import { Loader } from "@/common/components/Loader";
-import { palette } from "@/common/theme";
+import { Loader } from "@/shared/components/ui/Loader";
+import { palette } from "@/shared/theme";
 
 export default function OnboardingLoading() {
   return (

@@ -1,8 +1,8 @@
 "use client";
 
 import { Box, Container, Typography } from "@mui/material";
-import { palette } from "@/common/theme";
-import { SmartHomeButton, GoBackButton } from "@/common/components";
+import { palette } from "@/shared/theme";
+import { SmartHomeButton, GoBackButton } from "@/shared/components";
 
 // ============================================================================
 // Styles

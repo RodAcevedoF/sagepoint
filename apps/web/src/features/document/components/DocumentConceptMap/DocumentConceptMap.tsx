@@ -6,8 +6,8 @@ import { useLazyGetGraphQuery } from "@/infrastructure/api/roadmapApi";
 import {
   BlueprintGraph,
   type BlueprintNodeData,
-} from "@/common/components/BlueprintGraph";
-import { EmptyState, Loader } from "@/common/components";
+} from "@/shared/components/data-display/BlueprintGraph";
+import { EmptyState, Loader } from "@/shared/components";
 import { useDocumentGraphData } from "./useDocumentGraphData";
 import { useEffect } from "react";
 

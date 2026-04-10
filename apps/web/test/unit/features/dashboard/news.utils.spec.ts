@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   formatSlug,
   getCategoryColor,
-} from "@/features/dashboard/components/DahsboardNews/news.utils";
+} from "@/features/dashboard/components/DashboardNews/news.utils";
 
 describe("formatSlug", () => {
   it.each([

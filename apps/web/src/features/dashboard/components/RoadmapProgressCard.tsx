@@ -2,8 +2,8 @@
 
 import { Box, Typography, alpha } from "@mui/material";
 import { motion } from "framer-motion";
-import { Card } from "@/common/components";
-import { palette } from "@/common/theme";
+import { Card } from "@/shared/components";
+import { palette } from "@/shared/theme";
 import type { RoadmapProgressItem } from "../types/dashboard.types";
 
 interface RoadmapProgressCardProps {

@@ -1,6 +1,6 @@
 "use client";
 
-import { Form } from "@/common/components";
+import { Form } from "@/shared/components";
 import { loginAction } from "@/app/actions/auth";
 
 export function LoginForm() {

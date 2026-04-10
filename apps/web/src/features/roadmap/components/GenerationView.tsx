@@ -9,7 +9,7 @@ import {
   useGenerateTopicRoadmapCommand,
   RoadmapLimitError,
 } from "@/application/roadmap";
-import { useRoadmapEvents } from "@/common/hooks";
+import { useRoadmapEvents } from "@/shared/hooks";
 import { useGetResourceQuotaQuery } from "@/infrastructure/api/userApi";
 import {
   isExperienceLevel,

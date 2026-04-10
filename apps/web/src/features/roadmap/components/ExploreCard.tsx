@@ -10,8 +10,8 @@ import {
 } from "@mui/material";
 import { Globe, BookOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { palette } from "@/common/theme";
-import { Card } from "@/common/components";
+import { palette } from "@/shared/theme";
+import { Card } from "@/shared/components";
 import {
   formatDuration,
   formatRelativeTime,

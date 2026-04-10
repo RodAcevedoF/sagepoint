@@ -16,7 +16,7 @@ import {
   alpha,
 } from "@mui/material";
 import { Settings2 } from "lucide-react";
-import { palette } from "@/common/theme";
+import { palette } from "@/shared/theme";
 import type { AdminUserDto } from "@/infrastructure/api/adminApi";
 
 interface LimitsForm {

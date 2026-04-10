@@ -9,12 +9,12 @@ import {
   FilterChips,
   SectionTitle,
   GoBackButton,
-} from "@/common/components";
+} from "@/shared/components";
 import { useInsightsQuery } from "@/application/insights/queries/get-insights.query";
-import { NewsArticleCard } from "@/features/dashboard/components/DahsboardNews/NewsArticleCard";
-import { NewsCardSkeleton } from "@/features/dashboard/components/DahsboardNews/NewsCardSkeleton";
-import { formatSlug } from "@/features/dashboard/components/DahsboardNews/news.utils";
-import { palette } from "@/common/theme";
+import { NewsArticleCard } from "@/features/dashboard/components/DashboardNews/NewsArticleCard";
+import { NewsCardSkeleton } from "@/features/dashboard/components/DashboardNews/NewsCardSkeleton";
+import { formatSlug } from "@/features/dashboard/components/DashboardNews/news.utils";
+import { palette } from "@/shared/theme";
 
 const float = keyframes`
   0% { transform: translate(0, 0) scale(1); }

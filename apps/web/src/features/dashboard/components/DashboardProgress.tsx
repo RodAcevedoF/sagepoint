@@ -3,8 +3,8 @@
 import { Box, Typography, Stack } from "@mui/material";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Card } from "@/common/components";
-import { palette } from "@/common/theme";
+import { Card } from "@/shared/components";
+import { palette } from "@/shared/theme";
 import type { RoadmapProgressItem } from "../types/dashboard.types";
 import { RoadmapProgressCard } from "./RoadmapProgressCard";
 

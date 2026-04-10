@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import type { ReactNode } from 'react';
-import { AuthGuard } from '@/features/auth/components';
-import { DashboardAppBar } from '@/common/components';
+import type { ReactNode } from "react";
+import { AuthGuard } from "@/features/auth/components";
+import { DashboardAppBar } from "@/shared/components";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (

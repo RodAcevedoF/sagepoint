@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAppSelector } from "@/common/hooks";
+import { useAppSelector } from "@/shared/hooks";
 
 interface AuthRedirectProps {
   to: string;

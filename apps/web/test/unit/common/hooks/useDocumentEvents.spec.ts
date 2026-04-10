@@ -1,6 +1,6 @@
 import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { useDocumentEvents } from "@/common/hooks/useDocumentEvents";
+import { useDocumentEvents } from "@/shared/hooks/useDocumentEvents";
 
 // ─── EventSource mock ───────────────────────────────────────────────────────
 

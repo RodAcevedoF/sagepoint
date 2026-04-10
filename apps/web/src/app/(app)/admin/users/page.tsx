@@ -1,13 +1,16 @@
-'use client';
+"use client";
 
-import dynamic from 'next/dynamic';
-import { Loader } from '@/common/components';
+import dynamic from "next/dynamic";
+import { Loader } from "@/shared/components";
 
 const AdminUsersTable = dynamic(
-	() => import('@/features/admin/components/AdminUsersTable').then((m) => m.AdminUsersTable),
-	{ loading: () => <Loader /> }
+  () =>
+    import("@/features/admin/components/AdminUsersTable").then(
+      (m) => m.AdminUsersTable,
+    ),
+  { loading: () => <Loader /> },
 );
 
 export default function AdminUsersPage() {
-	return <AdminUsersTable />;
+  return <AdminUsersTable />;
 }

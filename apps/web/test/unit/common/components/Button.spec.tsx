@@ -1,13 +1,13 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
-import { Button } from "@/common/components/Button/Button";
+import { Button } from "@/shared/components/ui/Button/Button";
 import {
   ButtonVariants,
   ButtonTypes,
   ButtonSizes,
   ButtonIconPositions,
-} from "@/common/types";
+} from "@/shared/types";
 import { Plus } from "lucide-react";
 
 describe("Button", () => {

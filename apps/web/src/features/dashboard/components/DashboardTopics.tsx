@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { Box, Typography, Stack, alpha } from "@mui/material";
 import { motion, AnimatePresence } from "framer-motion";
-import { Card } from "@/common/components";
-import { palette } from "@/common/theme";
+import { Card } from "@/shared/components";
+import { palette } from "@/shared/theme";
 import type { TopicDistribution } from "../types/dashboard.types";
 
 const styles = {

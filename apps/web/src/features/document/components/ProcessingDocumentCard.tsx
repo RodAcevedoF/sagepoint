@@ -10,10 +10,10 @@ import {
 } from "@mui/material";
 import { FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Card } from "@/common/components";
-import { useDocumentEvents } from "@/common/hooks";
+import { Card } from "@/shared/components";
+import { useDocumentEvents } from "@/shared/hooks";
 import type { DocumentDetailDto } from "@/infrastructure/api/documentApi";
-import type { DocumentEventStage } from "@/common/hooks";
+import type { DocumentEventStage } from "@/shared/hooks";
 
 const STAGE_LABELS: Record<string, string> = {
   parsing: "Parsing document...",

@@ -2,13 +2,13 @@
 
 import dynamic from "next/dynamic";
 import { Container, Box, Toolbar } from "@mui/material";
-import { PublicLayout } from "@/common/components";
-import { palette } from "@/common/theme";
+import { PublicLayout } from "@/shared/components";
+import { palette } from "@/shared/theme";
 import { RegisterForm } from "./RegisterForm";
 
 const Antigravity = dynamic(
   () =>
-    import("@/common/components/animations/Antigravity").then(
+    import("@/shared/components/ui/animations/Antigravity").then(
       (m) => m.Antigravity,
     ),
   { ssr: false },

@@ -1,6 +1,6 @@
 import { renderHook } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { useInfiniteScroll } from "@/common/hooks/useInfiniteScroll";
+import { useInfiniteScroll } from "@/shared/hooks/useInfiniteScroll";
 
 // ─── IntersectionObserver mock ──────────────────────────────────────────────
 

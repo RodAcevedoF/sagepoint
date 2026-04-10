@@ -4,8 +4,8 @@ import { useEffect } from "react";
 import * as Sentry from "@sentry/nextjs";
 import { Box, Button, Container, Typography, alpha } from "@mui/material";
 import { RefreshCw, AlertTriangle } from "lucide-react";
-import { palette } from "@/common/theme";
-import { SmartHomeButton } from "@/common/components";
+import { palette } from "@/shared/theme";
+import { SmartHomeButton } from "@/shared/components";
 
 // ============================================================================
 // Styles

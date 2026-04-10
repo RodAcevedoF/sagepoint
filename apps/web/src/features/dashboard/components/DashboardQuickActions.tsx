@@ -5,8 +5,8 @@ import { Box, Typography, Stack, alpha } from "@mui/material";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Plus, Map, FileUp, ArrowUpRight } from "lucide-react";
-import { useModal, Loader, SectionTitle } from "@/common/components";
-import { palette } from "@/common/theme";
+import { useModal, Loader, SectionTitle } from "@/shared/components";
+import { palette } from "@/shared/theme";
 
 const LazyUploadDocumentModal = lazy(() =>
   import("@/features/document/components/UploadDocumentModal").then((m) => ({

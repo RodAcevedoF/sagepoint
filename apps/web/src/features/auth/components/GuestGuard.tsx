@@ -2,8 +2,8 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Loader } from "@/common/components";
-import { useAppSelector } from "@/common/hooks";
+import { Loader } from "@/shared/components";
+import { useAppSelector } from "@/shared/hooks";
 
 interface GuestGuardProps {
   children: React.ReactNode;

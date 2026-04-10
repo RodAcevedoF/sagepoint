@@ -15,7 +15,7 @@ import {
   Trash2,
   Settings2,
 } from "lucide-react";
-import { palette } from "@/common/theme";
+import { palette } from "@/shared/theme";
 import type { AdminUserDto } from "@/infrastructure/api/adminApi";
 
 interface UserActionsMenuProps {

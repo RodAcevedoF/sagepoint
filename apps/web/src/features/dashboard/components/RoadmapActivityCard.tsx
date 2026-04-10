@@ -10,12 +10,12 @@ import {
   alpha,
 } from "@mui/material";
 import { Map, AlertCircle } from "lucide-react";
-import { Card } from "@/common/components";
-import { palette } from "@/common/theme";
-import { useRoadmapEvents } from "@/common/hooks";
+import { Card } from "@/shared/components";
+import { palette } from "@/shared/theme";
+import { useRoadmapEvents } from "@/shared/hooks";
 import type { RecentRoadmapItem } from "../types/dashboard.types";
 import { formatRelativeDate } from "../utils/dashboard.utils";
-import type { RoadmapEventStage } from "@/common/hooks";
+import type { RoadmapEventStage } from "@/shared/hooks";
 
 const STAGE_LABELS: Record<string, string> = {
   concepts: "Generating concepts...",

@@ -4,13 +4,13 @@ import { useState, useCallback } from "react";
 import { Box, Typography, alpha, CircularProgress, Stack } from "@mui/material";
 import { Upload, FileUp, FileText, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useModal, useSnackbar, ResourceQuotaBar } from "@/common/components";
+import { useModal, useSnackbar, ResourceQuotaBar } from "@/shared/components";
 import {
   useUploadDocumentCommand,
   DocumentLimitError,
 } from "@/application/document";
 import { useGetResourceQuotaQuery } from "@/infrastructure/api/userApi";
-import { palette } from "@/common/theme";
+import { palette } from "@/shared/theme";
 
 export function UploadDocumentModal() {
   const { execute, isLoading } = useUploadDocumentCommand();

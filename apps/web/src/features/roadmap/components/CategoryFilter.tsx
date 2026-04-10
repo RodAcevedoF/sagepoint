@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { FilterChips, type FilterChipOption } from "@/common/components";
+import { FilterChips, type FilterChipOption } from "@/shared/components";
 
 interface Category {
   id: string;

@@ -11,8 +11,8 @@ import {
   Loader,
   useModal,
   SearchInput,
-} from "@/common/components";
-import { useInfiniteScroll } from "@/common/hooks";
+} from "@/shared/components";
+import { useInfiniteScroll } from "@/shared/hooks";
 import { useUserDocumentsQuery } from "@/application/document";
 import { DocumentHero } from "./DocumentHero";
 import { DocumentStats } from "./DocumentStats";
