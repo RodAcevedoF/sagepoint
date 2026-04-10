@@ -21,8 +21,8 @@ import {
   FormControl,
   InputLabel,
 } from "@mui/material";
-import { Card, ConfirmDialog, Loader, ErrorState } from "@/common/components";
-import { palette } from "@/common/theme";
+import { Card, ConfirmDialog, Loader, ErrorState } from "@/shared/components";
+import { palette } from "@/shared/theme";
 import { motion } from "framer-motion";
 import { FileText, Trash2 } from "lucide-react";
 import {

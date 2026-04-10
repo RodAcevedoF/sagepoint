@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import { Layers, Plus } from "lucide-react";
 import { motion } from "framer-motion";
-import { palette } from "@/common/theme";
+import { palette } from "@/shared/theme";
 import { OnboardingCard } from "../OnboardingCard";
 import { useOnboarding } from "../../context/OnboardingContext";
 import { useCategoriesQuery } from "@/application/onboarding/queries/get-categories.query";

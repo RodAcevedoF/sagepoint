@@ -12,7 +12,7 @@ import {
   Sparkles,
   GitBranch,
 } from "lucide-react";
-import { PublicLayout } from "@/common/components";
+import { PublicLayout } from "@/shared/components";
 import { DocsHeader } from "./DocsHeader";
 import {
   DocsSection,

@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useAppDispatch } from "@/common/hooks";
-import type { SseState } from "@/common/hooks/useSseEvents";
+import { useAppDispatch } from "@/shared/hooks";
+import type { SseState } from "@/shared/hooks/useSseEvents";
 import { baseApi, type ApiTagType } from "@/infrastructure/api/baseApi";
 import type { TagDescription } from "@reduxjs/toolkit/query";
 

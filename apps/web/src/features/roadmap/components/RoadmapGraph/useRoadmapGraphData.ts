@@ -5,7 +5,7 @@ import type {
   BlueprintNode,
   BlueprintEdge,
   BlueprintNodeStatus,
-} from "@/common/components/BlueprintGraph";
+} from "@/shared/components/data-display/BlueprintGraph";
 
 function toNodeStatus(stepStatus: StepStatus): BlueprintNodeStatus {
   switch (stepStatus) {

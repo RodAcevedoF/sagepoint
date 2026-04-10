@@ -11,8 +11,8 @@ import {
   BarChart3,
   MailPlus,
 } from "lucide-react";
-import { Card } from "@/common/components";
-import { palette } from "@/common/theme";
+import { Card } from "@/shared/components";
+import { palette } from "@/shared/theme";
 
 const navItems = [
   {

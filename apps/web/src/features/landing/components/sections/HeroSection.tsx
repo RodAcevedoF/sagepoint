@@ -3,15 +3,15 @@
 import dynamic from "next/dynamic";
 import { Box, Container, Typography, Stack, alpha } from "@mui/material";
 import { HeroActions } from "./HeroActions";
-import { palette } from "@/common/theme";
+import { palette } from "@/shared/theme";
 import { keyframes } from "@emotion/react";
 
 const Antigravity = dynamic(
   () =>
-    import("@/common/components/animations/Antigravity").then(
-      (m) => m.Antigravity
+    import("@/shared/components/ui/animations/Antigravity").then(
+      (m) => m.Antigravity,
     ),
-  { ssr: false }
+  { ssr: false },
 );
 
 const float = keyframes`

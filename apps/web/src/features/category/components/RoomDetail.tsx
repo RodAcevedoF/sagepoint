@@ -16,11 +16,11 @@ import {
   ErrorState,
   SearchInput,
   GoBackButton,
-} from "@/common/components";
+} from "@/shared/components";
 import { useGetCategoryRoomDetailQuery } from "@/infrastructure/api/categoryRoomApi";
 import { ExploreCard } from "@/features/roadmap/components/ExploreCard";
 import { RoadmapCardSkeleton } from "@/features/roadmap/components/RoadmapCardSkeleton";
-import { palette } from "@/common/theme";
+import { palette } from "@/shared/theme";
 
 const PAGE_SIZE = 12;
 

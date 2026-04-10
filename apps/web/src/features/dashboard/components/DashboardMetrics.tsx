@@ -3,8 +3,8 @@
 import { Box, Typography, Grid } from "@mui/material";
 import { motion } from "framer-motion";
 import { Clock, BookCheck, Map, CheckCircle } from "lucide-react";
-import { Card } from "@/common/components";
-import { palette } from "@/common/theme";
+import { Card } from "@/shared/components";
+import { palette } from "@/shared/theme";
 import type { UserMetrics } from "../types/dashboard.types";
 
 const styles = {

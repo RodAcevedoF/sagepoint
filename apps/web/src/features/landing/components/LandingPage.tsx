@@ -1,6 +1,6 @@
-import { PublicLayout } from '@/common/components';
-import { HeroSection } from './sections/HeroSection';
-import { FeaturesSection } from './sections/FeaturesSection';
+import { PublicLayout } from "@/shared/components";
+import { HeroSection } from "./sections/HeroSection";
+import { FeaturesSection } from "./sections/FeaturesSection";
 
 export function LandingPage() {
   return (

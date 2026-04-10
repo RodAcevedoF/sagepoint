@@ -4,8 +4,8 @@ import { Box, Typography, Stack } from "@mui/material";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
-import { Card } from "@/common/components";
-import { palette } from "@/common/theme";
+import { Card } from "@/shared/components";
+import { palette } from "@/shared/theme";
 import type { RecentRoadmapItem } from "../types/dashboard.types";
 import { RoadmapActivityCard } from "./RoadmapActivityCard";
 

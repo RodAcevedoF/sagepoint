@@ -3,7 +3,7 @@
 import { Box, Typography, alpha } from "@mui/material";
 import { Clock, Coffee, Zap, Flame } from "lucide-react";
 import { motion } from "framer-motion";
-import { palette } from "@/common/theme";
+import { palette } from "@/shared/theme";
 import { OnboardingCard } from "../OnboardingCard";
 import { useOnboarding } from "../../context/OnboardingContext";
 
@@ -105,7 +105,8 @@ export function ScheduleStep() {
               onClick={() => updateData("weeklyHours", option.id)}
               sx={{
                 ...styles.optionCard,
-                ...(data.weeklyHours === option.id && styles.optionCardSelected),
+                ...(data.weeklyHours === option.id &&
+                  styles.optionCardSelected),
               }}
             >
               <Box

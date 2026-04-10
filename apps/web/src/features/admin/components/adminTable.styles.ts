@@ -1,5 +1,5 @@
 import { alpha } from "@mui/material";
-import { palette } from "@/common/theme";
+import { palette } from "@/shared/theme";
 
 export const adminTableStyles = {
   headerCell: {

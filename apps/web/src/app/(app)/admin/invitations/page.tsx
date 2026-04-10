@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Loader } from "@/common/components";
+import { Loader } from "@/shared/components";
 
 const AdminInvitationsTable = dynamic(
   () =>

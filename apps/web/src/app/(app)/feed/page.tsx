@@ -2,7 +2,7 @@
 
 import { Box, Container } from "@mui/material";
 import { NewsFeed } from "@/features/feed/components/NewsFeed";
-import { Footer } from "@/common/components/Footer";
+import { Footer } from "@/shared/components/layout/Footer";
 
 export default function FeedPage() {
   return (

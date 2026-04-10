@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
-import { Loader } from "@/common/components/Loader/Loader";
+import { Loader } from "@/shared/components/ui/Loader/Loader";
 
 describe("Loader", () => {
   describe("circular variant (default)", () => {

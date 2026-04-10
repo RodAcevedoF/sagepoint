@@ -1,9 +1,9 @@
 "use client";
 
-import { useDocumentEvents } from "@/common/hooks";
+import { useDocumentEvents } from "@/shared/hooks";
 import { useWatchProcessingCommand } from "@/application/common/commands/watch-processing.command";
-import type { SseState } from "@/common/hooks/useSseEvents";
-import type { DocumentEventStage } from "@/common/hooks";
+import type { SseState } from "@/shared/hooks/useSseEvents";
+import type { DocumentEventStage } from "@/shared/hooks";
 
 /**
  * Watches a document's processing progress via SSE.

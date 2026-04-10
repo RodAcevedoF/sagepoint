@@ -11,7 +11,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { Camera, X, Shield, CheckCircle, Verified } from "lucide-react";
-import { Card, useSnackbar } from "@/common/components";
+import { Card, useSnackbar } from "@/shared/components";
 import type { UserDto } from "@/application/profile/queries/get-profile.query";
 import { useUploadAvatarCommand } from "@/application/profile/commands/upload-avatar.command";
 import { useUpdateProfileCommand } from "@/application/profile/commands/update-profile.command";

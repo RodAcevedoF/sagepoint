@@ -4,10 +4,14 @@ import { Provider } from "react-redux";
 import { ThemeProvider, CssBaseline } from "@mui/material";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import { store } from "@/infrastructure/store/store";
-import { darkTheme } from "@/common/theme";
+import { darkTheme } from "@/shared/theme";
 
 import { AuthInitializer } from "@/features/auth/components/AuthInitializer";
-import { ModalProvider, SnackbarProvider, ErrorBoundary } from "@/common/components";
+import {
+  ModalProvider,
+  SnackbarProvider,
+  ErrorBoundary,
+} from "@/shared/components";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (

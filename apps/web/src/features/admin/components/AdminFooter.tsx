@@ -2,7 +2,7 @@
 
 import { Box, Typography, alpha } from "@mui/material";
 import { Shield, Activity } from "lucide-react";
-import { palette } from "@/common/theme";
+import { palette } from "@/shared/theme";
 import { motion } from "framer-motion";
 import { CSSProperties } from "react";
 

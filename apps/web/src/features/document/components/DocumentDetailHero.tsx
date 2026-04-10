@@ -11,12 +11,12 @@ import {
   Loader,
   useSnackbar,
   useModal,
-} from "@/common/components";
+} from "@/shared/components";
 import {
   ButtonVariants,
   ButtonSizes,
   ButtonIconPositions,
-} from "@/common/types";
+} from "@/shared/types";
 import { useDeleteDocumentCommand } from "@/application/document";
 import { ProcessingStatusBadge } from "./ProcessingStatusBadge";
 import { makeStyles } from "./DocumentDetailHero.styles";

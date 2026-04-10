@@ -1,13 +1,16 @@
-'use client';
+"use client";
 
-import dynamic from 'next/dynamic';
-import { Loader } from '@/common/components';
+import dynamic from "next/dynamic";
+import { Loader } from "@/shared/components";
 
 const AdminDocumentsTable = dynamic(
-	() => import('@/features/admin/components/AdminDocumentsTable').then((m) => m.AdminDocumentsTable),
-	{ loading: () => <Loader /> }
+  () =>
+    import("@/features/admin/components/AdminDocumentsTable").then(
+      (m) => m.AdminDocumentsTable,
+    ),
+  { loading: () => <Loader /> },
 );
 
 export default function AdminDocumentsPage() {
-	return <AdminDocumentsTable />;
+  return <AdminDocumentsTable />;
 }

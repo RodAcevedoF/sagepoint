@@ -5,9 +5,9 @@ import { Box, Typography, Grid } from "@mui/material";
 import { Brain, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Loader, EmptyState, Button } from "@/common/components";
-import { ButtonVariants, ButtonIconPositions } from "@/common/types";
-import { useDocumentEvents, useAppDispatch } from "@/common/hooks";
+import { Loader, EmptyState, Button } from "@/shared/components";
+import { ButtonVariants, ButtonIconPositions } from "@/shared/types";
+import { useDocumentEvents, useAppDispatch } from "@/shared/hooks";
 import {
   useDocumentSummaryQuery,
   useDocumentQuizzesQuery,

@@ -2,8 +2,8 @@
 
 import { Box, Container } from "@mui/material";
 import { RoadmapList } from "@/features/roadmap";
-import { LearningCTA } from "@/common/components";
-import { Footer } from "@/common/components/Footer";
+import { LearningCTA } from "@/shared/components";
+import { Footer } from "@/shared/components/layout/Footer";
 
 export default function RoadmapsPage() {
   return (

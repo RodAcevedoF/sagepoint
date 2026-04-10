@@ -11,8 +11,8 @@ import {
   Theme,
 } from "@mui/material";
 import { ArrowRight } from "lucide-react";
-import { Card } from "@/common/components";
-import { palette } from "@/common/theme";
+import { Card } from "@/shared/components";
+import { palette } from "@/shared/theme";
 import { BlogPost } from "./FeaturedPost";
 
 /**

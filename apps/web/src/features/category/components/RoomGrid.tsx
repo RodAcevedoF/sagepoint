@@ -3,9 +3,9 @@
 import { Box, Grid, Typography, Skeleton, alpha } from "@mui/material";
 import { LayoutGrid, Compass } from "lucide-react";
 import { motion } from "framer-motion";
-import { EmptyState, GoBackButton } from "@/common/components";
+import { EmptyState, GoBackButton } from "@/shared/components";
 import { useGetCategoryRoomsQuery } from "@/infrastructure/api/categoryRoomApi";
-import { palette } from "@/common/theme";
+import { palette } from "@/shared/theme";
 import { RoomCard } from "./RoomCard";
 
 const MotionBox = motion.create(Box);

@@ -3,9 +3,10 @@
 import { useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Grid, Box } from "@mui/material";
-import { useAppSelector } from "@/common/hooks";
+import { useAppSelector } from "@/shared/hooks";
 import { useWatchGenerationCommand } from "@/application/roadmap";
-import { useSnackbar, Loader, EmptyState, DevTools } from "@/common/components";
+import { useSnackbar, Loader, EmptyState } from "@/shared/components";
+import { DevTools } from "./DevTools";
 import { DashboardSkeleton } from "./DashboardSkeleton";
 import { useProfileQuery } from "@/application/auth/queries/get-profile.query";
 import { useUserRoadmapsQuery } from "@/application/roadmap/queries/get-user-roadmaps.query";
@@ -19,7 +20,7 @@ import { DashboardActivity } from "./DashboardActivity";
 import { DashboardRecentDocuments } from "./DashboardRecentDocuments";
 import { DashboardTopics } from "./DashboardTopics";
 import { DashboardQuickActions } from "./DashboardQuickActions";
-import { DashboardNews } from "./DahsboardNews";
+import { DashboardNews } from "./DashboardNews";
 
 import {
   computeMetrics,

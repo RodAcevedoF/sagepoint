@@ -1,6 +1,6 @@
 import { Typography, Button, Stack, useTheme, alpha, Box } from "@mui/material";
 import { LogOut, Trash2, ShieldAlert, RotateCcw } from "lucide-react";
-import { Card } from "@/common/components";
+import { Card } from "@/shared/components";
 import { useLogoutCommand } from "@/application/auth/commands/logout.command";
 import { useResetOnboardingMutation } from "@/infrastructure/api/userApi";
 import { useRouter } from "next/navigation";

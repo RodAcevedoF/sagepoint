@@ -4,8 +4,8 @@ import { Box, Typography, alpha } from "@mui/material";
 import { Compass } from "lucide-react";
 import { motion } from "framer-motion";
 import { useGetSuggestionsQuery } from "@/infrastructure/api/roadmapApi";
-import { Card } from "@/common/components";
-import { palette } from "@/common/theme";
+import { Card } from "@/shared/components";
+import { palette } from "@/shared/theme";
 
 const MotionBox = motion.create(Box);
 

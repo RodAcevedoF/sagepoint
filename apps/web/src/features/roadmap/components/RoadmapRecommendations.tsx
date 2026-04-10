@@ -10,8 +10,8 @@ import {
   useLazySearchPublicRoadmapsQuery,
   useAdoptRoadmapMutation,
 } from "@/infrastructure/api/roadmapApi";
-import { useSnackbar } from "@/common/components";
-import { palette } from "@/common/theme";
+import { useSnackbar } from "@/shared/components";
+import { palette } from "@/shared/theme";
 import type { RoadmapDto } from "@/infrastructure/api/roadmapApi";
 
 const styles = {

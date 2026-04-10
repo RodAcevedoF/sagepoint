@@ -1,9 +1,15 @@
 "use client";
 
 import { TextField, Box, Chip, Stack, Typography, alpha } from "@mui/material";
-import { Target, Briefcase, Code, Lightbulb, GraduationCap } from "lucide-react";
+import {
+  Target,
+  Briefcase,
+  Code,
+  Lightbulb,
+  GraduationCap,
+} from "lucide-react";
 import { motion } from "framer-motion";
-import { palette } from "@/common/theme";
+import { palette } from "@/shared/theme";
 import { OnboardingCard } from "../OnboardingCard";
 import { useOnboarding } from "../../context/OnboardingContext";
 

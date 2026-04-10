@@ -11,7 +11,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { User, Mail, Pencil, X, Check, Settings } from "lucide-react";
-import { Card, useSnackbar } from "@/common/components";
+import { Card, useSnackbar } from "@/shared/components";
 import type { UserDto } from "@/application/profile/queries/get-profile.query";
 import { useUpdateProfileCommand } from "@/application/profile/commands/update-profile.command";
 import { makeStyles } from "./Profile.styles";

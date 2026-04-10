@@ -1,6 +1,6 @@
 "use client";
 
-import { useAppDispatch } from "@/common/hooks";
+import { useAppDispatch } from "@/shared/hooks";
 import { useRouter } from "next/navigation";
 import { logoutAction } from "@/app/actions/auth";
 import { authApi } from "@/infrastructure/api/authApi";

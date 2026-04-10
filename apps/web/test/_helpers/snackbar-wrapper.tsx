@@ -1,5 +1,5 @@
 import { vi } from "vitest";
-import { SnackbarContext } from "@/common/components/Snackbar/snackbar-context";
+import { SnackbarContext } from "@/shared/components/feedback/Snackbar/snackbar-context";
 
 export const mockShowSnackbar = vi.fn(() => "snack-1");
 

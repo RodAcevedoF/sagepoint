@@ -9,8 +9,8 @@ import {
   useTheme,
 } from "@mui/material";
 import { Sparkles } from "lucide-react";
-import { Button, useModal } from "../../../../common/components";
-import { ButtonTypes, ButtonIconPositions } from "../../../../common/types";
+import { Button, useModal } from "@/shared/components";
+import { ButtonTypes, ButtonIconPositions } from "@/shared/types";
 import { useGenerateTopicRoadmapCommand } from "../../../../application/roadmap";
 import { makeStyles } from "./CreateRoadmapModal.styles";
 

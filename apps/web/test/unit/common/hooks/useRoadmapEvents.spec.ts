@@ -1,6 +1,6 @@
 import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { useRoadmapEvents } from "@/common/hooks/useRoadmapEvents";
+import { useRoadmapEvents } from "@/shared/hooks/useRoadmapEvents";
 
 // ─── EventSource mock ───────────────────────────────────────────────────────
 

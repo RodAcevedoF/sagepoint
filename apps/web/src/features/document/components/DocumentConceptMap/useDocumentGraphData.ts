@@ -7,7 +7,7 @@ import type {
 import type {
   BlueprintNode,
   BlueprintEdge,
-} from "@/common/components/BlueprintGraph";
+} from "@/shared/components/data-display/BlueprintGraph";
 
 function toEdgeType(raw: string): "dependency" | "related" | "same_as" {
   switch (raw) {

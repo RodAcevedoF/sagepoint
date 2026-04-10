@@ -1,9 +1,9 @@
 "use client";
 
-import { useRoadmapEvents } from "@/common/hooks";
+import { useRoadmapEvents } from "@/shared/hooks";
 import { useWatchProcessingCommand } from "@/application/common/commands/watch-processing.command";
-import type { SseState } from "@/common/hooks/useSseEvents";
-import type { RoadmapEventStage } from "@/common/hooks";
+import type { SseState } from "@/shared/hooks/useSseEvents";
+import type { RoadmapEventStage } from "@/shared/hooks";
 
 /**
  * Watches a roadmap's generation progress via SSE.

@@ -3,8 +3,8 @@
 import { Box, Typography } from "@mui/material";
 import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
-import { palette } from "@/common/theme";
-import { SectionTitle } from "@/common/components";
+import { palette } from "@/shared/theme";
+import { SectionTitle } from "@/shared/components";
 import { getGreeting } from "../utils/dashboard.utils";
 
 const styles = {

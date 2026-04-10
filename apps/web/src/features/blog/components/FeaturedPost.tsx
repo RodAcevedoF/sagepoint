@@ -12,8 +12,8 @@ import {
   Theme,
 } from "@mui/material";
 import { Clock } from "lucide-react";
-import { Card } from "@/common/components";
-import { palette } from "@/common/theme";
+import { Card } from "@/shared/components";
+import { palette } from "@/shared/theme";
 
 export interface BlogPost {
   id: string;

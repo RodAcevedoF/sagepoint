@@ -8,7 +8,7 @@ import {
   type SxProps,
   type Theme,
 } from "@mui/material";
-import { palette } from "@/common/theme";
+import { palette } from "@/shared/theme";
 
 const styles = {
   section: {

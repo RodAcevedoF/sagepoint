@@ -3,8 +3,8 @@
 import { Box, Typography, Stack, alpha } from "@mui/material";
 import { GraduationCap, BookOpen, Lightbulb, Zap } from "lucide-react";
 import { motion } from "framer-motion";
-import { palette } from "@/common/theme";
-import { Card } from "@/common/components/Card";
+import { palette } from "@/shared/theme";
+import { Card } from "@/shared/components/ui/Card";
 import { OnboardingCard } from "../OnboardingCard";
 
 // ============================================================================

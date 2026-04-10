@@ -1,10 +1,10 @@
 "use client";
 
-import { Form } from "@/common/components";
+import { Form } from "@/shared/components";
 import { registerAction } from "@/app/actions/auth";
 import { Box, Typography, TextField, alpha } from "@mui/material";
 import { MailCheck } from "lucide-react";
-import { palette } from "@/common/theme";
+import { palette } from "@/shared/theme";
 
 interface RegisterFormProps {
   invitationToken?: string;

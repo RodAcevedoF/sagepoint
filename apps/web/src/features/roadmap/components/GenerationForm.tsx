@@ -2,8 +2,8 @@
 
 import { Box, TextField, Typography, useTheme } from "@mui/material";
 import { Sparkles } from "lucide-react";
-import { Button, ResourceQuotaBar } from "@/common/components";
-import { ButtonTypes, ButtonIconPositions, ButtonSizes } from "@/common/types";
+import { Button, ResourceQuotaBar } from "@/shared/components";
+import { ButtonTypes, ButtonIconPositions, ButtonSizes } from "@/shared/types";
 import { RoadmapRecommendations } from "./RoadmapRecommendations";
 import {
   ExperienceLevelSelector,

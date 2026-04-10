@@ -2,16 +2,16 @@
 
 import dynamic from "next/dynamic";
 import { Container, Box, Toolbar } from "@mui/material";
-import { PublicLayout } from "@/common/components";
-import { palette } from "@/common/theme";
+import { PublicLayout } from "@/shared/components";
+import { palette } from "@/shared/theme";
 import { LoginForm } from "./LoginForm";
 
 const Antigravity = dynamic(
   () =>
-    import("@/common/components/animations/Antigravity").then(
-      (m) => m.Antigravity
+    import("@/shared/components/ui/animations/Antigravity").then(
+      (m) => m.Antigravity,
     ),
-  { ssr: false }
+  { ssr: false },
 );
 
 export function LoginPage() {

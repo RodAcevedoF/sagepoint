@@ -13,7 +13,7 @@ import {
   File,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { palette } from "@/common/theme";
+import { palette } from "@/shared/theme";
 
 const DIFFICULTY_COLORS: Record<string, string> = palette.difficulty;
 

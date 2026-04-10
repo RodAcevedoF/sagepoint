@@ -10,7 +10,7 @@ import {
   useStepQuizCommand,
 } from "@/application/roadmap";
 import type { PreGeneratedQuiz } from "@/application/roadmap/commands/step-quiz.command";
-import { useModal, useSnackbar, Loader } from "@/common/components";
+import { useModal, useSnackbar, Loader } from "@/shared/components";
 import type { ResourceDto } from "@/infrastructure/api/roadmapApi";
 import { makeStyles } from "./TimelineStep.styles";
 import { StepIndicator } from "./StepIndicator";

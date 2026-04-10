@@ -2,8 +2,8 @@
 
 import { Box, Typography, Grid, alpha } from "@mui/material";
 import { Users, FileText, Map, Brain, TrendingUp } from "lucide-react";
-import { Card } from "@/common/components";
-import { palette } from "@/common/theme";
+import { Card } from "@/shared/components";
+import { palette } from "@/shared/theme";
 import { motion } from "framer-motion";
 import type { AdminStatsDto } from "@/infrastructure/api/adminApi";
 

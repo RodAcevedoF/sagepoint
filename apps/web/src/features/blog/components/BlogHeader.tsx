@@ -3,7 +3,7 @@
 import React from "react";
 import { Box, Typography, Stack, SxProps, Theme } from "@mui/material";
 import { Sparkles } from "lucide-react";
-import { palette } from "@/common/theme";
+import { palette } from "@/shared/theme";
 
 /**
  * Styles for BlogHeader

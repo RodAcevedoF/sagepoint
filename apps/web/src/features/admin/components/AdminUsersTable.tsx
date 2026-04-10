@@ -15,8 +15,8 @@ import {
   alpha,
   IconButton,
 } from "@mui/material";
-import { Card, ConfirmDialog, Loader, ErrorState } from "@/common/components";
-import { palette } from "@/common/theme";
+import { Card, ConfirmDialog, Loader, ErrorState } from "@/shared/components";
+import { palette } from "@/shared/theme";
 import { motion } from "framer-motion";
 import {
   User,

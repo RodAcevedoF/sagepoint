@@ -4,9 +4,9 @@ import { Box, Typography, Stack, alpha } from "@mui/material";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { ArrowRight, FileStack } from "lucide-react";
-import { Card, EmptyState } from "@/common/components";
+import { Card, EmptyState } from "@/shared/components";
 import { ProcessingStatusBadge } from "@/features/document";
-import { palette } from "@/common/theme";
+import { palette } from "@/shared/theme";
 import type { DocumentDetailDto } from "@/infrastructure/api/documentApi";
 import { getMimeIcon, formatRelativeDate } from "../utils/dashboard.utils";
 
