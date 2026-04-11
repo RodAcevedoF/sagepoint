@@ -1,4 +1,4 @@
-import { alpha, type Theme } from "@mui/material";
+import { type Theme } from "@mui/material";
 
 export function getUsageColor(pct: number, theme: Theme) {
   if (pct >= 100) return theme.palette.error.main;
