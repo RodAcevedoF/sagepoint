@@ -16,10 +16,6 @@ import { palette } from "@/shared/theme";
 import { Card } from "@/shared/components/ui/Card";
 import { useOnboarding } from "../context/OnboardingContext";
 
-// ============================================================================
-// Styles
-// ============================================================================
-
 const styles = {
   card: {
     p: { xs: 3, md: 5 },
@@ -79,10 +75,6 @@ const styles = {
   },
 };
 
-// ============================================================================
-// Animation Variants
-// ============================================================================
-
 const cardVariants = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0, transition: { duration: 0.4 } },
@@ -93,10 +85,6 @@ const contentVariants = {
   initial: { opacity: 0 },
   animate: { opacity: 1, transition: { delay: 0.2, duration: 0.3 } },
 };
-
-// ============================================================================
-// Component
-// ============================================================================
 
 interface OnboardingCardProps {
   icon: ReactNode;

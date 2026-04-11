@@ -9,6 +9,10 @@ import {
   ExperienceLevelSelector,
   type ExperienceLevel,
 } from "./ExperienceLevelSelector";
+import {
+  CommitmentLevelSelector,
+  type CommitmentLevel,
+} from "./CommitmentLevelSelector";
 import type { ResourceQuotaDto } from "@/infrastructure/api/userApi";
 import { makeStyles } from "./GenerationView.styles";
 
@@ -16,6 +20,7 @@ interface GenerationFormProps {
   topic: string;
   title: string;
   experienceLevel: ExperienceLevel | undefined;
+  commitment: CommitmentLevel | undefined;
   isLoading: boolean;
   limitReached: boolean;
   errorMessage: string | null;
@@ -24,6 +29,7 @@ interface GenerationFormProps {
   onTopicChange: (value: string) => void;
   onTitleChange: (value: string) => void;
   onExperienceLevelChange: (value: ExperienceLevel | undefined) => void;
+  onCommitmentChange: (value: CommitmentLevel | undefined) => void;
   onSubmit: (e: React.FormEvent) => void;
 }
 
@@ -31,6 +37,7 @@ export function GenerationForm({
   topic,
   title,
   experienceLevel,
+  commitment,
   isLoading,
   limitReached,
   errorMessage,
@@ -39,6 +46,7 @@ export function GenerationForm({
   onTopicChange,
   onTitleChange,
   onExperienceLevelChange,
+  onCommitmentChange,
   onSubmit,
 }: GenerationFormProps) {
   const theme = useTheme();
@@ -93,6 +101,12 @@ export function GenerationForm({
       <ExperienceLevelSelector
         value={experienceLevel}
         onChange={onExperienceLevelChange}
+        disabled={isLoading}
+      />
+
+      <CommitmentLevelSelector
+        value={commitment}
+        onChange={onCommitmentChange}
         disabled={isLoading}
       />
 

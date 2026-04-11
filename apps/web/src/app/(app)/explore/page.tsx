@@ -3,23 +3,14 @@
 import { Box, Container } from "@mui/material";
 import { ExploreRoadmaps } from "@/features/roadmap/components/ExploreRoadmaps";
 import { LearningCTA } from "@/shared/components";
-import { Footer } from "@/shared/components/layout/Footer";
 
 export default function ExplorePage() {
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        pt: 2,
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <Container maxWidth="lg" sx={{ flex: 1 }}>
+    <Box sx={{ pt: 2, pb: 12 }}>
+      <Container maxWidth="lg">
         <ExploreRoadmaps />
       </Container>
       <LearningCTA {...LearningCTA.presets.roadmaps} />
-      <Footer />
     </Box>
   );
 }

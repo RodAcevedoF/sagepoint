@@ -1,4 +1,5 @@
-import { baseApi } from './baseApi';
+import { baseApi } from "./baseApi";
+import { authApi } from "./authApi";
 
 export interface CategoryDto {
   id: string;
@@ -9,8 +10,8 @@ export interface CategoryDto {
 export const onboardingApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getCategories: builder.query<CategoryDto[], void>({
-      query: () => '/categories',
-      providesTags: ['Category'],
+      query: () => "/categories",
+      providesTags: ["Category"],
     }),
     submitOnboarding: builder.mutation<
       { success: true },
@@ -19,12 +20,12 @@ export const onboardingApi = baseApi.injectEndpoints({
         experience: string;
         interests: string[];
         weeklyHours: string;
-        status: 'COMPLETED' | 'SKIPPED';
+        status: "COMPLETED" | "SKIPPED";
       }
     >({
       query: (data) => ({
-        url: '/users/me/onboarding',
-        method: 'POST',
+        url: "/users/me/onboarding",
+        method: "POST",
         body: {
           learningGoal: data.goal,
           experienceLevel: data.experience,
@@ -33,9 +34,24 @@ export const onboardingApi = baseApi.injectEndpoints({
           status: data.status,
         },
       }),
-      invalidatesTags: ['User'],
+      invalidatesTags: ["User"],
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          // Optimistically patch cached profile so Dashboard sees COMPLETED
+          // immediately, without waiting for the tag-invalidation refetch.
+          dispatch(
+            authApi.util.updateQueryData("getProfile", undefined, (draft) => {
+              draft.onboardingStatus = arg.status;
+            }),
+          );
+        } catch {
+          // Mutation failed — no patch needed
+        }
+      },
     }),
   }),
 });
 
-export const { useGetCategoriesQuery, useSubmitOnboardingMutation } = onboardingApi;
+export const { useGetCategoriesQuery, useSubmitOnboardingMutation } =
+  onboardingApi;

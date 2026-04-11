@@ -66,16 +66,7 @@ export function Dashboard() {
     }
   }, [searchParams, showSnackbar, router]);
 
-  // Redirect to onboarding if not completed/skipped
-  useEffect(() => {
-    if (isLoadingProfile) return;
-    if (isCreatingFirstRoadmap) return; // Skip when coming from onboarding
-    // Default to PENDING if onboardingStatus is undefined (for existing users)
-    const status = user?.onboardingStatus ?? "PENDING";
-    if (user && status === "PENDING") {
-      router.push("/onboarding");
-    }
-  }, [user, router, isLoadingProfile, isCreatingFirstRoadmap]);
+  // Onboarding gate is handled by AuthGuard — no check needed here.
 
   // When SSE says roadmap is completed, refetch and clear the param
   useEffect(() => {

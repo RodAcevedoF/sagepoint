@@ -12,6 +12,7 @@ interface GuestGuardProps {
 /**
  * Protects routes that should only be accessible to guests (non-authenticated users).
  * Redirects to /dashboard if already authenticated.
+ * AuthGuard handles the onboarding gate from there.
  */
 export function GuestGuard({ children }: GuestGuardProps) {
   const router = useRouter();

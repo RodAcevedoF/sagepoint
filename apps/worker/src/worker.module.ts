@@ -8,7 +8,7 @@ import { DocumentProcessorService } from "./document-processor/document-processo
 import { RoadmapProcessorService } from "./roadmap-processor/roadmap-processor.service";
 import { InsightsRefreshService } from "./insights-refresh/insights-refresh.service";
 import {
-  NewsdataApiAdapter,
+  TavilyNewsAdapter,
   CachedResourceDiscoveryAdapter,
   PerplexityResearchAdapter,
 } from "@sagepoint/ai";
@@ -200,8 +200,8 @@ const isDev = process.env.NODE_ENV !== "production";
     {
       provide: NEWS_SERVICE,
       useFactory: (configService: ConfigService): INewsService =>
-        new NewsdataApiAdapter({
-          apiKey: configService.get<string>("NEWSDATAIO_API_KEY") ?? "",
+        new TavilyNewsAdapter({
+          apiKey: configService.get<string>("TAVILY_API_KEY") ?? "",
         }),
       inject: [ConfigService],
     },

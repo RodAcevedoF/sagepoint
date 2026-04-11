@@ -56,7 +56,21 @@ const styles = {
     bgcolor: alpha(palette.primary.main, 0.15),
     color: palette.primary.light,
     flexShrink: 0,
-    border: `1px solid ${alpha(palette.primary.light, 0.2)}`,
+    border: `1px solid ${alpha(palette.primary.light, 0.3)}`,
+    boxShadow: `0 0 12px ${alpha(palette.primary.main, 0.25)}`,
+  },
+  activityIconGenerating: {
+    width: 48,
+    height: 48,
+    borderRadius: 3,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    bgcolor: alpha(palette.warning.main, 0.15),
+    color: palette.warning.light,
+    flexShrink: 0,
+    border: `1px solid ${alpha(palette.warning.light, 0.3)}`,
+    boxShadow: `0 0 12px ${alpha(palette.warning.main, 0.25)}`,
   },
   progress: {
     height: 6,
@@ -110,11 +124,17 @@ function GeneratingActivityCard({
       }}
     >
       <Stack direction="row" spacing={2.5} alignItems="center">
-        <Box sx={styles.activityIcon}>
+        <Box
+          sx={isFailed ? styles.activityIcon : styles.activityIconGenerating}
+        >
           {isFailed ? (
             <AlertCircle size={24} color={palette.error.main} />
           ) : (
-            <CircularProgress size={24} thickness={3} />
+            <CircularProgress
+              size={24}
+              thickness={3}
+              sx={{ color: palette.warning.light }}
+            />
           )}
         </Box>
 
