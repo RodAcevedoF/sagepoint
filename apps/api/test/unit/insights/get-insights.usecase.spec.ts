@@ -149,7 +149,6 @@ describe('GetInsightsUseCase', () => {
         categoryRepo,
         cacheService,
         newsArticleRepo,
-        newsService,
       } = createMocks();
       userRepo.findById.mockResolvedValue(
         User.create('u1', 'test@example.com', 'Test'),
@@ -160,7 +159,6 @@ describe('GetInsightsUseCase', () => {
         categoryRepo,
         cacheService,
         newsArticleRepo,
-        newsService,
       );
 
       const result = await useCase.execute('u1');
@@ -176,7 +174,6 @@ describe('GetInsightsUseCase', () => {
         categoryRepo,
         cacheService,
         newsArticleRepo,
-        newsService,
       } = createMocks();
       userRepo.findById.mockResolvedValue(null);
       const useCase = new GetInsightsUseCase(
@@ -185,7 +182,6 @@ describe('GetInsightsUseCase', () => {
         categoryRepo,
         cacheService,
         newsArticleRepo,
-        newsService,
       );
 
       expect(await useCase.execute('nonexistent')).toEqual([]);
@@ -200,7 +196,6 @@ describe('GetInsightsUseCase', () => {
         categoryRepo,
         cacheService,
         newsArticleRepo,
-        newsService,
       } = createMocks();
       userRepo.findById.mockResolvedValue(User.create('u1', 'a@b.com', 'A'));
       roadmapRepo.findByUserId.mockResolvedValue([
@@ -220,7 +215,6 @@ describe('GetInsightsUseCase', () => {
         categoryRepo,
         cacheService,
         newsArticleRepo,
-        newsService,
       );
 
       const result = await useCase.execute('u1');
@@ -238,7 +232,6 @@ describe('GetInsightsUseCase', () => {
         categoryRepo,
         cacheService,
         newsArticleRepo,
-        newsService,
       } = createMocks();
       roadmapRepo.findByUserId.mockResolvedValue([
         new Roadmap({
@@ -257,7 +250,6 @@ describe('GetInsightsUseCase', () => {
         categoryRepo,
         cacheService,
         newsArticleRepo,
-        newsService,
       );
 
       await useCase.execute('u1');
