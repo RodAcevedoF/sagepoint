@@ -164,7 +164,7 @@ describe("DocumentProcessorService", () => {
           documentId: DOC_ID,
           topicArea: "Test Topic",
         }),
-        { jobId: `${DOC_ID}:enrich` },
+        { jobId: `${DOC_ID}-enrich` },
       );
 
       expect(job.progressUpdates).toEqual([

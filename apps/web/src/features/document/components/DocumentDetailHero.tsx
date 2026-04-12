@@ -171,7 +171,7 @@ export function DocumentDetailHero({
         </Box>
 
         <Box sx={styles.actionRow}>
-          {isReady && (
+          {summary && (
             <Button
               label="Generate Roadmap"
               icon={Map}

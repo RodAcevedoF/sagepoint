@@ -12,12 +12,7 @@ import { ProcessingStatusBadge } from "./ProcessingStatusBadge";
 import { makeStyles } from "./DocumentCard.styles";
 import type { DocumentDetailDto } from "@/infrastructure/api/documentApi";
 import { ProcessingStage } from "@sagepoint/domain";
-import {
-  isDocumentProcessing,
-  getDocumentIcon,
-  formatFileSize,
-  formatRelativeDate,
-} from "../utils";
+import { getDocumentIcon, formatFileSize, formatRelativeDate } from "../utils";
 
 function DocumentIcon({
   mimeType,
@@ -59,9 +54,8 @@ export function DocumentCard({ document }: DocumentCardProps) {
   const { execute: deleteDocument } = useDeleteDocumentCommand();
   const { showSnackbar } = useSnackbar();
 
-  const isProcessing = isDocumentProcessing(document.status);
   const { status: sseStatus, stage: sseStage } = useDocumentEvents(
-    isProcessing ? document.id : null,
+    document.status === "PROCESSING" ? document.id : null,
   );
 
   if (sseStatus === "completed") {
@@ -104,77 +98,83 @@ export function DocumentCard({ document }: DocumentCardProps) {
   };
 
   return (
-    <Box
-      onClick={() => router.push(`/documents/${document.id}`)}
-      sx={styles.card}
-    >
-      <Card
-        variant="glass"
-        hoverable={false}
-        sx={{ borderRadius: "9px", height: "100%", cursor: "pointer" }}
+    <>
+      <Box
+        onClick={() => router.push(`/documents/${document.id}`)}
+        sx={styles.card}
       >
-        <Card.Content>
-          <Box sx={styles.header}>
-            <Box sx={styles.iconBox}>
-              <DocumentIcon
-                mimeType={document.mimeType}
-                size={22}
-                strokeWidth={2}
-              />
-            </Box>
-            <Box sx={styles.titleContainer}>
-              <Typography
-                variant="subtitle1"
-                sx={styles.title}
-                title={document.filename}
-              >
-                {document.filename}
-              </Typography>
-              <ProcessingStatusBadge stage={stage} />
-            </Box>
-            <IconButton
-              size="small"
-              onClick={handleDeleteClick}
-              className="delete-btn"
-              sx={styles.deleteButton}
-            >
-              <Trash2 size={18} />
-            </IconButton>
-          </Box>
-
-          <Box sx={styles.statsRow}>
-            {document.fileSize && (
-              <Box sx={styles.statItem}>
-                <HardDrive size={16} />
-                <Typography variant="caption" sx={styles.statText}>
-                  {formatFileSize(document.fileSize)}
-                </Typography>
+        <Card
+          variant="glass"
+          hoverable={false}
+          sx={{ borderRadius: "9px", height: "100%", cursor: "pointer" }}
+        >
+          <Card.Content>
+            <Box sx={styles.header}>
+              <Box sx={styles.iconBox}>
+                <DocumentIcon
+                  mimeType={document.mimeType}
+                  size={22}
+                  strokeWidth={2}
+                />
               </Box>
-            )}
-            {stage === "READY" &&
-              document.conceptCount &&
-              document.conceptCount > 0 && (
+              <Box sx={styles.titleContainer}>
+                <Typography
+                  variant="subtitle1"
+                  sx={styles.title}
+                  title={document.filename}
+                >
+                  {document.filename}
+                </Typography>
+                <ProcessingStatusBadge stage={stage} />
+              </Box>
+              <IconButton
+                size="small"
+                onClick={handleDeleteClick}
+                className="delete-btn"
+                sx={styles.deleteButton}
+              >
+                <Trash2 size={18} />
+              </IconButton>
+            </Box>
+
+            <Box sx={styles.statsRow}>
+              {document.fileSize && (
                 <Box sx={styles.statItem}>
-                  <Layers size={16} />
+                  <HardDrive size={16} />
                   <Typography variant="caption" sx={styles.statText}>
-                    {document.conceptCount} concepts
+                    {formatFileSize(document.fileSize)}
                   </Typography>
                 </Box>
               )}
-          </Box>
-        </Card.Content>
-
-        <Card.Footer sx={styles.footer}>
-          <Box sx={styles.footerContent}>
-            <Typography variant="caption" sx={styles.dateText}>
-              {formatRelativeDate(document.createdAt)}
-            </Typography>
-            <Box component="span" className="arrow-icon" sx={styles.arrowIcon}>
-              <ArrowRight size={20} />
+              {stage === "READY" &&
+                document.conceptCount &&
+                document.conceptCount > 0 && (
+                  <Box sx={styles.statItem}>
+                    <Layers size={16} />
+                    <Typography variant="caption" sx={styles.statText}>
+                      {document.conceptCount} concepts
+                    </Typography>
+                  </Box>
+                )}
             </Box>
-          </Box>
-        </Card.Footer>
-      </Card>
+          </Card.Content>
+
+          <Card.Footer sx={styles.footer}>
+            <Box sx={styles.footerContent}>
+              <Typography variant="caption" sx={styles.dateText}>
+                {formatRelativeDate(document.createdAt)}
+              </Typography>
+              <Box
+                component="span"
+                className="arrow-icon"
+                sx={styles.arrowIcon}
+              >
+                <ArrowRight size={20} />
+              </Box>
+            </Box>
+          </Card.Footer>
+        </Card>
+      </Box>
 
       <ConfirmDialog
         open={confirmOpen}
@@ -189,6 +189,6 @@ export function DocumentCard({ document }: DocumentCardProps) {
         onConfirm={handleDeleteConfirm}
         onCancel={() => setConfirmOpen(false)}
       />
-    </Box>
+    </>
   );
 }

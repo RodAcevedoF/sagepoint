@@ -73,13 +73,13 @@ export function Loader({
 
         {message && (
           <Typography
-            variant="body2"
+            variant="body1"
             sx={{
               color: palette.primary.light,
               fontWeight: 600,
               letterSpacing: "0.15em",
               textTransform: "uppercase",
-              fontSize: "0.75rem",
+              fontSize: "1rem",
               opacity: 0.8,
             }}
           >
@@ -103,7 +103,7 @@ export function Loader({
       }}
     >
       <CircularProgress
-        size={size || 24}
+        size={size || 32}
         thickness={5}
         sx={{
           color: palette.primary.main,
@@ -114,9 +114,13 @@ export function Loader({
       />
       {message && (
         <Typography
-          variant="body2"
+          variant="body1"
           color="text.secondary"
-          sx={{ fontWeight: 500, letterSpacing: "0.01em" }}
+          sx={{
+            fontWeight: 500,
+            letterSpacing: "0.01em",
+            color: palette.primary.light,
+          }}
         >
           {message}
         </Typography>

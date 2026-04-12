@@ -145,7 +145,7 @@ export class DocumentProcessorService extends WorkerHost {
           text: text.substring(0, MAX_AI_TEXT_LENGTH),
           topicArea: analysis.topicArea,
         },
-        { jobId: `${documentId}:enrich` },
+        { jobId: `${documentId}-enrich` },
       );
     } catch (error) {
       await this.markFailed(documentId, error);
@@ -161,10 +161,10 @@ export class DocumentProcessorService extends WorkerHost {
   ): Promise<void> {
     this.logger.info({ documentId }, "Starting document enrichment");
 
-    await this.updateStage(documentId, undefined, ProcessingStage.ENRICHING);
-    onProgress({ stage: "enriching" });
-
     try {
+      await this.updateStage(documentId, undefined, ProcessingStage.ENRICHING);
+      onProgress({ stage: "enriching" });
+
       await this.extractConceptsAndQuiz(documentId, text, topicArea);
       await this.finalize(documentId, onProgress);
     } catch (error) {

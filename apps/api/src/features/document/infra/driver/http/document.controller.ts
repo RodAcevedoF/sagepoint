@@ -81,7 +81,7 @@ export class DocumentController {
   events(@Param('id') documentId: string): Observable<SseEvent> {
     return new Observable<SseEvent>((subscriber) => {
       let done = false;
-      const enrichJobId = `${documentId}:enrich`;
+      const enrichJobId = `${documentId}-enrich`;
 
       const finish = () => {
         if (done) return;

@@ -1,14 +1,27 @@
-import type { DocumentStatus } from "@sagepoint/domain";
+import type { DocumentStatus, ProcessingStage } from "@sagepoint/domain";
 
 export type StageFilter = "all" | "processing" | "ready";
 
-export function isDocumentProcessing(status: DocumentStatus | string): boolean {
-  return status !== "COMPLETED" && status !== "FAILED";
+export const SUMMARY_READY_STAGES = new Set<string>([
+  "SUMMARIZED",
+  "ENRICHING",
+  "READY",
+]);
+
+export function isDocumentProcessing(
+  status: DocumentStatus | string,
+  processingStage?: ProcessingStage | string | null,
+): boolean {
+  if (status === "COMPLETED" || status === "FAILED") return false;
+  if (processingStage && SUMMARY_READY_STAGES.has(processingStage))
+    return false;
+  return true;
 }
 
 interface DocumentWithStatus {
   filename: string;
   status: DocumentStatus | string;
+  processingStage?: ProcessingStage | string | null;
 }
 
 export function filterAndPartitionDocuments<T extends DocumentWithStatus>(
@@ -23,7 +36,7 @@ export function filterAndPartitionDocuments<T extends DocumentWithStatus>(
     const matchesSearch =
       !searchQuery ||
       doc.filename.toLowerCase().includes(searchQuery.toLowerCase());
-    const processing = isDocumentProcessing(doc.status);
+    const processing = isDocumentProcessing(doc.status, doc.processingStage);
     const matchesFilter =
       stageFilter === "all" ||
       (stageFilter === "processing" && processing) ||
@@ -32,7 +45,11 @@ export function filterAndPartitionDocuments<T extends DocumentWithStatus>(
   });
 
   return {
-    processingDocs: filtered.filter((d) => isDocumentProcessing(d.status)),
-    completedDocs: filtered.filter((d) => !isDocumentProcessing(d.status)),
+    processingDocs: filtered.filter((d) =>
+      isDocumentProcessing(d.status, d.processingStage),
+    ),
+    completedDocs: filtered.filter(
+      (d) => !isDocumentProcessing(d.status, d.processingStage),
+    ),
   };
 }

@@ -20,7 +20,7 @@ import { DocumentDetailHero } from "./DocumentDetailHero";
 import { DocumentSummaryView } from "./DocumentSummaryView";
 import { DocumentProcessingView } from "./DocumentProcessingView";
 import { QuizCard } from "./QuizCard";
-import { isDocumentProcessing } from "../utils";
+import { SUMMARY_READY_STAGES } from "../utils";
 
 const LazyDocumentConceptMap = lazy(() =>
   import("./DocumentConceptMap/DocumentConceptMap").then((m) => ({
@@ -44,12 +44,16 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
   const { data: quizzes, isLoading: quizzesLoading } =
     useDocumentQuizzesQuery(documentId);
 
-  const isProcessing = document ? isDocumentProcessing(document.status) : false;
-  const isSummarized = document?.processingStage === "SUMMARIZED";
-  const isFullyProcessing = isProcessing && !isSummarized;
+  const hasSummary =
+    !!document?.processingStage &&
+    SUMMARY_READY_STAGES.has(document.processingStage);
+  // Still actively parsing/analyzing — no summary yet
+  const isFullyProcessing = document?.status === "PROCESSING" && !hasSummary;
+  // Summary done but quiz/concepts still generating
+  const isEnriching = document?.status === "PROCESSING" && hasSummary;
 
   const { status: sseStatus, stage: sseStage } = useDocumentEvents(
-    isProcessing ? documentId : null,
+    document?.status === "PROCESSING" ? documentId : null,
   );
   const hasSummaryInvalidated = useRef(false);
   const hasCompletedInvalidated = useRef(false);
@@ -154,10 +158,15 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
               </Typography>
             </Box>
             <Box sx={{ mb: 15 }}>
-              {isProcessing ? (
+              {isEnriching && !quizzes?.length ? (
                 <Loader
                   variant="circular"
-                  message="Generating quiz questions..."
+                  message={
+                    document?.processingStage === "ENRICHING"
+                      ? "Generating quiz questions..."
+                      : "Preparing quiz..."
+                  }
+                  sx={{ mt: 15 }}
                 />
               ) : quizzesLoading ? (
                 <Loader variant="circular" />
