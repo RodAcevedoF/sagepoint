@@ -84,7 +84,7 @@ model User {
   onboardingStatus OnboardingStatus @default(PENDING)
   interests        UserInterest[]
   preferences      UserPreferences?
-  resourceLimits   UserResourceLimits?
+  tokenBalance     UserTokenBalance?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -138,18 +138,17 @@ model UserPreferences {
   @@map("user_preferences")
 }
 
-model UserResourceLimits {
-  id     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId String @unique @db.Uuid
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+model UserTokenBalance {
+  id      String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId  String @unique @db.Uuid
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  maxDocuments Int? // null = unlimited
-  maxRoadmaps  Int? // null = unlimited
+  balance Int? // null = unlimited
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@map("user_resource_limits")
+  @@map("user_token_balances")
 }
 
 model Document {

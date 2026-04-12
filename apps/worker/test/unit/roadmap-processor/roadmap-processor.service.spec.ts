@@ -64,6 +64,13 @@ function buildService(overrides?: {
   const resourceRepo = overrides?.resourceRepo ?? new FakeResourceRepository();
   const categoryRepo = overrides?.categoryRepo ?? new FakeCategoryRepository();
 
+  const fakeTokenBalanceRepo = {
+    findByUserId: jest.fn().mockResolvedValue(null),
+    atomicDeduct: jest.fn().mockResolvedValue(true),
+    credit: jest.fn().mockResolvedValue(undefined),
+    setBalance: jest.fn().mockResolvedValue(undefined),
+  } as never;
+
   const service = new RoadmapProcessorService(
     logger as never,
     topicConceptGenerator,
@@ -73,6 +80,7 @@ function buildService(overrides?: {
     roadmapRepo,
     categoryRepo,
     resourceRepo,
+    fakeTokenBalanceRepo,
   );
 
   return {

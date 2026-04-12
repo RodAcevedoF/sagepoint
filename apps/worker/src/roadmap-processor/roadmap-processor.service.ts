@@ -12,12 +12,15 @@ import {
   CATEGORY_REPOSITORY,
   RESOURCE_REPOSITORY,
   RESOURCE_DISCOVERY_SERVICE,
+  TOKEN_BALANCE_REPOSITORY,
+  OPERATION_COSTS,
 } from "@sagepoint/domain";
 import type {
   IConceptRepository,
   IRoadmapRepository,
   ICategoryRepository,
   IResourceRepository,
+  ITokenBalanceRepository,
   ITopicConceptGenerationService,
   IRoadmapGenerationService,
   IResourceDiscoveryService,
@@ -60,6 +63,8 @@ export class RoadmapProcessorService
     private readonly categoryRepo: ICategoryRepository,
     @Inject(RESOURCE_REPOSITORY)
     private readonly resourceRepo: IResourceRepository,
+    @Inject(TOKEN_BALANCE_REPOSITORY)
+    private readonly tokenBalanceRepo: ITokenBalanceRepository,
   ) {
     super();
   }
@@ -107,6 +112,8 @@ export class RoadmapProcessorService
       );
 
       await this.discoverAndSaveResources(roadmapId, steps, onProgress);
+      await this.deductTokens((input as JobData).userId, roadmapId);
+
       onProgress?.({ stage: "done" });
       this.logger.info(
         { roadmapId, stage: "done" },
@@ -115,6 +122,23 @@ export class RoadmapProcessorService
     } catch (error) {
       await this.handleFailure(roadmapId, error);
       throw error;
+    }
+  }
+
+  private async deductTokens(
+    userId: string | undefined,
+    roadmapId: string,
+  ): Promise<void> {
+    if (!userId) return;
+    const deducted = await this.tokenBalanceRepo.atomicDeduct(
+      userId,
+      OPERATION_COSTS.TOPIC_ROADMAP,
+    );
+    if (!deducted) {
+      this.logger.warn(
+        { roadmapId, userId },
+        "Token deduction failed after roadmap generation (race condition — overage accepted)",
+      );
     }
   }
 

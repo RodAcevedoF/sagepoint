@@ -18,4 +18,4 @@ export { PrismaStepQuizAttemptRepository } from "./repositories/prisma-step-quiz
 export { PrismaLikeRepository } from "./repositories/prisma-like.repository";
 export { PrismaAdoptionRepository } from "./repositories/prisma-adoption.repository";
 export { PrismaCategoryRoomRepository } from "./repositories/prisma-category-room.repository";
-export { PrismaResourceLimitsRepository } from "./repositories/prisma-resource-limits.repository";
+export { PrismaTokenBalanceRepository } from "./repositories/prisma-token-balance.repository";
