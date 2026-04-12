@@ -81,6 +81,7 @@ export class DocumentController {
   events(@Param('id') documentId: string): Observable<SseEvent> {
     return new Observable<SseEvent>((subscriber) => {
       let done = false;
+      const enrichJobId = `${documentId}:enrich`;
 
       const finish = () => {
         if (done) return;
@@ -90,7 +91,7 @@ export class DocumentController {
       };
 
       const onProgress = (args: { jobId: string; data: unknown }) => {
-        if (args.jobId === documentId) {
+        if (args.jobId === documentId || args.jobId === enrichJobId) {
           subscriber.next({
             data: JSON.stringify({
               type: 'progress',
@@ -102,6 +103,10 @@ export class DocumentController {
 
       const onCompleted = (args: { jobId: string }) => {
         if (args.jobId === documentId) {
+          // Job 1 done — summary ready, enrichment starting. Don't close stream.
+          return;
+        }
+        if (args.jobId === enrichJobId) {
           subscriber.next({
             data: JSON.stringify({ type: 'completed' }),
           });
@@ -116,6 +121,12 @@ export class DocumentController {
               type: 'failed',
               message: args.failedReason,
             }),
+          });
+          finish();
+        } else if (args.jobId === enrichJobId) {
+          // Enrichment failed but summary is usable
+          subscriber.next({
+            data: JSON.stringify({ type: 'partial-complete' }),
           });
           finish();
         }

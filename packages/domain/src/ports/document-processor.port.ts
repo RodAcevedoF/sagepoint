@@ -8,7 +8,7 @@ export interface DocumentProcessingInput {
 }
 
 export interface DocumentProcessingProgress {
-  stage: "parsing" | "analyzing" | "summarized" | "extracting" | "ready";
+  stage: "parsing" | "analyzing" | "summarized" | "enriching" | "ready";
 }
 
 export interface IDocumentProcessorService {

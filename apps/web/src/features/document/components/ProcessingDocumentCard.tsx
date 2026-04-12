@@ -18,7 +18,8 @@ import type { DocumentEventStage } from "@/shared/hooks";
 const STAGE_LABELS: Record<string, string> = {
   parsing: "Parsing document...",
   analyzing: "Analyzing content...",
-  summarized: "Summary ready, generating quiz...",
+  summarized: "Summary ready!",
+  enriching: "Generating quiz & concepts...",
   ready: "Ready!",
 };
 
@@ -29,7 +30,9 @@ function stageProgress(stage: DocumentEventStage | null): number {
     case "analyzing":
       return 50;
     case "summarized":
-      return 75;
+      return 65;
+    case "enriching":
+      return 80;
     case "ready":
       return 100;
     default:

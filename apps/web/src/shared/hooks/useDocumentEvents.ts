@@ -7,6 +7,7 @@ export type DocumentEventStage =
   | "parsing"
   | "analyzing"
   | "summarized"
+  | "enriching"
   | "ready";
 
 export type DocumentEventStatus = SseState["status"];

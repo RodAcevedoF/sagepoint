@@ -4,6 +4,7 @@ export class FakeJob<T = unknown> {
   constructor(
     public readonly id: string,
     public readonly data: T,
+    public readonly name: string = "process-document",
   ) {}
 
   updateProgress(value: unknown): Promise<void> {

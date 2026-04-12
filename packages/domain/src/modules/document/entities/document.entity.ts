@@ -1,16 +1,17 @@
 export enum DocumentStatus {
-  PENDING = 'PENDING',
-  PROCESSING = 'PROCESSING',
-  COMPLETED = 'COMPLETED',
-  FAILED = 'FAILED',
+  PENDING = "PENDING",
+  PROCESSING = "PROCESSING",
+  COMPLETED = "COMPLETED",
+  FAILED = "FAILED",
 }
 
 export enum ProcessingStage {
-  UPLOADED = 'UPLOADED',
-  PARSING = 'PARSING',
-  ANALYZING = 'ANALYZING',
-  SUMMARIZED = 'SUMMARIZED',
-  READY = 'READY',
+  UPLOADED = "UPLOADED",
+  PARSING = "PARSING",
+  ANALYZING = "ANALYZING",
+  SUMMARIZED = "SUMMARIZED",
+  ENRICHING = "ENRICHING",
+  READY = "READY",
 }
 
 export class Document {
@@ -30,7 +31,12 @@ export class Document {
     public readonly conceptCount?: number,
   ) {}
 
-  static create(id: string, filename: string, storagePath: string, userId: string): Document {
+  static create(
+    id: string,
+    filename: string,
+    storagePath: string,
+    userId: string,
+  ): Document {
     return new Document(
       id,
       filename,

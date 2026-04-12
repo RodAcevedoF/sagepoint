@@ -1,7 +1,8 @@
 import { Processor, WorkerHost } from "@nestjs/bullmq";
 import { Inject } from "@nestjs/common";
+import { InjectQueue } from "@nestjs/bullmq";
 import { InjectPinoLogger, PinoLogger } from "nestjs-pino";
-import { Job } from "bullmq";
+import { Job, Queue } from "bullmq";
 import { CompositeDocumentParser } from "@sagepoint/parsing";
 import {
   DocumentStatus,
@@ -41,12 +42,20 @@ import type {
 } from "@sagepoint/domain";
 import { randomUUID } from "crypto";
 
-interface JobData {
+interface ProcessDocumentJobData {
   documentId: string;
   storagePath: string;
   filename: string;
   mimeType?: string;
 }
+
+interface EnrichDocumentJobData {
+  documentId: string;
+  text: string;
+  topicArea: string;
+}
+
+type JobData = ProcessDocumentJobData | EnrichDocumentJobData;
 
 const MIME_MAP: Record<string, string> = {
   pdf: "application/pdf",
@@ -72,6 +81,8 @@ export class DocumentProcessorService
   constructor(
     @InjectPinoLogger(DocumentProcessorService.name)
     private readonly logger: PinoLogger,
+    @InjectQueue("document-processing")
+    private readonly queue: Queue,
     @Inject(CONTENT_ANALYSIS_SERVICE)
     private readonly contentAnalysis: IContentAnalysisService,
     @Inject(DOCUMENT_ANALYSIS_SERVICE)
@@ -97,14 +108,24 @@ export class DocumentProcessorService
   }
 
   async process(job: Job<JobData>) {
-    await this.processDocument(job.data, (progress) => {
-      void job.updateProgress(progress);
-    });
+    if (job.name === "enrich-document") {
+      await this.enrichDocumentJob(
+        job.data as EnrichDocumentJobData,
+        (progress) => void job.updateProgress(progress),
+      );
+    } else {
+      await this.processDocumentJob(
+        job.data as ProcessDocumentJobData,
+        (progress) => void job.updateProgress(progress),
+      );
+    }
   }
 
-  async processDocument(
-    input: DocumentProcessingInput,
-    onProgress?: (progress: DocumentProcessingProgress) => void,
+  // ─── Job 1: parse + analyze → enqueue enrichment ───────────────────────────
+
+  private async processDocumentJob(
+    input: ProcessDocumentJobData,
+    onProgress: (progress: DocumentProcessingProgress) => void,
   ): Promise<void> {
     const { documentId, storagePath, filename, mimeType } = input;
     this.logger.info({ documentId, filename, mimeType }, "Processing document");
@@ -118,13 +139,86 @@ export class DocumentProcessorService
         onProgress,
       );
       const analysis = await this.analyzeDocument(documentId, text, onProgress);
-      await this.extractConceptsAndQuiz(documentId, text, analysis);
-      await this.finalize(documentId, onProgress);
+
+      await this.queue.add(
+        "enrich-document",
+        {
+          documentId,
+          text: text.substring(0, MAX_AI_TEXT_LENGTH),
+          topicArea: analysis.topicArea,
+        },
+        { jobId: `${documentId}:enrich` },
+      );
+
+      this.logger.info({ documentId }, "Enqueued enrichment job");
     } catch (error) {
       await this.handleFailure(documentId, error);
       throw error;
     }
   }
+
+  // ─── Job 2: concepts + quiz → finalize ─────────────────────────────────────
+
+  private async enrichDocumentJob(
+    input: EnrichDocumentJobData,
+    onProgress: (progress: DocumentProcessingProgress) => void,
+  ): Promise<void> {
+    const { documentId, text, topicArea } = input;
+    this.logger.info({ documentId }, "Enriching document");
+
+    await this.updateStage(documentId, undefined, ProcessingStage.ENRICHING);
+    onProgress({ stage: "enriching" });
+
+    try {
+      await this.extractConceptsAndQuiz(documentId, text, topicArea);
+      await this.finalize(documentId, onProgress);
+    } catch (error) {
+      // Enrichment failure is non-fatal — summary is already saved
+      this.logger.error(
+        {
+          documentId,
+          err: error instanceof Error ? error.message : String(error),
+        },
+        "Enrichment failed, marking document complete without quiz/concepts",
+      );
+      await this.documentRepo.updateStatus(documentId, {
+        status: DocumentStatus.COMPLETED,
+        processingStage: ProcessingStage.READY,
+      });
+      onProgress({ stage: "ready" });
+    }
+  }
+
+  // ─── IDocumentProcessorService (used in tests / direct calls) ──────────────
+
+  async processDocument(
+    input: DocumentProcessingInput,
+    onProgress?: (progress: DocumentProcessingProgress) => void,
+  ): Promise<void> {
+    const noop = () => {};
+    const progress = onProgress ?? noop;
+
+    const text = await this.parseDocument(
+      input.documentId,
+      input.storagePath,
+      input.filename,
+      input.mimeType,
+      progress,
+    );
+    const analysis = await this.analyzeDocument(
+      input.documentId,
+      text,
+      progress,
+    );
+    await this.extractConceptsAndQuiz(
+      input.documentId,
+      text.substring(0, MAX_AI_TEXT_LENGTH),
+      analysis.topicArea,
+    );
+    await this.finalize(input.documentId, progress);
+  }
+
+  // ─── Shared helpers ─────────────────────────────────────────────────────────
 
   private async parseDocument(
     documentId: string,
@@ -174,15 +268,11 @@ export class DocumentProcessorService
   private async extractConceptsAndQuiz(
     documentId: string,
     text: string,
-    analysis: DocumentAnalysisResult,
+    topicArea: string,
   ): Promise<void> {
-    const truncatedText = text.substring(0, MAX_AI_TEXT_LENGTH);
-
     const [conceptsResult, quizResult] = await Promise.allSettled([
-      this.contentAnalysis.extractConcepts(truncatedText),
-      this.quizGeneration.generateQuiz(truncatedText, [], {
-        questionCount: 10,
-      }),
+      this.contentAnalysis.extractConcepts(text),
+      this.quizGeneration.generateQuiz(text, [], { questionCount: 10 }),
     ]);
 
     let conceptCount = 0;
@@ -218,7 +308,7 @@ export class DocumentProcessorService
     }
 
     if (quizResult.status === "fulfilled") {
-      await this.saveQuiz(documentId, analysis.topicArea, quizResult.value);
+      await this.saveQuiz(documentId, topicArea, quizResult.value);
     } else {
       this.logger.warn(
         { documentId, err: String(quizResult.reason) },
