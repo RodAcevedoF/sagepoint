@@ -1,6 +1,5 @@
 "use client";
 
-import { useRef } from "react";
 import {
   Menu,
   MenuItem,
@@ -38,10 +37,6 @@ export function UserActionsMenu({
   onEditLimits,
   onDelete,
 }: UserActionsMenuProps) {
-  const lastUserRef = useRef<AdminUserDto | undefined>(user);
-  if (user) lastUserRef.current = user;
-  const displayUser = lastUserRef.current;
-
   return (
     <Menu
       anchorEl={anchorEl}
@@ -58,26 +53,26 @@ export function UserActionsMenu({
     >
       <MenuItem onClick={onBan}>
         <ListItemIcon>
-          {displayUser?.isActive ? (
+          {user?.isActive ? (
             <Ban size={16} color={palette.error.main} />
           ) : (
             <UserCheck size={16} color={palette.success.main} />
           )}
         </ListItemIcon>
         <ListItemText>
-          {displayUser?.isActive ? "Ban User" : "Unban User"}
+          {user?.isActive ? "Ban User" : "Unban User"}
         </ListItemText>
       </MenuItem>
       <MenuItem onClick={onToggleRole}>
         <ListItemIcon>
-          {displayUser?.role === "ADMIN" ? (
+          {user?.role === "ADMIN" ? (
             <ShieldOff size={16} color={palette.warning.main} />
           ) : (
             <ShieldCheck size={16} color={palette.info.main} />
           )}
         </ListItemIcon>
         <ListItemText>
-          {displayUser?.role === "ADMIN" ? "Revoke Admin" : "Make Admin"}
+          {user?.role === "ADMIN" ? "Revoke Admin" : "Make Admin"}
         </ListItemText>
       </MenuItem>
       <MenuItem onClick={onEditLimits}>
