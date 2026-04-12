@@ -13,9 +13,7 @@ import { InterestResolverService } from './app/services/interest-resolver.servic
 import {
   PrismaUserRepository,
   PrismaCategoryRepository,
-  PrismaDocumentRepository,
-  PrismaRoadmapRepository,
-  PrismaResourceLimitsRepository,
+  PrismaTokenBalanceRepository,
 } from '@sagepoint/database';
 
 export interface UserDependencies {
@@ -45,9 +43,7 @@ export function makeUserDependencies(
     interestResolver,
   );
   const getResourceQuotaUseCase = new GetResourceQuotaUseCase(
-    new PrismaDocumentRepository(prismaService),
-    new PrismaRoadmapRepository(prismaService),
-    new PrismaResourceLimitsRepository(prismaService),
+    new PrismaTokenBalanceRepository(prismaService),
   );
 
   const userService = new UserService(

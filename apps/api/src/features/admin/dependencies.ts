@@ -3,7 +3,7 @@ import type { IAdminService } from './domain/inbound/admin.service.port';
 import type { IAdminRepository } from './domain/outbound/admin.repository.port';
 import type { IQueueStatsProvider } from './domain/outbound/queue-stats.port';
 import type { PrismaClient } from '@sagepoint/database';
-import { PrismaResourceLimitsRepository } from '@sagepoint/database';
+import { PrismaTokenBalanceRepository } from '@sagepoint/database';
 import { PrismaAdminRepository } from './infra/driven/prisma-admin.repository';
 import { BullMQQueueStatsProvider } from './infra/driven/bullmq-queue-stats.provider';
 import { AdminService } from './infra/driver/admin.service';
@@ -31,7 +31,7 @@ export function makeAdminDependencies(
   prismaService: PrismaClient,
 ): AdminDependencies {
   const adminRepository = new PrismaAdminRepository(prismaService);
-  const resourceLimitsRepository = new PrismaResourceLimitsRepository(
+  const tokenBalanceRepository = new PrismaTokenBalanceRepository(
     prismaService,
   );
 
@@ -65,12 +65,10 @@ export function makeAdminDependencies(
   );
   const listDocumentsUseCase = new ListDocumentsUseCase(adminRepository);
   const deleteDocumentUseCase = new DeleteDocumentUseCase(adminRepository);
-  const getUserLimitsUseCase = new GetUserLimitsUseCase(
-    resourceLimitsRepository,
-  );
+  const getUserLimitsUseCase = new GetUserLimitsUseCase(tokenBalanceRepository);
   const updateUserLimitsUseCase = new UpdateUserLimitsUseCase(
     adminRepository,
-    resourceLimitsRepository,
+    tokenBalanceRepository,
   );
 
   const adminService = new AdminService(

@@ -14,8 +14,12 @@ interface UploadResult {
 }
 
 export interface ResourceQuotaDto {
-  documents: { used: number; max: number | null; remaining: number | null };
-  roadmaps: { used: number; max: number | null; remaining: number | null };
+  balance: number | null; // null = unlimited
+  costs: {
+    DOCUMENT_UPLOAD: number;
+    ROADMAP_FROM_DOCUMENT: number;
+    TOPIC_ROADMAP: number;
+  };
 }
 
 export const userApi = baseApi.injectEndpoints({

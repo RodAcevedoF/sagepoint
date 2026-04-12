@@ -31,7 +31,7 @@ export function UploadDocumentModal() {
       } catch (err: unknown) {
         showSnackbar(
           err instanceof DocumentLimitError
-            ? "Document limit reached. Delete a document or upgrade your plan."
+            ? "Not enough tokens. Contact your administrator to get more."
             : "Failed to upload document",
           { severity: "error" },
         );
@@ -171,19 +171,15 @@ export function UploadDocumentModal() {
                 </Box>
               </Stack>
 
-              {quota &&
-                quota.documents.max !== null &&
-                quota.documents.remaining !== null && (
-                  <Box sx={{ mt: 2, px: 4 }}>
-                    <ResourceQuotaBar
-                      used={quota.documents.used}
-                      max={quota.documents.max}
-                      remaining={quota.documents.remaining}
-                      label="Documents used"
-                      limitReachedMessage="Limit reached — delete a document to upload more"
-                    />
-                  </Box>
-                )}
+              {quota && (
+                <Box sx={{ mt: 2, px: 4 }}>
+                  <ResourceQuotaBar
+                    balance={quota.balance}
+                    cost={quota.costs.DOCUMENT_UPLOAD}
+                    costLabel="Uploading a document"
+                  />
+                </Box>
+              )}
             </Box>
           </motion.div>
         ) : (

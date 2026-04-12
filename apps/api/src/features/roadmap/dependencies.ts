@@ -42,7 +42,7 @@ import {
   PrismaProgressRepository,
   PrismaStepQuizAttemptRepository,
   PrismaAdoptionRepository,
-  PrismaResourceLimitsRepository,
+  PrismaTokenBalanceRepository,
   PrismaUserRepository,
 } from '@sagepoint/database';
 import { BullMqRoadmapGenerationQueue } from '@/core/infra/queue/bull-mq-roadmap.queue';
@@ -104,9 +104,7 @@ export function makeRoadmapDependencies(
     },
   });
   const generationQueue = new BullMqRoadmapGenerationQueue(roadmapQueue);
-
-  // Resource limits
-  const resourceLimitsRepository = new PrismaResourceLimitsRepository(
+  const tokenBalanceRepository = new PrismaTokenBalanceRepository(
     prismaService,
   );
   const userRepo = userRepository ?? new PrismaUserRepository(prismaService);
@@ -118,7 +116,7 @@ export function makeRoadmapDependencies(
     roadmapGenerationService,
     resourceDiscoveryService,
     resourceRepository,
-    resourceLimitsRepository,
+    tokenBalanceRepository,
     userRepo,
   );
   const generateTopicRoadmapUseCase = new GenerateTopicRoadmapUseCase(
@@ -131,7 +129,7 @@ export function makeRoadmapDependencies(
   const enqueueTopicRoadmapUseCase = new EnqueueTopicRoadmapUseCase(
     roadmapRepository,
     generationQueue,
-    resourceLimitsRepository,
+    tokenBalanceRepository,
     userRepo,
   );
   const getRoadmapUseCase = new GetRoadmapUseCase(roadmapRepository);

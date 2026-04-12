@@ -1,106 +1,85 @@
 "use client";
 
-import {
-  Box,
-  LinearProgress,
-  Stack,
-  Typography,
-  alpha,
-  useTheme,
-} from "@mui/material";
-import { getUsageColor, getRemainingLabel } from "@/shared/utils/resourceQuota";
+import { Box, Stack, Typography, alpha, useTheme } from "@mui/material";
+import { Coins } from "lucide-react";
 
-interface ResourceQuotaBarProps {
-  used: number;
-  max: number;
-  remaining: number;
-  label: string;
-  limitReachedMessage?: string;
+interface TokenBalanceDisplayProps {
+  balance: number | null;
+  cost?: number;
+  costLabel?: string;
 }
 
 export function ResourceQuotaBar({
-  used,
-  max,
-  remaining,
-  label,
-  limitReachedMessage,
-}: ResourceQuotaBarProps) {
+  balance,
+  cost,
+  costLabel,
+}: TokenBalanceDisplayProps) {
   const theme = useTheme();
-  const pct = Math.min(100, (used / max) * 100);
-  const barColor = getUsageColor(pct, theme);
-  const { text: remainingText, color: remainingColor } = getRemainingLabel(
-    remaining,
-    max,
-  );
+  const isUnlimited = balance === null;
+  const isEmpty = !isUnlimited && balance === 0;
+  const canAfford =
+    isUnlimited || (cost === undefined ? true : balance! >= cost);
+
+  const balanceColor = isEmpty
+    ? theme.palette.error.main
+    : !canAfford
+      ? theme.palette.warning.main
+      : theme.palette.success.main;
 
   return (
-    <Box>
-      <Stack
-        direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        sx={{ mb: 1 }}
-      >
-        <Typography
-          variant="caption"
-          sx={{ color: "text.secondary", fontWeight: 500 }}
-        >
-          {label}
-        </Typography>
-        <Box
-          sx={{
-            px: 1,
-            py: 0.25,
-            borderRadius: 10,
-            background: alpha(
-              remaining === 0
-                ? theme.palette.error.main
-                : pct >= 75
-                  ? theme.palette.warning.main
-                  : theme.palette.success.main,
-              0.12,
-            ),
-          }}
-        >
+    <Box
+      sx={{
+        px: 2,
+        py: 1.5,
+        borderRadius: 2,
+        border: `1px solid ${alpha(balanceColor, 0.25)}`,
+        bgcolor: alpha(balanceColor, 0.06),
+      }}
+    >
+      <Stack direction="row" alignItems="center" justifyContent="space-between">
+        <Stack direction="row" alignItems="center" gap={1}>
+          <Coins size={14} color={balanceColor} />
           <Typography
             variant="caption"
-            sx={{ color: remainingColor, fontWeight: 700, fontSize: "0.7rem" }}
+            sx={{ color: "text.secondary", fontWeight: 500 }}
           >
-            {remainingText}
+            Token balance
           </Typography>
-        </Box>
-      </Stack>
-
-      <LinearProgress
-        variant="determinate"
-        value={pct}
-        sx={{
-          height: 8,
-          borderRadius: 4,
-          bgcolor: alpha(barColor, 0.12),
-          "& .MuiLinearProgress-bar": {
-            borderRadius: 4,
-            bgcolor: barColor,
-            transition: "background-color 0.3s ease",
-          },
-        }}
-      />
-
-      <Stack direction="row" justifyContent="flex-end" sx={{ mt: 0.5 }}>
+        </Stack>
         <Typography
           variant="caption"
-          sx={{ color: "text.disabled", fontSize: "0.65rem" }}
+          sx={{ color: balanceColor, fontWeight: 700, fontSize: "0.75rem" }}
         >
-          {used} of {max} used
+          {isUnlimited ? "Unlimited" : balance}
         </Typography>
       </Stack>
 
-      {remaining === 0 && limitReachedMessage && (
+      {cost !== undefined && costLabel && (
         <Typography
           variant="caption"
-          sx={{ color: "error.main", mt: 0.5, display: "block" }}
+          sx={{
+            display: "block",
+            mt: 0.5,
+            color: canAfford ? "text.disabled" : theme.palette.warning.main,
+            fontSize: "0.65rem",
+          }}
         >
-          {limitReachedMessage}
+          {costLabel} costs {cost} token{cost !== 1 ? "s" : ""}
+          {!isUnlimited && !canAfford && " — insufficient balance"}
+        </Typography>
+      )}
+
+      {isEmpty && (
+        <Typography
+          variant="caption"
+          sx={{
+            display: "block",
+            mt: 0.5,
+            color: "error.main",
+            fontSize: "0.65rem",
+          }}
+        >
+          No tokens remaining. Contact your administrator.
         </Typography>
       )}
     </Box>

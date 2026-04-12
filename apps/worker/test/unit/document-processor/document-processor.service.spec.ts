@@ -68,6 +68,13 @@ function buildService(overrides: {
 
   const fakeQueue = { add: jest.fn().mockResolvedValue(undefined) } as never;
 
+  const fakeTokenBalanceRepo = {
+    findByUserId: jest.fn().mockResolvedValue(null),
+    atomicDeduct: jest.fn().mockResolvedValue(true),
+    credit: jest.fn().mockResolvedValue(undefined),
+    setBalance: jest.fn().mockResolvedValue(undefined),
+  } as never;
+
   const service = new DocumentProcessorService(
     logger as never,
     fakeQueue,
@@ -81,6 +88,7 @@ function buildService(overrides: {
     summaryRepo,
     quizRepo,
     questionRepo,
+    fakeTokenBalanceRepo,
   );
 
   return {

@@ -51,7 +51,10 @@ export function GenerationView({
 
   const { execute, isLoading } = useGenerateTopicRoadmapCommand();
   const { data: quota } = useGetResourceQuotaQuery();
-  const roadmapLimitReached = quota?.roadmaps.remaining === 0;
+  const roadmapLimitReached =
+    quota !== undefined &&
+    quota.balance !== null &&
+    quota.balance < quota.costs.TOPIC_ROADMAP;
   const {
     status: sseStatus,
     stage: sseStage,
@@ -108,7 +111,7 @@ export function GenerationView({
         setPhase("input");
         setErrorMessage(
           err instanceof RoadmapLimitError
-            ? "Roadmap limit reached. Delete a roadmap or upgrade your plan."
+            ? "Not enough tokens. Contact your administrator to get more."
             : "Something went wrong generating your roadmap. Please try again.",
         );
       }

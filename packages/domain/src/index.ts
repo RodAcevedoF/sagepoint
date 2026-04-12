@@ -1,9 +1,10 @@
 // User
 export * from "./modules/user/entities/user.entity";
-export * from "./modules/user/entities/resource-limits.entity";
-export * from "./modules/user/errors/resource-limit.error";
+export * from "./modules/user/entities/token-balance.entity";
+export * from "./modules/user/entities/operation-cost";
+export * from "./modules/user/errors/insufficient-tokens.error";
 export * from "./modules/user/ports/user.repository";
-export * from "./modules/user/ports/resource-limits.repository";
+export * from "./modules/user/ports/token-balance.repository";
 
 // Auth
 export * from "./modules/auth/types/auth.types";

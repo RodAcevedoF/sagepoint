@@ -21,6 +21,8 @@ import {
   DOCUMENT_SUMMARY_REPOSITORY,
   QUIZ_REPOSITORY,
   QUESTION_REPOSITORY,
+  TOKEN_BALANCE_REPOSITORY,
+  OPERATION_COSTS,
 } from "@sagepoint/domain";
 import type {
   IFileStorage,
@@ -29,6 +31,7 @@ import type {
   IDocumentSummaryRepository,
   IQuizRepository,
   IQuestionRepository,
+  ITokenBalanceRepository,
   IContentAnalysisService,
   IDocumentAnalysisService,
   IQuizGenerationService,
@@ -47,12 +50,14 @@ interface ProcessDocumentData {
   storagePath: string;
   filename: string;
   mimeType?: string;
+  userId?: string;
 }
 
 interface EnrichDocumentData {
   documentId: string;
   text: string;
   topicArea: string;
+  userId?: string;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -104,6 +109,8 @@ export class DocumentProcessorService extends WorkerHost {
     private readonly quizRepo: IQuizRepository,
     @Inject(QUESTION_REPOSITORY)
     private readonly questionRepo: IQuestionRepository,
+    @Inject(TOKEN_BALANCE_REPOSITORY)
+    private readonly tokenBalanceRepo: ITokenBalanceRepository,
   ) {
     super();
   }
@@ -123,7 +130,13 @@ export class DocumentProcessorService extends WorkerHost {
   // ─── Job 1: parse + analyze ───────────────────────────────────────────────
 
   private async runProcessing(
-    { documentId, storagePath, filename, mimeType }: ProcessDocumentData,
+    {
+      documentId,
+      storagePath,
+      filename,
+      mimeType,
+      userId,
+    }: ProcessDocumentData,
     onProgress: OnProgress,
   ): Promise<void> {
     this.logger.info({ documentId }, "Starting document processing");
@@ -144,6 +157,7 @@ export class DocumentProcessorService extends WorkerHost {
           documentId,
           text: text.substring(0, MAX_AI_TEXT_LENGTH),
           topicArea: analysis.topicArea,
+          userId,
         },
         { jobId: `${documentId}-enrich` },
       );
@@ -156,7 +170,7 @@ export class DocumentProcessorService extends WorkerHost {
   // ─── Job 2: concepts + quiz + finalize ────────────────────────────────────
 
   private async runEnrichment(
-    { documentId, text, topicArea }: EnrichDocumentData,
+    { documentId, text, topicArea, userId }: EnrichDocumentData,
     onProgress: OnProgress,
   ): Promise<void> {
     this.logger.info({ documentId }, "Starting document enrichment");
@@ -166,7 +180,7 @@ export class DocumentProcessorService extends WorkerHost {
       onProgress({ stage: "enriching" });
 
       await this.extractConceptsAndQuiz(documentId, text, topicArea);
-      await this.finalize(documentId, onProgress);
+      await this.finalize(documentId, userId, onProgress);
     } catch (error) {
       // Summary is already saved — degrade gracefully instead of failing
       this.logger.error(
@@ -270,6 +284,7 @@ export class DocumentProcessorService extends WorkerHost {
 
   private async finalize(
     documentId: string,
+    userId: string | undefined,
     onProgress: OnProgress,
   ): Promise<void> {
     const summary = await this.documentSummaryRepo.findByDocumentId(documentId);
@@ -279,6 +294,20 @@ export class DocumentProcessorService extends WorkerHost {
       conceptCount: summary?.conceptCount ?? 0,
     });
     onProgress({ stage: "ready" });
+
+    if (userId) {
+      const deducted = await this.tokenBalanceRepo.atomicDeduct(
+        userId,
+        OPERATION_COSTS.DOCUMENT_UPLOAD,
+      );
+      if (!deducted) {
+        this.logger.warn(
+          { documentId, userId },
+          "Token deduction failed after document processing (race condition — overage accepted)",
+        );
+      }
+    }
+
     this.logger.info({ documentId }, "Document fully processed");
   }
 

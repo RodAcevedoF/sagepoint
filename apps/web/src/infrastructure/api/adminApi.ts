@@ -106,10 +106,9 @@ export interface DirectUserDto {
   role: string;
 }
 
-export interface UserResourceLimitsDto {
+export interface UserTokenBalanceDto {
   userId: string;
-  maxDocuments: number | null;
-  maxRoadmaps: number | null;
+  balance: number | null; // null = unlimited
 }
 
 export const adminApi = baseApi.injectEndpoints({
@@ -229,15 +228,15 @@ export const adminApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["AdminUsers", "AdminStats"],
     }),
-    getUserLimits: builder.query<UserResourceLimitsDto, string>({
+    getUserLimits: builder.query<UserTokenBalanceDto, string>({
       query: (id) => `/admin/users/${id}/limits`,
       providesTags: ["AdminUsers"],
     }),
     updateUserLimits: builder.mutation<
-      UserResourceLimitsDto,
+      UserTokenBalanceDto,
       {
         id: string;
-        data: { maxDocuments?: number | null; maxRoadmaps?: number | null };
+        data: { balance?: number | null; credit?: number };
       }
     >({
       query: ({ id, data }) => ({

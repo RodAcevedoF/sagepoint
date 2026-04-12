@@ -6,7 +6,7 @@ import type {
   PaginatedResult,
 } from '../outbound/admin.repository.port';
 import type { QueueStats } from '../outbound/queue-stats.port';
-import type { ResourceLimits } from '@sagepoint/domain';
+import type { TokenBalance } from '@sagepoint/domain';
 
 export const ADMIN_SERVICE = Symbol('ADMIN_SERVICE');
 
@@ -54,9 +54,9 @@ export interface IAdminService {
   }): Promise<PaginatedResult<AdminDocumentView>>;
   deleteDocument(id: string): Promise<{ success: true }>;
   getAnalytics(days: number): Promise<AnalyticsResult>;
-  getUserLimits(userId: string): Promise<ResourceLimits>;
+  getUserLimits(userId: string): Promise<TokenBalance>;
   updateUserLimits(
     userId: string,
-    data: { maxDocuments?: number | null; maxRoadmaps?: number | null },
-  ): Promise<ResourceLimits>;
+    data: { balance?: number | null; credit?: number },
+  ): Promise<TokenBalance>;
 }

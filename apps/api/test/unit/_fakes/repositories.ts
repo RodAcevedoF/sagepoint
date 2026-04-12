@@ -12,7 +12,7 @@ import type {
   IDocumentSummaryRepository,
   IConceptRepository,
   IInvitationRepository,
-  IResourceLimitsRepository,
+  ITokenBalanceRepository,
   IFileStorage,
   IDocumentProcessingQueue,
   ICacheService,
@@ -44,7 +44,7 @@ import {
   Invitation,
   InvitationStatus,
   UserRole,
-  ResourceLimits,
+  TokenBalance,
 } from '@sagepoint/domain';
 import { RoadmapVisibility } from '@sagepoint/domain';
 import type { ITokenStore } from '../../../src/features/auth/domain/outbound/token-store.port';
@@ -93,21 +93,36 @@ export class FakeUserRepository implements IUserRepository {
 
 // ─── Category ────────────────────────────────────────────────────────────────
 
-// ─── ResourceLimits ─────────────────────────────────────────────────────────
+// ─── TokenBalance ─────────────────────────────────────────────────────────────
 
-export class FakeResourceLimitsRepository implements IResourceLimitsRepository {
-  private limits = new Map<string, ResourceLimits>();
+export class FakeTokenBalanceRepository implements ITokenBalanceRepository {
+  private balances = new Map<string, TokenBalance>();
 
-  seed(limits: ResourceLimits) {
-    this.limits.set(limits.userId, limits);
+  seed(balance: TokenBalance) {
+    this.balances.set(balance.userId, balance);
   }
 
-  findByUserId(userId: string): Promise<ResourceLimits | null> {
-    return Promise.resolve(this.limits.get(userId) ?? null);
+  findByUserId(userId: string): Promise<TokenBalance | null> {
+    return Promise.resolve(this.balances.get(userId) ?? null);
   }
 
-  save(limits: ResourceLimits): Promise<void> {
-    this.limits.set(limits.userId, limits);
+  atomicDeduct(userId: string, cost: number): Promise<boolean> {
+    const balance = this.balances.get(userId) ?? TokenBalance.defaults(userId);
+    if (!balance.canAfford(cost)) return Promise.resolve(false);
+    this.balances.set(userId, balance.deduct(cost));
+    return Promise.resolve(true);
+  }
+
+  credit(userId: string, amount: number): Promise<void> {
+    const balance = this.balances.get(userId) ?? TokenBalance.defaults(userId);
+    const newBalance =
+      balance.balance === null ? null : balance.balance + amount;
+    this.balances.set(userId, new TokenBalance(userId, newBalance));
+    return Promise.resolve();
+  }
+
+  setBalance(userId: string, balance: number | null): Promise<void> {
+    this.balances.set(userId, new TokenBalance(userId, balance));
     return Promise.resolve();
   }
 }
@@ -1000,8 +1015,12 @@ export class FakeUserService implements IUserService {
 
   getQuota() {
     return Promise.resolve({
-      documents: { used: 0, max: 5, remaining: 5 },
-      roadmaps: { used: 0, max: 3, remaining: 3 },
+      balance: null,
+      costs: {
+        DOCUMENT_UPLOAD: 10,
+        ROADMAP_FROM_DOCUMENT: 15,
+        TOPIC_ROADMAP: 20,
+      },
     });
   }
 

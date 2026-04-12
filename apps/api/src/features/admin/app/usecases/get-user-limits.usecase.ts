@@ -1,15 +1,15 @@
-import type { IResourceLimitsRepository } from '@sagepoint/domain';
-import { ResourceLimits } from '@sagepoint/domain';
+import { TokenBalance } from '@sagepoint/domain';
+import type { ITokenBalanceRepository } from '@sagepoint/domain';
 
 export class GetUserLimitsUseCase {
   constructor(
-    private readonly resourceLimitsRepository: IResourceLimitsRepository,
+    private readonly tokenBalanceRepository: ITokenBalanceRepository,
   ) {}
 
-  async execute(userId: string): Promise<ResourceLimits> {
+  async execute(userId: string): Promise<TokenBalance> {
     return (
-      (await this.resourceLimitsRepository.findByUserId(userId)) ??
-      ResourceLimits.defaults(userId)
+      (await this.tokenBalanceRepository.findByUserId(userId)) ??
+      TokenBalance.defaults(userId)
     );
   }
 }

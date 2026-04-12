@@ -4,7 +4,7 @@ import {
   FakeDocumentRepository,
   FakeFileStorage,
   FakeProcessingQueue,
-  FakeResourceLimitsRepository,
+  FakeTokenBalanceRepository,
   FakeUserRepository,
 } from '../_fakes/repositories';
 
@@ -12,7 +12,7 @@ describe('UploadDocumentUseCase', () => {
   let documentRepo: FakeDocumentRepository;
   let fileStorage: FakeFileStorage;
   let processingQueue: FakeProcessingQueue;
-  let resourceLimitsRepo: FakeResourceLimitsRepository;
+  let tokenBalanceRepo: FakeTokenBalanceRepository;
   let userRepo: FakeUserRepository;
   let useCase: UploadDocumentUseCase;
 
@@ -27,14 +27,14 @@ describe('UploadDocumentUseCase', () => {
     documentRepo = new FakeDocumentRepository();
     fileStorage = new FakeFileStorage();
     processingQueue = new FakeProcessingQueue();
-    resourceLimitsRepo = new FakeResourceLimitsRepository();
+    tokenBalanceRepo = new FakeTokenBalanceRepository();
     userRepo = new FakeUserRepository();
     userRepo.seed(testUser);
     useCase = new UploadDocumentUseCase(
       documentRepo,
       fileStorage,
       processingQueue,
-      resourceLimitsRepo,
+      tokenBalanceRepo,
       userRepo,
     );
   });

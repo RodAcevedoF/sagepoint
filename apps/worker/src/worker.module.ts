@@ -37,6 +37,7 @@ import {
   QUESTION_REPOSITORY,
   ROADMAP_REPOSITORY,
   RESOURCE_REPOSITORY,
+  TOKEN_BALANCE_REPOSITORY,
 } from "@sagepoint/domain";
 import type { ICacheService, INewsService } from "@sagepoint/domain";
 import {
@@ -50,6 +51,7 @@ import {
   PrismaQuestionRepository,
   PrismaRoadmapRepository,
   PrismaResourceRepository,
+  PrismaTokenBalanceRepository,
 } from "@sagepoint/database";
 
 function createWorkerPrisma(): PrismaClient {
@@ -197,6 +199,12 @@ const isDev = process.env.NODE_ENV !== "production";
       provide: RESOURCE_REPOSITORY,
       useFactory: (prisma: PrismaClient) =>
         new PrismaResourceRepository(prisma),
+      inject: ["WORKER_PRISMA"],
+    },
+    {
+      provide: TOKEN_BALANCE_REPOSITORY,
+      useFactory: (prisma: PrismaClient) =>
+        new PrismaTokenBalanceRepository(prisma),
       inject: ["WORKER_PRISMA"],
     },
     {

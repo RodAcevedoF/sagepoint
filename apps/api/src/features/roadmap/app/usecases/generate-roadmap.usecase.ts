@@ -8,12 +8,13 @@ import {
   IResourceRepository,
   IUserRepository,
   Resource,
-  ResourceLimits,
-  RoadmapLimitExceededError,
+  TokenBalance,
+  InsufficientTokensError,
   UserRole,
   UserContext,
+  OPERATION_COSTS,
 } from '@sagepoint/domain';
-import type { IResourceLimitsRepository } from '@sagepoint/domain';
+import type { ITokenBalanceRepository } from '@sagepoint/domain';
 
 export interface GenerateRoadmapCommand {
   documentId: string;
@@ -32,12 +33,12 @@ export class GenerateRoadmapUseCase {
       | IResourceDiscoveryService
       | undefined,
     private readonly resourceRepository: IResourceRepository | undefined,
-    private readonly resourceLimitsRepository: IResourceLimitsRepository,
+    private readonly tokenBalanceRepository: ITokenBalanceRepository,
     private readonly userRepository: IUserRepository,
   ) {}
 
   async execute(command: GenerateRoadmapCommand): Promise<Roadmap> {
-    await this.enforceRoadmapLimit(command.userId);
+    await this.enforceTokenBalance(command.userId);
 
     const shouldDiscoverResources = command.discoverResources !== false;
 
@@ -144,7 +145,21 @@ export class GenerateRoadmapUseCase {
     // 6. Save roadmap first
     const savedRoadmap = await this.roadmapRepository.save(roadmap);
 
-    // 7. Discover and save resources for each concept (in parallel)
+    // 7. Deduct tokens after successful save (sync path — no worker involved)
+    if (command.userId) {
+      const deducted = await this.tokenBalanceRepository.atomicDeduct(
+        command.userId,
+        OPERATION_COSTS.ROADMAP_FROM_DOCUMENT,
+      );
+      if (!deducted) {
+        // Race condition: balance ran out between pre-flight and save — log but don't undo
+        console.warn(
+          `Token deduction failed for user ${command.userId} after roadmap save (race condition)`,
+        );
+      }
+    }
+
+    // 8. Discover and save resources for each concept (in parallel)
     if (
       shouldDiscoverResources &&
       this.resourceDiscoveryService &&
@@ -156,18 +171,19 @@ export class GenerateRoadmapUseCase {
     return savedRoadmap;
   }
 
-  private async enforceRoadmapLimit(userId: string | undefined): Promise<void> {
+  private async enforceTokenBalance(userId: string | undefined): Promise<void> {
     if (!userId) return;
     const user = await this.userRepository.findById(userId);
     if (!user || user.role === UserRole.ADMIN) return;
 
-    const limits =
-      (await this.resourceLimitsRepository.findByUserId(userId)) ??
-      ResourceLimits.defaults(userId);
-    const currentCount = await this.roadmapRepository.countByUserId(userId);
-
-    if (!limits.isRoadmapAllowed(currentCount)) {
-      throw new RoadmapLimitExceededError(limits.maxRoadmaps!);
+    const balance =
+      (await this.tokenBalanceRepository.findByUserId(userId)) ??
+      TokenBalance.defaults(userId);
+    if (!balance.canAfford(OPERATION_COSTS.ROADMAP_FROM_DOCUMENT)) {
+      throw new InsufficientTokensError(
+        OPERATION_COSTS.ROADMAP_FROM_DOCUMENT,
+        balance.balance ?? 0,
+      );
     }
   }
 

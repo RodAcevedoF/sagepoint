@@ -1,39 +1,38 @@
 import { NotFoundException } from '@nestjs/common';
-import type { IResourceLimitsRepository } from '@sagepoint/domain';
-import { ResourceLimits } from '@sagepoint/domain';
+import type { ITokenBalanceRepository } from '@sagepoint/domain';
+import { TokenBalance } from '@sagepoint/domain';
 import type { IAdminRepository } from '../../domain/outbound/admin.repository.port';
 
-export interface UpdateUserLimitsCommand {
+export interface UpdateUserBalanceCommand {
   userId: string;
-  maxDocuments?: number | null;
-  maxRoadmaps?: number | null;
+  /** Set an absolute balance value (or null for unlimited) */
+  balance?: number | null;
+  /** Add tokens to the existing balance */
+  credit?: number;
 }
 
 export class UpdateUserLimitsUseCase {
   constructor(
     private readonly adminRepository: IAdminRepository,
-    private readonly resourceLimitsRepository: IResourceLimitsRepository,
+    private readonly tokenBalanceRepository: ITokenBalanceRepository,
   ) {}
 
-  async execute(command: UpdateUserLimitsCommand): Promise<ResourceLimits> {
+  async execute(command: UpdateUserBalanceCommand): Promise<TokenBalance> {
     const user = await this.adminRepository.findUserById(command.userId);
     if (!user) throw new NotFoundException('User not found');
 
-    const existing =
-      (await this.resourceLimitsRepository.findByUserId(command.userId)) ??
-      ResourceLimits.defaults(command.userId);
+    if (command.balance !== undefined) {
+      await this.tokenBalanceRepository.setBalance(
+        command.userId,
+        command.balance,
+      );
+    } else if (command.credit !== undefined && command.credit > 0) {
+      await this.tokenBalanceRepository.credit(command.userId, command.credit);
+    }
 
-    const limits = new ResourceLimits(
-      command.userId,
-      command.maxDocuments !== undefined
-        ? command.maxDocuments
-        : existing.maxDocuments,
-      command.maxRoadmaps !== undefined
-        ? command.maxRoadmaps
-        : existing.maxRoadmaps,
+    return (
+      (await this.tokenBalanceRepository.findByUserId(command.userId)) ??
+      TokenBalance.defaults(command.userId)
     );
-
-    await this.resourceLimitsRepository.save(limits);
-    return limits;
   }
 }

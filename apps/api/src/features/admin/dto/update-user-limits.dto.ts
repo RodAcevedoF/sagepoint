@@ -6,11 +6,11 @@ export class UpdateUserLimitsDto {
   @IsInt()
   @Min(0)
   @Type(() => Number)
-  maxDocuments?: number | null;
+  balance?: number | null;
 
   @IsOptional()
   @IsInt()
-  @Min(0)
+  @Min(1)
   @Type(() => Number)
-  maxRoadmaps?: number | null;
+  credit?: number;
 }
