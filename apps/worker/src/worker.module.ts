@@ -62,6 +62,7 @@ function createRedisCacheService(keyPrefix: string): ICacheService {
   const redis = new Redis({
     host: process.env.REDIS_HOST || "localhost",
     port: parseInt(process.env.REDIS_PORT || "6379"),
+    db: parseInt(process.env.REDIS_DB || "0"),
     keyPrefix,
   });
 
@@ -108,6 +109,7 @@ const isDev = process.env.NODE_ENV !== "production";
       connection: {
         host: process.env.REDIS_HOST || "localhost",
         port: parseInt(process.env.REDIS_PORT || "6379"),
+        db: parseInt(process.env.REDIS_DB || "0"),
       },
     }),
     BullModule.registerQueue({

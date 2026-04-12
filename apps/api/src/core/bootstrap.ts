@@ -89,6 +89,7 @@ export function bootstrap(): AppDependencies {
   const cacheRedis = new Redis({
     host: process.env.REDIS_HOST || 'localhost',
     port: parseInt(process.env.REDIS_PORT || '6379'),
+    db: parseInt(process.env.REDIS_DB || '0'),
     keyPrefix: 'cache:',
   });
   const cacheService = new RedisCacheService(cacheRedis);
