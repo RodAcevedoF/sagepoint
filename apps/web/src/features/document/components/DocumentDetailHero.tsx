@@ -79,8 +79,8 @@ export function DocumentDetailHero({
     setConfirmOpen(false);
     try {
       await deleteDocument(document.id);
+      router.replace("/documents");
       showSnackbar("Document deleted", { severity: "success" });
-      router.push("/documents");
     } catch {
       showSnackbar("Failed to delete document", { severity: "error" });
     }
