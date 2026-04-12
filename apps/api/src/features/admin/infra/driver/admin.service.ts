@@ -10,7 +10,7 @@ import type {
   PaginatedResult,
 } from '../../domain/outbound/admin.repository.port';
 import type { QueueStats } from '../../domain/outbound/queue-stats.port';
-import type { ResourceLimits } from '@sagepoint/domain';
+import type { TokenBalance } from '@sagepoint/domain';
 import { GetPlatformStatsUseCase } from '../../app/usecases/get-platform-stats.usecase';
 import { GetQueueStatsUseCase } from '../../app/usecases/get-queue-stats.usecase';
 import { GetAnalyticsUseCase } from '../../app/usecases/get-analytics.usecase';
@@ -104,14 +104,14 @@ export class AdminService implements IAdminService {
     return this.getAnalyticsUseCase.execute(days);
   }
 
-  async getUserLimits(userId: string): Promise<ResourceLimits> {
+  async getUserLimits(userId: string): Promise<TokenBalance> {
     return this.getUserLimitsUseCase.execute(userId);
   }
 
   async updateUserLimits(
     userId: string,
-    data: { maxDocuments?: number | null; maxRoadmaps?: number | null },
-  ): Promise<ResourceLimits> {
+    data: { balance?: number | null; credit?: number },
+  ): Promise<TokenBalance> {
     return this.updateUserLimitsUseCase.execute({ userId, ...data });
   }
 }

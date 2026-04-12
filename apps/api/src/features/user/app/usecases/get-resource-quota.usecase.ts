@@ -1,49 +1,24 @@
-import type {
-  IDocumentRepository,
-  IRoadmapRepository,
-  IResourceLimitsRepository,
-} from '@sagepoint/domain';
-import { ResourceLimits } from '@sagepoint/domain';
+import { TokenBalance, OPERATION_COSTS } from '@sagepoint/domain';
+import type { ITokenBalanceRepository } from '@sagepoint/domain';
 
-export interface ResourceQuota {
-  documents: { used: number; max: number | null; remaining: number | null };
-  roadmaps: { used: number; max: number | null; remaining: number | null };
+export interface TokenQuota {
+  balance: number | null;
+  costs: typeof OPERATION_COSTS;
 }
 
 export class GetResourceQuotaUseCase {
   constructor(
-    private readonly documentRepository: IDocumentRepository,
-    private readonly roadmapRepository: IRoadmapRepository,
-    private readonly resourceLimitsRepository: IResourceLimitsRepository,
+    private readonly tokenBalanceRepository: ITokenBalanceRepository,
   ) {}
 
-  async execute(userId: string): Promise<ResourceQuota> {
-    const limits =
-      (await this.resourceLimitsRepository.findByUserId(userId)) ??
-      ResourceLimits.defaults(userId);
-
-    const [docCount, roadmapCount] = await Promise.all([
-      this.documentRepository.countByUserId(userId),
-      this.roadmapRepository.countByUserId(userId),
-    ]);
+  async execute(userId: string): Promise<TokenQuota> {
+    const balance =
+      (await this.tokenBalanceRepository.findByUserId(userId)) ??
+      TokenBalance.defaults(userId);
 
     return {
-      documents: {
-        used: docCount,
-        max: limits.maxDocuments,
-        remaining:
-          limits.maxDocuments === null
-            ? null
-            : Math.max(0, limits.maxDocuments - docCount),
-      },
-      roadmaps: {
-        used: roadmapCount,
-        max: limits.maxRoadmaps,
-        remaining:
-          limits.maxRoadmaps === null
-            ? null
-            : Math.max(0, limits.maxRoadmaps - roadmapCount),
-      },
+      balance: balance.balance,
+      costs: OPERATION_COSTS,
     };
   }
 }

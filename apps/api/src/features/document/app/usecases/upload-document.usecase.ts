@@ -4,11 +4,12 @@ import {
   IFileStorage,
   IDocumentProcessingQueue,
   IUserRepository,
-  ResourceLimits,
-  DocumentLimitExceededError,
+  TokenBalance,
+  InsufficientTokensError,
   UserRole,
+  OPERATION_COSTS,
 } from '@sagepoint/domain';
-import type { IResourceLimitsRepository } from '@sagepoint/domain';
+import type { ITokenBalanceRepository } from '@sagepoint/domain';
 import { randomUUID } from 'crypto';
 
 export interface UploadDocumentCommand {
@@ -24,22 +25,22 @@ export class UploadDocumentUseCase {
     private readonly documentRepository: IDocumentRepository,
     private readonly fileStorage: IFileStorage,
     private readonly processingQueue: IDocumentProcessingQueue,
-    private readonly resourceLimitsRepository: IResourceLimitsRepository,
+    private readonly tokenBalanceRepository: ITokenBalanceRepository,
     private readonly userRepository: IUserRepository,
   ) {}
 
   async execute(command: UploadDocumentCommand): Promise<Document> {
-    // Enforce document limit (admins bypass)
+    // Pre-flight token check (admins bypass)
     const user = await this.userRepository.findById(command.userId);
     if (user && user.role !== UserRole.ADMIN) {
-      const limits =
-        (await this.resourceLimitsRepository.findByUserId(command.userId)) ??
-        ResourceLimits.defaults(command.userId);
-      const currentCount = await this.documentRepository.countByUserId(
-        command.userId,
-      );
-      if (!limits.isDocumentAllowed(currentCount)) {
-        throw new DocumentLimitExceededError(limits.maxDocuments!);
+      const balance =
+        (await this.tokenBalanceRepository.findByUserId(command.userId)) ??
+        TokenBalance.defaults(command.userId);
+      if (!balance.canAfford(OPERATION_COSTS.DOCUMENT_UPLOAD)) {
+        throw new InsufficientTokensError(
+          OPERATION_COSTS.DOCUMENT_UPLOAD,
+          balance.balance ?? 0,
+        );
       }
     }
 
@@ -71,6 +72,7 @@ export class UploadDocumentUseCase {
       storagePath,
       command.filename,
       command.mimeType,
+      command.userId,
     );
 
     return document;

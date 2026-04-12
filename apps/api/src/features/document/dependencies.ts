@@ -27,7 +27,7 @@ import {
   PrismaQuizRepository,
   PrismaQuestionRepository,
   PrismaQuizAttemptRepository,
-  PrismaResourceLimitsRepository,
+  PrismaTokenBalanceRepository,
 } from '@sagepoint/database';
 
 export interface DocumentDependencies {
@@ -60,8 +60,7 @@ export function makeDocumentDependencies(
     },
   });
   const processingQueue = new BullMqDocumentProcessingQueue(queue);
-
-  const resourceLimitsRepository = new PrismaResourceLimitsRepository(
+  const tokenBalanceRepository = new PrismaTokenBalanceRepository(
     prismaService,
   );
 
@@ -69,7 +68,7 @@ export function makeDocumentDependencies(
     documentRepository,
     fileStorage,
     processingQueue,
-    resourceLimitsRepository,
+    tokenBalanceRepository,
     userRepository,
   );
   const getDocumentUseCase = new GetDocumentUseCase(documentRepository);

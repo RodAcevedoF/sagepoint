@@ -5,7 +5,7 @@ import { UpdateMeUseCase } from '@/features/user/app/usecases/update-me.usecase'
 import { CompleteOnboardingUseCase } from '@/features/user/app/usecases/complete-onboarding.usecase';
 import {
   GetResourceQuotaUseCase,
-  type ResourceQuota,
+  type TokenQuota,
 } from '@/features/user/app/usecases/get-resource-quota.usecase';
 import { User } from '@sagepoint/domain';
 import {
@@ -59,7 +59,7 @@ export class UserService implements IUserService {
     await this.completeOnboardingUseCase.execute(userId, input);
   }
 
-  async getQuota(userId: string): Promise<ResourceQuota> {
+  async getQuota(userId: string): Promise<TokenQuota> {
     return this.getResourceQuotaUseCase.execute(userId);
   }
 }

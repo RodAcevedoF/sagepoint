@@ -14,10 +14,7 @@ import {
 } from '@/features/auth/app/usecases/verify-email.usecase';
 import { EmailNotVerifiedError } from '@/features/auth/app/usecases/validate-user.usecase';
 import { InvalidRefreshTokenError } from '@/features/auth/app/usecases/refresh-token.usecase';
-import {
-  DocumentLimitExceededError,
-  RoadmapLimitExceededError,
-} from '@sagepoint/domain';
+import { InsufficientTokensError } from '@sagepoint/domain';
 
 @Catch()
 export class DomainExceptionFilter implements ExceptionFilter {
@@ -58,15 +55,13 @@ export class DomainExceptionFilter implements ExceptionFilter {
       });
     }
 
-    if (
-      exception instanceof DocumentLimitExceededError ||
-      exception instanceof RoadmapLimitExceededError
-    ) {
+    if (exception instanceof InsufficientTokensError) {
       return response.status(HttpStatus.PAYMENT_REQUIRED).json({
         statusCode: HttpStatus.PAYMENT_REQUIRED,
         message: exception.message,
-        error: 'LimitExceeded',
-        code: exception.name,
+        error: 'InsufficientTokens',
+        required: exception.required,
+        available: exception.available,
       });
     }
 
