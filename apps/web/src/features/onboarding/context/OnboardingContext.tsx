@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { skipOnboardingAction } from "@/app/actions/onboarding";
+import { useSkipOnboardingCommand } from "@/application/onboarding/commands/skip-onboarding.command";
 
 // ============================================================================
 // Types
@@ -128,14 +128,18 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     }
   }, [currentStepIndex, router]);
 
+  const { execute: executeSkip, isLoading: isSkipLoading } =
+    useSkipOnboardingCommand();
+
   const skip = useCallback(() => {
     startTransition(async () => {
-      const result = await skipOnboardingAction();
-      if (result.success) {
-        router.replace("/dashboard");
+      try {
+        await executeSkip();
+      } catch {
+        // command failed
       }
     });
-  }, [router]);
+  }, [executeSkip]);
 
   const value = useMemo(
     () => ({
@@ -147,7 +151,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       goNext,
       goBack,
       skip,
-      isSkipping: isPending,
+      isSkipping: isPending || isSkipLoading,
       currentStepIndex,
       totalSteps: ONBOARDING_STEPS.length,
       isFirstStep: currentStepIndex === 0,
@@ -163,6 +167,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       goBack,
       skip,
       isPending,
+      isSkipLoading,
       currentStepIndex,
     ],
   );

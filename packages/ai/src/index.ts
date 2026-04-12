@@ -10,4 +10,5 @@ export * from "./openai-document-analysis.adapter";
 export * from "./openai-quiz-generation.adapter";
 export * from "./openai-concept-expansion.adapter";
 export * from "./newsdata-api.adapter";
+export * from "./tavily-news.adapter";
 export * from "./cached-resource-discovery.adapter";

@@ -10,8 +10,8 @@ interface AuthRedirectProps {
 
 /**
  * Client-side redirect for authenticated users.
- * Unlike server-side cookie checks, this only redirects when
- * the auth state is fully resolved (profile fetched successfully).
+ * Redirects to `to` when auth state is resolved.
+ * AuthGuard handles the onboarding gate from there.
  */
 export function AuthRedirect({ to }: AuthRedirectProps) {
   const router = useRouter();

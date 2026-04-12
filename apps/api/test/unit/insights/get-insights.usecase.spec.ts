@@ -13,7 +13,6 @@ import type {
   ICategoryRepository,
   ICacheService,
   INewsArticleRepository,
-  INewsService,
 } from '@sagepoint/domain';
 
 const webDevCategory = Category.create(
@@ -107,17 +106,12 @@ function createMocks() {
     upsertMany: jest.Mock;
   };
 
-  const newsService = {
-    fetchByCategory: jest.fn().mockResolvedValue([]),
-  } as unknown as INewsService & { fetchByCategory: jest.Mock };
-
   return {
     userRepo,
     roadmapRepo,
     categoryRepo,
     cacheService,
     newsArticleRepo,
-    newsService,
     cache,
   };
 }
@@ -131,7 +125,6 @@ describe('GetInsightsUseCase', () => {
         categoryRepo,
         cacheService,
         newsArticleRepo,
-        newsService,
       } = createMocks();
       const useCase = new GetInsightsUseCase(
         userRepo,
@@ -139,7 +132,6 @@ describe('GetInsightsUseCase', () => {
         categoryRepo,
         cacheService,
         newsArticleRepo,
-        newsService,
       );
 
       const result = await useCase.execute('u1');
@@ -157,7 +149,6 @@ describe('GetInsightsUseCase', () => {
         categoryRepo,
         cacheService,
         newsArticleRepo,
-        newsService,
       } = createMocks();
       userRepo.findById.mockResolvedValue(
         User.create('u1', 'test@example.com', 'Test'),
@@ -168,7 +159,6 @@ describe('GetInsightsUseCase', () => {
         categoryRepo,
         cacheService,
         newsArticleRepo,
-        newsService,
       );
 
       const result = await useCase.execute('u1');
@@ -184,7 +174,6 @@ describe('GetInsightsUseCase', () => {
         categoryRepo,
         cacheService,
         newsArticleRepo,
-        newsService,
       } = createMocks();
       userRepo.findById.mockResolvedValue(null);
       const useCase = new GetInsightsUseCase(
@@ -193,7 +182,6 @@ describe('GetInsightsUseCase', () => {
         categoryRepo,
         cacheService,
         newsArticleRepo,
-        newsService,
       );
 
       expect(await useCase.execute('nonexistent')).toEqual([]);
@@ -208,7 +196,6 @@ describe('GetInsightsUseCase', () => {
         categoryRepo,
         cacheService,
         newsArticleRepo,
-        newsService,
       } = createMocks();
       userRepo.findById.mockResolvedValue(User.create('u1', 'a@b.com', 'A'));
       roadmapRepo.findByUserId.mockResolvedValue([
@@ -228,7 +215,6 @@ describe('GetInsightsUseCase', () => {
         categoryRepo,
         cacheService,
         newsArticleRepo,
-        newsService,
       );
 
       const result = await useCase.execute('u1');
@@ -246,7 +232,6 @@ describe('GetInsightsUseCase', () => {
         categoryRepo,
         cacheService,
         newsArticleRepo,
-        newsService,
       } = createMocks();
       roadmapRepo.findByUserId.mockResolvedValue([
         new Roadmap({
@@ -265,7 +250,6 @@ describe('GetInsightsUseCase', () => {
         categoryRepo,
         cacheService,
         newsArticleRepo,
-        newsService,
       );
 
       await useCase.execute('u1');
@@ -284,7 +268,6 @@ describe('GetInsightsUseCase', () => {
         categoryRepo,
         cacheService,
         newsArticleRepo,
-        newsService,
       } = createMocks();
       const useCase = new GetInsightsUseCase(
         userRepo,
@@ -292,7 +275,6 @@ describe('GetInsightsUseCase', () => {
         categoryRepo,
         cacheService,
         newsArticleRepo,
-        newsService,
       );
 
       await useCase.execute('u1'); // populates cache
@@ -308,7 +290,6 @@ describe('GetInsightsUseCase', () => {
         categoryRepo,
         cacheService,
         newsArticleRepo,
-        newsService,
       } = createMocks();
       newsArticleRepo.findByCategorySlugs.mockResolvedValue([]);
       const useCase = new GetInsightsUseCase(
@@ -317,7 +298,6 @@ describe('GetInsightsUseCase', () => {
         categoryRepo,
         cacheService,
         newsArticleRepo,
-        newsService,
       );
 
       await useCase.execute('u1');
@@ -326,62 +306,27 @@ describe('GetInsightsUseCase', () => {
     });
   });
 
-  describe('on-demand fetch for empty categories', () => {
-    it('fetches from news service when DB has no articles for a category', async () => {
+  describe('no on-demand fetch (cron only)', () => {
+    it('returns empty array when DB has no articles for user categories', async () => {
       const {
         userRepo,
         roadmapRepo,
         categoryRepo,
         cacheService,
         newsArticleRepo,
-        newsService,
       } = createMocks();
-      // DB returns no articles
       newsArticleRepo.findByCategorySlugs.mockResolvedValue([]);
-      // API returns articles
-      newsService.fetchByCategory.mockResolvedValue([
-        buildArticle('web-development', 0),
-      ]);
       const useCase = new GetInsightsUseCase(
         userRepo,
         roadmapRepo,
         categoryRepo,
         cacheService,
         newsArticleRepo,
-        newsService,
       );
 
       const result = await useCase.execute('u1');
 
-      expect(newsService.fetchByCategory).toHaveBeenCalledWith(
-        'web-development',
-        'Web Development',
-      );
-      expect(newsArticleRepo.upsertMany).toHaveBeenCalled();
-      expect(result.length).toBeGreaterThan(0);
-    });
-
-    it('does not fetch from API when DB already has articles', async () => {
-      const {
-        userRepo,
-        roadmapRepo,
-        categoryRepo,
-        cacheService,
-        newsArticleRepo,
-        newsService,
-      } = createMocks();
-      const useCase = new GetInsightsUseCase(
-        userRepo,
-        roadmapRepo,
-        categoryRepo,
-        cacheService,
-        newsArticleRepo,
-        newsService,
-      );
-
-      await useCase.execute('u1');
-
-      expect(newsService.fetchByCategory).not.toHaveBeenCalled();
+      expect(result).toEqual([]);
     });
   });
 });

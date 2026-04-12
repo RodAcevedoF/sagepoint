@@ -14,6 +14,7 @@ import {
 import { randomUUID } from "crypto";
 
 const RETENTION_DAYS = 5;
+const MAX_NEWS_CATEGORIES = 12;
 
 @Injectable()
 // @TODO: Add distributed locking if we ever have multiple worker instances to prevent duplicate refreshes.
@@ -33,7 +34,15 @@ export class InsightsRefreshService {
   async refreshNewsCache() {
     this.logger.log("Starting daily news refresh...");
 
-    const categories = await this.categoryRepo.listWithActiveInterests();
+    let categories = await this.categoryRepo.listWithActiveInterests();
+
+    if (categories.length > MAX_NEWS_CATEGORIES) {
+      this.logger.warn(
+        `${categories.length} active categories exceed cap of ${MAX_NEWS_CATEGORIES} — fetching only the first ${MAX_NEWS_CATEGORIES}`,
+      );
+      categories = categories.slice(0, MAX_NEWS_CATEGORIES);
+    }
+
     let totalSaved = 0;
 
     for (const category of categories) {

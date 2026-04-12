@@ -4,7 +4,6 @@ import type {
   IRoadmapRepository,
   ICategoryRepository,
   ICacheService,
-  INewsService,
 } from '@sagepoint/domain';
 import type { PrismaClient } from '@sagepoint/database';
 import { PrismaNewsArticleRepository } from '@sagepoint/database';
@@ -21,7 +20,6 @@ export function makeInsightsDependencies(
   roadmapRepo: IRoadmapRepository,
   categoryRepo: ICategoryRepository,
   cache: ICacheService,
-  newsService: INewsService,
 ): InsightsDependencies {
   const newsArticleRepository = new PrismaNewsArticleRepository(prismaService);
 
@@ -31,7 +29,6 @@ export function makeInsightsDependencies(
     categoryRepo,
     cache,
     newsArticleRepository,
-    newsService,
   );
 
   return {

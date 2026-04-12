@@ -15,6 +15,10 @@ import {
   isExperienceLevel,
   type ExperienceLevel,
 } from "./ExperienceLevelSelector";
+import {
+  COMMITMENT_LEVELS,
+  type CommitmentLevel,
+} from "./CommitmentLevelSelector";
 import { GeneratingTimeline } from "./GeneratingTimeline";
 import { GenerationForm } from "./GenerationForm";
 
@@ -40,6 +44,7 @@ export function GenerationView({
   const [experienceLevel, setExperienceLevel] = useState<
     ExperienceLevel | undefined
   >(isExperienceLevel(initialExperience) ? initialExperience : undefined);
+  const [commitment, setCommitment] = useState<CommitmentLevel | undefined>();
   const [phase, setPhase] = useState<"input" | "generating">("input");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [roadmapId, setRoadmapId] = useState<string | null>(null);
@@ -83,8 +88,15 @@ export function GenerationView({
       setRoadmapId(null);
 
       try {
+        const timeAvailable = commitment
+          ? COMMITMENT_LEVELS.find((c) => c.id === commitment)?.hours
+          : undefined;
+
         const roadmap = await execute(topic.trim(), title.trim() || undefined, {
-          userContext: experienceLevel ? { experienceLevel } : undefined,
+          userContext:
+            experienceLevel || timeAvailable
+              ? { experienceLevel, timeAvailable }
+              : undefined,
         });
 
         if (fromOnboarding) {
@@ -101,7 +113,15 @@ export function GenerationView({
         );
       }
     },
-    [topic, title, experienceLevel, execute, fromOnboarding, router],
+    [
+      topic,
+      title,
+      experienceLevel,
+      commitment,
+      execute,
+      fromOnboarding,
+      router,
+    ],
   );
 
   return (
@@ -132,6 +152,7 @@ export function GenerationView({
             topic={topic}
             title={title}
             experienceLevel={experienceLevel}
+            commitment={commitment}
             isLoading={isLoading}
             limitReached={roadmapLimitReached ?? false}
             errorMessage={displayError}
@@ -140,6 +161,7 @@ export function GenerationView({
             onTopicChange={setTopic}
             onTitleChange={setTitle}
             onExperienceLevelChange={setExperienceLevel}
+            onCommitmentChange={setCommitment}
             onSubmit={handleSubmit}
           />
         </MotionBox>

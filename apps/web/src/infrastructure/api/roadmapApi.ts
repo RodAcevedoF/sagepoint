@@ -88,6 +88,7 @@ export interface GenerateTopicRoadmapDto {
   userContext?: {
     experienceLevel?: "beginner" | "intermediate" | "advanced" | "expert";
     goal?: string;
+    timeAvailable?: number;
   };
 }
 

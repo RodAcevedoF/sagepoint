@@ -36,8 +36,7 @@ import {
   type SocialDependencies,
 } from '@/features/social/dependencies';
 import { GCSStorage } from '@sagepoint/storage';
-import { NewsdataApiAdapter } from '@sagepoint/ai';
-import type { IFileStorage, INewsService } from '@sagepoint/domain';
+import type { IFileStorage } from '@sagepoint/domain';
 import Redis from 'ioredis';
 import { RedisCacheService } from '@/core/infra/cache/redis-cache.service';
 import { BcryptPasswordHasher } from '@/features/auth/infra/driven/bcrypt-password.hasher';
@@ -57,7 +56,6 @@ export interface AppDependencies {
   social: SocialDependencies;
   fileStorage: IFileStorage;
   neo4jService: Neo4jService;
-  newsService: INewsService;
 }
 
 let dependencies: AppDependencies | null = null;
@@ -95,10 +93,6 @@ export function bootstrap(): AppDependencies {
   });
   const cacheService = new RedisCacheService(cacheRedis);
 
-  const newsService: INewsService = new NewsdataApiAdapter({
-    apiKey: process.env.NEWSDATAIO_API_KEY ?? '',
-  });
-
   const roadmapDeps = makeRoadmapDependencies(
     prismaService,
     neo4jService,
@@ -124,7 +118,6 @@ export function bootstrap(): AppDependencies {
       roadmapDeps.roadmapRepository,
       categoryDeps.categoryRepository,
       cacheService,
-      newsService,
     ),
     social: makeSocialDependencies(prismaService, roadmapDeps.roadmapService),
     invitation: makeInvitationDependencies(
@@ -143,7 +136,6 @@ export function bootstrap(): AppDependencies {
     ),
     fileStorage,
     neo4jService,
-    newsService,
   };
 
   return dependencies;
