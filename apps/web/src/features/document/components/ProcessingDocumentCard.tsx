@@ -11,7 +11,8 @@ import {
 import { FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/shared/components";
-import { useDocumentEvents } from "@/shared/hooks";
+import { useDocumentEvents, useAppDispatch } from "@/shared/hooks";
+import { documentApi } from "@/infrastructure/api/documentApi";
 import type { DocumentDetailDto } from "@/infrastructure/api/documentApi";
 import type { DocumentEventStage } from "@/shared/hooks";
 
@@ -51,7 +52,9 @@ export function ProcessingDocumentCard({
 }: ProcessingDocumentCardProps) {
   const theme = useTheme();
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const hasNotified = useRef(false);
+  const hasSummarized = useRef(false);
   const { status, stage } = useDocumentEvents(document.id);
 
   useEffect(() => {
@@ -60,6 +63,15 @@ export function ProcessingDocumentCard({
       onComplete?.();
     }
   }, [status, onComplete]);
+
+  useEffect(() => {
+    if (stage === "summarized" && !hasSummarized.current) {
+      hasSummarized.current = true;
+      dispatch(
+        documentApi.util.invalidateTags([{ type: "Document", id: "LIST" }]),
+      );
+    }
+  }, [stage, dispatch]);
 
   const progress = stageProgress(stage);
   const label = (stage && STAGE_LABELS[stage]) || "Starting...";

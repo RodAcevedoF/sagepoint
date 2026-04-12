@@ -1,6 +1,6 @@
 "use client";
 
-import { createElement, useState } from "react";
+import { createElement, useEffect, useState } from "react";
 import { Box, Typography, IconButton, alpha, useTheme } from "@mui/material";
 import { Trash2, ArrowRight, Layers, HardDrive } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -58,11 +58,13 @@ export function DocumentCard({ document }: DocumentCardProps) {
     document.status === "PROCESSING" ? document.id : null,
   );
 
-  if (sseStatus === "completed") {
-    dispatch(
-      documentApi.util.invalidateTags([{ type: "Document", id: "LIST" }]),
-    );
-  }
+  useEffect(() => {
+    if (sseStatus === "completed") {
+      dispatch(
+        documentApi.util.invalidateTags([{ type: "Document", id: "LIST" }]),
+      );
+    }
+  }, [sseStatus, dispatch]);
 
   const stage: ProcessingStage =
     (sseStage && sseStageMap[sseStage]) || document.processingStage;
