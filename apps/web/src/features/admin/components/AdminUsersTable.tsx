@@ -129,16 +129,16 @@ export function AdminUsersTable() {
   };
 
   const handleLimitsConfirm = async (data: {
-    maxDocuments: number | null;
-    maxRoadmaps: number | null;
+    balance?: number | null;
+    credit?: number;
   }) => {
     if (!selectedUserId) return;
     setLimitsDialogOpen(false);
     try {
       await updateLimits({ id: selectedUserId, data }).unwrap();
-      show("Resource limits updated", "success");
+      show("Token balance updated", "success");
     } catch {
-      show("Failed to update limits", "error");
+      show("Failed to update token balance", "error");
     }
     setSelectedUserId(null);
   };

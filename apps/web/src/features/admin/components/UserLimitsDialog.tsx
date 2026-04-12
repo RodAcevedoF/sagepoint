@@ -19,28 +19,23 @@ import { Settings2 } from "lucide-react";
 import { palette } from "@/shared/theme";
 import type { AdminUserDto } from "@/infrastructure/api/adminApi";
 
-interface LimitsForm {
-  maxDocuments: number;
-  maxRoadmaps: number;
-  unlimitedDocs: boolean;
-  unlimitedRoadmaps: boolean;
+interface BalanceForm {
+  balance: number;
+  unlimited: boolean;
+  credit: number;
 }
 
-const DEFAULT_FORM: LimitsForm = {
-  maxDocuments: 5,
-  maxRoadmaps: 3,
-  unlimitedDocs: false,
-  unlimitedRoadmaps: false,
+const DEFAULT_FORM: BalanceForm = {
+  balance: 100,
+  unlimited: false,
+  credit: 0,
 };
 
 interface UserLimitsDialogProps {
   open: boolean;
   user: AdminUserDto | undefined;
   onClose: () => void;
-  onConfirm: (data: {
-    maxDocuments: number | null;
-    maxRoadmaps: number | null;
-  }) => void;
+  onConfirm: (data: { balance?: number | null; credit?: number }) => void;
 }
 
 export function UserLimitsDialog({
@@ -49,17 +44,17 @@ export function UserLimitsDialog({
   onClose,
   onConfirm,
 }: UserLimitsDialogProps) {
-  const [form, setForm] = useState<LimitsForm>(DEFAULT_FORM);
+  const [form, setForm] = useState<BalanceForm>(DEFAULT_FORM);
 
   const handleClose = () => {
     onClose();
     setForm(DEFAULT_FORM);
   };
 
-  const handleConfirm = (data: {
-    maxDocuments: number | null;
-    maxRoadmaps: number | null;
-  }) => {
+  const handleConfirm = () => {
+    const data: { balance?: number | null; credit?: number } = {};
+    data.balance = form.unlimited ? null : form.balance;
+    if (form.credit > 0) data.credit = form.credit;
     onConfirm(data);
     setForm(DEFAULT_FORM);
   };
@@ -79,36 +74,37 @@ export function UserLimitsDialog({
         },
       }}
     >
-      <DialogTitle sx={{ fontWeight: 700 }}>Edit Resource Limits</DialogTitle>
+      <DialogTitle sx={{ fontWeight: 700 }}>Edit Token Balance</DialogTitle>
       <DialogContent>
         <DialogContentText sx={{ color: palette.text.secondary, mb: 2 }}>
-          Set document and roadmap limits for <strong>{user?.name}</strong>.
-          Check &quot;Unlimited&quot; to remove the cap.
+          Manage token balance for <strong>{user?.name}</strong>. Tokens are
+          consumed on successful operations.
         </DialogContentText>
         <Stack spacing={2}>
           <Box>
             <TextField
               fullWidth
-              label="Max Documents"
+              label="Set Balance"
               type="number"
-              value={form.maxDocuments}
+              value={form.balance}
               onChange={(e) =>
                 setForm((f) => ({
                   ...f,
-                  maxDocuments: parseInt(e.target.value) || 0,
+                  balance: parseInt(e.target.value) || 0,
                 }))
               }
-              disabled={form.unlimitedDocs}
+              disabled={form.unlimited}
               slotProps={{ htmlInput: { min: 0 } }}
               size="small"
+              helperText="Sets the absolute token balance"
             />
             <FormControlLabel
               control={
                 <Checkbox
                   size="small"
-                  checked={form.unlimitedDocs}
+                  checked={form.unlimited}
                   onChange={(e) =>
-                    setForm((f) => ({ ...f, unlimitedDocs: e.target.checked }))
+                    setForm((f) => ({ ...f, unlimited: e.target.checked }))
                   }
                 />
               }
@@ -116,39 +112,21 @@ export function UserLimitsDialog({
               slotProps={{ typography: { variant: "caption" } }}
             />
           </Box>
-          <Box>
-            <TextField
-              fullWidth
-              label="Max Roadmaps"
-              type="number"
-              value={form.maxRoadmaps}
-              onChange={(e) =>
-                setForm((f) => ({
-                  ...f,
-                  maxRoadmaps: parseInt(e.target.value) || 0,
-                }))
-              }
-              disabled={form.unlimitedRoadmaps}
-              slotProps={{ htmlInput: { min: 0 } }}
-              size="small"
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  size="small"
-                  checked={form.unlimitedRoadmaps}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      unlimitedRoadmaps: e.target.checked,
-                    }))
-                  }
-                />
-              }
-              label="Unlimited"
-              slotProps={{ typography: { variant: "caption" } }}
-            />
-          </Box>
+          <TextField
+            fullWidth
+            label="Grant Additional Tokens"
+            type="number"
+            value={form.credit}
+            onChange={(e) =>
+              setForm((f) => ({
+                ...f,
+                credit: parseInt(e.target.value) || 0,
+              }))
+            }
+            slotProps={{ htmlInput: { min: 0 } }}
+            size="small"
+            helperText="Adds to the current balance (applied after set)"
+          />
         </Stack>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
@@ -156,16 +134,11 @@ export function UserLimitsDialog({
           Cancel
         </Button>
         <Button
-          onClick={() =>
-            handleConfirm({
-              maxDocuments: form.unlimitedDocs ? null : form.maxDocuments,
-              maxRoadmaps: form.unlimitedRoadmaps ? null : form.maxRoadmaps,
-            })
-          }
+          onClick={handleConfirm}
           variant="contained"
           startIcon={<Settings2 size={16} />}
         >
-          Save Limits
+          Save
         </Button>
       </DialogActions>
     </Dialog>

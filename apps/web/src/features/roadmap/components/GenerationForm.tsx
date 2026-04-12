@@ -110,19 +110,15 @@ export function GenerationForm({
         disabled={isLoading}
       />
 
-      {quota &&
-        quota.roadmaps.max !== null &&
-        quota.roadmaps.remaining !== null && (
-          <Box sx={{ mb: 2 }}>
-            <ResourceQuotaBar
-              used={quota.roadmaps.used}
-              max={quota.roadmaps.max}
-              remaining={quota.roadmaps.remaining}
-              label="Roadmaps used"
-              limitReachedMessage="Limit reached — delete a roadmap to create more"
-            />
-          </Box>
-        )}
+      {quota && (
+        <Box sx={{ mb: 2 }}>
+          <ResourceQuotaBar
+            balance={quota.balance}
+            cost={quota.costs.TOPIC_ROADMAP}
+            costLabel="Generating a roadmap"
+          />
+        </Box>
+      )}
 
       {errorMessage && (
         <Typography variant="body2" sx={styles.errorText}>
