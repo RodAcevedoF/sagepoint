@@ -1,11 +1,12 @@
-import { IsInt, IsOptional, Min } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsInt, IsOptional, Min, ValidateIf } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 
 export class UpdateUserLimitsDto {
   @IsOptional()
+  @ValidateIf((o) => o.balance !== null)
   @IsInt()
   @Min(0)
-  @Type(() => Number)
+  @Transform(({ value }) => (value === null ? null : Number(value)))
   balance?: number | null;
 
   @IsOptional()

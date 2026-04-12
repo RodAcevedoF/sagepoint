@@ -20,6 +20,7 @@ import { Button } from "../../ui/Button";
 import { ButtonVariants } from "@/shared/types";
 import { useAppSelector } from "@/shared/hooks";
 import { useLogoutCommand } from "@/application/auth/commands/logout.command";
+import { TokenBadge } from "./TokenBadge";
 import type { Theme } from "@mui/material";
 
 const makeStyles = (theme: Theme) => ({
@@ -86,6 +87,9 @@ export function NavbarActions({ mode = "default" }: NavbarActionsProps) {
           </Tooltip>
         )}
 
+        {/* Token Balance */}
+        <TokenBadge />
+
         {/* Profile Button */}
         <Tooltip title="My Profile">
           <Avatar
@@ -138,6 +142,7 @@ export function NavbarActions({ mode = "default" }: NavbarActionsProps) {
             <LogOut size={20} />
           </IconButton>
         </Tooltip>
+        <TokenBadge />
         <Tooltip title="Profile">
           <Avatar
             src={user?.avatarUrl}

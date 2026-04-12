@@ -5,6 +5,7 @@ import {
   Box,
   Button,
   Checkbox,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -25,56 +26,41 @@ interface BalanceForm {
   credit: number;
 }
 
-const DEFAULT_FORM: BalanceForm = {
-  balance: 100,
-  unlimited: false,
-  credit: 0,
-};
-
 interface UserLimitsDialogProps {
   open: boolean;
   user: AdminUserDto | undefined;
+  initialBalance: number | null | undefined; // undefined = still loading
   onClose: () => void;
   onConfirm: (data: { balance?: number | null; credit?: number }) => void;
 }
 
-export function UserLimitsDialog({
-  open,
+function DialogBody({
   user,
+  initialBalance,
   onClose,
   onConfirm,
-}: UserLimitsDialogProps) {
-  const [form, setForm] = useState<BalanceForm>(DEFAULT_FORM);
-
-  const handleClose = () => {
-    onClose();
-    setForm(DEFAULT_FORM);
-  };
+}: Omit<UserLimitsDialogProps, "open">) {
+  const [form, setForm] = useState<BalanceForm>({
+    balance: initialBalance ?? 100,
+    unlimited: initialBalance === null,
+    credit: 0,
+  });
 
   const handleConfirm = () => {
     const data: { balance?: number | null; credit?: number } = {};
     data.balance = form.unlimited ? null : form.balance;
     if (form.credit > 0) data.credit = form.credit;
     onConfirm(data);
-    setForm(DEFAULT_FORM);
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      slotProps={{
-        paper: {
-          sx: {
-            bgcolor: palette.background.paper,
-            border: `1px solid ${alpha(palette.info.main, 0.2)}`,
-            borderRadius: 3,
-            minWidth: 360,
-          },
-        },
-      }}
-    >
-      <DialogTitle sx={{ fontWeight: 700 }}>Edit Token Balance</DialogTitle>
+    <>
+      <DialogTitle
+        sx={{ fontWeight: 700, display: "flex", alignItems: "center", gap: 1 }}
+      >
+        Edit Token Balance
+        {initialBalance === undefined && <CircularProgress size={16} />}
+      </DialogTitle>
       <DialogContent>
         <DialogContentText sx={{ color: palette.text.secondary, mb: 2 }}>
           Manage token balance for <strong>{user?.name}</strong>. Tokens are
@@ -118,10 +104,7 @@ export function UserLimitsDialog({
             type="number"
             value={form.credit}
             onChange={(e) =>
-              setForm((f) => ({
-                ...f,
-                credit: parseInt(e.target.value) || 0,
-              }))
+              setForm((f) => ({ ...f, credit: parseInt(e.target.value) || 0 }))
             }
             slotProps={{ htmlInput: { min: 0 } }}
             size="small"
@@ -130,7 +113,7 @@ export function UserLimitsDialog({
         </Stack>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={handleClose} sx={{ color: palette.text.secondary }}>
+        <Button onClick={onClose} sx={{ color: palette.text.secondary }}>
           Cancel
         </Button>
         <Button
@@ -141,6 +124,41 @@ export function UserLimitsDialog({
           Save
         </Button>
       </DialogActions>
+    </>
+  );
+}
+
+export function UserLimitsDialog({
+  open,
+  user,
+  initialBalance,
+  onClose,
+  onConfirm,
+}: UserLimitsDialogProps) {
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      slotProps={{
+        paper: {
+          sx: {
+            bgcolor: palette.background.paper,
+            border: `1px solid ${alpha(palette.info.main, 0.2)}`,
+            borderRadius: 3,
+            minWidth: 360,
+          },
+        },
+      }}
+    >
+      {open && (
+        <DialogBody
+          key={user?.id}
+          user={user}
+          initialBalance={initialBalance}
+          onClose={onClose}
+          onConfirm={onConfirm}
+        />
+      )}
     </Dialog>
   );
 }

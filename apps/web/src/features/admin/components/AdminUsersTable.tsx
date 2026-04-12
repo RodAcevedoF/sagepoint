@@ -33,6 +33,7 @@ import {
 } from "@/application/admin";
 import {
   useDeleteAdminUserMutation,
+  useGetUserLimitsQuery,
   useUpdateUserLimitsMutation,
 } from "@/infrastructure/api/adminApi";
 import { adminTableStyles, formatRelativeDate } from "./adminTable.styles";
@@ -59,6 +60,11 @@ export function AdminUsersTable() {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [limitsDialogOpen, setLimitsDialogOpen] = useState(false);
+
+  const { data: selectedUserLimits } = useGetUserLimitsQuery(
+    selectedUserId ?? "",
+    { skip: !limitsDialogOpen || !selectedUserId },
+  );
 
   const selectedUser = users?.find((u) => u.id === selectedUserId);
 
@@ -313,7 +319,7 @@ export function AdminUsersTable() {
         onBan={handleToggleBan}
         onToggleRole={handleToggleRole}
         onEditLimits={() => {
-          handleMenuClose();
+          setAnchorEl(null);
           setLimitsDialogOpen(true);
         }}
         onDelete={() => {
@@ -344,6 +350,7 @@ export function AdminUsersTable() {
       <UserLimitsDialog
         open={limitsDialogOpen}
         user={selectedUser}
+        initialBalance={selectedUserLimits?.balance}
         onClose={() => {
           setLimitsDialogOpen(false);
           setSelectedUserId(null);
