@@ -113,7 +113,6 @@ describe("DocumentProcessorService", () => {
   let documentRepo: FakeDocumentRepository;
   let summaryRepo: FakeDocumentSummaryRepository;
   let quizRepo: FakeQuizRepository;
-  let questionRepo: FakeQuestionRepository;
 
   beforeEach(() => {
     const ctx = buildService({});
@@ -129,7 +128,6 @@ describe("DocumentProcessorService", () => {
     documentRepo = ctx.documentRepo;
     summaryRepo = ctx.summaryRepo;
     quizRepo = ctx.quizRepo;
-    questionRepo = ctx.questionRepo;
 
     fileStorage.seed(STORAGE_PATH, Buffer.from(SAMPLE_TEXT));
     documentRepo.seedDocument(DOC_ID);
