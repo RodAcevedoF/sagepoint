@@ -33,8 +33,6 @@ import type {
   IDocumentAnalysisService,
   IQuizGenerationService,
   IImageTextExtractionService,
-  IDocumentProcessorService,
-  DocumentProcessingInput,
   DocumentProcessingProgress,
   ExtractedConcept,
   DocumentAnalysisResult,
@@ -42,20 +40,24 @@ import type {
 } from "@sagepoint/domain";
 import { randomUUID } from "crypto";
 
-interface ProcessDocumentJobData {
+// ─── Job data shapes ──────────────────────────────────────────────────────────
+
+interface ProcessDocumentData {
   documentId: string;
   storagePath: string;
   filename: string;
   mimeType?: string;
 }
 
-interface EnrichDocumentJobData {
+interface EnrichDocumentData {
   documentId: string;
   text: string;
   topicArea: string;
 }
 
-type JobData = ProcessDocumentJobData | EnrichDocumentJobData;
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const MAX_AI_TEXT_LENGTH = 15_000;
 
 const MIME_MAP: Record<string, string> = {
   pdf: "application/pdf",
@@ -69,13 +71,12 @@ const MIME_MAP: Record<string, string> = {
   webp: "image/webp",
 };
 
-const MAX_AI_TEXT_LENGTH = 15000;
+type OnProgress = (p: DocumentProcessingProgress) => void;
+
+// ─── Processor ────────────────────────────────────────────────────────────────
 
 @Processor("document-processing")
-export class DocumentProcessorService
-  extends WorkerHost
-  implements IDocumentProcessorService
-{
+export class DocumentProcessorService extends WorkerHost {
   private readonly parser = new CompositeDocumentParser();
 
   constructor(
@@ -107,28 +108,25 @@ export class DocumentProcessorService
     super();
   }
 
-  async process(job: Job<JobData>) {
+  // ─── BullMQ entry point ───────────────────────────────────────────────────
+
+  async process(job: Job): Promise<void> {
+    const onProgress: OnProgress = (p) => void job.updateProgress(p);
+
     if (job.name === "enrich-document") {
-      await this.enrichDocumentJob(
-        job.data as EnrichDocumentJobData,
-        (progress) => void job.updateProgress(progress),
-      );
+      await this.runEnrichment(job.data as EnrichDocumentData, onProgress);
     } else {
-      await this.processDocumentJob(
-        job.data as ProcessDocumentJobData,
-        (progress) => void job.updateProgress(progress),
-      );
+      await this.runProcessing(job.data as ProcessDocumentData, onProgress);
     }
   }
 
-  // ─── Job 1: parse + analyze → enqueue enrichment ───────────────────────────
+  // ─── Job 1: parse + analyze ───────────────────────────────────────────────
 
-  private async processDocumentJob(
-    input: ProcessDocumentJobData,
-    onProgress: (progress: DocumentProcessingProgress) => void,
+  private async runProcessing(
+    { documentId, storagePath, filename, mimeType }: ProcessDocumentData,
+    onProgress: OnProgress,
   ): Promise<void> {
-    const { documentId, storagePath, filename, mimeType } = input;
-    this.logger.info({ documentId, filename, mimeType }, "Processing document");
+    this.logger.info({ documentId }, "Starting document processing");
 
     try {
       const text = await this.parseDocument(
@@ -149,22 +147,19 @@ export class DocumentProcessorService
         },
         { jobId: `${documentId}:enrich` },
       );
-
-      this.logger.info({ documentId }, "Enqueued enrichment job");
     } catch (error) {
-      await this.handleFailure(documentId, error);
+      await this.markFailed(documentId, error);
       throw error;
     }
   }
 
-  // ─── Job 2: concepts + quiz → finalize ─────────────────────────────────────
+  // ─── Job 2: concepts + quiz + finalize ────────────────────────────────────
 
-  private async enrichDocumentJob(
-    input: EnrichDocumentJobData,
-    onProgress: (progress: DocumentProcessingProgress) => void,
+  private async runEnrichment(
+    { documentId, text, topicArea }: EnrichDocumentData,
+    onProgress: OnProgress,
   ): Promise<void> {
-    const { documentId, text, topicArea } = input;
-    this.logger.info({ documentId }, "Enriching document");
+    this.logger.info({ documentId }, "Starting document enrichment");
 
     await this.updateStage(documentId, undefined, ProcessingStage.ENRICHING);
     onProgress({ stage: "enriching" });
@@ -173,13 +168,13 @@ export class DocumentProcessorService
       await this.extractConceptsAndQuiz(documentId, text, topicArea);
       await this.finalize(documentId, onProgress);
     } catch (error) {
-      // Enrichment failure is non-fatal — summary is already saved
+      // Summary is already saved — degrade gracefully instead of failing
       this.logger.error(
         {
           documentId,
           err: error instanceof Error ? error.message : String(error),
         },
-        "Enrichment failed, marking document complete without quiz/concepts",
+        "Enrichment failed, finalizing without quiz/concepts",
       );
       await this.documentRepo.updateStatus(documentId, {
         status: DocumentStatus.COMPLETED,
@@ -189,43 +184,14 @@ export class DocumentProcessorService
     }
   }
 
-  // ─── IDocumentProcessorService (used in tests / direct calls) ──────────────
-
-  async processDocument(
-    input: DocumentProcessingInput,
-    onProgress?: (progress: DocumentProcessingProgress) => void,
-  ): Promise<void> {
-    const noop = () => {};
-    const progress = onProgress ?? noop;
-
-    const text = await this.parseDocument(
-      input.documentId,
-      input.storagePath,
-      input.filename,
-      input.mimeType,
-      progress,
-    );
-    const analysis = await this.analyzeDocument(
-      input.documentId,
-      text,
-      progress,
-    );
-    await this.extractConceptsAndQuiz(
-      input.documentId,
-      text.substring(0, MAX_AI_TEXT_LENGTH),
-      analysis.topicArea,
-    );
-    await this.finalize(input.documentId, progress);
-  }
-
-  // ─── Shared helpers ─────────────────────────────────────────────────────────
+  // ─── Processing steps ─────────────────────────────────────────────────────
 
   private async parseDocument(
     documentId: string,
     storagePath: string,
     filename: string,
     mimeType?: string,
-    onProgress?: (progress: DocumentProcessingProgress) => void,
+    onProgress?: OnProgress,
   ): Promise<string> {
     await this.updateStage(
       documentId,
@@ -235,10 +201,10 @@ export class DocumentProcessorService
     onProgress?.({ stage: "parsing" });
 
     const buffer = await this.fileStorage.download(storagePath);
-    const resolvedMime = mimeType || this.guessMimeType(filename);
+    const resolvedMime = mimeType ?? this.guessMimeType(filename);
     const text = await this.extractText(buffer, resolvedMime);
 
-    if (!text || text.trim().length === 0) {
+    if (!text?.trim()) {
       throw new Error("No text could be extracted from the document");
     }
 
@@ -249,19 +215,20 @@ export class DocumentProcessorService
   private async analyzeDocument(
     documentId: string,
     text: string,
-    onProgress?: (progress: DocumentProcessingProgress) => void,
+    onProgress?: OnProgress,
   ): Promise<DocumentAnalysisResult> {
     await this.updateStage(documentId, undefined, ProcessingStage.ANALYZING);
     onProgress?.({ stage: "analyzing" });
 
-    const truncatedText = text.substring(0, MAX_AI_TEXT_LENGTH);
-    const analysis = await this.documentAnalysis.analyzeDocument(truncatedText);
+    const analysis = await this.documentAnalysis.analyzeDocument(
+      text.substring(0, MAX_AI_TEXT_LENGTH),
+    );
 
     await this.saveSummary(documentId, analysis);
     await this.updateStage(documentId, undefined, ProcessingStage.SUMMARIZED);
     onProgress?.({ stage: "summarized" });
 
-    this.logger.info({ documentId, stage: "summarized" }, "Summary saved");
+    this.logger.info({ documentId }, "Summary saved");
     return analysis;
   }
 
@@ -275,35 +242,12 @@ export class DocumentProcessorService
       this.quizGeneration.generateQuiz(text, [], { questionCount: 10 }),
     ]);
 
-    let conceptCount = 0;
-
     if (conceptsResult.status === "fulfilled") {
-      const concepts = conceptsResult.value.map((e) =>
-        Concept.create(randomUUID(), e.name, documentId, e.description),
-      );
-      await this.saveConcepts(concepts, conceptsResult.value, documentId);
-      conceptCount = concepts.length;
-      const existingSummary =
-        await this.documentSummaryRepo.findByDocumentId(documentId);
-      if (existingSummary) {
-        await this.documentSummaryRepo.save(
-          new DocumentSummary(
-            existingSummary.id,
-            existingSummary.documentId,
-            existingSummary.overview,
-            existingSummary.keyPoints,
-            existingSummary.topicArea,
-            existingSummary.difficulty,
-            conceptCount,
-            existingSummary.createdAt,
-            existingSummary.estimatedReadTime,
-          ),
-        );
-      }
+      await this.saveConcepts(documentId, conceptsResult.value);
     } else {
       this.logger.warn(
         { documentId, err: String(conceptsResult.reason) },
-        "Concept extraction failed, continuing with partial results",
+        "Concept extraction failed",
       );
     }
 
@@ -312,7 +256,7 @@ export class DocumentProcessorService
     } else {
       this.logger.warn(
         { documentId, err: String(quizResult.reason) },
-        "Quiz generation failed, continuing with partial results",
+        "Quiz generation failed",
       );
     }
 
@@ -326,7 +270,7 @@ export class DocumentProcessorService
 
   private async finalize(
     documentId: string,
-    onProgress?: (progress: DocumentProcessingProgress) => void,
+    onProgress: OnProgress,
   ): Promise<void> {
     const summary = await this.documentSummaryRepo.findByDocumentId(documentId);
     await this.documentRepo.updateStatus(documentId, {
@@ -334,58 +278,11 @@ export class DocumentProcessorService
       processingStage: ProcessingStage.READY,
       conceptCount: summary?.conceptCount ?? 0,
     });
-    onProgress?.({ stage: "ready" });
-    this.logger.info(
-      { documentId, stage: "ready" },
-      "Document fully processed",
-    );
+    onProgress({ stage: "ready" });
+    this.logger.info({ documentId }, "Document fully processed");
   }
 
-  private async handleFailure(
-    documentId: string,
-    error: unknown,
-  ): Promise<void> {
-    const err = error instanceof Error ? error : new Error(String(error));
-    this.logger.error({ documentId, err }, "Document processing failed");
-    await this.documentRepo.updateStatus(documentId, {
-      status: DocumentStatus.FAILED,
-      errorMessage: error instanceof Error ? error.message : "Unknown error",
-    });
-  }
-
-  private async updateStage(
-    documentId: string,
-    status?: DocumentStatus,
-    processingStage?: ProcessingStage,
-  ): Promise<void> {
-    await this.documentRepo.updateStatus(documentId, {
-      ...(status !== undefined && { status }),
-      ...(processingStage !== undefined && { processingStage }),
-    });
-  }
-
-  private async extractText(buffer: Buffer, mimeType: string): Promise<string> {
-    if (mimeType.startsWith("image/")) {
-      return this.visionExtractor.extractText(buffer, mimeType);
-    }
-
-    if (mimeType.startsWith("text/")) {
-      return buffer.toString("utf-8");
-    }
-
-    if (this.parser.supports(mimeType)) {
-      const result = await this.parser.parse(buffer, mimeType);
-      return result.text;
-    }
-
-    this.logger.warn({ mimeType }, "Unknown MIME type, attempting text decode");
-    return buffer.toString("utf-8");
-  }
-
-  private guessMimeType(filename: string): string {
-    const ext = filename.toLowerCase().split(".").pop();
-    return MIME_MAP[ext || ""] || "application/octet-stream";
-  }
+  // ─── Persistence helpers ──────────────────────────────────────────────────
 
   private async saveSummary(
     documentId: string,
@@ -412,6 +309,7 @@ export class DocumentProcessorService
   ): Promise<void> {
     const quizId = randomUUID();
     const now = new Date();
+
     await this.quizRepo.save(
       new Quiz(
         quizId,
@@ -444,31 +342,28 @@ export class DocumentProcessorService
   }
 
   private async saveConcepts(
-    concepts: Concept[],
-    extracted: ExtractedConcept[],
     documentId: string,
+    extracted: ExtractedConcept[],
   ): Promise<void> {
-    const relationships: { fromId: string; toId: string; type: string }[] = [];
-    for (const source of extracted) {
-      if (!source.relationships || source.relationships.length === 0) continue;
+    const concepts = extracted.map((e) =>
+      Concept.create(randomUUID(), e.name, documentId, e.description),
+    );
+
+    const relationships = extracted.flatMap((source) => {
       const sourceConcept = concepts.find(
         (c) => c.name.toLowerCase() === source.name.toLowerCase().trim(),
       );
-      if (!sourceConcept) continue;
+      if (!sourceConcept || !source.relationships?.length) return [];
 
-      for (const rel of source.relationships) {
-        const targetConcept = concepts.find(
+      return source.relationships.flatMap((rel) => {
+        const target = concepts.find(
           (c) => c.name.toLowerCase() === rel.targetName.toLowerCase().trim(),
         );
-        if (targetConcept) {
-          relationships.push({
-            fromId: sourceConcept.id,
-            toId: targetConcept.id,
-            type: rel.type,
-          });
-        }
-      }
-    }
+        return target
+          ? [{ fromId: sourceConcept.id, toId: target.id, type: rel.type }]
+          : [];
+      });
+    });
 
     await this.conceptRepository.saveWithRelations(
       concepts,
@@ -476,6 +371,24 @@ export class DocumentProcessorService
       documentId,
       "Document",
     );
+
+    const summary = await this.documentSummaryRepo.findByDocumentId(documentId);
+    if (summary) {
+      await this.documentSummaryRepo.save(
+        new DocumentSummary(
+          summary.id,
+          summary.documentId,
+          summary.overview,
+          summary.keyPoints,
+          summary.topicArea,
+          summary.difficulty,
+          concepts.length,
+          summary.createdAt,
+          summary.estimatedReadTime,
+        ),
+      );
+    }
+
     this.logger.info(
       {
         documentId,
@@ -484,5 +397,45 @@ export class DocumentProcessorService
       },
       "Saved concepts to Neo4j",
     );
+  }
+
+  // ─── Low-level utilities ──────────────────────────────────────────────────
+
+  private async updateStage(
+    documentId: string,
+    status?: DocumentStatus,
+    processingStage?: ProcessingStage,
+  ): Promise<void> {
+    await this.documentRepo.updateStatus(documentId, {
+      ...(status !== undefined && { status }),
+      ...(processingStage !== undefined && { processingStage }),
+    });
+  }
+
+  private async markFailed(documentId: string, error: unknown): Promise<void> {
+    this.logger.error({ documentId, err: error }, "Document processing failed");
+    await this.documentRepo.updateStatus(documentId, {
+      status: DocumentStatus.FAILED,
+      errorMessage: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+
+  private async extractText(buffer: Buffer, mimeType: string): Promise<string> {
+    if (mimeType.startsWith("image/")) {
+      return this.visionExtractor.extractText(buffer, mimeType);
+    }
+    if (mimeType.startsWith("text/")) {
+      return buffer.toString("utf-8");
+    }
+    if (this.parser.supports(mimeType)) {
+      return (await this.parser.parse(buffer, mimeType)).text;
+    }
+    this.logger.warn({ mimeType }, "Unknown MIME type, attempting text decode");
+    return buffer.toString("utf-8");
+  }
+
+  private guessMimeType(filename: string): string {
+    const ext = filename.toLowerCase().split(".").pop() ?? "";
+    return MIME_MAP[ext] ?? "application/octet-stream";
   }
 }
