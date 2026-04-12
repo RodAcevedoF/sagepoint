@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "composite": true,
     "module": "commonjs",
     "target": "ES2021",
     "outDir": "./dist-scripts",
@@ -12,6 +13,7 @@
   "include": [
     "scripts/migration-runner.ts",
     "scripts/migrate.ts",
-    "scripts/init.ts"
+    "scripts/init.ts",
+    "scripts/bootstrap.ts"
   ]
 }
