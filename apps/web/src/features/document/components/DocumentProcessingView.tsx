@@ -45,6 +45,8 @@ function stageToIndex(stage: DocumentEventStage): number {
       return 1;
     case "summarized":
       return 2;
+    case "enriching":
+      return 2;
     case "ready":
       return 3;
     default:

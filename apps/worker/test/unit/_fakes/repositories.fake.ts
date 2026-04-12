@@ -103,6 +103,17 @@ export class FakeDocumentSummaryRepository implements IDocumentSummaryRepository
     }
   >();
 
+  seedSummary(documentId: string): void {
+    const id = `summary-${documentId}`;
+    this.summaries.set(id, {
+      id,
+      documentId,
+      overview: "Test overview",
+      topicArea: "Test Topic",
+      conceptCount: 0,
+    });
+  }
+
   getSummaryByDocumentId(documentId: string) {
     for (const s of this.summaries.values()) {
       if (s.documentId === documentId) return s;

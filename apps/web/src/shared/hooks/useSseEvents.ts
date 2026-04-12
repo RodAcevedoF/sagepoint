@@ -74,6 +74,7 @@ export function useSseEvents<TStage extends string>(
             });
             break;
           case "completed":
+          case "partial-complete":
             setState({
               status: "completed",
               stage: completedStageRef.current,

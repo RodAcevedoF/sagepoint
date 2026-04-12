@@ -35,6 +35,8 @@ const stageColorMap: Record<string, string> = {
   UPLOADED: "text.disabled",
   PARSING: "info",
   ANALYZING: "warning",
+  SUMMARIZED: "warning",
+  ENRICHING: "warning",
   READY: "success",
 };
 
@@ -46,6 +48,7 @@ const sseStageMap: Record<string, ProcessingStage> = {
   parsing: ProcessingStage.PARSING,
   analyzing: ProcessingStage.ANALYZING,
   summarized: ProcessingStage.SUMMARIZED,
+  enriching: ProcessingStage.ENRICHING,
   ready: ProcessingStage.READY,
 };
 
