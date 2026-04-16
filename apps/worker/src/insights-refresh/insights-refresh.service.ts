@@ -33,8 +33,10 @@ export class InsightsRefreshService {
   @Cron("0 6 * * *")
   async refreshNewsCache() {
     this.logger.log("Starting daily news refresh...");
+    const startedAt = Date.now();
 
     let categories = await this.categoryRepo.listWithActiveInterests();
+    const categoriesTotal = categories.length;
 
     if (categories.length > MAX_NEWS_CATEGORIES) {
       this.logger.warn(
@@ -44,6 +46,9 @@ export class InsightsRefreshService {
     }
 
     let totalSaved = 0;
+    let categoriesProcessed = 0;
+    let categoriesEmpty = 0;
+    let categoriesFailed = 0;
 
     for (const category of categories) {
       try {
@@ -54,6 +59,7 @@ export class InsightsRefreshService {
 
         if (fetched.length === 0) {
           this.logger.log(`No articles found for ${category.name}`);
+          categoriesEmpty++;
           continue;
         }
 
@@ -74,10 +80,12 @@ export class InsightsRefreshService {
 
         await this.newsArticleRepo.upsertMany(articles);
         totalSaved += articles.length;
+        categoriesProcessed++;
         this.logger.log(
           `Saved ${articles.length} articles for ${category.name}`,
         );
       } catch (error) {
+        categoriesFailed++;
         this.logger.error(
           `Failed to refresh news for ${category.name}`,
           error instanceof Error ? error.stack : undefined,
@@ -85,23 +93,29 @@ export class InsightsRefreshService {
       }
     }
 
-    this.logger.log(
-      `Daily news refresh complete — ${totalSaved} articles saved`,
-    );
+    const totalPurged = await this.purgeOldArticles();
 
-    await this.purgeOldArticles();
+    this.logger.log("Daily news refresh complete", {
+      categoriesTotal,
+      categoriesProcessed,
+      categoriesEmpty,
+      categoriesFailed,
+      totalSaved,
+      totalPurged,
+      durationMs: Date.now() - startedAt,
+    });
   }
 
-  private async purgeOldArticles() {
+  private async purgeOldArticles(): Promise<number> {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - RETENTION_DAYS);
 
     const count = await this.newsArticleRepo.deleteOlderThan(cutoff);
 
-    if (count > 0) {
-      this.logger.log(
-        `Purged ${count} articles older than ${RETENTION_DAYS} days`,
-      );
-    }
+    this.logger.log(
+      `Purged ${count} articles older than ${RETENTION_DAYS} days`,
+    );
+
+    return count;
   }
 }

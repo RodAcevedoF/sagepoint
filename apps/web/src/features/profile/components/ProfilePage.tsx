@@ -38,7 +38,7 @@ export function ProfilePage() {
 
   return (
     <DashboardLayout>
-      <Container maxWidth="lg">
+      <Container maxWidth="lg" sx={{ px: { xs: 0, md: 2 } }}>
         <Box sx={styles.pageHeader}>
           <Typography variant="h4" sx={styles.headerTitle}>
             Profile

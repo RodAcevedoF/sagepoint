@@ -18,6 +18,7 @@ import {
 import { palette } from "@/shared/theme";
 import { AppBarProvider } from "../AppBarContext";
 import { useHoverReveal } from "../useHoverReveal";
+import { useScrollReveal } from "../useScrollReveal";
 
 // ============================================================================
 // Types & Styles
@@ -114,7 +115,7 @@ const makeStyles = (
     bottom: isMobile ? 16 : 24,
     left: "50%",
     zIndex: 1300,
-    maxWidth: isMobile ? "calc(100vw - 32px)" : undefined,
+    maxWidth: isMobile ? "calc(100vw - 16px)" : undefined,
   },
 });
 
@@ -131,11 +132,14 @@ export function AppBarRoot({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const { isRevealed, triggerProps, barProps } = useHoverReveal({
-    disabled: alwaysVisible || isMobile, // Always visible on mobile
+    disabled: alwaysVisible || isMobile,
     hideDelay: 500,
   });
+  const isScrollVisible = useScrollReveal({
+    disabled: !isMobile || alwaysVisible,
+  });
 
-  const shouldShow = alwaysVisible || isMobile || isRevealed;
+  const shouldShow = alwaysVisible || (isMobile ? isScrollVisible : isRevealed);
   const styles = makeStyles(isMobile, shouldShow);
 
   return (

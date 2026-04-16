@@ -13,7 +13,7 @@ const styles = {
     flexDirection: "column",
     bgcolor: "background.default",
     position: "relative",
-    overflow: "hidden",
+    overflowX: "clip",
   },
   main: {
     flex: 1,

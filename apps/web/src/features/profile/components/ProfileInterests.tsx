@@ -125,9 +125,9 @@ export function ProfileInterests({ user }: ProfileInterestsProps) {
     <Card variant="glass" sx={styles.profileCard} hoverable={false}>
       <Card.Content sx={{ p: { xs: 2.5, md: 4 } }}>
         <Stack
-          direction="row"
+          direction={{ xs: "column", sm: "row" }}
           justifyContent="space-between"
-          alignItems="center"
+          alignItems={{ xs: "flex-start", sm: "center" }}
           sx={{ mb: 3 }}
         >
           <Typography variant="h6" sx={styles.sectionTitle}>

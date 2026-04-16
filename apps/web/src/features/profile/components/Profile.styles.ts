@@ -161,7 +161,7 @@ export const makeStyles = (theme: Theme) => ({
     py: 1.5,
     px: { xs: 2, md: 4 },
     fontWeight: 700,
-    minWidth: { xs: "100%", sm: 160 },
+    width: { xs: "100%", sm: 180 },
     textTransform: "none",
     transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
     "&:hover": {

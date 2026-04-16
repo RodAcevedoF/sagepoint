@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, Logger } from "@nestjs/common";
 import { APP_FILTER } from "@nestjs/core";
 import { SentryModule, SentryGlobalFilter } from "@sentry/nestjs/setup";
 import { ScheduleModule } from "@nestjs/schedule";
@@ -209,10 +209,18 @@ const isDev = process.env.NODE_ENV !== "production";
     },
     {
       provide: NEWS_SERVICE,
-      useFactory: (configService: ConfigService): INewsService =>
-        new TavilyNewsAdapter({
-          apiKey: configService.get<string>("TAVILY_API_KEY") ?? "",
-        }),
+      useFactory: (configService: ConfigService): INewsService => {
+        const apiKey = configService.get<string>("TAVILY_API_KEY");
+        if (!apiKey) {
+          new Logger("WorkerModule").error(
+            "TAVILY_API_KEY is not set — InsightsRefreshService will fail silently",
+          );
+          throw new Error(
+            "Missing required environment variable: TAVILY_API_KEY",
+          );
+        }
+        return new TavilyNewsAdapter({ apiKey });
+      },
       inject: [ConfigService],
     },
     {

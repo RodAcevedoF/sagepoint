@@ -1,4 +1,5 @@
 import { tavily } from "@tavily/core";
+import { Logger } from "@nestjs/common";
 import { NewsArticle } from "@sagepoint/domain";
 import type { INewsService } from "@sagepoint/domain";
 
@@ -56,6 +57,7 @@ function extractDomain(url: string): string {
 }
 
 export class TavilyNewsAdapter implements INewsService {
+  private readonly logger = new Logger(TavilyNewsAdapter.name);
   private readonly client: ReturnType<typeof tavily>;
 
   constructor(config: TavilyNewsConfig) {
@@ -74,7 +76,12 @@ export class TavilyNewsAdapter implements INewsService {
         timeRange: "week",
       });
 
-      if (!response.results || response.results.length === 0) return [];
+      if (!response.results || response.results.length === 0) {
+        this.logger.warn(
+          `No results returned from Tavily for slug="${slug}", query="${query}"`,
+        );
+        return [];
+      }
 
       return response.results.map(
         (r) =>
@@ -91,7 +98,10 @@ export class TavilyNewsAdapter implements INewsService {
           ),
       );
     } catch (error) {
-      console.error(`[Tavily] Failed for slug="${slug}":`, error);
+      this.logger.error(
+        `Tavily search failed for slug="${slug}"`,
+        error instanceof Error ? error.stack : String(error),
+      );
       return [];
     }
   }
