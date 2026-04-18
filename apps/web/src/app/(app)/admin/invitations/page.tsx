@@ -5,7 +5,7 @@ import { Loader } from "@/shared/components";
 
 const AdminInvitationsTable = dynamic(
   () =>
-    import("@/features/admin/components/AdminInvitationsTable").then(
+    import("@/features/admin/components/AdminInvitations/AdminInvitationsTable").then(
       (m) => m.AdminInvitationsTable,
     ),
   { loading: () => <Loader /> },

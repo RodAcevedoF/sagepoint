@@ -5,7 +5,7 @@ import { Loader } from "@/shared/components";
 
 const AdminUsersTable = dynamic(
   () =>
-    import("@/features/admin/components/AdminUsersTable").then(
+    import("@/features/admin/components/AdminUsers/AdminUsersTable").then(
       (m) => m.AdminUsersTable,
     ),
   { loading: () => <Loader /> },

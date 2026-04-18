@@ -14,7 +14,7 @@ import { palette } from "@/shared/theme";
 import { motion } from "framer-motion";
 import { BarChart3, Users, FileText, Map, DollarSign } from "lucide-react";
 import { useAdminAnalyticsQuery } from "@/application/admin";
-import { AnalyticsChartCard } from "./AnalyticsChartCard";
+import { AnalyticsChartCard } from "../Cards/AnalyticsChartCard";
 
 const periodOptions = [
   { value: 7, label: "7d" },

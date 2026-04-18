@@ -28,6 +28,9 @@ function fakeCategoryRepo(): ICategoryRepository & {
   return {
     list: () => Promise.resolve([...categories]),
     listWithActiveInterests: () => Promise.resolve([...categories]),
+    listWithActiveRoadmaps: () => Promise.resolve([]),
+    listMostPopular: (limit: number) =>
+      Promise.resolve(categories.slice(0, limit)),
     save: (c: Category) => Promise.resolve(c),
     findOrCreateBySlug: (c: Category) => Promise.resolve(c),
     findById: () => Promise.resolve(null),

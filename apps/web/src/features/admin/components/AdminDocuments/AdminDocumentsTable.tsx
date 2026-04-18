@@ -29,13 +29,10 @@ import {
   useAdminDocumentsQuery,
   useDeleteAdminDocumentMutation,
 } from "@/application/admin";
-import {
-  adminTableStyles,
-  statusColors,
-  formatDate,
-} from "./adminTable.styles";
-import { StatusChip } from "./StatusChip";
-import { useAdminSnackbar } from "./useAdminSnackbar";
+import { adminTableStyles } from "../AdminRoadmaps/adminTable.styles";
+import { StatusChip } from "../Cards/StatusChip";
+import { useAdminSnackbar } from "../../hooks/useAdminSnackbar";
+import { formatDate, statusColors } from "../../utils/adminFeat.utils";
 
 const stageColors: Record<string, string> = {
   UPLOADED: palette.info.main,

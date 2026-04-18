@@ -167,6 +167,14 @@ export class FakeCategoryRepository implements ICategoryRepository {
     return Promise.resolve([...this.categories]);
   }
 
+  listWithActiveRoadmaps(): Promise<Category[]> {
+    return Promise.resolve([...this.categories]);
+  }
+
+  listMostPopular(limit: number): Promise<Category[]> {
+    return Promise.resolve(this.categories.slice(0, limit));
+  }
+
   delete(id: string): Promise<void> {
     this.categories = this.categories.filter((c) => c.id !== id);
     return Promise.resolve();
