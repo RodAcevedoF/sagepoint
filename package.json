@@ -31,6 +31,7 @@
     "db:migrate:up": "cross-env DATABASE_URL=\"postgresql://user@127.0.0.1:5440/sagepoint?schema=public\" pnpm --filter @sagepoint/database migrate:up",
     "db:migrate:status": "cross-env DATABASE_URL=\"postgresql://user@127.0.0.1:5440/sagepoint?schema=public\" pnpm --filter @sagepoint/database migrate:status",
     "sagepoint:init": "cross-env DATABASE_URL=\"postgresql://user@127.0.0.1:5440/sagepoint?schema=public\" pnpm --filter @sagepoint/database seed",
+    "refresh:news": "tsx --tsconfig apps/worker/tsconfig.json scripts/refresh-news.ts",
     "build": "pnpm -r build",
     "lint": "pnpm -r --if-present lint",
     "test": "pnpm -r --if-present test",
