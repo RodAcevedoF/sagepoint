@@ -5,7 +5,7 @@ import { Loader } from "@/shared/components";
 
 const AdminRoadmapsTable = dynamic(
   () =>
-    import("@/features/admin/components/AdminRoadmapsTable").then(
+    import("@/features/admin/components/AdminRoadmaps/AdminRoadmapsTable").then(
       (m) => m.AdminRoadmapsTable,
     ),
   { loading: () => <Loader /> },

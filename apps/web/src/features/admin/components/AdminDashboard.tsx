@@ -10,11 +10,11 @@ import {
   useHealthCheckQuery,
   useQueueStatsQuery,
 } from "@/application/admin";
-import { AdminStatsCards } from "./AdminStatsCards";
-import { AdminSystemHealth } from "./AdminSystemHealth";
-import { AdminQueueStats } from "./AdminQueueStats";
-import { AdminHero } from "./AdminHero";
-import { AdminFooter } from "./AdminFooter";
+import { AdminStatsCards } from "./Cards/AdminStatsCards";
+import { AdminSystemHealth } from "./AdminHealth/AdminSystemHealth";
+import { AdminQueueStats } from "./AdminQueue/AdminQueueStats";
+import { AdminHero } from "./AdminHero/AdminHero";
+import { AdminFooter } from "./AdminFooter/AdminFooter";
 
 export function AdminDashboard() {
   const router = useRouter();

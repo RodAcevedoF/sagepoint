@@ -36,11 +36,11 @@ import {
   useGetUserLimitsQuery,
   useUpdateUserLimitsMutation,
 } from "@/infrastructure/api/adminApi";
-import { adminTableStyles, formatRelativeDate } from "./adminTable.styles";
-import { StatusChip } from "./StatusChip";
-import { useAdminSnackbar } from "./useAdminSnackbar";
-import { UserActionsMenu } from "./UserActionsMenu";
-import { UserLimitsDialog } from "./UserLimitsDialog";
+import { adminTableStyles } from "../AdminRoadmaps/adminTable.styles";
+import { StatusChip } from "../Cards/StatusChip";
+import { useAdminSnackbar } from "../../hooks/useAdminSnackbar";
+import { UserActionsMenu } from "../Dialogs/UserActionsMenu";
+import { UserLimitsDialog } from "../Dialogs/UserLimitsDialog";
 import {
   HEADERS,
   activeColors,
@@ -48,6 +48,7 @@ import {
   roleColors,
   usersTableStyles,
 } from "./AdminUsersTable.styles";
+import { formatRelativeDate } from "../../utils/adminFeat.utils";
 
 export function AdminUsersTable() {
   const { data: users, isLoading, isError } = useAdminUsersQuery();

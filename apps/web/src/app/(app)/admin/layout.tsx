@@ -5,7 +5,7 @@ import { Box, Container } from "@mui/material";
 import {
   AdminSidebar,
   AdminMobileNav,
-} from "@/features/admin/components/AdminSidebar";
+} from "@/features/admin/components/AdminSidebar/AdminSidebar";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (

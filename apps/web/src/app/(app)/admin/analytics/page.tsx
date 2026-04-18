@@ -5,7 +5,7 @@ import { Loader } from "@/shared/components";
 
 const AdminAnalytics = dynamic(
   () =>
-    import("@/features/admin/components/AdminAnalytics").then(
+    import("@/features/admin/components/AdminAnalytics/AdminAnalytics").then(
       (m) => m.AdminAnalytics,
     ),
   { loading: () => <Loader /> },
