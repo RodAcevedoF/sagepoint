@@ -1,6 +1,7 @@
 import { Injectable, Logger, Inject } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
 import type {
+  Category,
   ICategoryRepository,
   INewsArticleRepository,
   INewsService,
@@ -14,7 +15,8 @@ import {
 import { randomUUID } from "crypto";
 
 const RETENTION_DAYS = 5;
-const MAX_NEWS_CATEGORIES = 12;
+const MAX_NEWS_CATEGORIES = 20;
+const BASELINE_CATEGORIES = 8;
 
 @Injectable()
 // @TODO: Add distributed locking if we ever have multiple worker instances to prevent duplicate refreshes.
@@ -35,15 +37,32 @@ export class InsightsRefreshService {
     this.logger.log("Starting daily news refresh...");
     const startedAt = Date.now();
 
-    let categories = await this.categoryRepo.listWithActiveInterests();
-    const categoriesTotal = categories.length;
+    const [interests, roadmaps, popular] = await Promise.all([
+      this.categoryRepo.listWithActiveInterests(),
+      this.categoryRepo.listWithActiveRoadmaps(),
+      this.categoryRepo.listMostPopular(BASELINE_CATEGORIES),
+    ]);
 
+    const interestIds = new Set(interests.map((c) => c.id));
+    const roadmapIds = new Set(roadmaps.map((c) => c.id));
+
+    const merged = this.mergeUnique([interests, roadmaps, popular]);
+
+    let categories = merged;
     if (categories.length > MAX_NEWS_CATEGORIES) {
       this.logger.warn(
-        `${categories.length} active categories exceed cap of ${MAX_NEWS_CATEGORIES} — fetching only the first ${MAX_NEWS_CATEGORIES}`,
+        `${categories.length} categories exceed cap of ${MAX_NEWS_CATEGORIES} — fetching only the first ${MAX_NEWS_CATEGORIES}`,
       );
       categories = categories.slice(0, MAX_NEWS_CATEGORIES);
     }
+
+    const fromInterests = categories.filter((c) =>
+      interestIds.has(c.id),
+    ).length;
+    const fromRoadmaps = categories.filter(
+      (c) => !interestIds.has(c.id) && roadmapIds.has(c.id),
+    ).length;
+    const fromBaseline = categories.length - fromInterests - fromRoadmaps;
 
     let totalSaved = 0;
     let categoriesProcessed = 0;
@@ -96,7 +115,10 @@ export class InsightsRefreshService {
     const totalPurged = await this.purgeOldArticles();
 
     this.logger.log("Daily news refresh complete", {
-      categoriesTotal,
+      categoriesTotal: categories.length,
+      fromInterests,
+      fromRoadmaps,
+      fromBaseline,
       categoriesProcessed,
       categoriesEmpty,
       categoriesFailed,
@@ -104,6 +126,20 @@ export class InsightsRefreshService {
       totalPurged,
       durationMs: Date.now() - startedAt,
     });
+  }
+
+  private mergeUnique(sources: Category[][]): Category[] {
+    const seen = new Set<string>();
+    const out: Category[] = [];
+    for (const source of sources) {
+      for (const c of source) {
+        if (!seen.has(c.id)) {
+          seen.add(c.id);
+          out.push(c);
+        }
+      }
+    }
+    return out;
   }
 
   private async purgeOldArticles(): Promise<number> {

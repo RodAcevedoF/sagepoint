@@ -22,7 +22,7 @@ const styles: Record<string, SxProps<Theme>> = {
 export function FooterBrand() {
   return (
     <Box sx={styles.container}>
-      <Brand showLogo={false} fontSize="1.5rem" />
+      <Brand showLogo={false} fontSize="1.5rem" href="/?stay=true" />
       <Typography
         variant="body2"
         color="text.secondary"
