@@ -5,19 +5,31 @@ export const styles = {
   headerCell: {
     color: palette.text.secondary,
     fontWeight: 700,
-    fontSize: "0.85rem",
+    fontSize: "0.75rem",
     textTransform: "uppercase",
-    letterSpacing: "1px",
+    letterSpacing: "0.08em",
     py: 2,
-    borderBottom: `1px solid ${alpha(palette.divider, 0.1)}`,
+    borderBottom: `1px solid rgba(255,255,255,0.06)`,
   },
   row: {
-    "&:hover": { bgcolor: alpha(palette.primary.main, 0.04) },
-    transition: "background-color 0.2s ease",
+    "&:hover": { bgcolor: "rgba(255,255,255,0.025)" },
+    transition: "background-color 0.15s ease",
+    "& td": { borderBottom: `1px solid rgba(255,255,255,0.04)` },
   },
 };
 
-export const tabSx = { textTransform: "none" as const, fontWeight: 600 };
+export const tabSx = {
+  textTransform: "none" as const,
+  fontWeight: 600,
+  fontSize: "0.875rem",
+  p: "12px 16px",
+};
+
+export const fieldSx = {
+  "& .MuiOutlinedInput-root": {
+    borderRadius: 2,
+  },
+};
 
 export const inviteLinkBoxSx = {
   mt: 2,
@@ -41,22 +53,22 @@ export const inviteLinkTextSx = {
 export const countChipSx = {
   ml: 1,
   height: 20,
-  fontSize: "0.85rem",
+  fontSize: "0.75rem",
   fontWeight: 700,
-  bgcolor: alpha(palette.info.main, 0.1),
-  color: palette.info.light,
+  bgcolor: "rgba(255,255,255,0.06)",
+  color: palette.text.secondary,
   border: "none",
 };
 
 export function getRoleChipSx(role: string) {
   return {
     fontWeight: 700,
-    fontSize: "0.8rem",
+    fontSize: "0.75rem",
     borderRadius: "6px",
     bgcolor:
       role === "ADMIN"
-        ? alpha(palette.error.main, 0.1)
-        : alpha(palette.text.secondary, 0.1),
+        ? alpha(palette.error.main, 0.12)
+        : alpha(palette.text.secondary, 0.08),
     color: role === "ADMIN" ? palette.error.light : palette.text.secondary,
     border: "none",
   };
@@ -65,7 +77,7 @@ export function getRoleChipSx(role: string) {
 export function getStatusChipSx(statusStyle: { bg: string; text: string }) {
   return {
     fontWeight: 700,
-    fontSize: "0.8rem",
+    fontSize: "0.75rem",
     borderRadius: "6px",
     bgcolor: statusStyle.bg,
     color: statusStyle.text,
@@ -75,5 +87,6 @@ export function getStatusChipSx(statusStyle: { bg: string; text: string }) {
 
 export const menuPaperSx = {
   bgcolor: palette.background.paper,
-  border: `1px solid ${alpha(palette.divider, 0.1)}`,
+  border: `1px solid rgba(255,255,255,0.08)`,
+  borderRadius: 2,
 };

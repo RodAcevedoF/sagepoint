@@ -127,7 +127,7 @@ jobs:
   build-and-push:
     needs: [quality, integration]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master') || github.event_name == 'release'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/heads/release/'))
     permissions:
       contents: read
       packages: write
@@ -152,8 +152,8 @@ jobs:
           tags: |
             type=raw,value=staging,enable=${{ github.ref == 'refs/heads/develop' }}
             type=raw,value=staging-${{ github.sha }},enable=${{ github.ref == 'refs/heads/develop' }}
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' || github.event_name == 'release' }}
-            type=raw,value=prod-${{ github.sha }},enable=${{ github.ref == 'refs/heads/master' || github.event_name == 'release' }}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/heads/release/') }}
+            type=raw,value=prod-${{ github.sha }},enable=${{ startsWith(github.ref, 'refs/heads/release/') }}
             type=semver,pattern={{version}},enable=${{ github.event_name == 'release' }}
 
       - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
@@ -202,12 +202,13 @@ jobs:
               sleep 2
             done
             docker compose -f docker-compose.prod.yml exec -T api-staging node scripts/migrate.js up --author ci
+            docker compose -f docker-compose.prod.yml exec -T api-staging node scripts/init.js
             docker image prune -f || true
 
   deploy-production:
     needs: build-and-push
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
+    if: startsWith(github.ref, 'refs/heads/release/')
     concurrency:
       group: vps-deploy
       cancel-in-progress: false
