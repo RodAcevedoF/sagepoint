@@ -5,8 +5,6 @@ on:
     branches: ["**"]
   pull_request:
     branches: [master, develop]
-  release:
-    types: [published]
 
 concurrency:
   group: ci-cd-${{ github.ref }}
@@ -154,7 +152,6 @@ jobs:
             type=raw,value=staging-${{ github.sha }},enable=${{ github.ref == 'refs/heads/develop' }}
             type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/heads/release/') }}
             type=raw,value=prod-${{ github.sha }},enable=${{ startsWith(github.ref, 'refs/heads/release/') }}
-            type=semver,pattern={{version}},enable=${{ github.event_name == 'release' }}
 
       - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
@@ -212,9 +209,13 @@ jobs:
     concurrency:
       group: vps-deploy
       cancel-in-progress: false
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
 
       - name: Sync compose file to VPS
         uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345 # v1
@@ -244,3 +245,11 @@ jobs:
             done
             docker compose -f docker-compose.prod.yml exec -T api node scripts/migrate.js up --author ci
             docker image prune -f || true
+
+      - name: Merge release branch into master
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout master
+          git merge --ff-only ${{ github.ref_name }}
+          git push origin master
