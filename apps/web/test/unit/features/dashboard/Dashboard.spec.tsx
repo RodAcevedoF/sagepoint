@@ -55,7 +55,7 @@ describe("Dashboard", () => {
     renderWithProviders(<Dashboard />);
 
     await waitFor(() => {
-      expect(screen.getByText("Hours Learned")).toBeInTheDocument();
+      expect(screen.getByText("Learning Hours")).toBeInTheDocument();
       expect(screen.getByText("Topics Completed")).toBeInTheDocument();
     });
   });

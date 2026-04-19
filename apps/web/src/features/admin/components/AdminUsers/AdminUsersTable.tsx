@@ -30,12 +30,10 @@ import {
 import {
   useAdminUsersQuery,
   useUpdateAdminUserMutation,
-} from "@/application/admin";
-import {
   useDeleteAdminUserMutation,
   useGetUserLimitsQuery,
   useUpdateUserLimitsMutation,
-} from "@/infrastructure/api/adminApi";
+} from "@/application/admin";
 import { adminTableStyles } from "../AdminRoadmaps/adminTable.styles";
 import { StatusChip } from "../Cards/StatusChip";
 import { useAdminSnackbar } from "../../hooks/useAdminSnackbar";
@@ -77,10 +75,9 @@ export function AdminUsersTable() {
     setSelectedUserId(userId);
   };
 
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    setSelectedUserId(null);
-  };
+  const handleMenuClose = () => setAnchorEl(null);
+
+  const handleMenuExited = () => setSelectedUserId(null);
 
   const handleToggleBan = async () => {
     if (!selectedUser) return;
@@ -91,16 +88,12 @@ export function AdminUsersTable() {
       )
     )
       return;
+    const userId = selectedUser.id;
+    const wasActive = selectedUser.isActive;
     handleMenuClose();
     try {
-      await updateUser({
-        id: selectedUser.id,
-        data: { isActive: !selectedUser.isActive },
-      }).unwrap();
-      show(
-        `User ${selectedUser.isActive ? "banned" : "unbanned"} successfully`,
-        "success",
-      );
+      await updateUser({ id: userId, data: { isActive: !wasActive } }).unwrap();
+      show(`User ${wasActive ? "banned" : "unbanned"} successfully`, "success");
     } catch {
       show(`Failed to ${action} user`, "error");
     }
@@ -111,12 +104,10 @@ export function AdminUsersTable() {
     const newRole = selectedUser.role === "ADMIN" ? "USER" : "ADMIN";
     if (!window.confirm(`Change ${selectedUser.name}'s role to ${newRole}?`))
       return;
+    const userId = selectedUser.id;
     handleMenuClose();
     try {
-      await updateUser({
-        id: selectedUser.id,
-        data: { role: newRole },
-      }).unwrap();
+      await updateUser({ id: userId, data: { role: newRole } }).unwrap();
       show(`Role changed to ${newRole} successfully`, "success");
     } catch {
       show("Failed to change role", "error");
@@ -125,14 +116,15 @@ export function AdminUsersTable() {
 
   const handleDeleteConfirm = async () => {
     if (!selectedUserId) return;
+    const userId = selectedUserId;
     setDeleteDialogOpen(false);
+    setSelectedUserId(null);
     try {
-      await deleteUser(selectedUserId).unwrap();
+      await deleteUser(userId).unwrap();
       show("User deleted permanently", "success");
     } catch {
       show("Failed to delete user", "error");
     }
-    setSelectedUserId(null);
   };
 
   const handleLimitsConfirm = async (data: {
@@ -140,14 +132,15 @@ export function AdminUsersTable() {
     credit?: number;
   }) => {
     if (!selectedUserId) return;
+    const userId = selectedUserId;
     setLimitsDialogOpen(false);
+    setSelectedUserId(null);
     try {
-      await updateLimits({ id: selectedUserId, data }).unwrap();
+      await updateLimits({ id: userId, data }).unwrap();
       show("Token balance updated", "success");
     } catch {
       show("Failed to update token balance", "error");
     }
-    setSelectedUserId(null);
   };
 
   if (isLoading) return <Loader variant="page" message="Loading users" />;
@@ -317,6 +310,7 @@ export function AdminUsersTable() {
         anchorEl={anchorEl}
         user={selectedUser}
         onClose={handleMenuClose}
+        onMenuExited={handleMenuExited}
         onBan={handleToggleBan}
         onToggleRole={handleToggleRole}
         onEditLimits={() => {
@@ -324,7 +318,7 @@ export function AdminUsersTable() {
           setLimitsDialogOpen(true);
         }}
         onDelete={() => {
-          handleMenuClose();
+          setAnchorEl(null);
           setDeleteDialogOpen(true);
         }}
       />
@@ -342,20 +336,14 @@ export function AdminUsersTable() {
         confirmLabel="Delete Permanently"
         confirmIcon={Trash2}
         onConfirm={handleDeleteConfirm}
-        onCancel={() => {
-          setDeleteDialogOpen(false);
-          setSelectedUserId(null);
-        }}
+        onCancel={() => setDeleteDialogOpen(false)}
       />
 
       <UserLimitsDialog
         open={limitsDialogOpen}
         user={selectedUser}
         initialBalance={selectedUserLimits?.balance}
-        onClose={() => {
-          setLimitsDialogOpen(false);
-          setSelectedUserId(null);
-        }}
+        onClose={() => setLimitsDialogOpen(false)}
         onConfirm={handleLimitsConfirm}
       />
 

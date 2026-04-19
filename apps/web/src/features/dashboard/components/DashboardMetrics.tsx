@@ -34,7 +34,7 @@ const styles = {
 const metricConfigs = [
   {
     key: "totalHoursLearned",
-    label: "Hours Learned",
+    label: "Learning Hours",
     icon: Clock,
     format: (v: number) => `${v}h`,
     color: palette.info.main,

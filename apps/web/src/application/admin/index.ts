@@ -9,6 +9,7 @@ export { useAdminAnalyticsQuery } from "./queries/get-admin-analytics.query";
 
 // Mutations
 export { useUpdateAdminUserMutation } from "@/infrastructure/api/adminApi";
+export { useDeleteAdminUserMutation } from "@/infrastructure/api/adminApi";
 export { useDeleteAdminRoadmapMutation } from "@/infrastructure/api/adminApi";
 export { useToggleRoadmapFeaturedMutation } from "@/infrastructure/api/adminApi";
 export { useDeleteAdminDocumentMutation } from "@/infrastructure/api/adminApi";
@@ -17,4 +18,8 @@ export {
   useCreateInvitationMutation,
   useRevokeInvitationMutation,
   useCreateUserDirectMutation,
+} from "@/infrastructure/api/adminApi";
+export {
+  useGetUserLimitsQuery,
+  useUpdateUserLimitsMutation,
 } from "@/infrastructure/api/adminApi";

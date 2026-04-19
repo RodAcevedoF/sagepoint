@@ -3,6 +3,11 @@ import { createTheme } from "@mui/material";
 declare module "@mui/material/styles" {
   interface Palette {
     accent: string;
+    purple: {
+      main: string;
+      light: string;
+      dark: string;
+    };
     difficulty: {
       beginner: string;
       intermediate: string;
@@ -19,6 +24,11 @@ declare module "@mui/material/styles" {
   }
   interface PaletteOptions {
     accent?: string;
+    purple?: {
+      main?: string;
+      light?: string;
+      dark?: string;
+    };
     difficulty?: {
       beginner?: string;
       intermediate?: string;
@@ -89,6 +99,11 @@ export const palette = {
     advanced: "#3b82f6",
     expert: "#a855f7",
   },
+  purple: {
+    main: "#a855f7",
+    light: "#c084fc",
+    dark: "#9333ea",
+  },
   accent: "#97FEED",
   divider: "rgba(151, 254, 237, 0.08)",
   common: {
@@ -113,6 +128,7 @@ export const darkTheme = createTheme({
     success: palette.success,
     info: palette.info,
     accent: palette.accent,
+    purple: palette.purple,
     common: palette.common,
     difficulty: palette.difficulty,
     experience: palette.experience,

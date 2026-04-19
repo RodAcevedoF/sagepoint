@@ -60,7 +60,7 @@ export function DashboardAppBar() {
           icon={Newspaper}
           label="Feed"
           onClick={() => router.push("/feed")}
-          color="info"
+          color="error"
         />
         <AppBar.Item
           id="documents"
@@ -82,7 +82,7 @@ export function DashboardAppBar() {
             icon={Shield}
             label="Admin"
             onClick={() => router.push("/admin")}
-            color="error"
+            color="purple"
           />
         )}
       </AppBar.Group>

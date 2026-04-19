@@ -1,7 +1,7 @@
 "use client";
 
 import { Chip, Tooltip, alpha, useTheme } from "@mui/material";
-import { Coins } from "lucide-react";
+import { Coins, Infinity as InfinityIcon } from "lucide-react";
 import { useGetResourceQuotaQuery } from "@/infrastructure/api/userApi";
 
 export function TokenBadge() {
@@ -9,11 +9,13 @@ export function TokenBadge() {
   const { data: quota } = useGetResourceQuotaQuery();
 
   const label =
-    quota === undefined
-      ? "…"
-      : quota.balance === null
-        ? "∞"
-        : String(quota.balance);
+    quota === undefined ? (
+      "…"
+    ) : quota.balance === null ? (
+      <InfinityIcon size={18} />
+    ) : (
+      String(quota.balance)
+    );
 
   const isLow =
     quota !== undefined &&
@@ -34,7 +36,7 @@ export function TokenBadge() {
         size="small"
         sx={{
           height: 38,
-          fontSize: "1.5rem",
+          fontSize: "0.75rem",
           fontWeight: 700,
           cursor: "default",
           bgcolor: isLow

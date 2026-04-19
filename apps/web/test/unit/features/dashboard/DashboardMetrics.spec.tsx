@@ -16,7 +16,7 @@ describe("DashboardMetrics", () => {
     render(<DashboardMetrics metrics={metrics} />);
 
     expect(screen.getByText("42h")).toBeInTheDocument();
-    expect(screen.getByText("Hours Learned")).toBeInTheDocument();
+    expect(screen.getByText("Learning Hours")).toBeInTheDocument();
 
     expect(screen.getByText("15")).toBeInTheDocument();
     expect(screen.getByText("Topics Completed")).toBeInTheDocument();

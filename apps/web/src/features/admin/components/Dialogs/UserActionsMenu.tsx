@@ -22,6 +22,7 @@ interface UserActionsMenuProps {
   anchorEl: HTMLElement | null;
   user: AdminUserDto | undefined;
   onClose: () => void;
+  onMenuExited?: () => void;
   onBan: () => void;
   onToggleRole: () => void;
   onEditLimits: () => void;
@@ -32,6 +33,7 @@ export function UserActionsMenu({
   anchorEl,
   user,
   onClose,
+  onMenuExited,
   onBan,
   onToggleRole,
   onEditLimits,
@@ -42,6 +44,8 @@ export function UserActionsMenu({
       anchorEl={anchorEl}
       open={Boolean(anchorEl)}
       onClose={onClose}
+      disableScrollLock
+      TransitionProps={{ onExited: onMenuExited }}
       slotProps={{
         paper: {
           sx: {

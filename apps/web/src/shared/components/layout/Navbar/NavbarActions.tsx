@@ -36,8 +36,8 @@ const makeStyles = (theme: Theme) => ({
     color: theme.palette.warning.main,
   },
   avatar: {
-    width: 38,
-    height: 38,
+    width: 42,
+    height: 42,
     ml: 1,
     cursor: "pointer",
     border: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`,
@@ -45,7 +45,7 @@ const makeStyles = (theme: Theme) => ({
     bgcolor: alpha(theme.palette.primary.main, 0.1),
     color: theme.palette.primary.light,
     fontWeight: 600,
-    fontSize: "0.9rem",
+    fontSize: "1rem",
     boxShadow: `0 0 10px ${alpha(theme.palette.primary.main, 0.1)}`,
     "&:hover": {
       transform: "scale(1.1)",
