@@ -14,6 +14,8 @@
     "scripts/migration-runner.ts",
     "scripts/migrate.ts",
     "scripts/init.ts",
-    "scripts/bootstrap.ts"
+    "scripts/bootstrap.ts",
+    "scripts/env.ts",
+    "scripts/seeds/*.ts"
   ]
 }

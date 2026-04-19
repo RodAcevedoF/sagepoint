@@ -9,11 +9,5 @@ export interface ICategoryRepository {
   findById(id: string): Promise<Category | null>;
   findBySlug(slug: string): Promise<Category | null>;
   list(): Promise<Category[]>;
-  /** Categories that at least one user has selected as an interest. */
-  listWithActiveInterests(): Promise<Category[]>;
-  /** Categories referenced by at least one roadmap. */
-  listWithActiveRoadmaps(): Promise<Category[]>;
-  /** Top categories ranked by user-interest count, descending. */
-  listMostPopular(limit: number): Promise<Category[]>;
   delete(id: string): Promise<void>;
 }

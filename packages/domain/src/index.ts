@@ -58,6 +58,10 @@ export * from "./common/pagination";
 export * from "./modules/insights/entities/news-article.entity";
 export * from "./modules/insights/ports/news-article.repository";
 
+// Blog
+export * from "./modules/blog/entities/blog-post.entity";
+export * from "./modules/blog/ports/blog-post.repository";
+
 // Shared Ports
 export * from "./ports/file-storage.port";
 export * from "./ports/content-analysis.port";
@@ -69,5 +73,6 @@ export * from "./ports/image-text-extraction.port";
 export * from "./ports/concept-expansion.port";
 export * from "./ports/cache.port";
 export * from "./ports/news.port";
+export * from "./ports/blog-post-generation.port";
 export * from "./ports/document-processor.port";
 export * from "./ports/roadmap-processor.port";
