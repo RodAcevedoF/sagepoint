@@ -53,7 +53,7 @@ export function EmptyState({
       </Box>
 
       <Typography
-        variant="h6"
+        variant="h5"
         sx={{
           color: palette.text.primary,
           fontWeight: 600,
@@ -65,7 +65,7 @@ export function EmptyState({
 
       {description && (
         <Typography
-          variant="body2"
+          variant="body1"
           sx={{
             color: palette.text.secondary,
             maxWidth: 320,

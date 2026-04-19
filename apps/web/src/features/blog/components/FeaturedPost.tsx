@@ -6,34 +6,22 @@ import {
   CardMedia,
   Chip,
   Stack,
-  Avatar,
   alpha,
   SxProps,
   Theme,
 } from "@mui/material";
-import { Clock } from "lucide-react";
+import { AuthorAvatar } from "./AuthorAvatar";
 import { Card } from "@/shared/components";
 import { palette } from "@/shared/theme";
+import type { BlogPostDto } from "@/infrastructure/api/blogApi";
+import { resolveImage, humanizeSlug } from "../constants/categoryAssets";
 
-export interface BlogPost {
-  id: string;
-  title: string;
-  excerpt: string;
-  category: string;
-  author: string;
-  date: string;
-  readTime: string;
-  image: string;
-}
-
-/**
- * Styles for FeaturedPost
- */
 const featuredCardStyles: SxProps<Theme> = {
   mb: 8,
   display: "flex",
   flexDirection: { xs: "column", md: "row" },
   overflow: "hidden",
+  textDecoration: "none",
 };
 
 const imageStyles: SxProps<Theme> = {
@@ -72,69 +60,54 @@ const excerptStyles: SxProps<Theme> = {
   lineHeight: 1.6,
 };
 
-const metaContainerStyles: SxProps<Theme> = {
-  alignItems: "center",
-  flexWrap: "wrap",
-  gap: 2,
-};
-
-const avatarStyles: SxProps<Theme> = {
-  width: 40,
-  height: 40,
-  bgcolor: palette.primary.main,
-  fontSize: "0.9rem",
-  fontWeight: 600,
-  border: `2px solid ${alpha(palette.primary.light, 0.2)}`,
-};
-
-const clockIconStyles: SxProps<Theme> = {
-  color: "text.disabled",
-};
-
 interface FeaturedPostProps {
-  post: BlogPost;
+  post: BlogPostDto;
 }
 
 export const FeaturedPost = ({ post }: FeaturedPostProps) => {
-  const authorInitials = post.author
-    .split(" ")
-    .map((n) => n[0])
-    .join("");
+  const image = resolveImage(post.heroImageUrl, post.categorySlug);
+  const category = humanizeSlug(post.categorySlug);
+  const date = new Date(post.publishedAt).toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
 
   return (
-    <Card variant="glass" sx={featuredCardStyles}>
+    <Card href={`/blog/${post.slug}`} variant="glass" sx={featuredCardStyles}>
       <CardMedia<"img">
         component="img"
         sx={imageStyles}
-        image={post.image}
+        image={image}
         alt={post.title}
       />
       <Card.Content sx={contentStyles}>
-        <Chip label={post.category} size="small" sx={categoryChipStyles} />
+        <Chip label={category} size="small" sx={categoryChipStyles} />
         <Typography variant="h3" sx={titleStyles}>
           {post.title}
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={excerptStyles}>
           {post.excerpt}
         </Typography>
-        <Stack direction="row" spacing={3} sx={metaContainerStyles} useFlexGap>
+        <Stack
+          direction="row"
+          spacing={3}
+          alignItems="center"
+          flexWrap="wrap"
+          useFlexGap
+        >
           <Stack direction="row" spacing={1.5} alignItems="center">
-            <Avatar sx={avatarStyles}>{authorInitials}</Avatar>
+            <AuthorAvatar author={post.author} />
             <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
               {post.author}
             </Typography>
           </Stack>
-          <Stack
-            direction="row"
-            spacing={1}
-            alignItems="center"
-            sx={clockIconStyles}
+          <Typography
+            variant="body2"
+            color="text.disabled"
+            sx={{ fontWeight: 600 }}
           >
-            <Clock size={16} />
-            <Typography variant="caption" sx={{ fontWeight: 500 }}>
-              {post.readTime}
-            </Typography>
-          </Stack>
+            {date}
+          </Typography>
         </Stack>
       </Card.Content>
     </Card>

@@ -20,7 +20,11 @@ export const insightsApi = baseApi.injectEndpoints({
       query: () => "/insights",
       providesTags: ["Insights"],
     }),
+    getPublicInsights: builder.query<NewsArticleDto[], void>({
+      query: () => "/insights/public",
+      providesTags: ["Insights"],
+    }),
   }),
 });
 
-export const { useGetInsightsQuery } = insightsApi;
+export const { useGetInsightsQuery, useGetPublicInsightsQuery } = insightsApi;
