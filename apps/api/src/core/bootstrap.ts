@@ -35,6 +35,10 @@ import {
   makeSocialDependencies,
   type SocialDependencies,
 } from '@/features/social/dependencies';
+import {
+  makeBlogDependencies,
+  type BlogDependencies,
+} from '@/features/blog/dependencies';
 import { GCSStorage } from '@sagepoint/storage';
 import type { IFileStorage } from '@sagepoint/domain';
 import Redis from 'ioredis';
@@ -54,6 +58,7 @@ export interface AppDependencies {
   insights: InsightsDependencies;
   invitation: InvitationDependencies;
   social: SocialDependencies;
+  blog: BlogDependencies;
   fileStorage: IFileStorage;
   neo4jService: Neo4jService;
 }
@@ -121,6 +126,7 @@ export function bootstrap(): AppDependencies {
       cacheService,
     ),
     social: makeSocialDependencies(prismaService, roadmapDeps.roadmapService),
+    blog: makeBlogDependencies(prismaService, cacheService),
     invitation: makeInvitationDependencies(
       prismaService,
       userDeps.userRepository,

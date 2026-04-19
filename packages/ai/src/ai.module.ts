@@ -8,6 +8,7 @@ import {
   ROADMAP_GENERATION_SERVICE,
   TOPIC_CONCEPT_GENERATION_SERVICE,
   RESOURCE_DISCOVERY_SERVICE,
+  BLOG_POST_GENERATION_SERVICE,
 } from "@sagepoint/domain";
 import { OpenAiContentAnalysisAdapter } from "./openai-content-analysis.adapter";
 import { OpenAiRoadmapGeneratorAdapter } from "./openai-roadmap-generator.adapter";
@@ -16,6 +17,7 @@ import { PerplexityResearchAdapter } from "./perplexity-research.adapter";
 import { OpenAiVisionTextExtractorAdapter } from "./openai-vision-text-extractor.adapter";
 import { OpenAiDocumentAnalysisAdapter } from "./openai-document-analysis.adapter";
 import { OpenAiQuizGenerationAdapter } from "./openai-quiz-generation.adapter";
+import { OpenAiBlogPostGenerationAdapter } from "./openai-blog-post-generation.adapter";
 
 @Module({
   imports: [ConfigModule],
@@ -82,6 +84,15 @@ import { OpenAiQuizGenerationAdapter } from "./openai-quiz-generation.adapter";
         }),
       inject: [ConfigService],
     },
+    {
+      provide: BLOG_POST_GENERATION_SERVICE,
+      useFactory: (config: ConfigService) =>
+        new OpenAiBlogPostGenerationAdapter({
+          apiKey: config.get("OPENAI_API_KEY") ?? "",
+          modelName: config.get("MODEL_BLOG_POST_GENERATION"),
+        }),
+      inject: [ConfigService],
+    },
   ],
   exports: [
     CONTENT_ANALYSIS_SERVICE,
@@ -91,6 +102,7 @@ import { OpenAiQuizGenerationAdapter } from "./openai-quiz-generation.adapter";
     IMAGE_TEXT_EXTRACTION_SERVICE,
     DOCUMENT_ANALYSIS_SERVICE,
     QUIZ_GENERATION_SERVICE,
+    BLOG_POST_GENERATION_SERVICE,
   ],
 })
 export class AiModule {}

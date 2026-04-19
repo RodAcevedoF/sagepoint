@@ -68,6 +68,11 @@ enum InvitationStatus {
   REVOKED
 }
 
+enum BlogPostSource {
+  STATIC
+  GENERATED
+}
+
 model User {
   id        String   @id @default(uuid()) @db.Uuid
   email     String   @unique
@@ -255,8 +260,30 @@ model Category {
   roadmaps     Roadmap[]
   users        UserInterest[]
   newsArticles NewsArticle[]
+  blogPosts    BlogPost[]
 
   @@map("categories")
+}
+
+model BlogPost {
+  id              String         @id @default(uuid()) @db.Uuid
+  slug            String         @unique
+  title           String
+  excerpt         String         @db.Text
+  contentMarkdown String         @db.Text
+  heroImageUrl    String?
+  categoryId      String         @db.Uuid
+  category        Category       @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  author          String         @default("Sagepoint Team")
+  source          BlogPostSource @default(GENERATED)
+  sources         Json           @default("[]")
+  publishedAt     DateTime
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([publishedAt(sort: Desc)])
+  @@index([categoryId])
+  @@map("blog_posts")
 }
 
 model NewsArticle {

@@ -11,14 +11,10 @@ const styles: Record<string, SxProps<Theme>> = {
   description: {
     maxWidth: 280,
     mt: 1.5,
+    color: "text.primary",
   },
 };
 
-/**
- * FooterBrand component for the application footer.
- * Uses the unified Brand component without the logo, featuring
- * the distinct "Sage" and "Point" coloring.
- */
 export function FooterBrand() {
   return (
     <Box sx={styles.container}>

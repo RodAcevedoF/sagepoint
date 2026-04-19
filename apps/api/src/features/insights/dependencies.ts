@@ -8,10 +8,12 @@ import type {
 import type { PrismaClient } from '@sagepoint/database';
 import { PrismaNewsArticleRepository } from '@sagepoint/database';
 import { GetInsightsUseCase } from './app/usecases/get-insights.usecase';
+import { GetPublicInsightsUseCase } from './app/usecases/get-public-insights.usecase';
+import { InsightsService } from './infra/driver/insights.service';
 
 export interface InsightsDependencies {
   newsArticleRepository: INewsArticleRepository;
-  getInsightsUseCase: GetInsightsUseCase;
+  insightsService: InsightsService;
 }
 
 export function makeInsightsDependencies(
@@ -31,8 +33,15 @@ export function makeInsightsDependencies(
     newsArticleRepository,
   );
 
-  return {
+  const getPublicInsightsUseCase = new GetPublicInsightsUseCase(
+    cache,
     newsArticleRepository,
+  );
+
+  const insightsService = new InsightsService(
     getInsightsUseCase,
-  };
+    getPublicInsightsUseCase,
+  );
+
+  return { newsArticleRepository, insightsService };
 }

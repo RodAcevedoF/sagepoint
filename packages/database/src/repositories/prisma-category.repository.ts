@@ -63,39 +63,6 @@ export class PrismaCategoryRepository implements ICategoryRepository {
     return found.map((c) => this.toDomain(c));
   }
 
-  async listWithActiveInterests(): Promise<Category[]> {
-    const found = await this.prisma.category.findMany({
-      where: { users: { some: {} } },
-    });
-    return found.map((c) => this.toDomain(c));
-  }
-
-  async listWithActiveRoadmaps(): Promise<Category[]> {
-    const found = await this.prisma.category.findMany({
-      where: { roadmaps: { some: {} } },
-    });
-    return found.map((c) => this.toDomain(c));
-  }
-
-  async listMostPopular(limit: number): Promise<Category[]> {
-    if (limit <= 0) return [];
-    const top = await this.prisma.userInterest.groupBy({
-      by: ["categoryId"],
-      _count: { categoryId: true },
-      orderBy: { _count: { categoryId: "desc" } },
-      take: limit,
-    });
-    if (top.length === 0) return [];
-    const ids = top.map((t) => t.categoryId);
-    const found = await this.prisma.category.findMany({
-      where: { id: { in: ids } },
-    });
-    const order = new Map(ids.map((id, i) => [id, i]));
-    return found
-      .sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0))
-      .map((c) => this.toDomain(c));
-  }
-
   async delete(id: string): Promise<void> {
     await this.prisma.category.delete({ where: { id } });
   }

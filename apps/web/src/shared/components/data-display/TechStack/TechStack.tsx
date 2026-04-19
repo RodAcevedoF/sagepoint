@@ -3,9 +3,9 @@
 import { Box, Typography, alpha, SxProps, Theme } from "@mui/material";
 import { palette } from "@/shared/theme";
 import {
-  Memory as TechIcon,
-  Storage as DbIcon,
-  AutoAwesome as AiIcon,
+  Hub as GraphIcon,
+  Psychology as LlmIcon,
+  BubbleChart as VectorIcon,
 } from "@mui/icons-material";
 
 const styles: Record<string, SxProps<Theme>> = {
@@ -22,30 +22,26 @@ const styles: Record<string, SxProps<Theme>> = {
     color: palette.primary.light,
     fontSize: "0.7rem",
     fontWeight: 600,
-    bgcolor: alpha(palette.primary.main, 0.08),
+    bgcolor: alpha(palette.secondary.dark, 0.4),
     px: 1.2,
     py: 0.6,
     borderRadius: "6px",
-    border: `1px solid ${alpha(palette.primary.light, 0.15)}`,
+    border: `1px solid ${alpha(palette.primary.dark, 0.6)}`,
     transition: "all 0.2s ease",
     cursor: "default",
     "&:hover": {
-      bgcolor: alpha(palette.primary.main, 0.12),
-      borderColor: alpha(palette.primary.light, 0.3),
+      bgcolor: alpha(palette.secondary.main, 0.2),
+      borderColor: alpha(palette.primary.main, 0.8),
       transform: "translateY(-2px)",
     },
   },
 };
 
-/**
- * Reusable TechStack component that displays the core technologies
- * used in the project as styled chips.
- */
 export function TechStack() {
   const techItems = [
-    { label: "Next.js 15", icon: <TechIcon sx={{ fontSize: 16 }} /> },
-    { label: "Neo4j Graph", icon: <DbIcon sx={{ fontSize: 16 }} /> },
-    { label: "LLM Agent", icon: <AiIcon sx={{ fontSize: 16 }} /> },
+    { label: "Knowledge Graph", icon: <GraphIcon sx={{ fontSize: 16 }} /> },
+    { label: "Vision Intel", icon: <VectorIcon sx={{ fontSize: 16 }} /> },
+    { label: "LLM Agent", icon: <LlmIcon sx={{ fontSize: 16 }} /> },
   ];
 
   return (

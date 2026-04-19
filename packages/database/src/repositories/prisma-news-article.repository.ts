@@ -45,6 +45,15 @@ export class PrismaNewsArticleRepository implements INewsArticleRepository {
     return found.map((row) => this.toDomain(row, row.category.slug));
   }
 
+  async findRecent(limit: number): Promise<NewsArticle[]> {
+    const found = await this.prisma.newsArticle.findMany({
+      orderBy: { publishedAt: "desc" },
+      take: limit,
+      include: { category: { select: { slug: true } } },
+    });
+    return found.map((row) => this.toDomain(row, row.category.slug));
+  }
+
   async deleteOlderThan(date: Date): Promise<number> {
     const result = await this.prisma.newsArticle.deleteMany({
       where: { createdAt: { lt: date } },

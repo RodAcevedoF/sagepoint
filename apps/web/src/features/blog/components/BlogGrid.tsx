@@ -6,22 +6,19 @@ import {
   Typography,
   CardMedia,
   Stack,
-  Button,
   SxProps,
   Theme,
 } from "@mui/material";
-import { ArrowRight } from "lucide-react";
 import { Card } from "@/shared/components";
 import { palette } from "@/shared/theme";
-import { BlogPost } from "./FeaturedPost";
+import type { BlogPostDto } from "@/infrastructure/api/blogApi";
+import { resolveImage, humanizeSlug } from "../constants/categoryAssets";
 
-/**
- * Styles for BlogGrid components
- */
 const postCardStyles: SxProps<Theme> = {
   height: "100%",
   display: "flex",
   flexDirection: "column",
+  textDecoration: "none",
 };
 
 const cardMediaStyles: SxProps<Theme> = {
@@ -71,35 +68,28 @@ const postExcerptStyles: SxProps<Theme> = {
   flexGrow: 1,
 };
 
-const readMoreButtonStyles: SxProps<Theme> = {
-  p: 0,
-  width: "fit-content",
-  color: palette.primary.light,
-  fontWeight: 600,
-  textTransform: "none",
-  "&:hover": {
-    bgcolor: "transparent",
-    textDecoration: "underline",
-    "& .lucide": {
-      transform: "translateX(4px)",
-    },
-  },
-  "& .lucide": {
-    transition: "transform 0.2s",
-  },
-};
-
 interface PostCardProps {
-  post: BlogPost;
+  post: BlogPostDto;
 }
 
-export const PostCard = ({ post }: PostCardProps) => {
+interface BlogGridProps {
+  posts: BlogPostDto[];
+}
+
+const PostCard = ({ post }: PostCardProps) => {
+  const image = resolveImage(post.heroImageUrl, post.categorySlug);
+  const category = humanizeSlug(post.categorySlug);
+  const date = new Date(post.publishedAt).toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
+
   return (
-    <Card variant="glass" sx={postCardStyles}>
+    <Card href={`/blog/${post.slug}`} variant="glass" sx={postCardStyles}>
       <CardMedia<"img">
         component="img"
         height="220"
-        image={post.image}
+        image={image}
         alt={post.title}
         sx={cardMediaStyles}
       />
@@ -111,10 +101,10 @@ export const PostCard = ({ post }: PostCardProps) => {
           sx={{ mb: 2 }}
         >
           <Typography variant="caption" sx={categoryTextStyles}>
-            {post.category}
+            {category}
           </Typography>
           <Typography variant="caption" sx={dateTextStyles}>
-            {post.date}
+            {date}
           </Typography>
         </Stack>
 
@@ -129,18 +119,10 @@ export const PostCard = ({ post }: PostCardProps) => {
         >
           {post.excerpt}
         </Typography>
-
-        <Button endIcon={<ArrowRight size={16} />} sx={readMoreButtonStyles}>
-          Read More
-        </Button>
       </Card.Content>
     </Card>
   );
 };
-
-interface BlogGridProps {
-  posts: BlogPost[];
-}
 
 export const BlogGrid = ({ posts }: BlogGridProps) => {
   return (

@@ -478,6 +478,13 @@ function patchBootstrapSingleton() {
       acceptInvitationUseCase: { execute: () => Promise.resolve() },
       createUserDirectUseCase: { execute: () => Promise.resolve({}) },
     },
+    blog: {
+      blogPostRepository: {},
+      blogService: {
+        listPublished: () => Promise.resolve([]),
+        getBySlug: () => Promise.resolve(null),
+      },
+    },
     fileStorage: fakeFileStorage,
     neo4jService: { close: async () => {} },
     newsService: new FakeNewsService(),

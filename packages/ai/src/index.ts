@@ -8,6 +8,7 @@ export * from "./perplexity-research.adapter";
 export * from "./openai-vision-text-extractor.adapter";
 export * from "./openai-document-analysis.adapter";
 export * from "./openai-quiz-generation.adapter";
+export * from "./openai-blog-post-generation.adapter";
 export * from "./openai-concept-expansion.adapter";
 export * from "./newsdata-api.adapter";
 export * from "./tavily-news.adapter";
