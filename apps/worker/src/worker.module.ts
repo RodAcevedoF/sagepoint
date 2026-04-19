@@ -7,6 +7,9 @@ import { LoggerModule } from "nestjs-pino";
 import { DocumentProcessorService } from "./document-processor/document-processor.service";
 import { RoadmapProcessorService } from "./roadmap-processor/roadmap-processor.service";
 import { InsightsRefreshService } from "./insights-refresh/insights-refresh.service";
+import { BlogGenerationCron } from "./blog-generation/infra/cron/blog-generation.cron";
+import { PickNextCategoryUseCase } from "./blog-generation/app/usecases/pick-next-category.usecase";
+import { GenerateBlogPostUseCase } from "./blog-generation/app/usecases/generate-blog-post.usecase";
 import {
   TavilyNewsAdapter,
   CachedResourceDiscoveryAdapter,
@@ -38,8 +41,17 @@ import {
   ROADMAP_REPOSITORY,
   RESOURCE_REPOSITORY,
   TOKEN_BALANCE_REPOSITORY,
+  BLOG_POST_REPOSITORY,
+  BLOG_POST_GENERATION_SERVICE,
 } from "@sagepoint/domain";
-import type { ICacheService, INewsService } from "@sagepoint/domain";
+import type {
+  ICacheService,
+  INewsService,
+  ICategoryRepository,
+  INewsArticleRepository,
+  IBlogPostRepository,
+  IBlogPostGenerationService,
+} from "@sagepoint/domain";
 import {
   PrismaClient,
   PrismaPg,
@@ -52,6 +64,7 @@ import {
   PrismaRoadmapRepository,
   PrismaResourceRepository,
   PrismaTokenBalanceRepository,
+  PrismaBlogPostRepository,
 } from "@sagepoint/database";
 
 function createWorkerPrisma(): PrismaClient {
@@ -126,6 +139,32 @@ const isDev = process.env.NODE_ENV !== "production";
     DocumentProcessorService,
     RoadmapProcessorService,
     InsightsRefreshService,
+    BlogGenerationCron,
+    {
+      provide: BLOG_POST_REPOSITORY,
+      useFactory: (prisma: PrismaClient) =>
+        new PrismaBlogPostRepository(prisma),
+      inject: ["WORKER_PRISMA"],
+    },
+    {
+      provide: PickNextCategoryUseCase,
+      useFactory: (cats: ICategoryRepository, blogs: IBlogPostRepository) =>
+        new PickNextCategoryUseCase(cats, blogs),
+      inject: [CATEGORY_REPOSITORY, BLOG_POST_REPOSITORY],
+    },
+    {
+      provide: GenerateBlogPostUseCase,
+      useFactory: (
+        news: INewsArticleRepository,
+        blogs: IBlogPostRepository,
+        gen: IBlogPostGenerationService,
+      ) => new GenerateBlogPostUseCase(news, blogs, gen),
+      inject: [
+        NEWS_ARTICLE_REPOSITORY,
+        BLOG_POST_REPOSITORY,
+        BLOG_POST_GENERATION_SERVICE,
+      ],
+    },
     {
       provide: FILE_STORAGE,
       useFactory: (configService: ConfigService) => {

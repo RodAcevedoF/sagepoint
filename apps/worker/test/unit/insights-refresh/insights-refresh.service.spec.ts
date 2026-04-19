@@ -27,10 +27,6 @@ function fakeCategoryRepo(): ICategoryRepository & {
   const categories: Category[] = [];
   return {
     list: () => Promise.resolve([...categories]),
-    listWithActiveInterests: () => Promise.resolve([...categories]),
-    listWithActiveRoadmaps: () => Promise.resolve([]),
-    listMostPopular: (limit: number) =>
-      Promise.resolve(categories.slice(0, limit)),
     save: (c: Category) => Promise.resolve(c),
     findOrCreateBySlug: (c: Category) => Promise.resolve(c),
     findById: () => Promise.resolve(null),
@@ -52,6 +48,9 @@ function fakeNewsArticleRepo(): INewsArticleRepository & {
       return Promise.resolve();
     },
     findByCategorySlugs() {
+      return Promise.resolve([] as NewsArticle[]);
+    },
+    findRecent() {
       return Promise.resolve([] as NewsArticle[]);
     },
     deleteOlderThan(date: Date) {
