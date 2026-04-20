@@ -8,6 +8,7 @@ import {
   PrismaCategoryRepository,
   PrismaNewsArticleRepository,
 } from "@sagepoint/database";
+import { ConfigService } from "@nestjs/config";
 import { InsightsRefreshService } from "../apps/worker/src/insights-refresh/insights-refresh.service";
 
 function maskUrl(url: string): string {
@@ -35,14 +36,16 @@ async function main() {
   const newsService = new TavilyNewsAdapter({ apiKey: tavilyApiKey });
   const categoryRepo = new PrismaCategoryRepository(prisma);
   const newsArticleRepo = new PrismaNewsArticleRepository(prisma);
+  const noopConfig = { get: () => undefined } as unknown as ConfigService;
   const service = new InsightsRefreshService(
     newsService,
     categoryRepo,
     newsArticleRepo,
+    noopConfig,
   );
 
   try {
-    await service.refreshNewsCache();
+    await service.refreshNewsCache(true);
   } finally {
     await prisma.$disconnect();
   }

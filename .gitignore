@@ -6,8 +6,8 @@ coverage
 .env
 .claude
 .env.*
-!.env.production.example
-!.env.staging.example
+.env.production.example
+.env.staging.example
 .DS_Store
 gcp-key*.json
 pnpm-debug.log*

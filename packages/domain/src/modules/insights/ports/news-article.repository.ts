@@ -7,4 +7,5 @@ export interface INewsArticleRepository {
   findByCategorySlugs(slugs: string[]): Promise<NewsArticle[]>;
   findRecent(limit: number): Promise<NewsArticle[]>;
   deleteOlderThan(date: Date): Promise<number>;
+  countByCategoryCreatedSince(categoryId: string, since: Date): Promise<number>;
 }

@@ -40,6 +40,7 @@ function fakeNewsRepo(articles: NewsArticle[]): INewsArticleRepository {
     upsertMany: () => Promise.resolve(),
     findRecent: () => Promise.resolve([]),
     deleteOlderThan: () => Promise.resolve(0),
+    countByCategoryCreatedSince: () => Promise.resolve(0),
   };
 }
 

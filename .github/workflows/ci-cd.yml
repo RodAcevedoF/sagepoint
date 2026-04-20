@@ -244,6 +244,7 @@ jobs:
               sleep 2
             done
             docker compose -f docker-compose.prod.yml exec -T api node scripts/migrate.js up --author ci
+            docker compose -f docker-compose.prod.yml exec -T api node scripts/init.js
             docker image prune -f || true
 
       - name: Merge release branch into master

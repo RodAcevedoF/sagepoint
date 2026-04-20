@@ -61,6 +61,15 @@ export class PrismaNewsArticleRepository implements INewsArticleRepository {
     return result.count;
   }
 
+  async countByCategoryCreatedSince(
+    categoryId: string,
+    since: Date,
+  ): Promise<number> {
+    return this.prisma.newsArticle.count({
+      where: { categoryId, createdAt: { gte: since } },
+    });
+  }
+
   private toDomain(
     model: PrismaNewsArticle,
     categorySlug: string,

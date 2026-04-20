@@ -1,4 +1,5 @@
 import { Injectable, Logger, Inject } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { Cron } from "@nestjs/schedule";
 import type {
   ICategoryRepository,
@@ -28,10 +29,16 @@ export class InsightsRefreshService {
     private readonly categoryRepo: ICategoryRepository,
     @Inject(NEWS_ARTICLE_REPOSITORY)
     private readonly newsArticleRepo: INewsArticleRepository,
+    private readonly configService: ConfigService,
   ) {}
 
-  @Cron("0 6 * * *")
-  async refreshNewsCache() {
+  @Cron("0 23 * * *")
+  async refreshNewsCache(force = false) {
+    if (!force && this.configService.get("NEWS_REFRESH_ENABLED") !== "true") {
+      this.logger.log("News refresh disabled by config — skipping");
+      return;
+    }
+
     this.logger.log("Starting daily news refresh...");
     const startedAt = Date.now();
 
@@ -43,13 +50,30 @@ export class InsightsRefreshService {
       categories = categories.slice(0, MAX_NEWS_CATEGORIES);
     }
 
+    const startOfDay = new Date();
+    startOfDay.setUTCHours(0, 0, 0, 0);
+
     let totalSaved = 0;
     let categoriesProcessed = 0;
     let categoriesEmpty = 0;
     let categoriesFailed = 0;
+    let categoriesSkipped = 0;
 
     for (const category of categories) {
       try {
+        const alreadyFetched =
+          await this.newsArticleRepo.countByCategoryCreatedSince(
+            category.id,
+            startOfDay,
+          );
+        if (alreadyFetched > 0) {
+          this.logger.log(
+            `Skipping ${category.name} — already refreshed today (${alreadyFetched} articles)`,
+          );
+          categoriesSkipped++;
+          continue;
+        }
+
         const fetched = await this.newsService.fetchByCategory(
           category.slug,
           category.name,
@@ -96,6 +120,7 @@ export class InsightsRefreshService {
     this.logger.log("Daily news refresh complete", {
       categoriesTotal: categories.length,
       categoriesProcessed,
+      categoriesSkipped,
       categoriesEmpty,
       categoriesFailed,
       totalSaved,
