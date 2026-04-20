@@ -29,6 +29,20 @@ services:
     networks:
       - shared
 
+  worker-2:
+    image: ${IMAGE_PREFIX:-ghcr.io/rodacevedof/sagepoint}-worker:${TAG:-latest}
+    container_name: sagepoint_worker_2
+    restart: unless-stopped
+    profiles: ["scale"]
+    env_file: .env.production
+    environment:
+      REDIS_HOST: shared_redis
+      NEO4J_URI: bolt://shared_neo4j:7687
+    volumes:
+      - ${GCP_KEY_PATH:-./gcp-key.json}:/app/gcp-key.json:ro
+    networks:
+      - shared
+
   # ── Staging ──
   api-staging:
     image: ${IMAGE_PREFIX:-ghcr.io/rodacevedof/sagepoint}-api:staging
