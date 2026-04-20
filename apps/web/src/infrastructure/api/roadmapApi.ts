@@ -155,6 +155,7 @@ export const roadmapApi = baseApi.injectEndpoints({
         { type: "Roadmap", id: roadmapId },
         { type: "Roadmap", id: "LIST" },
         { type: "Roadmap", id: "PUBLIC" },
+        "Category",
       ],
     }),
 
