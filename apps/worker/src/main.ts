@@ -21,6 +21,7 @@ async function bootstrap() {
   });
   const logger = app.get(Logger);
   app.useLogger(logger);
+  app.enableShutdownHooks();
   logger.log("Worker is running...");
 }
 void bootstrap();

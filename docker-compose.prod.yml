@@ -4,6 +4,7 @@ services:
     image: ${IMAGE_PREFIX:-ghcr.io/rodacevedof/sagepoint}-api:${TAG:-latest}
     container_name: sagepoint_api
     restart: unless-stopped
+    stop_grace_period: 30s
     ports:
       - "127.0.0.1:3001:3001"
     env_file: .env.production
@@ -20,6 +21,7 @@ services:
     image: ${IMAGE_PREFIX:-ghcr.io/rodacevedof/sagepoint}-worker:${TAG:-latest}
     container_name: sagepoint_worker
     restart: unless-stopped
+    stop_grace_period: 120s
     env_file: .env.production
     environment:
       REDIS_HOST: shared_redis
@@ -33,6 +35,7 @@ services:
     image: ${IMAGE_PREFIX:-ghcr.io/rodacevedof/sagepoint}-worker:${TAG:-latest}
     container_name: sagepoint_worker_2
     restart: unless-stopped
+    stop_grace_period: 120s
     profiles: ["scale"]
     env_file: .env.production
     environment:

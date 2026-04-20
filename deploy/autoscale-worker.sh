@@ -1,14 +1,18 @@
 #!/bin/bash
 set -euo pipefail
+export PATH="/usr/local/bin:/usr/bin:/bin"
 
 COMPOSE_FILE="/opt/sagepoint/docker-compose.prod.yml"
 SCALE_UP_THRESHOLD=10
 SCALE_DOWN_THRESHOLD=2
+REDIS_DB="${REDIS_DB:-0}"
 
-REDIS_CLI="docker exec shared_redis redis-cli"
+REDIS_CLI="docker exec shared_redis redis-cli -n $REDIS_DB"
 
 DOCS_WAITING=$($REDIS_CLI llen "bull:document-processing:wait" 2>/dev/null || echo 0)
 ROADMAP_WAITING=$($REDIS_CLI llen "bull:roadmap-generation:wait" 2>/dev/null || echo 0)
+[[ "$DOCS_WAITING" =~ ^[0-9]+$ ]] || DOCS_WAITING=0
+[[ "$ROADMAP_WAITING" =~ ^[0-9]+$ ]] || ROADMAP_WAITING=0
 TOTAL=$((DOCS_WAITING + ROADMAP_WAITING))
 
 WORKER2_RUNNING=$(docker ps --filter "name=sagepoint_worker_2" --filter "status=running" --format "{{.Names}}" | wc -l)

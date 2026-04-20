@@ -57,6 +57,7 @@ async function main() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   const logger = app.get(Logger);
   app.useLogger(logger);
+  app.enableShutdownHooks();
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
