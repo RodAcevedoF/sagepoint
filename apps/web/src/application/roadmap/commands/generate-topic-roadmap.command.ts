@@ -5,13 +5,12 @@ import {
   useGenerateTopicRoadmapMutation,
   type GenerateTopicRoadmapDto,
 } from "@/infrastructure/api/roadmapApi";
+import { catcher } from "@/application/common";
 
 interface GenerateOptions {
   navigateOnSuccess?: boolean;
   userContext?: GenerateTopicRoadmapDto["userContext"];
 }
-
-export class RoadmapLimitError extends Error {}
 
 export function useGenerateTopicRoadmapCommand() {
   const [generateMutation, { isLoading }] = useGenerateTopicRoadmapMutation();
@@ -22,22 +21,19 @@ export function useGenerateTopicRoadmapCommand() {
     title?: string,
     options?: GenerateOptions,
   ) => {
-    const body: GenerateTopicRoadmapDto = {
-      topic,
-      title: title || undefined,
-      userContext: options?.userContext,
-    };
-    try {
-      const roadmap = await generateMutation(body).unwrap();
-      if (options?.navigateOnSuccess) {
-        router.push(`/roadmaps/${roadmap.id}`);
-      }
-      return roadmap;
-    } catch (err: unknown) {
-      if ((err as { status?: number })?.status === 402)
-        throw new RoadmapLimitError();
-      throw err;
+    const result = await catcher(
+      () =>
+        generateMutation({
+          topic,
+          title: title || undefined,
+          userContext: options?.userContext,
+        }).unwrap(),
+      (e) => (e.status === 402 ? { ...e, tag: "ROADMAP_LIMIT" } : e),
+    );
+    if (result.ok && options?.navigateOnSuccess) {
+      router.push(`/roadmaps/${result.data.id}`);
     }
+    return result;
   };
 
   return { execute, isLoading };

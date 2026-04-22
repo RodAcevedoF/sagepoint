@@ -31,35 +31,37 @@ export function GenerateFromDocumentModal({
 }: GenerateFromDocumentModalProps) {
   const { closeModal } = useModal();
   const { showSnackbar } = useSnackbar();
-  const { execute, isLoading, error } = useGenerateRoadmapCommand();
+  const { execute, isLoading } = useGenerateRoadmapCommand();
 
   const [title, setTitle] = useState("");
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>();
   const [commitment, setCommitment] = useState<CommitmentLevel>();
   const [goal, setGoal] = useState("");
   const [phase, setPhase] = useState<"form" | "loading">("form");
+  const [hasError, setHasError] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setPhase("loading");
-    try {
-      await execute(documentId, {
-        title: title.trim() || undefined,
-        userContext:
-          experienceLevel || commitment || goal.trim()
-            ? {
-                experienceLevel,
-                goal: goal.trim() || undefined,
-                timeAvailable: commitment
-                  ? COMMITMENT_LEVELS.find((c) => c.id === commitment)?.hours
-                  : undefined,
-              }
-            : undefined,
-        navigateOnSuccess: true,
-      });
+    const result = await execute(documentId, {
+      title: title.trim() || undefined,
+      userContext:
+        experienceLevel || commitment || goal.trim()
+          ? {
+              experienceLevel,
+              goal: goal.trim() || undefined,
+              timeAvailable: commitment
+                ? COMMITMENT_LEVELS.find((c) => c.id === commitment)?.hours
+                : undefined,
+            }
+          : undefined,
+      navigateOnSuccess: true,
+    });
+    if (result.ok) {
       closeModal();
-    } catch {
+    } else {
       setPhase("form");
+      setHasError(true);
       showSnackbar("Failed to generate roadmap", { severity: "error" });
     }
   };
@@ -114,7 +116,7 @@ export function GenerateFromDocumentModal({
               sx={{ mb: 3 }}
             />
 
-            {error && (
+            {hasError && (
               <Typography variant="body2" sx={{ color: "error.light", mb: 2 }}>
                 Something went wrong. Please try again.
               </Typography>

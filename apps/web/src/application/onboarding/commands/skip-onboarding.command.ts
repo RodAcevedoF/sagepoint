@@ -2,22 +2,23 @@
 
 import { useRouter } from "next/navigation";
 import { useSubmitOnboardingMutation } from "@/infrastructure/api/onboardingApi";
+import { useCommand } from "@/application/common";
+
+const SKIP_PAYLOAD = {
+  goal: "",
+  experience: "",
+  interests: [],
+  weeklyHours: "",
+  status: "SKIPPED" as const,
+};
 
 export function useSkipOnboardingCommand() {
-  const [submitMutation, { isLoading, error }] = useSubmitOnboardingMutation();
   const router = useRouter();
-
-  const execute = async () => {
-    await submitMutation({
-      goal: "",
-      experience: "",
-      interests: [],
-      weeklyHours: "",
-      status: "SKIPPED",
-    }).unwrap();
-
-    router.replace("/dashboard");
+  const cmd = useCommand(useSubmitOnboardingMutation, {
+    onSuccess: () => router.replace("/dashboard"),
+  });
+  return {
+    ...cmd,
+    execute: () => cmd.execute(SKIP_PAYLOAD),
   };
-
-  return { execute, isLoading, error };
 }

@@ -91,12 +91,9 @@ export function DocumentCard({ document }: DocumentCardProps) {
 
   const handleDeleteConfirm = async () => {
     setConfirmOpen(false);
-    try {
-      await deleteDocument(document.id);
-      showSnackbar("Document deleted", { severity: "success" });
-    } catch {
-      showSnackbar("Failed to delete document", { severity: "error" });
-    }
+    const result = await deleteDocument(document.id);
+    if (result.ok) showSnackbar("Document deleted", { severity: "success" });
+    else showSnackbar("Failed to delete document", { severity: "error" });
   };
 
   return (

@@ -1,37 +1,32 @@
-'use client';
+"use client";
 
 import {
-	useGenerateStepQuizMutation,
-	useSubmitStepQuizMutation,
-} from '@/infrastructure/api/roadmapApi';
-import type {
-	StepQuizQuestionDto,
-	GenerateStepQuizResponseDto,
-} from '@/infrastructure/api/roadmapApi';
+  useGenerateStepQuizMutation,
+  useSubmitStepQuizMutation,
+} from "@/infrastructure/api/roadmapApi";
+import type { StepQuizQuestionDto } from "@/infrastructure/api/roadmapApi";
+import { catcher } from "@/application/common";
 
 export interface PreGeneratedQuiz {
-	attemptId: string;
-	questions: StepQuizQuestionDto[];
+  attemptId: string;
+  questions: StepQuizQuestionDto[];
 }
 
 export function useStepQuizCommand() {
-	const [generateMutation, { isLoading: isGenerating }] = useGenerateStepQuizMutation();
-	const [submitMutation, { isLoading: isSubmitting }] = useSubmitStepQuizMutation();
+  const [generateMutation, { isLoading: isGenerating }] =
+    useGenerateStepQuizMutation();
+  const [submitMutation, { isLoading: isSubmitting }] =
+    useSubmitStepQuizMutation();
 
-	const generate = async (
-		roadmapId: string,
-		conceptId: string,
-	): Promise<GenerateStepQuizResponseDto> => {
-		return generateMutation({ roadmapId, conceptId }).unwrap();
-	};
+  const generate = (roadmapId: string, conceptId: string) =>
+    catcher(() => generateMutation({ roadmapId, conceptId }).unwrap());
 
-	const submit = async (
-		roadmapId: string,
-		attemptId: string,
-		answers: Record<number, string>,
-	) => {
-		return submitMutation({ roadmapId, attemptId, answers }).unwrap();
-	};
+  const submit = (
+    roadmapId: string,
+    attemptId: string,
+    answers: Record<number, string>,
+  ) =>
+    catcher(() => submitMutation({ roadmapId, attemptId, answers }).unwrap());
 
-	return { generate, submit, isGenerating, isSubmitting };
+  return { generate, submit, isGenerating, isSubmitting };
 }

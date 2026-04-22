@@ -45,11 +45,8 @@ export function SubConceptAccordion({
         : StepStatus.COMPLETED;
 
     setTogglingId(conceptId);
-    try {
-      await updateProgress(roadmapId, conceptId, next);
-    } finally {
-      setTogglingId(null);
-    }
+    await updateProgress(roadmapId, conceptId, next);
+    setTogglingId(null);
   };
 
   return (

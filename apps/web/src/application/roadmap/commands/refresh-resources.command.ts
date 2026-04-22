@@ -1,13 +1,7 @@
-'use client';
+"use client";
 
-import { useRefreshResourcesMutation } from '@/infrastructure/api/roadmapApi';
+import { useRefreshResourcesMutation } from "@/infrastructure/api/roadmapApi";
+import { useCommand } from "@/application/common";
 
-export function useRefreshResourcesCommand() {
-  const [refreshMutation, { isLoading, error }] = useRefreshResourcesMutation();
-
-  const execute = async (roadmapId: string) => {
-    return refreshMutation(roadmapId).unwrap();
-  };
-
-  return { execute, isLoading, error };
-}
+export const useRefreshResourcesCommand = () =>
+  useCommand(useRefreshResourcesMutation);

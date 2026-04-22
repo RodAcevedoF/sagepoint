@@ -5,10 +5,7 @@ import { Box, Typography, alpha, CircularProgress, Stack } from "@mui/material";
 import { Upload, FileUp, FileText, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useModal, useSnackbar, ResourceQuotaBar } from "@/shared/components";
-import {
-  useUploadDocumentCommand,
-  DocumentLimitError,
-} from "@/application/document";
+import { useUploadDocumentCommand } from "@/application/document";
 import { useGetResourceQuotaQuery } from "@/infrastructure/api/userApi";
 import { palette } from "@/shared/theme";
 
@@ -23,14 +20,13 @@ export function UploadDocumentModal() {
   const handleFile = useCallback(
     async (file: File) => {
       setUploadedFile(file);
-      try {
-        await execute(file);
+      const result = await execute(file);
+      if (result.ok) {
         showSnackbar("Document uploaded successfully", { severity: "success" });
-        // Keep showing success state for a moment before closing
         setTimeout(() => closeModal(), 1500);
-      } catch (err: unknown) {
+      } else {
         showSnackbar(
-          err instanceof DocumentLimitError
+          result.error.tag === "DOCUMENT_LIMIT"
             ? "Not enough tokens. Contact your administrator to get more."
             : "Failed to upload document",
           { severity: "error" },

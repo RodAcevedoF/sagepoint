@@ -110,11 +110,8 @@ export function CompleteStep() {
 
   const handleComplete = async () => {
     setError("");
-    try {
-      await submitOnboarding(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
-    }
+    const result = await submitOnboarding(data);
+    if (!result.ok) setError(result.error.message || "Something went wrong");
   };
 
   return (

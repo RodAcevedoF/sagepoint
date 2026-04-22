@@ -27,13 +27,13 @@ export function CreateRoadmapModal() {
     e.preventDefault();
     if (!topic.trim()) return;
 
-    try {
-      setError(false);
-      await execute(topic.trim(), title.trim() || undefined, {
-        navigateOnSuccess: true,
-      });
+    setError(false);
+    const result = await execute(topic.trim(), title.trim() || undefined, {
+      navigateOnSuccess: true,
+    });
+    if (result.ok) {
       closeModal();
-    } catch {
+    } else {
       setError(true);
     }
   };

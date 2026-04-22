@@ -152,13 +152,10 @@ export function ProfileDetails({ user }: ProfileDetailsProps) {
   const styles = makeStyles(theme);
 
   const handleUpdateName = async (name: string) => {
-    try {
-      await updateProfile({ name });
+    const result = await updateProfile({ name });
+    if (result.ok)
       showSnackbar("Name updated successfully", { severity: "success" });
-    } catch {
-      showSnackbar("Failed to update name", { severity: "error" });
-      throw new Error("Failed to update");
-    }
+    else showSnackbar("Failed to update name", { severity: "error" });
   };
 
   return (

@@ -5,10 +5,7 @@ import { Box, useTheme, Button as MuiButton } from "@mui/material";
 import { ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import {
-  useGenerateTopicRoadmapCommand,
-  RoadmapLimitError,
-} from "@/application/roadmap";
+import { useGenerateTopicRoadmapCommand } from "@/application/roadmap";
 import { useRoadmapEvents } from "@/shared/hooks";
 import { useGetResourceQuotaQuery } from "@/infrastructure/api/userApi";
 import {
@@ -90,27 +87,27 @@ export function GenerationView({
       setPhase("generating");
       setRoadmapId(null);
 
-      try {
-        const timeAvailable = commitment
-          ? COMMITMENT_LEVELS.find((c) => c.id === commitment)?.hours
-          : undefined;
+      const timeAvailable = commitment
+        ? COMMITMENT_LEVELS.find((c) => c.id === commitment)?.hours
+        : undefined;
 
-        const roadmap = await execute(topic.trim(), title.trim() || undefined, {
-          userContext:
-            experienceLevel || timeAvailable
-              ? { experienceLevel, timeAvailable }
-              : undefined,
-        });
+      const result = await execute(topic.trim(), title.trim() || undefined, {
+        userContext:
+          experienceLevel || timeAvailable
+            ? { experienceLevel, timeAvailable }
+            : undefined,
+      });
 
+      if (result.ok) {
         if (fromOnboarding) {
-          setRoadmapId(roadmap.id);
+          setRoadmapId(result.data.id);
         } else {
           router.push("/roadmaps");
         }
-      } catch (err: unknown) {
+      } else {
         setPhase("input");
         setErrorMessage(
-          err instanceof RoadmapLimitError
+          result.error.tag === "ROADMAP_LIMIT"
             ? "Not enough tokens. Contact your administrator to get more."
             : "Something went wrong generating your roadmap. Please try again.",
         );

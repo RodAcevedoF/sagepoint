@@ -29,11 +29,11 @@ export function ProfileLearning({ user }: ProfileLearningProps) {
   const styles = makeStyles(theme);
 
   const handleSaveGoal = async () => {
-    try {
-      await updateProfile({ learningGoal: goalValue });
+    const result = await updateProfile({ learningGoal: goalValue });
+    if (result.ok) {
       showSnackbar("Learning goal updated", { severity: "success" });
       setIsEditingGoal(false);
-    } catch {
+    } else {
       showSnackbar("Failed to update learning goal", { severity: "error" });
     }
   };

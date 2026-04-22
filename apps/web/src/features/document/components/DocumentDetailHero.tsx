@@ -77,11 +77,11 @@ export function DocumentDetailHero({
 
   const handleDeleteConfirm = async () => {
     setConfirmOpen(false);
-    try {
-      await deleteDocument(document.id);
+    const result = await deleteDocument(document.id);
+    if (result.ok) {
       router.replace("/documents");
       showSnackbar("Document deleted", { severity: "success" });
-    } catch {
+    } else {
       showSnackbar("Failed to delete document", { severity: "error" });
     }
   };

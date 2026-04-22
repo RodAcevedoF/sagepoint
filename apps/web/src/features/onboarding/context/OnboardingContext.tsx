@@ -133,11 +133,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
   const skip = useCallback(() => {
     startTransition(async () => {
-      try {
-        await executeSkip();
-      } catch {
-        // command failed
-      }
+      await executeSkip();
     });
   }, [executeSkip]);
 

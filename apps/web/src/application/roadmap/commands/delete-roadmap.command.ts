@@ -1,13 +1,7 @@
 "use client";
 
 import { useDeleteRoadmapMutation } from "@/infrastructure/api/roadmapApi";
+import { useCommand } from "@/application/common";
 
-export function useDeleteRoadmapCommand() {
-  const [deleteMutation, { isLoading, error }] = useDeleteRoadmapMutation();
-
-  const execute = async (roadmapId: string) => {
-    return await deleteMutation(roadmapId).unwrap();
-  };
-
-  return { execute, isLoading, error };
-}
+export const useDeleteRoadmapCommand = () =>
+  useCommand(useDeleteRoadmapMutation);

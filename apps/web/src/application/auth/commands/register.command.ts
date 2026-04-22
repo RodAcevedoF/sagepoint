@@ -1,16 +1,17 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useRegisterMutation } from '@/infrastructure/api/authApi';
+import { useRouter } from "next/navigation";
+import { useRegisterMutation } from "@/infrastructure/api/authApi";
+import { useCommand } from "@/application/common";
 
 export function useRegisterCommand() {
-  const [registerMutation, { isLoading, error }] = useRegisterMutation();
   const router = useRouter();
-
-  const execute = async (name: string, email: string, password: string) => {
-    await registerMutation({ email, password, name }).unwrap();
-    router.push('/login?registered=true');
+  const cmd = useCommand(useRegisterMutation, {
+    onSuccess: () => router.push("/login?registered=true"),
+  });
+  return {
+    ...cmd,
+    execute: (name: string, email: string, password: string) =>
+      cmd.execute({ email, password, name }),
   };
-
-  return { execute, isLoading, error };
 }

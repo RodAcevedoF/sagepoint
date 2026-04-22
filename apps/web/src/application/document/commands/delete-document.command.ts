@@ -1,13 +1,7 @@
-'use client';
+"use client";
 
-import { useDeleteDocumentMutation } from '@/infrastructure/api/documentApi';
+import { useDeleteDocumentMutation } from "@/infrastructure/api/documentApi";
+import { useCommand } from "@/application/common";
 
-export function useDeleteDocumentCommand() {
-  const [deleteMutation, { isLoading, error }] = useDeleteDocumentMutation();
-
-  const execute = async (documentId: string) => {
-    return await deleteMutation(documentId).unwrap();
-  };
-
-  return { execute, isLoading, error };
-}
+export const useDeleteDocumentCommand = () =>
+  useCommand(useDeleteDocumentMutation);

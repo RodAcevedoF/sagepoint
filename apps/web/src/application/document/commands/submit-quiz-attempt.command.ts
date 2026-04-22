@@ -1,17 +1,16 @@
-'use client';
+"use client";
 
-import { useSubmitQuizAttemptMutation } from '@/infrastructure/api/documentApi';
+import { useSubmitQuizAttemptMutation } from "@/infrastructure/api/documentApi";
+import { useCommand } from "@/application/common";
 
 export function useSubmitQuizAttemptCommand() {
-  const [submitMutation, { isLoading, error }] = useSubmitQuizAttemptMutation();
-
-  const execute = async (
-    documentId: string,
-    quizId: string,
-    answers: Record<string, string>,
-  ) => {
-    return await submitMutation({ documentId, quizId, answers }).unwrap();
+  const cmd = useCommand(useSubmitQuizAttemptMutation);
+  return {
+    ...cmd,
+    execute: (
+      documentId: string,
+      quizId: string,
+      answers: Record<string, string>,
+    ) => cmd.execute({ documentId, quizId, answers }),
   };
-
-  return { execute, isLoading, error };
 }

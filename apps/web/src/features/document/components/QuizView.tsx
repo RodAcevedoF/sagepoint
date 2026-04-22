@@ -42,12 +42,8 @@ export function QuizView({ documentId, quizId }: QuizViewProps) {
   };
 
   const handleSubmit = async () => {
-    try {
-      const attempt = await submitAttempt(documentId, quizId, answers);
-      setResult(attempt);
-    } catch {
-      // Error handled by command hook
-    }
+    const attemptResult = await submitAttempt(documentId, quizId, answers);
+    if (attemptResult.ok) setResult(attemptResult.data);
   };
 
   const handleRetry = () => {

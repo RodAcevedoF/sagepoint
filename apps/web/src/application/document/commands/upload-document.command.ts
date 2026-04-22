@@ -1,23 +1,19 @@
 "use client";
 
 import { useUploadDocumentMutation } from "@/infrastructure/api/documentApi";
-
-export class DocumentLimitError extends Error {}
+import { useCommand } from "@/application/common";
 
 export function useUploadDocumentCommand() {
-  const [uploadMutation, { isLoading }] = useUploadDocumentMutation();
+  const cmd = useCommand(useUploadDocumentMutation, {
+    mapError: (e) => (e.status === 402 ? { ...e, tag: "DOCUMENT_LIMIT" } : e),
+  });
 
-  const execute = async (file: File) => {
-    const formData = new FormData();
-    formData.append("file", file);
-    try {
-      return await uploadMutation(formData).unwrap();
-    } catch (err: unknown) {
-      if ((err as { status?: number })?.status === 402)
-        throw new DocumentLimitError();
-      throw err;
-    }
+  return {
+    ...cmd,
+    execute: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      return cmd.execute(formData);
+    },
   };
-
-  return { execute, isLoading };
 }

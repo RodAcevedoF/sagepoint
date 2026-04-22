@@ -57,28 +57,23 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
     setLocalPreview(preview);
 
     setUploading(true);
-    try {
-      await uploadAvatar(file);
+    const uploadResult = await uploadAvatar(file);
+    if (uploadResult.ok) {
       showSnackbar("Avatar updated", { severity: "success" });
-    } catch {
+    } else {
       setLocalPreview(null);
       showSnackbar("Failed to upload avatar", { severity: "error" });
-    } finally {
-      setUploading(false);
     }
+    setUploading(false);
   };
 
   const handleAvatarRemove = async () => {
     setUploading(true);
     setLocalPreview(null);
-    try {
-      await updateProfile({ avatarUrl: "" });
-      showSnackbar("Avatar removed", { severity: "success" });
-    } catch {
-      showSnackbar("Failed to remove avatar", { severity: "error" });
-    } finally {
-      setUploading(false);
-    }
+    const result = await updateProfile({ avatarUrl: "" });
+    if (result.ok) showSnackbar("Avatar removed", { severity: "success" });
+    else showSnackbar("Failed to remove avatar", { severity: "error" });
+    setUploading(false);
   };
 
   const hasAvatar = !!(localPreview ?? user.avatarUrl);

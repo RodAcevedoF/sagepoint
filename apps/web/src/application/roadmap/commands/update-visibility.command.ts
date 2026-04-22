@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useUpdateVisibilityMutation } from '@/infrastructure/api/roadmapApi';
-import { type RoadmapVisibility } from '@sagepoint/domain';
+import { useUpdateVisibilityMutation } from "@/infrastructure/api/roadmapApi";
+import { type RoadmapVisibility } from "@sagepoint/domain";
+import { useCommand } from "@/application/common";
 
 export function useUpdateVisibilityCommand() {
-  const [updateMutation, { isLoading, error }] = useUpdateVisibilityMutation();
-
-  const execute = async (roadmapId: string, visibility: RoadmapVisibility) => {
-    return await updateMutation({ roadmapId, visibility }).unwrap();
+  const cmd = useCommand(useUpdateVisibilityMutation);
+  return {
+    ...cmd,
+    execute: (roadmapId: string, visibility: RoadmapVisibility) =>
+      cmd.execute({ roadmapId, visibility }),
   };
-
-  return { execute, isLoading, error };
 }

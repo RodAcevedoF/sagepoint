@@ -53,12 +53,9 @@ export function RoadmapCard({ data }: RoadmapCardProps) {
 
   const handleDeleteConfirm = async () => {
     setConfirmOpen(false);
-    try {
-      await deleteRoadmap(roadmap.id);
-      showSnackbar("Roadmap deleted", { severity: "success" });
-    } catch {
-      showSnackbar("Failed to delete roadmap", { severity: "error" });
-    }
+    const result = await deleteRoadmap(roadmap.id);
+    if (result.ok) showSnackbar("Roadmap deleted", { severity: "success" });
+    else showSnackbar("Failed to delete roadmap", { severity: "error" });
   };
 
   const handleToggleVisibility = (e: React.MouseEvent) => {

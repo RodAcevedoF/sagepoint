@@ -70,12 +70,12 @@ export function TimelineStep({
   const { generate } = useStepQuizCommand();
 
   const handleExpand = async () => {
-    try {
-      await expandConcept(roadmapId, step.concept.id);
+    const result = await expandConcept(roadmapId, step.concept.id);
+    if (result.ok) {
       showSnackbar("Sub-concepts added to your roadmap", {
         severity: "success",
       });
-    } catch {
+    } else {
       showSnackbar("Failed to expand concept", { severity: "error" });
     }
   };
@@ -120,25 +120,29 @@ export function TimelineStep({
       return;
     }
 
-    try {
-      await updateProgress(roadmapId, step.concept.id, newStatus);
+    const progressResult = await updateProgress(
+      roadmapId,
+      step.concept.id,
+      newStatus,
+    );
+    if (!progressResult.ok) {
+      console.error("Failed to update progress:", progressResult.error);
+      return;
+    }
 
-      // Pre-generate quiz when starting a step (fire-and-forget)
-      if (newStatus === StepStatus.IN_PROGRESS) {
-        generate(roadmapId, step.concept.id)
-          .then((data) => {
-            setPreGeneratedQuiz(data);
-            setQuizReady(true);
-          })
-          .catch((err: unknown) => {
-            console.warn(
-              "Quiz pre-generation failed, will generate on demand:",
-              err,
-            );
-          });
-      }
-    } catch (error) {
-      console.error("Failed to update progress:", error);
+    // Pre-generate quiz when starting a step (fire-and-forget)
+    if (newStatus === StepStatus.IN_PROGRESS) {
+      generate(roadmapId, step.concept.id).then((result) => {
+        if (result.ok) {
+          setPreGeneratedQuiz(result.data);
+          setQuizReady(true);
+        } else {
+          console.warn(
+            "Quiz pre-generation failed, will generate on demand:",
+            result.error,
+          );
+        }
+      });
     }
   };
 

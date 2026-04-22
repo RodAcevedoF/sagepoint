@@ -78,15 +78,15 @@ export function StepQuizModal({
       answers: {},
       results: null,
     }));
-    try {
-      const data = await generate(roadmapId, conceptId);
+    const result = await generate(roadmapId, conceptId);
+    if (result.ok) {
       setState((prev) => ({
         ...prev,
         phase: "quiz",
-        attemptId: data.attemptId,
-        questions: data.questions,
+        attemptId: result.data.attemptId,
+        questions: result.data.questions,
       }));
-    } catch {
+    } else {
       setState((prev) => ({
         ...prev,
         phase: "loading",
@@ -114,16 +114,16 @@ export function StepQuizModal({
 
   const handleSubmit = async () => {
     if (!state.attemptId) return;
-    try {
-      const data = await submit(roadmapId, state.attemptId, state.answers);
+    const result = await submit(roadmapId, state.attemptId, state.answers);
+    if (result.ok) {
       setState((prev) => ({
         ...prev,
         phase: "results",
-        passed: data.passed,
-        score: data.score,
-        results: data.results,
+        passed: result.data.passed,
+        score: result.data.score,
+        results: result.data.results,
       }));
-    } catch {
+    } else {
       setState((prev) => ({
         ...prev,
         error: "Failed to submit quiz. Please try again.",

@@ -14,10 +14,7 @@ export {
 export { useUpdateProgressCommand } from "./commands/update-progress.command";
 export { useUpdateVisibilityCommand } from "./commands/update-visibility.command";
 export { useGenerateRoadmapCommand } from "./commands/generate-roadmap.command";
-export {
-  useGenerateTopicRoadmapCommand,
-  RoadmapLimitError,
-} from "./commands/generate-topic-roadmap.command";
+export { useGenerateTopicRoadmapCommand } from "./commands/generate-topic-roadmap.command";
 export { useRefreshResourcesCommand } from "./commands/refresh-resources.command";
 export { useExpandConceptCommand } from "./commands/expand-concept.command";
 export { useStepQuizCommand } from "./commands/step-quiz.command";

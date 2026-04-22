@@ -99,18 +99,18 @@ export function ProfileInterests({ user }: ProfileInterestsProps) {
   };
 
   const handleSave = async () => {
-    try {
-      const interests = [
-        ...selectedIds,
-        ...customInterests.map((i) => `custom:${i}`),
-      ];
-      await updateProfile({ interests });
+    const interests = [
+      ...selectedIds,
+      ...customInterests.map((i) => `custom:${i}`),
+    ];
+    const result = await updateProfile({ interests });
+    if (result.ok) {
       showSnackbar("Interests updated — your news feed will refresh shortly", {
         severity: "success",
       });
       setCustomInterests([]);
       setEditingIds(null);
-    } catch {
+    } else {
       showSnackbar("Failed to update interests", { severity: "error" });
     }
   };
