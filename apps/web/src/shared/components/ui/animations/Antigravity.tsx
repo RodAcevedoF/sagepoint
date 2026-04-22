@@ -1,8 +1,21 @@
 "use client";
 
-import React, { useMemo, useRef, useEffect } from "react";
+import React, { useMemo, useRef, useEffect, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
+
+function isWebGLAvailable(): boolean {
+  try {
+    const canvas = document.createElement("canvas");
+    return !!(
+      canvas.getContext("webgl2") ||
+      canvas.getContext("webgl") ||
+      canvas.getContext("experimental-webgl")
+    );
+  } catch {
+    return false;
+  }
+}
 
 export interface AntigravityProps {
   count?: number;
@@ -213,6 +226,12 @@ const AntigravityInner: React.FC<AntigravityProps> = ({
 };
 
 export const Antigravity: React.FC<AntigravityProps> = (props) => {
+  const [supported] = useState(() =>
+    typeof window === "undefined" ? false : isWebGLAvailable(),
+  );
+
+  if (!supported) return null;
+
   return (
     <div
       style={{
@@ -225,7 +244,14 @@ export const Antigravity: React.FC<AntigravityProps> = (props) => {
         zIndex: 0,
       }}
     >
-      <Canvas camera={{ position: [0, 0, 50], fov: 35 }}>
+      <Canvas
+        camera={{ position: [0, 0, 50], fov: 35 }}
+        onCreated={({ gl }) => {
+          gl.domElement.addEventListener("webglcontextlost", (e) => {
+            e.preventDefault();
+          });
+        }}
+      >
         <AntigravityInner {...props} />
       </Canvas>
     </div>
