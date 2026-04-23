@@ -8,6 +8,12 @@ export interface GCSStorageConfig {
   keyFilename?: string;
 }
 
+function isNotFoundError(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  const e = err as { code?: number | string; status?: number };
+  return e.code === 404 || e.code === "404" || e.status === 404;
+}
+
 export class GCSStorage implements IFileStorage {
   private readonly storage: Storage;
   private readonly bucket: Bucket;
@@ -56,7 +62,12 @@ export class GCSStorage implements IFileStorage {
 
   async delete(path: string): Promise<void> {
     const file = this.bucket.file(path);
-    await file.delete();
+    try {
+      await file.delete();
+    } catch (err: unknown) {
+      if (isNotFoundError(err)) return;
+      throw err;
+    }
   }
 
   async getUrl(path: string, expiresInSeconds = 3600): Promise<string> {

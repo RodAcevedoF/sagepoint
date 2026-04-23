@@ -99,13 +99,14 @@ export function bootstrap(): AppDependencies {
   });
   const cacheService = new RedisCacheService(cacheRedis);
 
+  const categoryDeps = makeCategoryDependencies(prismaService, cacheService);
   const roadmapDeps = makeRoadmapDependencies(
     prismaService,
     neo4jService,
     cacheService,
     userDeps.userRepository,
+    categoryDeps.categoryRepository,
   );
-  const categoryDeps = makeCategoryDependencies(prismaService, cacheService);
 
   dependencies = {
     roadmap: roadmapDeps,

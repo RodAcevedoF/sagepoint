@@ -2,6 +2,7 @@ import { config } from 'dotenv';
 config({ path: '../../.env' });
 import * as Sentry from '@sentry/nestjs';
 import { nodeProfilingIntegration } from '@sentry/profiling-node';
+import { sentryBeforeSend } from '@sagepoint/observability';
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
@@ -9,6 +10,7 @@ Sentry.init({
   tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.2 : 1.0,
   profilesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 0,
   integrations: [nodeProfilingIntegration()],
+  beforeSend: sentryBeforeSend,
 });
 
 import { execSync } from 'child_process';

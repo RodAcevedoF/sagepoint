@@ -25,6 +25,7 @@ export interface IRoadmapRepository {
   findByUserId(userId: string): Promise<Roadmap[]>;
   findPublic(): Promise<Roadmap[]>;
   updateVisibility(id: string, visibility: RoadmapVisibility): Promise<Roadmap>;
+  updateCategory(id: string, categoryId: string | null): Promise<Roadmap>;
   updateGeneration(id: string, data: RoadmapGenerationUpdate): Promise<void>;
   delete(id: string): Promise<void>;
 

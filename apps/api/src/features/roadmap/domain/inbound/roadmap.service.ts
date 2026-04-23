@@ -97,6 +97,11 @@ export interface IRoadmapService {
     userId: string,
     visibility: RoadmapVisibility,
   ): Promise<Roadmap>;
+  updateCategory(
+    id: string,
+    userId: string,
+    categoryId: string | null,
+  ): Promise<Roadmap>;
   getPublicRoadmaps(): Promise<Roadmap[]>;
 
   // Search & adopt

@@ -37,6 +37,7 @@ import {
   RoadmapVisibility,
 } from '@sagepoint/domain';
 import { UpdateVisibilityUseCase } from '@/features/roadmap/app/usecases/update-visibility.usecase';
+import { UpdateCategoryUseCase } from '@/features/roadmap/app/usecases/update-category.usecase';
 import { GetPublicRoadmapsUseCase } from '@/features/roadmap/app/usecases/get-public-roadmaps.usecase';
 import { SearchPublicRoadmapsUseCase } from '@/features/roadmap/app/usecases/search-public-roadmaps.usecase';
 import { AdoptRoadmapUseCase } from '@/features/roadmap/app/usecases/adopt-roadmap.usecase';
@@ -76,6 +77,7 @@ export class RoadmapService implements IRoadmapService {
     private readonly adoptRoadmapUseCase?: AdoptRoadmapUseCase,
     private readonly unadoptRoadmapUseCase?: UnadoptRoadmapUseCase,
     private readonly isRoadmapAdoptedUseCase?: IsRoadmapAdoptedUseCase,
+    private readonly updateCategoryUseCase?: UpdateCategoryUseCase,
   ) {}
 
   async getGraph(documentId: string): Promise<{
@@ -187,6 +189,17 @@ export class RoadmapService implements IRoadmapService {
       throw new Error('Visibility update is not available');
     }
     return await this.updateVisibilityUseCase.execute(id, userId, visibility);
+  }
+
+  async updateCategory(
+    id: string,
+    userId: string,
+    categoryId: string | null,
+  ): Promise<Roadmap> {
+    if (!this.updateCategoryUseCase) {
+      throw new Error('Category update is not available');
+    }
+    return await this.updateCategoryUseCase.execute(id, userId, categoryId);
   }
 
   async getPublicRoadmaps(): Promise<Roadmap[]> {

@@ -1,0 +1,20 @@
+{
+  "name": "@sagepoint/observability",
+  "version": "0.0.1",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch",
+    "lint": "eslint \"src/**/*.ts\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@sentry/core": "*"
+  },
+  "devDependencies": {
+    "@sentry/core": "^10.47.0",
+    "typescript": "5.9.3"
+  }
+}

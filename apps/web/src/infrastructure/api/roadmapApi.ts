@@ -159,6 +159,24 @@ export const roadmapApi = baseApi.injectEndpoints({
       ],
     }),
 
+    // Category
+    updateRoadmapCategory: builder.mutation<
+      RoadmapDto,
+      { roadmapId: string; categoryId: string | null }
+    >({
+      query: ({ roadmapId, categoryId }) => ({
+        url: `/roadmaps/${roadmapId}/category`,
+        method: "PATCH",
+        body: { categoryId },
+      }),
+      invalidatesTags: (_result, _error, { roadmapId }) => [
+        { type: "Roadmap", id: roadmapId },
+        { type: "Roadmap", id: "LIST" },
+        { type: "Roadmap", id: "PUBLIC" },
+        "Category",
+      ],
+    }),
+
     // Roadmap endpoints
     getUserRoadmaps: builder.query<UserRoadmapDto[], void>({
       query: () => "/roadmaps/user/me",
@@ -311,6 +329,7 @@ export const {
   // Public & Visibility
   useGetPublicRoadmapsQuery,
   useUpdateVisibilityMutation,
+  useUpdateRoadmapCategoryMutation,
   // Roadmap
   useGetUserRoadmapsQuery,
   useGetRoadmapByIdQuery,

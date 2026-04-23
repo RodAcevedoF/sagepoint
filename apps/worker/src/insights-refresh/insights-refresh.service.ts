@@ -15,6 +15,7 @@ import {
 import { randomUUID } from "crypto";
 
 const RETENTION_DAYS = 5;
+const REFRESH_INTERVAL_DAYS = 3;
 const MAX_NEWS_CATEGORIES = 20;
 
 @Injectable()
@@ -39,7 +40,7 @@ export class InsightsRefreshService {
       return;
     }
 
-    this.logger.log("Starting daily news refresh...");
+    this.logger.log("Starting news refresh...");
     const startedAt = Date.now();
 
     let categories = await this.categoryRepo.list();
@@ -50,8 +51,8 @@ export class InsightsRefreshService {
       categories = categories.slice(0, MAX_NEWS_CATEGORIES);
     }
 
-    const startOfDay = new Date();
-    startOfDay.setUTCHours(0, 0, 0, 0);
+    const freshSince = new Date();
+    freshSince.setUTCDate(freshSince.getUTCDate() - REFRESH_INTERVAL_DAYS);
 
     let totalSaved = 0;
     let categoriesProcessed = 0;
@@ -64,11 +65,11 @@ export class InsightsRefreshService {
         const alreadyFetched =
           await this.newsArticleRepo.countByCategoryCreatedSince(
             category.id,
-            startOfDay,
+            freshSince,
           );
         if (alreadyFetched > 0) {
           this.logger.log(
-            `Skipping ${category.name} — already refreshed today (${alreadyFetched} articles)`,
+            `Skipping ${category.name} — refreshed within last ${REFRESH_INTERVAL_DAYS} days (${alreadyFetched} articles)`,
           );
           categoriesSkipped++;
           continue;
@@ -117,7 +118,7 @@ export class InsightsRefreshService {
 
     const totalPurged = await this.purgeOldArticles();
 
-    this.logger.log("Daily news refresh complete", {
+    this.logger.log("News refresh complete", {
       categoriesTotal: categories.length,
       categoriesProcessed,
       categoriesSkipped,

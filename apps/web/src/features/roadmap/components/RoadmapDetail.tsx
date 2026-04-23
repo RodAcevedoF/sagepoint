@@ -17,9 +17,11 @@ import { StepStatus } from "@sagepoint/domain";
 import { useRoadmapWithProgressQuery } from "@/application/roadmap";
 import { EmptyState, ErrorState, Loader, Button } from "@/shared/components";
 import { ButtonVariants, ButtonIconPositions } from "@/shared/types";
+import { useAppSelector } from "@/shared/hooks";
 import { TimelineStep } from "./TimelineStep/TimelineStep";
 import { LikeButton } from "./LikeButton";
 import { SuggestionsPanel } from "./SuggestionsPanel";
+import { CategorySelector } from "./CategorySelector";
 import { makeStyles } from "./RoadmapDetail.styles";
 
 const LazyRoadmapGraph = lazy(() =>
@@ -60,6 +62,7 @@ export function RoadmapDetail({ roadmapId }: RoadmapDetailProps) {
   const router = useRouter();
   const styles = makeStyles(theme);
   const [view, setView] = useState<"timeline" | "graph">("timeline");
+  const currentUserId = useAppSelector((state) => state.auth.user?.id);
   const {
     data: roadmapData,
     isLoading: roadmapLoading,
@@ -193,6 +196,11 @@ export function RoadmapDetail({ roadmapId }: RoadmapDetailProps) {
                   sx={styles.paceChip}
                 />
               )}
+              <CategorySelector
+                roadmapId={roadmap.id}
+                currentCategoryId={roadmap.categoryId}
+                editable={!!currentUserId && roadmap.userId === currentUserId}
+              />
             </Box>
           </Box>
 

@@ -8,6 +8,7 @@ import type {
   IProgressRepository,
   ICacheService,
   IUserRepository,
+  ICategoryRepository,
 } from '@sagepoint/domain';
 import type { PrismaClient } from '@sagepoint/database';
 import { RoadmapService } from '@/features/roadmap/infra/driver/roadmap.service';
@@ -25,6 +26,7 @@ import { SuggestRelatedTopicsUseCase } from '@/features/roadmap/app/usecases/sug
 import { GenerateStepQuizUseCase } from '@/features/roadmap/app/usecases/generate-step-quiz.usecase';
 import { SubmitStepQuizUseCase } from '@/features/roadmap/app/usecases/submit-step-quiz.usecase';
 import { UpdateVisibilityUseCase } from '@/features/roadmap/app/usecases/update-visibility.usecase';
+import { UpdateCategoryUseCase } from '@/features/roadmap/app/usecases/update-category.usecase';
 import { GetPublicRoadmapsUseCase } from '@/features/roadmap/app/usecases/get-public-roadmaps.usecase';
 import { SearchPublicRoadmapsUseCase } from '@/features/roadmap/app/usecases/search-public-roadmaps.usecase';
 import { AdoptRoadmapUseCase } from '@/features/roadmap/app/usecases/adopt-roadmap.usecase';
@@ -63,6 +65,7 @@ export function makeRoadmapDependencies(
   neo4jService: Neo4jService,
   cacheService?: ICacheService,
   userRepository?: IUserRepository,
+  categoryRepository?: ICategoryRepository,
 ): RoadmapDependencies {
   const roadmapRepository = new PrismaRoadmapRepository(prismaService);
   const conceptRepository = new Neo4jConceptRepository(neo4jService);
@@ -182,7 +185,15 @@ export function makeRoadmapDependencies(
   // Visibility
   const updateVisibilityUseCase = new UpdateVisibilityUseCase(
     roadmapRepository,
+    cacheService,
   );
+  const updateCategoryUseCase = categoryRepository
+    ? new UpdateCategoryUseCase(
+        roadmapRepository,
+        categoryRepository,
+        cacheService,
+      )
+    : undefined;
   const getPublicRoadmapsUseCase = new GetPublicRoadmapsUseCase(
     roadmapRepository,
   );
@@ -222,6 +233,7 @@ export function makeRoadmapDependencies(
     adoptRoadmapUseCase,
     unadoptRoadmapUseCase,
     isRoadmapAdoptedUseCase,
+    updateCategoryUseCase,
   );
 
   return {

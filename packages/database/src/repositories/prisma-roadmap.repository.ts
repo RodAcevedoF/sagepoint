@@ -119,6 +119,17 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
     return this.mapToDomain(data);
   }
 
+  async updateCategory(
+    id: string,
+    categoryId: string | null,
+  ): Promise<Roadmap> {
+    const data = await this.prisma.roadmap.update({
+      where: { id },
+      data: { categoryId },
+    });
+    return this.mapToDomain(data);
+  }
+
   async updateGeneration(
     id: string,
     data: {

@@ -24,6 +24,7 @@
     "@sagepoint/database": "workspace:*",
     "@sagepoint/domain": "workspace:*",
     "@sagepoint/graph": "workspace:*",
+    "@sagepoint/observability": "workspace:*",
     "@sagepoint/parsing": "workspace:*",
     "@sagepoint/storage": "workspace:*",
     "@sentry/nestjs": "^10.47.0",
