@@ -12,6 +12,7 @@ COPY packages/database/package.json packages/database/
 COPY packages/graph/package.json packages/graph/
 COPY packages/storage/package.json packages/storage/
 COPY packages/parsing/package.json packages/parsing/
+COPY packages/observability/package.json packages/observability/
 RUN pnpm install --frozen-lockfile
 
 # --- build ---
