@@ -704,12 +704,24 @@ importers:
 
   packages/observability:
     devDependencies:
+      '@eslint/js':
+        specifier: ^9.39.2
+        version: 9.39.2
       '@sentry/core':
         specifier: ^10.47.0
         version: 10.47.0
+      eslint:
+        specifier: ^9.39.2
+        version: 9.39.2(jiti@2.6.1)
+      globals:
+        specifier: ^16.5.0
+        version: 16.5.0
       typescript:
         specifier: 5.9.3
         version: 5.9.3
+      typescript-eslint:
+        specifier: ^8.52.0
+        version: 8.52.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
 
   packages/parsing:
     dependencies:
