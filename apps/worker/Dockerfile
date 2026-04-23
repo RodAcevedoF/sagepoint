@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7-labs
 FROM node:24-alpine AS base
 RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
 WORKDIR /app
@@ -5,14 +6,7 @@ WORKDIR /app
 # --- deps ---
 FROM base AS deps
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
-COPY apps/worker/package.json apps/worker/
-COPY packages/domain/package.json packages/domain/
-COPY packages/ai/package.json packages/ai/
-COPY packages/database/package.json packages/database/
-COPY packages/graph/package.json packages/graph/
-COPY packages/storage/package.json packages/storage/
-COPY packages/parsing/package.json packages/parsing/
-COPY packages/observability/package.json packages/observability/
+COPY --parents apps/*/package.json packages/*/package.json ./
 RUN pnpm install --frozen-lockfile
 
 # --- build ---
