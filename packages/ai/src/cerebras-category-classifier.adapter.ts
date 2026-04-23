@@ -28,9 +28,12 @@ export class CerebrasCategoryClassifierAdapter implements ICategoryClassifierSer
     const prompt = this.buildPrompt(topic, conceptNames, candidates);
     try {
       const res = await this.model.invoke(prompt);
-      const raw = String(res.content ?? "")
-        .trim()
-        .toLowerCase();
+      const content = Array.isArray(res.content)
+        ? res.content.map((c) => (typeof c === "string" ? c : "")).join("")
+        : typeof res.content === "string"
+          ? res.content
+          : "";
+      const raw = content.trim().toLowerCase();
       const slug = raw.replace(/[^a-z0-9-]/g, "");
       if (!slug || slug === "none") return null;
       const match = candidates.find((c) => c.slug.toLowerCase() === slug);
@@ -40,7 +43,10 @@ export class CerebrasCategoryClassifierAdapter implements ICategoryClassifierSer
       }
       return match.id;
     } catch (err) {
-      this.logger.warn({ err }, "Cerebras classifier failed; returning null");
+      this.logger.warn(
+        { err: err instanceof Error ? err.message : String(err) },
+        "Cerebras classifier failed; returning null",
+      );
       return null;
     }
   }
