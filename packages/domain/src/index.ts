@@ -76,3 +76,4 @@ export * from "./ports/news.port";
 export * from "./ports/blog-post-generation.port";
 export * from "./ports/document-processor.port";
 export * from "./ports/roadmap-processor.port";
+export * from "./ports/category-classifier.port";

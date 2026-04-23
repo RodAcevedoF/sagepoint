@@ -144,7 +144,7 @@ export function HeroSection() {
                 boxShadow: `0 0 12px ${palette.primary.light}`,
               }}
             />
-            Beta v1.0 • Powered by GPT-4o & Neo4j
+            Beta v1.0 • Powered by AI Multi-agents
           </Box>
 
           <Typography variant="h1" sx={styles.title}>

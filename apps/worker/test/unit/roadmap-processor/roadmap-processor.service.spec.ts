@@ -71,6 +71,10 @@ function buildService(overrides?: {
     setBalance: jest.fn().mockResolvedValue(undefined),
   } as never;
 
+  const fakeCategoryClassifier = {
+    classify: jest.fn().mockResolvedValue(null),
+  } as never;
+
   const service = new RoadmapProcessorService(
     logger as never,
     topicConceptGenerator,
@@ -81,6 +85,7 @@ function buildService(overrides?: {
     categoryRepo,
     resourceRepo,
     fakeTokenBalanceRepo,
+    fakeCategoryClassifier,
   );
 
   return {
@@ -93,6 +98,7 @@ function buildService(overrides?: {
     roadmapRepo,
     resourceRepo,
     categoryRepo,
+    fakeCategoryClassifier,
   };
 }
 
@@ -106,6 +112,7 @@ describe("RoadmapProcessorService", () => {
   let roadmapRepo: FakeRoadmapRepository;
   let resourceRepo: FakeResourceRepository;
   let categoryRepo: FakeCategoryRepository;
+  let fakeCategoryClassifier: { classify: jest.Mock };
 
   beforeEach(() => {
     const ctx = buildService();
@@ -118,6 +125,7 @@ describe("RoadmapProcessorService", () => {
     roadmapRepo = ctx.roadmapRepo;
     resourceRepo = ctx.resourceRepo;
     categoryRepo = ctx.categoryRepo;
+    fakeCategoryClassifier = ctx.fakeCategoryClassifier;
 
     roadmapRepo.seedRoadmap(ROADMAP_ID);
   });
@@ -334,6 +342,8 @@ describe("RoadmapProcessorService", () => {
 
   describe("category auto-matching", () => {
     it("should auto-assign a category when topic matches keywords", async () => {
+      fakeCategoryClassifier.classify.mockResolvedValueOnce("cat-1");
+
       categoryRepo.seedCategory({
         id: "cat-1",
         name: "Machine Learning",

@@ -14,6 +14,7 @@ import {
   RESOURCE_DISCOVERY_SERVICE,
   TOKEN_BALANCE_REPOSITORY,
   OPERATION_COSTS,
+  CATEGORY_CLASSIFIER_SERVICE,
 } from "@sagepoint/domain";
 import type {
   IConceptRepository,
@@ -30,6 +31,7 @@ import type {
   ConceptForOrdering,
   ConceptRelationshipForOrdering,
   UserContext,
+  ICategoryClassifierService,
 } from "@sagepoint/domain";
 import { Inject } from "@nestjs/common";
 
@@ -65,6 +67,8 @@ export class RoadmapProcessorService
     private readonly resourceRepo: IResourceRepository,
     @Inject(TOKEN_BALANCE_REPOSITORY)
     private readonly tokenBalanceRepo: ITokenBalanceRepository,
+    @Inject(CATEGORY_CLASSIFIER_SERVICE)
+    private readonly categoryClassifier: ICategoryClassifierService,
   ) {
     super();
   }
@@ -327,39 +331,23 @@ export class RoadmapProcessorService
     topic: string,
     conceptNames: string[],
   ): Promise<string | null> {
-    try {
-      const categories = await this.categoryRepo.list();
-
-      const searchText = [topic, ...conceptNames].join(" ").toLowerCase();
-      let bestMatch: { id: string; score: number } | null = null;
-
-      for (const cat of categories) {
-        const keywords = [
-          cat.name.toLowerCase(),
-          cat.slug.replace(/-/g, " "),
-          ...(cat.description?.toLowerCase().split(/[,\s]+/) ?? []),
-        ].filter((k) => k.length > 2);
-
-        const score = keywords.reduce(
-          (sum, kw) => sum + (searchText.includes(kw) ? 1 : 0),
-          0,
-        );
-
-        if (score > 0 && (!bestMatch || score > bestMatch.score)) {
-          bestMatch = { id: cat.id, score };
-        }
-      }
-
-      if (bestMatch) {
-        this.logger.info(
-          { categoryId: bestMatch.id, score: bestMatch.score },
-          "Auto-assigned category",
-        );
-      }
-      return bestMatch?.id ?? null;
-    } catch {
-      return null;
+    const categories = await this.categoryRepo.list();
+    const categoryId = await this.categoryClassifier.classify({
+      topic,
+      conceptNames,
+      candidates: categories.map((c) => ({
+        id: c.id,
+        name: c.name,
+        slug: c.slug,
+        description: c.description ?? undefined,
+      })),
+    });
+    if (categoryId) {
+      this.logger.info({ categoryId }, "Auto-assigned category (LLM)");
+    } else {
+      this.logger.info({ topic }, "No confident category match; leaving null");
     }
+    return categoryId;
   }
 
   private async discoverAndSaveResources(

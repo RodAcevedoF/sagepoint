@@ -9,8 +9,10 @@ import {
   TOPIC_CONCEPT_GENERATION_SERVICE,
   RESOURCE_DISCOVERY_SERVICE,
   BLOG_POST_GENERATION_SERVICE,
+  CATEGORY_CLASSIFIER_SERVICE,
 } from "@sagepoint/domain";
 import { OpenAiContentAnalysisAdapter } from "./openai-content-analysis.adapter";
+import { CerebrasCategoryClassifierAdapter } from "./cerebras-category-classifier.adapter";
 import { OpenAiRoadmapGeneratorAdapter } from "./openai-roadmap-generator.adapter";
 import { OpenAiTopicConceptGeneratorAdapter } from "./openai-topic-concept-generator.adapter";
 import { PerplexityResearchAdapter } from "./perplexity-research.adapter";
@@ -93,6 +95,15 @@ import { OpenAiBlogPostGenerationAdapter } from "./openai-blog-post-generation.a
         }),
       inject: [ConfigService],
     },
+    {
+      provide: CATEGORY_CLASSIFIER_SERVICE,
+      useFactory: (config: ConfigService) =>
+        new CerebrasCategoryClassifierAdapter({
+          apiKey: config.get("CEREBRAS_API_KEY") ?? "",
+          modelName: config.get("CEREBRAS_MODEL") ?? "llama3.1-8b",
+        }),
+      inject: [ConfigService],
+    },
   ],
   exports: [
     CONTENT_ANALYSIS_SERVICE,
@@ -103,6 +114,7 @@ import { OpenAiBlogPostGenerationAdapter } from "./openai-blog-post-generation.a
     DOCUMENT_ANALYSIS_SERVICE,
     QUIZ_GENERATION_SERVICE,
     BLOG_POST_GENERATION_SERVICE,
+    CATEGORY_CLASSIFIER_SERVICE,
   ],
 })
 export class AiModule {}

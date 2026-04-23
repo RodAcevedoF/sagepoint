@@ -73,3 +73,43 @@ export function resolvePerplexityConfig(
   }
   return { apiKey: process.env.PERPLEXITY_API_KEY ?? "" };
 }
+
+export const CEREBRAS_BASE_URL = "https://api.cerebras.ai/v1";
+
+const CEREBRAS_DEFAULTS = {
+  maxRetries: 2,
+  timeout: 8_000,
+  maxConcurrency: 5,
+} as const;
+
+export function resolveCerebrasConfig(
+  configOrService: ConfigService | LlmAdapterConfig | undefined,
+): LlmAdapterConfig {
+  if (configOrService && "apiKey" in configOrService) {
+    return {
+      apiKey: configOrService.apiKey,
+      modelName: configOrService.modelName,
+    };
+  }
+  if (configOrService && "get" in configOrService) {
+    return {
+      apiKey: configOrService.get<string>("CEREBRAS_API_KEY") ?? "",
+      modelName: configOrService.get<string>("CEREBRAS_MODEL") ?? "llama3.1-8b",
+    };
+  }
+  return {
+    apiKey: process.env.CEREBRAS_API_KEY ?? "",
+    modelName: process.env.CEREBRAS_MODEL ?? "llama3.1-8b",
+  };
+}
+
+export function createCerebrasModel(config: LlmAdapterConfig): ChatOpenAI {
+  return createChatModel({
+    ...config,
+    baseURL: CEREBRAS_BASE_URL,
+    maxRetries: CEREBRAS_DEFAULTS.maxRetries,
+    timeout: CEREBRAS_DEFAULTS.timeout,
+    maxConcurrency: CEREBRAS_DEFAULTS.maxConcurrency,
+    temperature: 0,
+  });
+}
