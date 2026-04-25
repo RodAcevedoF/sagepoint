@@ -191,6 +191,7 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_SSH_PORT }}
           script: |
+            set -e
             cd /opt/sagepoint
             docker compose -f docker-compose.prod.yml pull api-staging worker-staging
             docker compose -f docker-compose.prod.yml up -d api-staging worker-staging
@@ -236,6 +237,7 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_SSH_PORT }}
           script: |
+            set -e
             cd /opt/sagepoint
             docker compose -f docker-compose.prod.yml pull api worker
             docker compose -f docker-compose.prod.yml up -d api worker
