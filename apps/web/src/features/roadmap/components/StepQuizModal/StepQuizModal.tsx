@@ -100,8 +100,29 @@ export function StepQuizModal({
   useEffect(() => {
     if (initRef.current || preGeneratedQuiz) return;
     initRef.current = true;
-    loadQuiz();
-  }, [loadQuiz, preGeneratedQuiz]);
+    let cancelled = false;
+    (async () => {
+      const result = await generate(roadmapId, conceptId);
+      if (cancelled) return;
+      if (result.ok) {
+        setState((prev) => ({
+          ...prev,
+          phase: "quiz",
+          attemptId: result.data.attemptId,
+          questions: result.data.questions,
+        }));
+      } else {
+        setState((prev) => ({
+          ...prev,
+          phase: "loading",
+          error: "Failed to generate quiz. Please try again.",
+        }));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [generate, roadmapId, conceptId, preGeneratedQuiz]);
 
   const handleSelectAnswer = (questionIndex: number, label: string) => {
     setState((prev) => ({
