@@ -6,6 +6,8 @@ import { useResetOnboardingMutation } from "@/infrastructure/api/userApi";
 import { useRouter } from "next/navigation";
 import { makeStyles } from "./Profile.styles";
 
+const isDev = process.env.NODE_ENV === "development";
+
 export function ProfileActions() {
   const router = useRouter();
   const theme = useTheme();
@@ -31,44 +33,46 @@ export function ProfileActions() {
         </Typography>
 
         <Stack spacing={2}>
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            alignItems={{ xs: "flex-start", sm: "center" }}
-            justifyContent="space-between"
-            spacing={2}
-            sx={{
-              p: 2,
-              borderRadius: 3,
-              bgcolor: alpha(theme.palette.warning.main, 0.03),
-              border: `1px solid ${alpha(theme.palette.warning.main, 0.1)}`,
-            }}
-          >
-            <Box>
-              <Typography
-                variant="subtitle2"
-                sx={{ fontWeight: 700, color: "warning.main" }}
-              >
-                Onboarding Status
-              </Typography>
-              <Typography
-                variant="caption"
-                color="warning.main"
-                sx={{ opacity: 0.8 }}
-              >
-                Reset your profile preferences and restart onboarding
-              </Typography>
-            </Box>
-            <Button
-              variant="outlined"
-              color="warning"
-              startIcon={<RotateCcw size={16} />}
-              onClick={handleResetOnboarding}
-              disabled={isResetting}
-              sx={styles.actionButton}
+          {isDev && (
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              alignItems={{ xs: "flex-start", sm: "center" }}
+              justifyContent="space-between"
+              spacing={2}
+              sx={{
+                p: 2,
+                borderRadius: 3,
+                bgcolor: alpha(theme.palette.warning.main, 0.03),
+                border: `1px solid ${alpha(theme.palette.warning.main, 0.1)}`,
+              }}
             >
-              {isResetting ? "Resetting..." : "Reset Onboarding"}
-            </Button>
-          </Stack>
+              <Box>
+                <Typography
+                  variant="subtitle2"
+                  sx={{ fontWeight: 700, color: "warning.main" }}
+                >
+                  Onboarding Status
+                </Typography>
+                <Typography
+                  variant="caption"
+                  color="warning.main"
+                  sx={{ opacity: 0.8 }}
+                >
+                  Reset your profile preferences and restart onboarding
+                </Typography>
+              </Box>
+              <Button
+                variant="outlined"
+                color="warning"
+                startIcon={<RotateCcw size={16} />}
+                onClick={handleResetOnboarding}
+                disabled={isResetting}
+                sx={styles.actionButton}
+              >
+                {isResetting ? "Resetting..." : "Reset Onboarding"}
+              </Button>
+            </Stack>
+          )}
 
           <Stack
             direction={{ xs: "column", sm: "row" }}
