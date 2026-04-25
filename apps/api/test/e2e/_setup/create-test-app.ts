@@ -481,7 +481,8 @@ function patchBootstrapSingleton() {
     blog: {
       blogPostRepository: {},
       blogService: {
-        listPublished: () => Promise.resolve([]),
+        listPublished: () =>
+          Promise.resolve({ data: [], total: 0, page: 1, limit: 12 }),
         getBySlug: () => Promise.resolve(null),
       },
     },

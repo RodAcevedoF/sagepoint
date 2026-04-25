@@ -1,12 +1,39 @@
 "use client";
 
-import React from "react";
-import { Box, Container, Grid, Skeleton } from "@mui/material";
+import React, { useState } from "react";
+import {
+  Box,
+  Container,
+  Grid,
+  Pagination,
+  Skeleton,
+  alpha,
+} from "@mui/material";
 import { PublicLayout } from "@/shared/components";
 import { EmptyState } from "@/shared/components/ui/States/EmptyState";
 import { useGetBlogPostsQuery } from "@/infrastructure/api/blogApi";
+import { palette } from "@/shared/theme";
 import { BlogHeader, FeaturedPost, BlogGrid } from "./index";
 import { Newspaper } from "lucide-react";
+
+const PAGE_SIZE = 12;
+
+const styles = {
+  pagination: {
+    mt: 6,
+    display: "flex",
+    justifyContent: "center",
+    "& .MuiPaginationItem-root": {
+      color: palette.text.secondary,
+      fontWeight: 600,
+      "&.Mui-selected": {
+        bgcolor: alpha(palette.primary.main, 0.15),
+        color: palette.primary.light,
+        "&:hover": { bgcolor: alpha(palette.primary.main, 0.25) },
+      },
+    },
+  },
+};
 
 function BlogSkeleton() {
   return (
@@ -34,12 +61,18 @@ function BlogSkeleton() {
 }
 
 export const BlogPage = () => {
-  const { data: posts, isLoading } = useGetBlogPostsQuery({ limit: 13 });
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isFetching } = useGetBlogPostsQuery({
+    page,
+    limit: PAGE_SIZE,
+  });
 
-  const [featured, rest] = React.useMemo(() => {
-    if (!posts || posts.length === 0) return [undefined, []];
-    return [posts[0], posts.slice(1)];
-  }, [posts]);
+  const posts = data?.data ?? [];
+  const totalPages = data ? Math.max(1, Math.ceil(data.total / data.limit)) : 0;
+  const isFirstPage = page === 1;
+  const featured = isFirstPage ? posts[0] : undefined;
+  const rest = isFirstPage ? posts.slice(1) : posts;
+  const showSkeleton = isLoading || (isFetching && !data);
 
   return (
     <PublicLayout>
@@ -57,12 +90,28 @@ export const BlogPage = () => {
             subtitle="Behind the scenes of building an AI-powered learning platform — architecture decisions, technical deep dives, and lessons learned."
           />
 
-          {isLoading ? (
+          {showSkeleton ? (
             <BlogSkeleton />
-          ) : posts && posts.length > 0 ? (
+          ) : posts.length > 0 ? (
             <>
               {featured && <FeaturedPost post={featured} />}
               <BlogGrid posts={rest} />
+              {totalPages > 1 && (
+                <Box sx={styles.pagination}>
+                  <Pagination
+                    count={totalPages}
+                    page={page}
+                    onChange={(_e, value) => {
+                      setPage(value);
+                      if (typeof window !== "undefined") {
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }
+                    }}
+                    shape="rounded"
+                    size="large"
+                  />
+                </Box>
+              )}
             </>
           ) : (
             <EmptyState

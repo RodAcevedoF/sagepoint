@@ -52,7 +52,8 @@ function fakeBlogPostRepo(): IBlogPostRepository & { saved: BlogPost | null } {
       return Promise.resolve(post);
     },
     findBySlug: () => Promise.resolve(null),
-    listPublished: () => Promise.resolve([]),
+    listPublished: () =>
+      Promise.resolve({ data: [], total: 0, page: 1, limit: 12 }),
     findLatestByCategoryId: () => Promise.resolve(null),
   };
   return repo;

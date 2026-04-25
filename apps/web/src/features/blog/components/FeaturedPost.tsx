@@ -41,9 +41,11 @@ const contentStyles: SxProps<Theme> = {
 const categoryChipStyles: SxProps<Theme> = {
   width: "fit-content",
   mb: 2,
-  bgcolor: alpha(palette.primary.light, 0.1),
-  color: palette.primary.light,
+  bgcolor: "transparent",
+  color: "text.secondary",
+  border: `1px solid ${alpha(palette.primary.light, 0.4)}`,
   fontWeight: 700,
+  letterSpacing: 0.5,
   borderRadius: 1,
 };
 

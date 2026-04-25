@@ -6,11 +6,13 @@ import {
   Param,
   Query,
 } from '@nestjs/common';
+import type { PaginatedResult } from '@sagepoint/domain';
 import {
   BLOG_SERVICE,
   type IBlogService,
 } from '../../../domain/inbound/blog.service';
-import { toBlogPostDto } from './dto/blog-post.dto';
+import { type BlogPostDto, toBlogPostDto } from './dto/blog-post.dto';
+import { ListBlogPostsQueryDto } from './dto/list-blog-posts-query.dto';
 
 @Controller('blog')
 export class BlogController {
@@ -20,11 +22,19 @@ export class BlogController {
   ) {}
 
   @Get()
-  async listPublished(@Query('limit') limit?: string) {
-    const posts = await this.blogService.listPublished(
-      limit ? parseInt(limit, 10) : 10,
-    );
-    return posts.map(toBlogPostDto);
+  async listPublished(
+    @Query() query: ListBlogPostsQueryDto,
+  ): Promise<PaginatedResult<BlogPostDto>> {
+    const result = await this.blogService.listPublished({
+      page: query.page,
+      limit: query.limit,
+    });
+    return {
+      data: result.data.map(toBlogPostDto),
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+    };
   }
 
   @Get(':slug')

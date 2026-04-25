@@ -1,3 +1,4 @@
+import type { PaginatedResult } from "@sagepoint/domain";
 import { baseApi } from "./baseApi";
 
 export interface BlogPostSourceRef {
@@ -21,13 +22,21 @@ export interface BlogPostDto {
   publishedAt: string;
 }
 
+export interface GetBlogPostsArgs {
+  page?: number;
+  limit?: number;
+}
+
 export const blogApi = baseApi.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({
-    getBlogPosts: builder.query<BlogPostDto[], { limit?: number } | void>({
+    getBlogPosts: builder.query<
+      PaginatedResult<BlogPostDto>,
+      GetBlogPostsArgs | void
+    >({
       query: (args) => ({
         url: "/blog",
-        params: args ? { limit: args.limit } : undefined,
+        params: args ? { page: args.page, limit: args.limit } : undefined,
       }),
       providesTags: ["Blog"],
     }),

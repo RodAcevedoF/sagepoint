@@ -2,6 +2,7 @@
 
 import React from "react";
 import {
+  Box,
   Grid,
   Typography,
   CardMedia,
@@ -37,10 +38,19 @@ const cardContentStyles: SxProps<Theme> = {
 };
 
 const categoryTextStyles: SxProps<Theme> = {
-  color: palette.primary.light,
+  color: "text.secondary",
   fontWeight: 700,
-  letterSpacing: 1,
+  letterSpacing: 1.2,
   textTransform: "uppercase",
+  fontSize: "0.7rem",
+};
+
+const categoryDotStyles: SxProps<Theme> = {
+  width: 6,
+  height: 6,
+  borderRadius: "50%",
+  bgcolor: palette.primary.light,
+  display: "inline-block",
 };
 
 const dateTextStyles: SxProps<Theme> = {
@@ -100,9 +110,12 @@ const PostCard = ({ post }: PostCardProps) => {
           alignItems="center"
           sx={{ mb: 2 }}
         >
-          <Typography variant="caption" sx={categoryTextStyles}>
-            {category}
-          </Typography>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Box sx={categoryDotStyles} />
+            <Typography variant="caption" sx={categoryTextStyles}>
+              {category}
+            </Typography>
+          </Stack>
           <Typography variant="caption" sx={dateTextStyles}>
             {date}
           </Typography>

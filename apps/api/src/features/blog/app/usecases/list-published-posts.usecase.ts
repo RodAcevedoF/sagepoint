@@ -2,10 +2,13 @@ import type {
   BlogPost,
   IBlogPostRepository,
   ICacheService,
+  PaginatedResult,
+  PaginationParams,
 } from '@sagepoint/domain';
 
 const CACHE_TTL = 600;
-const CACHE_KEY = (limit: number) => `blog:list:${limit}`;
+const CACHE_KEY = ({ page, limit }: PaginationParams) =>
+  `blog:list:p${page}:l${limit}`;
 
 export class ListPublishedPostsUseCase {
   constructor(
@@ -13,15 +16,15 @@ export class ListPublishedPostsUseCase {
     private readonly cache: ICacheService,
   ) {}
 
-  async execute(limit: number): Promise<BlogPost[]> {
-    const key = CACHE_KEY(limit);
-    const cached = await this.cache.get<BlogPost[]>(key);
+  async execute(params: PaginationParams): Promise<PaginatedResult<BlogPost>> {
+    const key = CACHE_KEY(params);
+    const cached = await this.cache.get<PaginatedResult<BlogPost>>(key);
     if (cached) return cached;
 
-    const posts = await this.blogPostRepo.listPublished(limit);
-    if (posts.length > 0) {
-      await this.cache.set(key, posts, CACHE_TTL);
+    const result = await this.blogPostRepo.listPublished(params);
+    if (result.data.length > 0) {
+      await this.cache.set(key, result, CACHE_TTL);
     }
-    return posts;
+    return result;
   }
 }

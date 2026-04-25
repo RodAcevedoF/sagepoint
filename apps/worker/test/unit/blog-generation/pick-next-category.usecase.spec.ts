@@ -46,7 +46,8 @@ function fakeBlogPostRepo(
       Promise.resolve(latestByCategory.get(id) ?? null),
     save: (p) => Promise.resolve(p),
     findBySlug: () => Promise.resolve(null),
-    listPublished: () => Promise.resolve([]),
+    listPublished: () =>
+      Promise.resolve({ data: [], total: 0, page: 1, limit: 12 }),
   };
 }
 

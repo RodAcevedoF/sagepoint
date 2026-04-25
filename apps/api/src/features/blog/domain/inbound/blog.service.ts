@@ -1,8 +1,14 @@
-import type { BlogPost } from '@sagepoint/domain';
+import type {
+  BlogPost,
+  PaginatedResult,
+  PaginationParams,
+} from '@sagepoint/domain';
 
 export const BLOG_SERVICE = Symbol('BLOG_SERVICE');
 
 export interface IBlogService {
-  listPublished(limit?: number): Promise<BlogPost[]>;
+  listPublished(
+    params?: Partial<PaginationParams>,
+  ): Promise<PaginatedResult<BlogPost>>;
   getBySlug(slug: string): Promise<BlogPost | null>;
 }

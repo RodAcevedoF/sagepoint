@@ -3,6 +3,8 @@ import {
   BlogPostSource,
   type BlogPostSourceRef,
   type IBlogPostRepository,
+  type PaginatedResult,
+  type PaginationParams,
 } from "@sagepoint/domain";
 import type {
   BlogPost as PrismaBlogPost,
@@ -52,13 +54,25 @@ export class PrismaBlogPostRepository implements IBlogPostRepository {
     return found ? this.toDomain(found, found.category.slug) : null;
   }
 
-  async listPublished(limit: number): Promise<BlogPost[]> {
-    const found = await this.prisma.blogPost.findMany({
-      orderBy: { publishedAt: "desc" },
-      take: limit,
-      include: { category: { select: { slug: true } } },
-    });
-    return found.map((row) => this.toDomain(row, row.category.slug));
+  async listPublished({
+    page,
+    limit,
+  }: PaginationParams): Promise<PaginatedResult<BlogPost>> {
+    const [rows, total] = await this.prisma.$transaction([
+      this.prisma.blogPost.findMany({
+        orderBy: { publishedAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: { category: { select: { slug: true } } },
+      }),
+      this.prisma.blogPost.count(),
+    ]);
+    return {
+      data: rows.map((row) => this.toDomain(row, row.category.slug)),
+      total,
+      page,
+      limit,
+    };
   }
 
   async findLatestByCategoryId(categoryId: string): Promise<BlogPost | null> {
