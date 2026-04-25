@@ -26,7 +26,7 @@ export function DashboardNews() {
             <Box sx={styles.titleIcon}>
               <Newspaper size={18} />
             </Box>
-            Learning Insights
+            Your Briefing
           </Typography>
           <Typography
             component={Link}
