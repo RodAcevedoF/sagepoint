@@ -19,7 +19,7 @@ RUN cp -r /app/apps/api/dist /app/prod/dist
 # Prisma schema + migration runner
 RUN cp -r /app/packages/database/prisma /app/prod/prisma
 RUN cp -r /app/packages/database/migrations /app/prod/migrations
-RUN cp -r /app/packages/database/dist-scripts /app/prod/scripts
+RUN cp -r /app/packages/database/dist-scripts/. /app/prod/scripts/
 
 # --- runner ---
 FROM node:24-slim AS runner
