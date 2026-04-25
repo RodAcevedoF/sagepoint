@@ -14,18 +14,18 @@ import { useUserDocumentsQuery } from "@/application/document";
 import { DashboardLayout } from "./DashboardLayout";
 import { DashboardGreeting } from "./DashboardGreeting";
 import { DashboardMetrics } from "./DashboardMetrics";
-import { DashboardProgress } from "./DashboardProgress";
-import { DashboardActivity } from "./DashboardActivity";
+import { DashboardRoadmaps } from "./DashboardRoadmaps/DashboardRoadmaps";
 import { DashboardRecentDocuments } from "./DashboardRecentDocuments";
 import { DashboardInsights } from "./DashboardInsights";
 import { DashboardQuickActions } from "./DashboardQuickActions";
 import { DashboardNews } from "./DashboardNews";
 import { DashboardHeroCTA } from "./DashboardHeroCTA";
+import { DashboardActivityHeatmap } from "./DashboardHeatmap/DashboardActivityHeatmap";
 
 import {
   computeMetrics,
-  computeRoadmapProgress,
-  computeRecentRoadmaps,
+  computeRoadmaps,
+  computeRoadmapsOverview,
   computeInsights,
 } from "../utils/dashboard.utils";
 
@@ -104,8 +104,8 @@ export function Dashboard() {
   const userDocuments = documents?.data ?? [];
 
   const metrics = computeMetrics(userRoadmaps);
-  const progressItems = computeRoadmapProgress(userRoadmaps);
-  const recentRoadmaps = computeRecentRoadmaps(userRoadmaps);
+  const roadmapItems = computeRoadmaps(userRoadmaps);
+  const roadmapsOverview = computeRoadmapsOverview(userRoadmaps);
   const insights = computeInsights(userRoadmaps);
 
   const hasRoadmaps = userRoadmaps.length > 0;
@@ -123,18 +123,22 @@ export function Dashboard() {
 
       {hasRoadmaps ? (
         <Grid container spacing={3}>
-          {/* Row 1 — Progress & Activity */}
-          <Grid size={{ xs: 12, md: 6 }}>
-            <DashboardProgress data={progressItems} />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <DashboardActivity
-              roadmaps={recentRoadmaps}
+          {/* Row 1 — Unified roadmaps panel */}
+          <Grid size={{ xs: 12 }}>
+            <DashboardRoadmaps
+              roadmaps={roadmapItems}
+              overview={roadmapsOverview}
+              allRoadmaps={userRoadmaps}
               onRoadmapComplete={refetchRoadmaps}
             />
           </Grid>
 
-          {/* Row 2 — Documents (7/12) & Insights (5/12) */}
+          {/* Row 2 — Activity heatmap full-width */}
+          <Grid size={{ xs: 12 }}>
+            <DashboardActivityHeatmap />
+          </Grid>
+
+          {/* Row 3 — Documents (7/12) & Insights (5/12) */}
           <Grid size={{ xs: 12, md: 7 }} sx={{ display: "flex" }}>
             <DashboardRecentDocuments documents={userDocuments} />
           </Grid>

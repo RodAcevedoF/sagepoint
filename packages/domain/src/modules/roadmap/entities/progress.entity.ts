@@ -1,8 +1,8 @@
 export enum StepStatus {
-  NOT_STARTED = 'NOT_STARTED',
-  IN_PROGRESS = 'IN_PROGRESS',
-  COMPLETED = 'COMPLETED',
-  SKIPPED = 'SKIPPED',
+  NOT_STARTED = "NOT_STARTED",
+  IN_PROGRESS = "IN_PROGRESS",
+  COMPLETED = "COMPLETED",
+  SKIPPED = "SKIPPED",
 }
 
 export interface UserRoadmapProgressProps {
@@ -38,7 +38,7 @@ export class UserRoadmapProgress {
     userId: string,
     roadmapId: string,
     conceptId: string,
-    status: StepStatus = StepStatus.NOT_STARTED
+    status: StepStatus = StepStatus.NOT_STARTED,
   ): UserRoadmapProgress {
     const now = new Date();
     return new UserRoadmapProgress({
@@ -75,4 +75,5 @@ export interface RoadmapProgressSummary {
   inProgressSteps: number;
   skippedSteps: number;
   progressPercentage: number;
+  lastActivityAt: string | null;
 }

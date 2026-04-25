@@ -1,6 +1,7 @@
 import {
   IProgressRepository,
   IRoadmapRepository,
+  ICacheService,
   UserRoadmapProgress,
   StepStatus,
   RoadmapProgressSummary,
@@ -22,6 +23,7 @@ export class UpdateStepProgressUseCase {
   constructor(
     private readonly progressRepository: IProgressRepository,
     private readonly roadmapRepository: IRoadmapRepository,
+    private readonly cacheService?: ICacheService,
   ) {}
 
   async execute(
@@ -58,6 +60,9 @@ export class UpdateStepProgressUseCase {
       command.userId,
       command.roadmapId,
     );
+
+    // Invalidate activity cache so heatmap refreshes on next fetch
+    await this.cacheService?.delByPattern(`activity:${command.userId}:*`);
 
     return {
       progress: savedProgress,

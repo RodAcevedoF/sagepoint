@@ -86,6 +86,7 @@ model User {
   verificationToken String?
 
   learningGoal     String?  // "Become a DevOps Engineer"
+  timezone         String   @default("UTC")
   onboardingStatus OnboardingStatus @default(PENDING)
   interests        UserInterest[]
   preferences      UserPreferences?

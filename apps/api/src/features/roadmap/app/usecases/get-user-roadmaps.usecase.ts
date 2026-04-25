@@ -50,6 +50,7 @@ export class GetUserRoadmapsUseCase {
         inProgressSteps: 0,
         skippedSteps: 0,
         progressPercentage: 0,
+        lastActivityAt: null,
       };
 
       return {
@@ -90,6 +91,7 @@ export class GetUserRoadmapsUseCase {
         inProgressSteps: 0,
         skippedSteps: 0,
         progressPercentage: 0,
+        lastActivityAt: null,
       },
       stepProgress,
       resources,

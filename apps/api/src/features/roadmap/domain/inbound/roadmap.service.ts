@@ -113,6 +113,14 @@ export interface IRoadmapService {
   unadoptRoadmap(userId: string, roadmapId: string): Promise<void>;
   isRoadmapAdopted(userId: string, roadmapId: string): Promise<boolean>;
 
+  // Activity heatmap
+  getUserActivity(
+    userId: string,
+    days?: number,
+  ): Promise<
+    import('@/features/roadmap/app/usecases/get-user-activity.usecase').ActivitySummary
+  >;
+
   // Step quiz
   generateStepQuiz(
     input: GenerateStepQuizInput,

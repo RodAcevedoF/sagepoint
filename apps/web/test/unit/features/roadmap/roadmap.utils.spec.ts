@@ -16,6 +16,7 @@ describe("getStatus", () => {
       inProgressSteps: 0,
       skippedSteps: 0,
       roadmapId: "r1",
+      lastActivityAt: null,
     });
     expect(result).toBe(STATUS_CONFIG.completed);
   });
@@ -28,6 +29,7 @@ describe("getStatus", () => {
       inProgressSteps: 1,
       skippedSteps: 0,
       roadmapId: "r1",
+      lastActivityAt: null,
     });
     expect(result).toBe(STATUS_CONFIG.inProgress);
   });
@@ -40,6 +42,7 @@ describe("getStatus", () => {
       inProgressSteps: 0,
       skippedSteps: 0,
       roadmapId: "r1",
+      lastActivityAt: null,
     });
     expect(result).toBe(STATUS_CONFIG.inProgress);
   });
@@ -52,6 +55,7 @@ describe("getStatus", () => {
       inProgressSteps: 0,
       skippedSteps: 0,
       roadmapId: "r1",
+      lastActivityAt: null,
     });
     expect(result).toBe(STATUS_CONFIG.new);
   });

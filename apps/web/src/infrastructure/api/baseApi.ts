@@ -65,6 +65,7 @@ const TAG_TYPES = [
   "Insights",
   "Like",
   "Blog",
+  "UserActivity",
 ] as const;
 
 export type ApiTagType = (typeof TAG_TYPES)[number];

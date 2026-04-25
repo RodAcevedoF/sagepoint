@@ -250,6 +250,16 @@ export class RoadmapController {
     return this.roadmapService.getUserRoadmaps(user.id);
   }
 
+  @Get('user/me/activity')
+  @UseGuards(JwtAuthGuard)
+  async getUserActivity(
+    @CurrentUser() user: RequestUser,
+    @Query('days') days?: string,
+  ) {
+    const parsedDays = days ? Math.min(parseInt(days, 10) || 90, 365) : 90;
+    return this.roadmapService.getUserActivity(user.id, parsedDays);
+  }
+
   @Get(':id')
   async findById(@Param('id') id: string) {
     const roadmap = await this.roadmapService.findById(id);

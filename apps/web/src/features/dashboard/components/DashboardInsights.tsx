@@ -136,7 +136,7 @@ export function DashboardInsights({
         flexDirection: "column",
       }}
     >
-      <Card variant="glass" hoverable={false} sx={styles.card}>
+      <Card variant="glass" sx={styles.card}>
         <Box sx={styles.header}>
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 700 }}>

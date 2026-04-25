@@ -76,7 +76,7 @@ describe("Dashboard", () => {
     renderWithProviders(<Dashboard />);
 
     await waitFor(() => {
-      expect(screen.getByText("Roadmap Progress")).toBeInTheDocument();
+      expect(screen.getByText("Your Roadmaps")).toBeInTheDocument();
       expect(screen.getAllByText("React Basics").length).toBeGreaterThanOrEqual(
         1,
       );
@@ -100,7 +100,7 @@ describe("Dashboard", () => {
     renderWithProviders(<Dashboard />);
 
     await waitFor(() => {
-      expect(screen.getByText("Roadmap Progress")).toBeInTheDocument();
+      expect(screen.getByText("Your Roadmaps")).toBeInTheDocument();
     });
     expect(screen.getByText("Recent Documents")).toBeInTheDocument();
     expect(screen.getByText("No documents yet")).toBeInTheDocument();

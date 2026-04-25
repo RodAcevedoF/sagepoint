@@ -40,6 +40,7 @@ export class PrismaUserRepository implements IUserRepository {
           isVerified: user.isVerified,
           verificationToken: user.verificationToken,
           learningGoal: user.learningGoal,
+          timezone: user.timezone,
           onboardingStatus: user.onboardingStatus,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
@@ -55,6 +56,7 @@ export class PrismaUserRepository implements IUserRepository {
           isVerified: user.isVerified,
           verificationToken: user.verificationToken,
           learningGoal: user.learningGoal,
+          timezone: user.timezone,
           onboardingStatus: user.onboardingStatus,
           updatedAt: user.updatedAt,
         },
@@ -123,6 +125,7 @@ export class PrismaUserRepository implements IUserRepository {
       interests,
       data.createdAt,
       data.updatedAt,
+      data.timezone,
     );
   }
 }

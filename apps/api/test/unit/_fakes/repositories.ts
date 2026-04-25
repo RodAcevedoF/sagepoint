@@ -408,6 +408,13 @@ export class FakeProgressRepository implements IProgressRepository {
       (e) => e.status === StepStatus.SKIPPED,
     ).length;
     const total = entries.length;
+    const completedEntries = entries.filter(
+      (e) => e.status === StepStatus.COMPLETED,
+    );
+    const lastCompleted = completedEntries.reduce<Date | null>((max, e) => {
+      if (!e.completedAt) return max;
+      return !max || e.completedAt > max ? e.completedAt : max;
+    }, null);
     return Promise.resolve({
       roadmapId,
       totalSteps: total,
@@ -415,6 +422,7 @@ export class FakeProgressRepository implements IProgressRepository {
       inProgressSteps: inProgress,
       skippedSteps: skipped,
       progressPercentage: Math.round((completed / total) * 100),
+      lastActivityAt: lastCompleted ? lastCompleted.toISOString() : null,
     });
   }
 
@@ -457,6 +465,22 @@ export class FakeProgressRepository implements IProgressRepository {
       (e) => !(e.userId === userId && e.roadmapId === roadmapId),
     );
     return Promise.resolve();
+  }
+
+  getActivitySummary(_userId: string, days: number, _timezone: string) {
+    const dayList = Array.from({ length: days }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (days - 1 - i));
+      return { date: d.toISOString().slice(0, 10), count: 0 };
+    });
+    return Promise.resolve({
+      days: dayList,
+      totalLast7: 0,
+      totalLast30: 0,
+      totalPrev30: 0,
+      currentStreak: 0,
+      longestStreak: 0,
+    });
   }
 }
 

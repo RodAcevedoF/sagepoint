@@ -28,6 +28,7 @@ export class User {
     public readonly interests: Category[] = [],
     public readonly createdAt: Date = new Date(),
     public readonly updatedAt: Date = new Date(),
+    public readonly timezone: string = "UTC",
   ) {}
 
   static create(

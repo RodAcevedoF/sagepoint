@@ -1,8 +1,8 @@
 import type {
   DashboardRoadmap,
   UserMetrics,
-  RoadmapProgressItem,
-  RecentRoadmapItem,
+  RoadmapItem,
+  RoadmapsOverview,
   InsightsData,
 } from "../types/dashboard.types";
 import {
@@ -81,42 +81,57 @@ export function computeMetrics(roadmaps: DashboardRoadmap[]): UserMetrics {
   };
 }
 
-export function computeRoadmapProgress(
-  roadmaps: DashboardRoadmap[],
-  limit = 5,
-): RoadmapProgressItem[] {
-  return roadmaps
-    .map(({ roadmap, progress }) => ({
-      id: roadmap.id,
-      title: roadmap.title,
-      progressPercentage: progress.progressPercentage,
-      completedSteps: progress.completedSteps,
-      totalSteps: progress.totalSteps,
-    }))
-    .sort((a, b) => b.progressPercentage - a.progressPercentage)
-    .slice(0, limit);
+const roadmapStamp = (r: DashboardRoadmap) =>
+  new Date(r.progress.lastActivityAt ?? r.roadmap.createdAt).getTime();
+
+function smartSort(a: DashboardRoadmap, b: DashboardRoadmap): number {
+  const aGen = a.roadmap.generationStatus !== "completed";
+  const bGen = b.roadmap.generationStatus !== "completed";
+  if (aGen !== bGen) return aGen ? -1 : 1;
+  return roadmapStamp(b) - roadmapStamp(a);
 }
 
-export function computeRecentRoadmaps(
+export function computeRoadmaps(
   roadmaps: DashboardRoadmap[],
-  limit = 3,
-): RecentRoadmapItem[] {
+  limit = 4,
+): RoadmapItem[] {
   return [...roadmaps]
-    .sort(
-      (a, b) =>
-        new Date(b.roadmap.createdAt).getTime() -
-        new Date(a.roadmap.createdAt).getTime(),
-    )
+    .sort(smartSort)
     .slice(0, limit)
     .map(({ roadmap, progress }) => ({
       id: roadmap.id,
       title: roadmap.title,
       createdAt: roadmap.createdAt,
+      lastActivityAt: progress.lastActivityAt,
       generationStatus: roadmap.generationStatus,
       progressPercentage: progress.progressPercentage,
       completedSteps: progress.completedSteps,
       totalSteps: progress.totalSteps,
+      categoryName: roadmap.categoryName,
     }));
+}
+
+export function computeRoadmapsOverview(
+  roadmaps: DashboardRoadmap[],
+): RoadmapsOverview {
+  let inProgress = 0;
+  let completed = 0;
+  let justCreated = 0;
+
+  for (const { roadmap, progress } of roadmaps) {
+    if (progress.progressPercentage >= 100) {
+      completed++;
+    } else if (
+      roadmap.generationStatus === "completed" &&
+      progress.progressPercentage > 0
+    ) {
+      inProgress++;
+    } else {
+      justCreated++;
+    }
+  }
+
+  return { inProgress, completed, justCreated };
 }
 
 export function computeInsights(roadmaps: DashboardRoadmap[]): InsightsData {
@@ -158,6 +173,24 @@ export function computeInsights(roadmaps: DashboardRoadmap[]): InsightsData {
     hoursRemaining: Math.round(remainingMinutes / 60),
     totalSteps,
   };
+}
+
+export interface CategoryCount {
+  name: string;
+  count: number;
+}
+
+export function computeCategoriesOverview(
+  roadmaps: DashboardRoadmap[],
+): CategoryCount[] {
+  const counts: Record<string, number> = {};
+  for (const { roadmap } of roadmaps) {
+    if (!roadmap.categoryName) continue;
+    counts[roadmap.categoryName] = (counts[roadmap.categoryName] ?? 0) + 1;
+  }
+  return Object.entries(counts)
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count);
 }
 
 export function getGreeting(): string {

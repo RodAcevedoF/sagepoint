@@ -12,6 +12,7 @@ export interface DashboardRoadmap {
     generationStatus: string;
     steps: RoadmapStep[];
     createdAt: string;
+    categoryName?: string;
   };
   progress: RoadmapProgressSummary;
 }
@@ -24,22 +25,22 @@ export interface UserMetrics {
   overallProgress: number;
 }
 
-export interface RoadmapProgressItem {
-  id: string;
-  title: string;
-  progressPercentage: number;
-  completedSteps: number;
-  totalSteps: number;
-}
-
-export interface RecentRoadmapItem {
+export interface RoadmapItem {
   id: string;
   title: string;
   createdAt: string;
+  lastActivityAt: string | null;
   generationStatus: string;
   progressPercentage: number;
   completedSteps: number;
   totalSteps: number;
+  categoryName?: string;
+}
+
+export interface RoadmapsOverview {
+  inProgress: number;
+  completed: number;
+  justCreated: number;
 }
 
 export interface DifficultySegment {

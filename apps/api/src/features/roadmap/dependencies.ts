@@ -27,6 +27,7 @@ import { GenerateStepQuizUseCase } from '@/features/roadmap/app/usecases/generat
 import { SubmitStepQuizUseCase } from '@/features/roadmap/app/usecases/submit-step-quiz.usecase';
 import { UpdateVisibilityUseCase } from '@/features/roadmap/app/usecases/update-visibility.usecase';
 import { UpdateCategoryUseCase } from '@/features/roadmap/app/usecases/update-category.usecase';
+import { GetUserActivityUseCase } from '@/features/roadmap/app/usecases/get-user-activity.usecase';
 import { GetPublicRoadmapsUseCase } from '@/features/roadmap/app/usecases/get-public-roadmaps.usecase';
 import { SearchPublicRoadmapsUseCase } from '@/features/roadmap/app/usecases/search-public-roadmaps.usecase';
 import { AdoptRoadmapUseCase } from '@/features/roadmap/app/usecases/adopt-roadmap.usecase';
@@ -143,6 +144,7 @@ export function makeRoadmapDependencies(
   const updateStepProgressUseCase = new UpdateStepProgressUseCase(
     progressRepository,
     roadmapRepository,
+    cacheService,
   );
   const refreshResourcesUseCase = new RefreshResourcesUseCase(
     roadmapRepository,
@@ -212,6 +214,10 @@ export function makeRoadmapDependencies(
     adoptionRepository,
   );
 
+  const getUserActivityUseCase = cacheService
+    ? new GetUserActivityUseCase(progressRepository, userRepo, cacheService)
+    : undefined;
+
   const roadmapService = new RoadmapService(
     generateRoadmapUseCase,
     generateTopicRoadmapUseCase,
@@ -234,6 +240,7 @@ export function makeRoadmapDependencies(
     unadoptRoadmapUseCase,
     isRoadmapAdoptedUseCase,
     updateCategoryUseCase,
+    getUserActivityUseCase,
   );
 
   return {

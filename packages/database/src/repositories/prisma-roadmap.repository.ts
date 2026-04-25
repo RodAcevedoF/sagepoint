@@ -64,7 +64,10 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
   }
 
   async findById(id: string): Promise<Roadmap | null> {
-    const data = await this.prisma.roadmap.findUnique({ where: { id } });
+    const data = await this.prisma.roadmap.findUnique({
+      where: { id },
+      include: { category: true },
+    });
     return data ? this.mapToDomain(data) : null;
   }
 
@@ -80,6 +83,7 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
     const data = await this.prisma.roadmap.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
+      include: { category: true },
     });
     return data.map((r) => this.mapToDomain(r));
   }
@@ -251,13 +255,16 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
     return map[visibility];
   }
 
-  private mapToDomain(data: PrismaRoadmap): Roadmap {
+  private mapToDomain(
+    data: PrismaRoadmap & { category?: { name: string } | null },
+  ): Roadmap {
     return new Roadmap({
       id: data.id,
       title: data.title,
       documentId: data.documentId || undefined,
       userId: data.userId,
       categoryId: data.categoryId || undefined,
+      categoryName: data.category?.name ?? undefined,
       description: data.description || undefined,
       steps: this.deserializeSteps(data.steps),
       generationStatus: this.mapStatusToDomain(data.generationStatus),

@@ -90,12 +90,11 @@ export function DashboardMetrics({ metrics }: DashboardMetricsProps) {
             >
               <Card
                 variant="glass"
-                hoverable={false}
                 sx={{
                   ...styles.card,
                   borderColor: alpha(config.color, 0.1),
                   "&:hover": {
-                    borderColor: alpha(config.color, 0.2),
+                    borderColor: alpha(config.color, 0.4),
                   },
                 }}
               >

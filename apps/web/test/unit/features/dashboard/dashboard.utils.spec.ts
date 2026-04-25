@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
   computeMetrics,
-  computeRoadmapProgress,
-  computeRecentRoadmaps,
+  computeRoadmaps,
+  computeRoadmapsOverview,
   computeInsights,
 } from "@/features/dashboard/utils/dashboard.utils";
 import type { DashboardRoadmap } from "@/features/dashboard/types/dashboard.types";
@@ -26,6 +26,7 @@ function makeProgress(overrides: Record<string, unknown> = {}) {
     inProgressSteps: 1,
     skippedSteps: 0,
     progressPercentage: 50,
+    lastActivityAt: null,
     ...overrides,
   };
 }
@@ -108,59 +109,93 @@ describe("computeMetrics", () => {
   });
 });
 
-describe("computeRoadmapProgress", () => {
-  it("sorts by progress descending and respects limit", () => {
-    const items = [
-      makeDashboardRoadmap({
-        roadmap: { id: "a", title: "A" },
-        progress: { progressPercentage: 20 },
-      }),
-      makeDashboardRoadmap({
-        roadmap: { id: "b", title: "B" },
-        progress: { progressPercentage: 80 },
-      }),
-      makeDashboardRoadmap({
-        roadmap: { id: "c", title: "C" },
-        progress: { progressPercentage: 50 },
-      }),
-    ];
-    const result = computeRoadmapProgress(items, 2);
-    expect(result).toHaveLength(2);
-    expect(result[0].id).toBe("b");
-    expect(result[1].id).toBe("c");
+describe("computeRoadmaps", () => {
+  it("pins generating roadmap above completed ones", () => {
+    const generating = makeDashboardRoadmap({
+      roadmap: {
+        id: "gen",
+        title: "Generating",
+        generationStatus: "pending",
+        createdAt: "2025-01-01T00:00:00Z",
+      },
+    });
+    const completed = makeDashboardRoadmap({
+      roadmap: { id: "done", title: "Done", createdAt: "2026-03-01T00:00:00Z" },
+    });
+    const result = computeRoadmaps([completed, generating], 4);
+    expect(result[0].id).toBe("gen");
+    expect(result[1].id).toBe("done");
   });
 
-  it("returns empty array for no roadmaps", () => {
-    expect(computeRoadmapProgress([])).toEqual([]);
-  });
-});
-
-describe("computeRecentRoadmaps", () => {
-  it("sorts by creation date descending", () => {
-    const items = [
-      makeDashboardRoadmap({
-        roadmap: { id: "old", title: "Old", createdAt: "2025-01-01T00:00:00Z" },
-      }),
-      makeDashboardRoadmap({
-        roadmap: { id: "new", title: "New", createdAt: "2026-03-01T00:00:00Z" },
-      }),
-    ];
-    const result = computeRecentRoadmaps(items, 2);
+  it("sorts completed roadmaps by lastActivityAt desc", () => {
+    const older = makeDashboardRoadmap({
+      roadmap: { id: "old", title: "Old", createdAt: "2025-01-01T00:00:00Z" },
+      progress: { lastActivityAt: "2025-06-01T00:00:00Z" },
+    });
+    const newer = makeDashboardRoadmap({
+      roadmap: { id: "new", title: "New", createdAt: "2025-01-01T00:00:00Z" },
+      progress: { lastActivityAt: "2026-03-01T00:00:00Z" },
+    });
+    const result = computeRoadmaps([older, newer], 4);
     expect(result[0].id).toBe("new");
     expect(result[1].id).toBe("old");
   });
 
-  it("limits results", () => {
-    const items = Array.from({ length: 5 }, (_, i) =>
-      makeDashboardRoadmap({
-        roadmap: {
-          id: `r${i}`,
-          title: `R${i}`,
-          createdAt: `2026-0${i + 1}-01T00:00:00Z`,
-        },
-      }),
+  it("falls back to createdAt when lastActivityAt is null", () => {
+    const older = makeDashboardRoadmap({
+      roadmap: { id: "old", title: "Old", createdAt: "2025-01-01T00:00:00Z" },
+      progress: { lastActivityAt: null },
+    });
+    const newer = makeDashboardRoadmap({
+      roadmap: { id: "new", title: "New", createdAt: "2026-03-01T00:00:00Z" },
+      progress: { lastActivityAt: null },
+    });
+    const result = computeRoadmaps([older, newer], 4);
+    expect(result[0].id).toBe("new");
+  });
+
+  it("respects limit", () => {
+    const items = Array.from({ length: 6 }, (_, i) =>
+      makeDashboardRoadmap({ roadmap: { id: `r${i}`, title: `R${i}` } }),
     );
-    expect(computeRecentRoadmaps(items, 2)).toHaveLength(2);
+    expect(computeRoadmaps(items, 4)).toHaveLength(4);
+  });
+
+  it("returns empty array for no roadmaps", () => {
+    expect(computeRoadmaps([])).toEqual([]);
+  });
+});
+
+describe("computeRoadmapsOverview", () => {
+  it("counts in-progress roadmaps", () => {
+    const active = makeDashboardRoadmap({
+      progress: { completedSteps: 1, progressPercentage: 25 },
+    });
+    const result = computeRoadmapsOverview([active]);
+    expect(result.inProgress).toBe(1);
+    expect(result.completed).toBe(0);
+    expect(result.justCreated).toBe(0);
+  });
+
+  it("counts completed roadmaps", () => {
+    const done = makeDashboardRoadmap({
+      progress: { completedSteps: 4, totalSteps: 4, progressPercentage: 100 },
+    });
+    const result = computeRoadmapsOverview([done]);
+    expect(result.completed).toBe(1);
+    expect(result.inProgress).toBe(0);
+  });
+
+  it("counts just-created (generating or 0% progress)", () => {
+    const generating = makeDashboardRoadmap({
+      roadmap: { generationStatus: "pending" },
+      progress: { progressPercentage: 0 },
+    });
+    const fresh = makeDashboardRoadmap({
+      progress: { completedSteps: 0, progressPercentage: 0 },
+    });
+    const result = computeRoadmapsOverview([generating, fresh]);
+    expect(result.justCreated).toBe(2);
   });
 });
 

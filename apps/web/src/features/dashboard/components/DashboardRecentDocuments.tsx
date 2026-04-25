@@ -88,7 +88,7 @@ export function DashboardRecentDocuments({
         flexDirection: "column",
       }}
     >
-      <Card variant="glass" hoverable={false} sx={styles.card}>
+      <Card variant="glass" sx={styles.card}>
         <Box sx={styles.header}>
           <Typography variant="h6" sx={styles.title}>
             Recent Documents

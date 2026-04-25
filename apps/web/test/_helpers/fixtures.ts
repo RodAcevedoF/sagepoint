@@ -56,6 +56,7 @@ export function makeUserRoadmap(
       inProgressSteps: 1,
       skippedSteps: 0,
       progressPercentage: Math.round((completed / total) * 100),
+      lastActivityAt: null,
     },
   };
 }

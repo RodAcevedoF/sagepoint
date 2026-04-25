@@ -43,6 +43,10 @@ import { SearchPublicRoadmapsUseCase } from '@/features/roadmap/app/usecases/sea
 import { AdoptRoadmapUseCase } from '@/features/roadmap/app/usecases/adopt-roadmap.usecase';
 import { UnadoptRoadmapUseCase } from '@/features/roadmap/app/usecases/unadopt-roadmap.usecase';
 import { IsRoadmapAdoptedUseCase } from '@/features/roadmap/app/usecases/is-roadmap-adopted.usecase';
+import {
+  GetUserActivityUseCase,
+  ActivitySummary,
+} from '@/features/roadmap/app/usecases/get-user-activity.usecase';
 import { InternalServerErrorException } from '@nestjs/common';
 import {
   GenerateRoadmapInput,
@@ -78,6 +82,7 @@ export class RoadmapService implements IRoadmapService {
     private readonly unadoptRoadmapUseCase?: UnadoptRoadmapUseCase,
     private readonly isRoadmapAdoptedUseCase?: IsRoadmapAdoptedUseCase,
     private readonly updateCategoryUseCase?: UpdateCategoryUseCase,
+    private readonly getUserActivityUseCase?: GetUserActivityUseCase,
   ) {}
 
   async getGraph(documentId: string): Promise<{
@@ -177,6 +182,13 @@ export class RoadmapService implements IRoadmapService {
       throw new Error('Step quiz submission is not available');
     }
     return await this.submitStepQuizUseCase.execute(input);
+  }
+
+  async getUserActivity(userId: string, days = 90): Promise<ActivitySummary> {
+    if (!this.getUserActivityUseCase) {
+      throw new Error('Activity data is not available');
+    }
+    return await this.getUserActivityUseCase.execute(userId, days);
   }
 
   // Visibility

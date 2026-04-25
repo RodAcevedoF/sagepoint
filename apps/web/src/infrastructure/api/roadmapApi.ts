@@ -33,6 +33,7 @@ export interface RoadmapDto {
   documentId?: string;
   userId?: string;
   categoryId?: string;
+  categoryName?: string;
   description?: string;
   steps: RoadmapStep[];
   generationStatus: RoadmapGenerationStatus;
@@ -126,6 +127,20 @@ export interface SubmitStepQuizResponseDto {
   totalQuestions: number;
   correctAnswers: number;
   results: QuestionResultDto[];
+}
+
+export interface ActivityDayDto {
+  date: string;
+  count: number;
+}
+
+export interface ActivitySummaryDto {
+  days: ActivityDayDto[];
+  totalLast7: number;
+  totalLast30: number;
+  totalPrev30: number;
+  currentStreak: number;
+  longestStreak: number;
 }
 
 export const roadmapApi = baseApi.injectEndpoints({
@@ -236,6 +251,7 @@ export const roadmapApi = baseApi.injectEndpoints({
       invalidatesTags: (_result, _error, { roadmapId }) => [
         { type: "RoadmapProgress", id: roadmapId },
         { type: "Roadmap", id: "LIST" },
+        { type: "UserActivity", id: "ME" },
       ],
     }),
     refreshResources: builder.mutation<ResourceDto[], string>({
@@ -287,6 +303,7 @@ export const roadmapApi = baseApi.injectEndpoints({
       invalidatesTags: (_result, _error, { roadmapId }) => [
         { type: "RoadmapProgress", id: roadmapId },
         { type: "Roadmap", id: "LIST" },
+        { type: "UserActivity", id: "ME" },
       ],
     }),
     deleteRoadmap: builder.mutation<{ deleted: boolean }, string>({
@@ -321,6 +338,10 @@ export const roadmapApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: [{ type: "Roadmap", id: "LIST" }],
     }),
+    getUserActivity: builder.query<ActivitySummaryDto, { days?: number }>({
+      query: ({ days = 90 }) => `/roadmaps/user/me/activity?days=${days}`,
+      providesTags: [{ type: "UserActivity", id: "ME" }],
+    }),
   }),
 });
 
@@ -349,4 +370,5 @@ export const {
   useLazySearchPublicRoadmapsQuery,
   useAdoptRoadmapMutation,
   useUnadoptRoadmapMutation,
+  useGetUserActivityQuery,
 } = roadmapApi;

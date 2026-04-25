@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useTheme } from "@mui/material";
 import { useStepQuizCommand } from "@/application/roadmap";
 import type {
@@ -95,15 +95,13 @@ export function StepQuizModal({
     }
   }, [generate, roadmapId, conceptId]);
 
-  // Auto-load quiz on first render (ref avoids double-fire in StrictMode)
-  // Skip if pre-generated quiz was provided
-  const initRef = useRef<boolean | null>(null);
-  if (initRef.current === null) {
+  // Auto-load quiz once after mount. Ref avoids double-fire in StrictMode.
+  const initRef = useRef(false);
+  useEffect(() => {
+    if (initRef.current || preGeneratedQuiz) return;
     initRef.current = true;
-    if (!preGeneratedQuiz) {
-      loadQuiz();
-    }
-  }
+    loadQuiz();
+  }, [loadQuiz, preGeneratedQuiz]);
 
   const handleSelectAnswer = (questionIndex: number, label: string) => {
     setState((prev) => ({

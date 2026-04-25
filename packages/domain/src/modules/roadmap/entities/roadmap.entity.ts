@@ -1,8 +1,8 @@
-import { Concept } from './concept.entity';
+import { Concept } from "./concept.entity";
 
 export enum RoadmapVisibility {
-  PRIVATE = 'private',
-  PUBLIC = 'public',
+  PRIVATE = "private",
+  PUBLIC = "public",
 }
 
 export interface RoadmapStep {
@@ -11,11 +11,15 @@ export interface RoadmapStep {
   dependsOn: string[]; // concept IDs
   learningObjective?: string;
   estimatedDuration?: number; // in minutes
-  difficulty?: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+  difficulty?: "beginner" | "intermediate" | "advanced" | "expert";
   rationale?: string;
 }
 
-export type RoadmapGenerationStatus = 'pending' | 'processing' | 'completed' | 'failed';
+export type RoadmapGenerationStatus =
+  | "pending"
+  | "processing"
+  | "completed"
+  | "failed";
 
 export interface RoadmapProps {
   id: string;
@@ -23,6 +27,7 @@ export interface RoadmapProps {
   documentId?: string;
   userId?: string;
   categoryId?: string;
+  categoryName?: string;
   description?: string;
   steps: RoadmapStep[];
   generationStatus?: RoadmapGenerationStatus;
@@ -40,6 +45,7 @@ export class Roadmap {
   readonly documentId: string;
   readonly userId?: string;
   readonly categoryId?: string;
+  readonly categoryName?: string;
   readonly description?: string;
   readonly steps: RoadmapStep[];
   readonly generationStatus: RoadmapGenerationStatus;
@@ -56,9 +62,10 @@ export class Roadmap {
     this.documentId = props.documentId;
     this.userId = props.userId;
     this.categoryId = props.categoryId;
+    this.categoryName = props.categoryName;
     this.description = props.description;
     this.steps = props.steps;
-    this.generationStatus = props.generationStatus || 'pending';
+    this.generationStatus = props.generationStatus || "pending";
     this.totalEstimatedDuration = props.totalEstimatedDuration;
     this.recommendedPace = props.recommendedPace;
     this.errorMessage = props.errorMessage;
