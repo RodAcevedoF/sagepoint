@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Box } from "@mui/material";
-import { useAppSelector } from "@/shared/hooks";
+import { useCurrentUser } from "@/features/auth/context/UserContext";
 import { Loader, ErrorState } from "@/shared/components";
 import {
   useAdminStatsQuery,
@@ -18,7 +18,7 @@ import { AdminFooter } from "./AdminFooter/AdminFooter";
 
 export function AdminDashboard() {
   const router = useRouter();
-  const { user } = useAppSelector((state) => state.auth);
+  const user = useCurrentUser();
 
   const {
     data: stats,

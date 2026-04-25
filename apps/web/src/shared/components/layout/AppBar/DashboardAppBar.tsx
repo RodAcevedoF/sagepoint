@@ -10,13 +10,13 @@ import {
   Shield,
   Newspaper,
 } from "lucide-react";
-import { useAppSelector } from "@/shared/hooks";
+import { useCurrentUser } from "@/features/auth/context/UserContext";
 import { AppBar } from "./AppBar";
 
 export function DashboardAppBar() {
   const router = useRouter();
   const pathname = usePathname();
-  const { user } = useAppSelector((state) => state.auth);
+  const user = useCurrentUser();
 
   const isAdmin = user?.role === "ADMIN";
 

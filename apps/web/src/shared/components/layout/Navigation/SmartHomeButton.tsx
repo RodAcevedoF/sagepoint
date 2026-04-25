@@ -3,7 +3,7 @@
 import { Button, type ButtonProps } from "@mui/material";
 import { Home } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useAppSelector } from "@/shared/hooks";
+import { useIsAuthenticated } from "@/features/auth/context/UserContext";
 
 interface SmartHomeButtonProps extends Omit<ButtonProps, "onClick" | "href"> {
   label?: string;
@@ -21,7 +21,7 @@ export function SmartHomeButton({
   ...props
 }: SmartHomeButtonProps) {
   const router = useRouter();
-  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const isAuthenticated = useIsAuthenticated();
 
   const handleClick = () => {
     router.push(isAuthenticated ? "/dashboard" : "/");

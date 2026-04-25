@@ -39,10 +39,12 @@ export function useSubmitOnboardingCommand() {
         }).unwrap(),
       );
       if (!generate.ok) return generate;
+      router.refresh();
       router.push(`/dashboard?creating=roadmap&roadmapId=${generate.data.id}`);
       return generate;
     }
 
+    router.refresh();
     router.push("/dashboard?creating=roadmap");
     return submit;
   };

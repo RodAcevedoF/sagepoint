@@ -20,7 +20,7 @@ const baseQuery = fetchBaseQuery({
  * 1. Make request with access_token cookie
  * 2. If 401, call /auth/refresh (uses refresh_token cookie)
  * 3. If refresh succeeds, retry original request
- * 4. If refresh fails, reject (triggers logout via authSlice)
+ * 4. If refresh fails, the 401 propagates to the caller.
  */
 const baseQueryWithReauth: BaseQueryFn<
   string | FetchArgs,
@@ -41,8 +41,6 @@ const baseQueryWithReauth: BaseQueryFn<
       // Refresh succeeded - retry the original request
       result = await baseQuery(args, api, extraOptions);
     }
-    // If refresh failed, the 401 error will propagate and
-    // authSlice.matchRejected will set isAuthenticated = false
   }
 
   return result;

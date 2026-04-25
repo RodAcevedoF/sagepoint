@@ -1,14 +1,16 @@
-import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { LandingPage } from "@/features/landing/components/LandingPage";
-import { AuthRedirect } from "@/features/auth/components/AuthRedirect";
+import { getCurrentUser } from "@/lib/auth/server";
 
-export default function Home() {
-  return (
-    <>
-      <Suspense>
-        <AuthRedirect to="/dashboard" />
-      </Suspense>
-      <LandingPage />
-    </>
-  );
+interface PageProps {
+  searchParams: Promise<{ stay?: string }>;
+}
+
+export default async function Home({ searchParams }: PageProps) {
+  const { stay } = await searchParams;
+  if (!stay) {
+    const user = await getCurrentUser();
+    if (user) redirect("/dashboard");
+  }
+  return <LandingPage />;
 }

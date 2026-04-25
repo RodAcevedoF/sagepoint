@@ -1,13 +1,12 @@
 import { Typography, Button, Stack, useTheme, alpha, Box } from "@mui/material";
 import { LogOut, Trash2, ShieldAlert, RotateCcw } from "lucide-react";
 import { Card } from "@/shared/components";
-import { useLogoutCommand } from "@/application/auth/commands/logout.command";
+import { logout } from "@/application/auth/commands/logout.command";
 import { useResetOnboardingMutation } from "@/infrastructure/api/userApi";
 import { useRouter } from "next/navigation";
 import { makeStyles } from "./Profile.styles";
 
 export function ProfileActions() {
-  const { execute: logout } = useLogoutCommand();
   const router = useRouter();
   const theme = useTheme();
   const styles = makeStyles(theme);

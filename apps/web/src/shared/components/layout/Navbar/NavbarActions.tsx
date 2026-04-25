@@ -18,8 +18,8 @@ import {
 } from "lucide-react";
 import { Button } from "../../ui/Button";
 import { ButtonVariants } from "@/shared/types";
-import { useAppSelector } from "@/shared/hooks";
-import { useLogoutCommand } from "@/application/auth/commands/logout.command";
+import { useCurrentUser } from "@/features/auth/context/UserContext";
+import { logout } from "@/application/auth/commands/logout.command";
 import { TokenBadge } from "./TokenBadge";
 import type { Theme } from "@mui/material";
 
@@ -63,9 +63,8 @@ export function NavbarActions({ mode = "default" }: NavbarActionsProps) {
   const router = useRouter();
   const theme = useTheme();
   const styles = makeStyles(theme);
-  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
-  const { execute: handleLogout } = useLogoutCommand();
-
+  const user = useCurrentUser();
+  const isAuthenticated = user !== null;
   const isAdmin = user?.role === "admin";
 
   // Dashboard Mode
@@ -107,7 +106,7 @@ export function NavbarActions({ mode = "default" }: NavbarActionsProps) {
           label="Sign Out"
           variant={ButtonVariants.GHOST}
           icon={LogOut}
-          onClick={handleLogout}
+          onClick={logout}
           sx={{
             ml: 1,
             display: { xs: "none", sm: "flex" },
@@ -117,7 +116,7 @@ export function NavbarActions({ mode = "default" }: NavbarActionsProps) {
         {/* Sign Out Icon - Mobile */}
         <IconButton
           sx={{ ...styles.iconButton, display: { xs: "flex", sm: "none" } }}
-          onClick={handleLogout}
+          onClick={logout}
         >
           <LogOut size={20} />
         </IconButton>
@@ -138,7 +137,7 @@ export function NavbarActions({ mode = "default" }: NavbarActionsProps) {
           </IconButton>
         </Tooltip>
         <Tooltip title="Logout">
-          <IconButton sx={styles.iconButton} onClick={handleLogout}>
+          <IconButton sx={styles.iconButton} onClick={logout}>
             <LogOut size={20} />
           </IconButton>
         </Tooltip>

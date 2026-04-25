@@ -4,7 +4,9 @@ import dynamic from "next/dynamic";
 import { Container, Box, Toolbar } from "@mui/material";
 import { PublicLayout } from "@/shared/components";
 import { palette } from "@/shared/theme";
+import { Suspense } from "react";
 import { LoginForm } from "./LoginForm";
+import { RegisteredToast } from "./RegisteredToast";
 
 const Antigravity = dynamic(
   () =>
@@ -17,6 +19,9 @@ const Antigravity = dynamic(
 export function LoginPage() {
   return (
     <PublicLayout>
+      <Suspense>
+        <RegisteredToast />
+      </Suspense>
       <Antigravity
         count={350}
         magnetRadius={10}

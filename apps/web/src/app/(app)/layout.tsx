@@ -1,40 +1,11 @@
-"use client";
-
 import type { ReactNode } from "react";
-import { Box, Toolbar } from "@mui/material";
-import { AuthGuard } from "@/features/auth/components";
-import { DashboardAppBar } from "@/shared/components";
-import { Navbar } from "@/shared/components/layout/Navbar";
-import { NavbarActions } from "@/shared/components/layout/Navbar";
-import { Footer } from "@/shared/components/layout/Footer";
-import { palette } from "@/shared/theme";
+import { redirect } from "next/navigation";
+import { requireUser } from "@/lib/auth/server";
+import { AppShell } from "@/shared/components/layout/AppShell";
 
-export default function AppLayout({ children }: { children: ReactNode }) {
-  return (
-    <AuthGuard>
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          backgroundColor: "background.default",
-          background: palette.background.gradient,
-        }}
-      >
-        <Navbar
-          actions={<NavbarActions mode="dashboard" />}
-          showPublicLinks={false}
-        />
-        <Toolbar sx={{ height: { xs: 64, md: 80 }, flexShrink: 0 }} />
-        <Box
-          component="main"
-          sx={{ flex: 1, display: "flex", flexDirection: "column" }}
-        >
-          {children}
-        </Box>
-        <Footer />
-        <DashboardAppBar />
-      </Box>
-    </AuthGuard>
-  );
+export default async function AppLayout({ children }: { children: ReactNode }) {
+  const user = await requireUser();
+  if (user.onboardingStatus === "PENDING") redirect("/onboarding");
+
+  return <AppShell>{children}</AppShell>;
 }

@@ -2,6 +2,14 @@
 
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import {
+  AUTH_COOKIE,
+  ACCESS_TOKEN_MAX_AGE,
+  REFRESH_TOKEN_MAX_AGE,
+  authCookieOptions,
+  buildAuthCookieHeader,
+  clearAuthCookies,
+} from "@/lib/auth/cookies";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -26,42 +34,30 @@ export async function loginAction(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
-      credentials: "include",
     });
 
     if (!response.ok) {
-      const data = await response.json().catch(() => ({}));
-      return { error: data.message || "Invalid credentials" };
+      const errData = await response.json().catch(() => ({}));
+      return { error: errData.message || "Invalid credentials" };
     }
 
     const data = await response.json();
-
-    // Set token cookies on the server side (matching API cookie names)
     const cookieStore = await cookies();
-    const isProduction = process.env.NODE_ENV === "production";
-
-    const cookieDomain = isProduction ? ".sagepoint.online" : undefined;
-
-    cookieStore.set("access_token", data.accessToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: "lax",
-      maxAge: 15 * 60 * 1000, // 15 minutes (matches API)
-      ...(cookieDomain && { domain: cookieDomain }),
-    });
-
-    cookieStore.set("refresh_token", data.refreshToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days (matches API)
-      ...(cookieDomain && { domain: cookieDomain }),
-    });
+    cookieStore.set(
+      AUTH_COOKIE.access,
+      data.accessToken,
+      authCookieOptions(ACCESS_TOKEN_MAX_AGE),
+    );
+    cookieStore.set(
+      AUTH_COOKIE.refresh,
+      data.refreshToken,
+      authCookieOptions(REFRESH_TOKEN_MAX_AGE),
+    );
   } catch {
     return { error: "Network error. Please try again." };
   }
 
-  redirect("/dashboard?login=success");
+  redirect("/dashboard");
 }
 
 export async function registerAction(
@@ -98,16 +94,23 @@ export async function registerAction(
   redirect("/login?registered=true");
 }
 
+/**
+ * Logout is local-authoritative: we always clear the browser cookies, even if
+ * the API call to invalidate the refresh token fails. If the access token is
+ * already expired the API call no-ops (401) and the refresh token expires on
+ * its own 7-day TTL server-side.
+ */
 export async function logoutAction(): Promise<void> {
   const cookieStore = await cookies();
-  const isProduction = process.env.NODE_ENV === "production";
-  const cookieDomain = isProduction ? ".sagepoint.online" : undefined;
+  const access = cookieStore.get(AUTH_COOKIE.access)?.value;
+  const refresh = cookieStore.get(AUTH_COOKIE.refresh)?.value;
 
-  const deleteOptions = {
-    ...(cookieDomain && { domain: cookieDomain }),
-    path: "/",
-  };
+  if (access) {
+    await fetch(`${API_URL}/auth/logout`, {
+      method: "POST",
+      headers: { Cookie: buildAuthCookieHeader(access, refresh) },
+    }).catch(() => {});
+  }
 
-  cookieStore.delete({ name: "access_token", ...deleteOptions });
-  cookieStore.delete({ name: "refresh_token", ...deleteOptions });
+  clearAuthCookies(cookieStore);
 }

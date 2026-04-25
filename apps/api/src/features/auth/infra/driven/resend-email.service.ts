@@ -32,7 +32,8 @@ export class ResendEmailService implements IEmailService {
   }
 
   private logoUrl(): string {
-    return `${this.config.frontendUrl}/logo.webp`;
+    // PNG for broad email-client compatibility (Outlook et al. don't render webp).
+    return `${this.config.frontendUrl}/logo.png`;
   }
 
   async sendVerificationEmail(email: string, token: string): Promise<void> {

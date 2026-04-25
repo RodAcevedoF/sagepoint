@@ -1,4 +1,4 @@
-import { RegisterPage, GuestGuard } from "@/features/auth/components";
+import { RegisterPage } from "@/features/auth/components";
 
 interface PageProps {
   searchParams: Promise<{ invitation?: string }>;
@@ -27,11 +27,9 @@ export default async function Page({ searchParams }: PageProps) {
   }
 
   return (
-    <GuestGuard>
-      <RegisterPage
-        invitationToken={invitationToken}
-        invitedEmail={invitedEmail}
-      />
-    </GuestGuard>
+    <RegisterPage
+      invitationToken={invitationToken}
+      invitedEmail={invitedEmail}
+    />
   );
 }

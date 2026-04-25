@@ -1,0 +1,73 @@
+<mjml>
+  <mj-head>
+    <mj-title>You're invited to Sagepoint</mj-title>
+    <mj-preview>An invitation is waiting for you on Sagepoint.</mj-preview>
+    <mj-attributes>
+      <mj-all font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" />
+      <mj-text color="#1a2e2d" font-size="15px" line-height="1.7" />
+    </mj-attributes>
+    <mj-style>
+      .brand-gradient { background: linear-gradient(135deg, #35A29F 0%, #0B8494 100%) !important; }
+      .code-link { color: #0B8494 !important; word-break: break-all; }
+      .expiry-pill { background-color: #f0faf9 !important; border-radius: 10px !important; }
+      a { color: #0B8494; }
+    </mj-style>
+  </mj-head>
+  <mj-body background-color="#eef3f2" width="600px">
+    <!-- Hero -->
+    <mj-section css-class="brand-gradient" padding="48px 24px 40px">
+      <mj-column>
+        <mj-image src="{{logoUrl}}" alt="Sagepoint" width="72px" padding="0 0 16px" />
+        <mj-text align="center" color="#ffffff" font-size="26px" font-weight="700" letter-spacing="-0.4px" padding="0">
+          You're Invited
+        </mj-text>
+        <mj-text align="center" color="rgba(255,255,255,0.85)" font-size="14px" padding="6px 0 0">
+          Join your team on Sagepoint
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Body -->
+    <mj-section background-color="#ffffff" padding="40px 40px 8px">
+      <mj-column>
+        <mj-text font-size="22px" font-weight="700" color="#0f1f1e" padding-bottom="12px">
+          An admin invited you to Sagepoint
+        </mj-text>
+        <mj-text color="#4a5f5e" padding-bottom="24px">
+          Sagepoint turns your documents into personalized learning roadmaps. Click the button below to accept the invitation and create your account.
+        </mj-text>
+        <mj-button background-color="#0B8494" color="#ffffff" font-weight="600" font-size="15px" inner-padding="14px 36px" border-radius="10px" href="{{inviteUrl}}" padding-bottom="24px">
+          Accept invitation
+        </mj-button>
+        <mj-text color="#8a9a99" font-size="13px" padding-bottom="6px">
+          Button not working? Paste this link into your browser:
+        </mj-text>
+        <mj-text css-class="code-link" font-size="13px" padding-bottom="24px">
+          <a href="{{inviteUrl}}" class="code-link">{{inviteUrl}}</a>
+        </mj-text>
+        <mj-text align="center" color="#0B8494" font-size="13px" font-weight="600" padding="12px 16px" container-background-color="#f0faf9" css-class="expiry-pill">
+          This invitation expires in 7 days.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Divider -->
+    <mj-section background-color="#ffffff" padding="16px 40px 0">
+      <mj-column>
+        <mj-divider border-color="#e8edec" border-width="1px" padding="0" />
+      </mj-column>
+    </mj-section>
+
+    <!-- Footer -->
+    <mj-section background-color="#ffffff" padding="20px 40px 40px">
+      <mj-column>
+        <mj-text align="center" color="#a0b0af" font-size="12px" line-height="1.6" padding="0">
+          If you weren't expecting this invitation, you can safely ignore this email.
+        </mj-text>
+        <mj-text align="center" color="#c0cccb" font-size="11px" padding="10px 0 0">
+          © Sagepoint · AI-Powered Learning Roadmaps
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

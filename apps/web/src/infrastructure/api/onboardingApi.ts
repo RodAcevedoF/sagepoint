@@ -1,5 +1,4 @@
 import { baseApi } from "./baseApi";
-import { authApi } from "./authApi";
 
 export interface CategoryDto {
   id: string;
@@ -35,20 +34,6 @@ export const onboardingApi = baseApi.injectEndpoints({
         },
       }),
       invalidatesTags: ["User"],
-      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
-        try {
-          await queryFulfilled;
-          // Optimistically patch cached profile so Dashboard sees COMPLETED
-          // immediately, without waiting for the tag-invalidation refetch.
-          dispatch(
-            authApi.util.updateQueryData("getProfile", undefined, (draft) => {
-              draft.onboardingStatus = arg.status;
-            }),
-          );
-        } catch {
-          // Mutation failed — no patch needed
-        }
-      },
     }),
   }),
 });

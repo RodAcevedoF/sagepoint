@@ -1,14 +1,13 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Grid, Box } from "@mui/material";
-import { useAppSelector } from "@/shared/hooks";
+import { useCurrentUser } from "@/features/auth/context/UserContext";
 import { useWatchGenerationCommand } from "@/application/roadmap";
 import { useSnackbar, Loader, EmptyState } from "@/shared/components";
 import { DevTools } from "./DevTools";
 import { DashboardSkeleton } from "./DashboardSkeleton";
-import { useProfileQuery } from "@/application/auth/queries/get-profile.query";
 import { useUserRoadmapsQuery } from "@/application/roadmap/queries/get-user-roadmaps.query";
 import { useUserDocumentsQuery } from "@/application/document";
 
@@ -33,9 +32,7 @@ export function Dashboard() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showSnackbar } = useSnackbar();
-  const { user } = useAppSelector((state) => state.auth);
-
-  const { isLoading: isLoadingProfile } = useProfileQuery();
+  const user = useCurrentUser();
 
   const isCreatingFirstRoadmap = searchParams.get("creating") === "roadmap";
   const creatingRoadmapId = searchParams.get("roadmapId");
@@ -55,18 +52,6 @@ export function Dashboard() {
   // Fetch documents
   const { data: documents, isLoading: isLoadingDocuments } =
     useUserDocumentsQuery();
-
-  // Show login success toast (ref prevents double-firing in StrictMode)
-  const toastShown = useRef(false);
-  useEffect(() => {
-    if (searchParams.get("login") === "success" && !toastShown.current) {
-      toastShown.current = true;
-      showSnackbar("Welcome back!", { severity: "success" });
-      router.replace("/dashboard", { scroll: false });
-    }
-  }, [searchParams, showSnackbar, router]);
-
-  // Onboarding gate is handled by AuthGuard — no check needed here.
 
   // When SSE says roadmap is completed, refetch and clear the param
   useEffect(() => {
@@ -102,7 +87,7 @@ export function Dashboard() {
     showSnackbar,
   ]);
 
-  if (isLoadingProfile || isLoadingRoadmaps || isLoadingDocuments) {
+  if (isLoadingRoadmaps || isLoadingDocuments) {
     return (
       <DashboardLayout>
         <DashboardSkeleton />

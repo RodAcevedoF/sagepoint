@@ -4,7 +4,7 @@ import { Box, Typography, alpha } from "@mui/material";
 import { Heart } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToggleLikeCommand, useLikeStatusQuery } from "@/application/social";
-import { useAppSelector } from "@/shared/hooks";
+import { useIsAuthenticated } from "@/features/auth/context/UserContext";
 import { palette } from "@/shared/theme";
 
 interface LikeButtonProps {
@@ -13,7 +13,7 @@ interface LikeButtonProps {
 }
 
 export function LikeButton({ roadmapId, compact = false }: LikeButtonProps) {
-  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const isAuthenticated = useIsAuthenticated();
   const { data: likeStatus } = useLikeStatusQuery(
     isAuthenticated ? roadmapId : null,
   );

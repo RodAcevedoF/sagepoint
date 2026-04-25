@@ -39,6 +39,7 @@ import { StatusChip } from "../Cards/StatusChip";
 import { useAdminSnackbar } from "../../hooks/useAdminSnackbar";
 import { UserActionsMenu } from "../Dialogs/UserActionsMenu";
 import { UserLimitsDialog } from "../Dialogs/UserLimitsDialog";
+import type { AdminUserDto } from "@/infrastructure/api/adminApi";
 import {
   HEADERS,
   activeColors,
@@ -57,12 +58,14 @@ export function AdminUsersTable() {
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [limitsDialogOpen, setLimitsDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<AdminUserDto | null>(null);
+  const [userToEditLimits, setUserToEditLimits] = useState<AdminUserDto | null>(
+    null,
+  );
 
   const { data: selectedUserLimits } = useGetUserLimitsQuery(
-    selectedUserId ?? "",
-    { skip: !limitsDialogOpen || !selectedUserId },
+    userToEditLimits?.id ?? "",
+    { skip: !userToEditLimits },
   );
 
   const selectedUser = users?.find((u) => u.id === selectedUserId);
@@ -115,12 +118,11 @@ export function AdminUsersTable() {
   };
 
   const handleDeleteConfirm = async () => {
-    if (!selectedUserId) return;
-    const userId = selectedUserId;
-    setDeleteDialogOpen(false);
-    setSelectedUserId(null);
+    const target = userToDelete;
+    if (!target) return;
+    setUserToDelete(null);
     try {
-      await deleteUser(userId).unwrap();
+      await deleteUser(target.id).unwrap();
       show("User deleted permanently", "success");
     } catch {
       show("Failed to delete user", "error");
@@ -131,12 +133,11 @@ export function AdminUsersTable() {
     balance?: number | null;
     credit?: number;
   }) => {
-    if (!selectedUserId) return;
-    const userId = selectedUserId;
-    setLimitsDialogOpen(false);
-    setSelectedUserId(null);
+    const target = userToEditLimits;
+    if (!target) return;
+    setUserToEditLimits(null);
     try {
-      await updateLimits({ id: userId, data }).unwrap();
+      await updateLimits({ id: target.id, data }).unwrap();
       show("Token balance updated", "success");
     } catch {
       show("Failed to update token balance", "error");
@@ -314,36 +315,36 @@ export function AdminUsersTable() {
         onBan={handleToggleBan}
         onToggleRole={handleToggleRole}
         onEditLimits={() => {
+          if (selectedUser) setUserToEditLimits(selectedUser);
           setAnchorEl(null);
-          setLimitsDialogOpen(true);
         }}
         onDelete={() => {
+          if (selectedUser) setUserToDelete(selectedUser);
           setAnchorEl(null);
-          setDeleteDialogOpen(true);
         }}
       />
 
       <ConfirmDialog
-        open={deleteDialogOpen}
+        open={Boolean(userToDelete)}
         title="Delete User Permanently"
         description={
           <>
-            This will permanently delete <strong>{selectedUser?.name}</strong> (
-            {selectedUser?.email}) and all their associated data. This action
+            This will permanently delete <strong>{userToDelete?.name}</strong> (
+            {userToDelete?.email}) and all their associated data. This action
             cannot be undone.
           </>
         }
         confirmLabel="Delete Permanently"
         confirmIcon={Trash2}
         onConfirm={handleDeleteConfirm}
-        onCancel={() => setDeleteDialogOpen(false)}
+        onCancel={() => setUserToDelete(null)}
       />
 
       <UserLimitsDialog
-        open={limitsDialogOpen}
-        user={selectedUser}
+        open={Boolean(userToEditLimits)}
+        user={userToEditLimits ?? undefined}
         initialBalance={selectedUserLimits?.balance}
-        onClose={() => setLimitsDialogOpen(false)}
+        onClose={() => setUserToEditLimits(null)}
         onConfirm={handleLimitsConfirm}
       />
 
