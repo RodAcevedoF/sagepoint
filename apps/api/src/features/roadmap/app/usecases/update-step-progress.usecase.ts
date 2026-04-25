@@ -34,6 +34,9 @@ export class UpdateStepProgressUseCase {
     if (!roadmap) {
       throw new Error(`Roadmap ${command.roadmapId} not found`);
     }
+    if (roadmap.userId !== command.userId) {
+      throw new Error('Not authorized to update progress on this roadmap');
+    }
 
     // Verify concept exists in roadmap
     const conceptExists = roadmap.steps.some(

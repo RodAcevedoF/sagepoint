@@ -14,6 +14,7 @@ import {
 export interface ExpandConceptCommand {
   roadmapId: string;
   conceptId: string;
+  userId: string;
   userContext?: UserContext;
 }
 
@@ -31,6 +32,9 @@ export class ExpandConceptUseCase {
     const roadmap = await this.roadmapRepository.findById(command.roadmapId);
     if (!roadmap) {
       throw new Error(`Roadmap ${command.roadmapId} not found`);
+    }
+    if (roadmap.userId !== command.userId) {
+      throw new Error('Not authorized to expand concepts on this roadmap');
     }
 
     // 2. Find parent step

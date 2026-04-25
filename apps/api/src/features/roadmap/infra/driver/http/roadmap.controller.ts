@@ -353,8 +353,13 @@ export class RoadmapController {
   async expandConcept(
     @Param('id') roadmapId: string,
     @Param('conceptId') conceptId: string,
+    @CurrentUser() user: RequestUser,
   ) {
-    return this.roadmapService.expandConcept({ roadmapId, conceptId });
+    return this.roadmapService.expandConcept({
+      roadmapId,
+      conceptId,
+      userId: user.id,
+    });
   }
 
   @Get(':id/suggestions')

@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useGenerateTopicRoadmapCommand } from "@/application/roadmap";
 import { useRoadmapEvents } from "@/shared/hooks";
+import { useSnackbar } from "@/shared/components";
 import { useGetResourceQuotaQuery } from "@/infrastructure/api/userApi";
 import {
   isExperienceLevel,
@@ -36,6 +37,7 @@ export function GenerationView({
 }: GenerationViewProps) {
   const theme = useTheme();
   const router = useRouter();
+  const { showSnackbar } = useSnackbar();
   const [topic, setTopic] = useState(initialTopic || "");
   const [title, setTitle] = useState("");
   const [experienceLevel, setExperienceLevel] = useState<
@@ -84,8 +86,8 @@ export function GenerationView({
       if (!topic.trim()) return;
 
       setErrorMessage(null);
-      setPhase("generating");
       setRoadmapId(null);
+      if (fromOnboarding) setPhase("generating");
 
       const timeAvailable = commitment
         ? COMMITMENT_LEVELS.find((c) => c.id === commitment)?.hours
@@ -102,6 +104,7 @@ export function GenerationView({
         if (fromOnboarding) {
           setRoadmapId(result.data.id);
         } else {
+          showSnackbar("Generating your roadmap…", { severity: "info" });
           router.push("/roadmaps");
         }
       } else {
@@ -121,6 +124,7 @@ export function GenerationView({
       execute,
       fromOnboarding,
       router,
+      showSnackbar,
     ],
   );
 

@@ -39,6 +39,9 @@ export class GenerateStepQuizUseCase {
     if (!roadmap) {
       throw new Error(`Roadmap ${command.roadmapId} not found`);
     }
+    if (roadmap.userId !== command.userId) {
+      throw new Error('Not authorized to take a quiz on this roadmap');
+    }
 
     const step = roadmap.steps.find((s) => s.concept.id === command.conceptId);
     if (!step) {

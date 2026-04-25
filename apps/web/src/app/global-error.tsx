@@ -3,11 +3,6 @@
 import { useEffect } from "react";
 import * as Sentry from "@sentry/nextjs";
 
-// ============================================================================
-// Global Error Handler
-// Catches errors in root layout. Must include its own html/body tags.
-// ============================================================================
-
 interface GlobalErrorProps {
   error: Error & { digest?: string };
   reset: () => void;
@@ -59,11 +54,22 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
             </svg>
           </div>
 
-          <h1 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "0.5rem" }}>
+          <h1
+            style={{
+              fontSize: "1.5rem",
+              fontWeight: 700,
+              marginBottom: "0.5rem",
+            }}
+          >
             Something went wrong
           </h1>
 
-          <p style={{ color: "rgba(151, 254, 237, 0.7)", marginBottom: "1.5rem" }}>
+          <p
+            style={{
+              color: "rgba(151, 254, 237, 0.7)",
+              marginBottom: "1.5rem",
+            }}
+          >
             A critical error occurred. Please try again.
           </p>
 

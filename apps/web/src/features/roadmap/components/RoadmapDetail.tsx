@@ -126,6 +126,7 @@ export function RoadmapDetail({ roadmapId }: RoadmapDetailProps) {
   }
 
   const { roadmap, progress, stepProgress } = roadmapData;
+  const isOwner = !!currentUserId && roadmap.userId === currentUserId;
 
   return (
     <Box sx={styles.container}>
@@ -199,7 +200,7 @@ export function RoadmapDetail({ roadmapId }: RoadmapDetailProps) {
               <CategorySelector
                 roadmapId={roadmap.id}
                 currentCategoryId={roadmap.categoryId}
-                editable={!!currentUserId && roadmap.userId === currentUserId}
+                editable={isOwner}
               />
             </Box>
           </Box>
@@ -288,6 +289,7 @@ export function RoadmapDetail({ roadmapId }: RoadmapDetailProps) {
               subStepProgress={stepProgress}
               subStepResources={resourcesByConceptId}
               parentOrder={step.order}
+              isOwner={isOwner}
             />
           ))}
         </Box>

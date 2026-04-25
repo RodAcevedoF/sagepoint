@@ -16,6 +16,7 @@ interface SubConceptAccordionProps {
   stepProgress: Record<string, StepStatus>;
   parentOrder: number;
   roadmapId: string;
+  isOwner: boolean;
 }
 
 export function SubConceptAccordion({
@@ -23,6 +24,7 @@ export function SubConceptAccordion({
   stepProgress,
   parentOrder,
   roadmapId,
+  isOwner,
 }: SubConceptAccordionProps) {
   const theme = useTheme();
   const [open, setOpen] = useState(false);
@@ -89,7 +91,9 @@ export function SubConceptAccordion({
                     stepProgress[sub.concept.id] ?? StepStatus.NOT_STARTED
                   }
                   label={`${parentOrder}.${i + 1}`}
-                  onToggle={() => handleToggle(sub.concept.id)}
+                  onToggle={
+                    isOwner ? () => handleToggle(sub.concept.id) : undefined
+                  }
                   isLoading={togglingId === sub.concept.id}
                 />
               ))}

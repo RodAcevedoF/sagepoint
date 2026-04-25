@@ -23,6 +23,7 @@ interface StepContentProps {
   subStepProgress?: Record<string, StepStatus>;
   parentOrder?: number;
   roadmapId?: string;
+  isOwner: boolean;
 }
 
 export function StepContent({
@@ -36,6 +37,7 @@ export function StepContent({
   subStepProgress = {},
   parentOrder = 0,
   roadmapId = "",
+  isOwner,
 }: StepContentProps) {
   const theme = useTheme();
   const styles = makeStyles(theme, statusColor);
@@ -98,6 +100,7 @@ export function StepContent({
           stepProgress={subStepProgress}
           parentOrder={parentOrder}
           roadmapId={roadmapId}
+          isOwner={isOwner}
         />
       ) : (
         onExpand && (

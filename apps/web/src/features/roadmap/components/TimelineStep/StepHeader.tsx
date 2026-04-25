@@ -33,6 +33,7 @@ interface StepHeaderProps {
   parentDocumentId?: string;
   quizReady?: boolean;
   isSubConcept?: boolean;
+  isOwner: boolean;
 }
 
 function formatDuration(minutes?: number): string {
@@ -79,6 +80,7 @@ export function StepHeader({
   parentDocumentId,
   quizReady,
   isSubConcept = false,
+  isOwner,
 }: StepHeaderProps) {
   const theme = useTheme();
   const styles = makeStyles(theme, statusColor);
@@ -195,7 +197,7 @@ export function StepHeader({
           <CircularProgress size={20} />
         ) : (
           <>
-            {nextAction && (
+            {isOwner && nextAction && (
               <Tooltip title={nextAction.label}>
                 <IconButton
                   size="small"
@@ -209,7 +211,7 @@ export function StepHeader({
                 </IconButton>
               </Tooltip>
             )}
-            {canSkip && (
+            {isOwner && canSkip && (
               <Tooltip title="Skip">
                 <IconButton
                   size="small"

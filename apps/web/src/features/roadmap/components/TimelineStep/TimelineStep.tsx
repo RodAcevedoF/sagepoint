@@ -39,6 +39,7 @@ interface TimelineStepProps {
   subStepProgress?: Record<string, StepStatus>;
   subStepResources?: Record<string, ResourceDto[]>;
   parentOrder?: number;
+  isOwner: boolean;
 }
 
 export function TimelineStep({
@@ -54,6 +55,7 @@ export function TimelineStep({
   subSteps = [],
   subStepProgress = {},
   parentOrder,
+  isOwner,
 }: TimelineStepProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery("(max-width:625px)");
@@ -157,7 +159,8 @@ export function TimelineStep({
             resources={resources}
             resourcesLoading={resourcesLoading}
             statusColor={dotColor}
-            onExpand={canExpand ? handleExpand : undefined}
+            onExpand={canExpand && isOwner ? handleExpand : undefined}
+            isOwner={isOwner}
             expandLoading={expandLoading}
             subSteps={subSteps}
             subStepProgress={subStepProgress}
@@ -203,6 +206,7 @@ export function TimelineStep({
             statusColor={dotColor}
             parentDocumentId={parentDocumentId}
             quizReady={quizReady}
+            isOwner={isOwner}
           />
 
           <AnimatePresence>
@@ -219,7 +223,8 @@ export function TimelineStep({
                   resources={resources}
                   resourcesLoading={resourcesLoading}
                   statusColor={dotColor}
-                  onExpand={canExpand ? handleExpand : undefined}
+                  onExpand={canExpand && isOwner ? handleExpand : undefined}
+                  isOwner={isOwner}
                   expandLoading={expandLoading}
                   subSteps={subSteps}
                   subStepProgress={subStepProgress}

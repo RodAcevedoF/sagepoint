@@ -44,6 +44,7 @@ export interface RefreshResourcesInput {
 export interface ExpandConceptInput {
   roadmapId: string;
   conceptId: string;
+  userId: string;
   userContext?: UserContext;
 }
 

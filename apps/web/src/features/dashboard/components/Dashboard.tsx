@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Grid } from "@mui/material";
 import { useCurrentUser } from "@/features/auth/context/UserContext";
 import { useWatchGenerationCommand } from "@/application/roadmap";
-import { useSnackbar, Loader } from "@/shared/components";
+import { useSnackbar } from "@/shared/components";
+import { GeneratingTimeline } from "@/features/roadmap";
 import { DevTools } from "./DevTools";
 import { DashboardSkeleton } from "./DashboardSkeleton";
 import { useUserRoadmapsQuery } from "@/application/roadmap/queries/get-user-roadmaps.query";
@@ -38,7 +39,7 @@ export function Dashboard() {
   const isCreatingFirstRoadmap = searchParams.get("creating") === "roadmap";
   const creatingRoadmapId = searchParams.get("roadmapId");
 
-  const { status: sseStatus } = useWatchGenerationCommand(
+  const { status: sseStatus, stage: sseStage } = useWatchGenerationCommand(
     isCreatingFirstRoadmap ? creatingRoadmapId : null,
   );
 
@@ -92,9 +93,15 @@ export function Dashboard() {
   }
 
   if (isCreatingFirstRoadmap) {
+    const creatingRoadmap = creatingRoadmapId
+      ? roadmaps?.find((r) => r.roadmap.id === creatingRoadmapId)
+      : undefined;
     return (
       <DashboardLayout>
-        <Loader variant="page" message="Creating your first roadmap..." />
+        <GeneratingTimeline
+          topic={creatingRoadmap?.roadmap.title ?? ""}
+          sseStage={sseStage}
+        />
       </DashboardLayout>
     );
   }
