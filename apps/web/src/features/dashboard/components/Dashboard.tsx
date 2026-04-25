@@ -2,10 +2,10 @@
 
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Grid, Box } from "@mui/material";
+import { Grid } from "@mui/material";
 import { useCurrentUser } from "@/features/auth/context/UserContext";
 import { useWatchGenerationCommand } from "@/application/roadmap";
-import { useSnackbar, Loader, EmptyState } from "@/shared/components";
+import { useSnackbar, Loader } from "@/shared/components";
 import { DevTools } from "./DevTools";
 import { DashboardSkeleton } from "./DashboardSkeleton";
 import { useUserRoadmapsQuery } from "@/application/roadmap/queries/get-user-roadmaps.query";
@@ -17,15 +17,16 @@ import { DashboardMetrics } from "./DashboardMetrics";
 import { DashboardProgress } from "./DashboardProgress";
 import { DashboardActivity } from "./DashboardActivity";
 import { DashboardRecentDocuments } from "./DashboardRecentDocuments";
-import { DashboardTopics } from "./DashboardTopics";
+import { DashboardInsights } from "./DashboardInsights";
 import { DashboardQuickActions } from "./DashboardQuickActions";
 import { DashboardNews } from "./DashboardNews";
+import { DashboardHeroCTA } from "./DashboardHeroCTA";
 
 import {
   computeMetrics,
   computeRoadmapProgress,
   computeRecentRoadmaps,
-  computeDifficultyDistribution,
+  computeInsights,
 } from "../utils/dashboard.utils";
 
 export function Dashboard() {
@@ -37,23 +38,19 @@ export function Dashboard() {
   const isCreatingFirstRoadmap = searchParams.get("creating") === "roadmap";
   const creatingRoadmapId = searchParams.get("roadmapId");
 
-  // SSE for first roadmap creation status
   const { status: sseStatus } = useWatchGenerationCommand(
     isCreatingFirstRoadmap ? creatingRoadmapId : null,
   );
 
-  // Fetch real roadmap data
   const {
     data: roadmaps,
     isLoading: isLoadingRoadmaps,
     refetch: refetchRoadmaps,
   } = useUserRoadmapsQuery();
 
-  // Fetch documents
   const { data: documents, isLoading: isLoadingDocuments } =
     useUserDocumentsQuery();
 
-  // When SSE says roadmap is completed, refetch and clear the param
   useEffect(() => {
     if (isCreatingFirstRoadmap && sseStatus === "completed") {
       refetchRoadmaps();
@@ -68,7 +65,6 @@ export function Dashboard() {
     showSnackbar,
   ]);
 
-  // Fallback: if no SSE (no roadmapId), detect when skeleton roadmap becomes completed
   useEffect(() => {
     if (isCreatingFirstRoadmap && !creatingRoadmapId && roadmaps?.length) {
       const hasCompleted = roadmaps.some(
@@ -95,6 +91,14 @@ export function Dashboard() {
     );
   }
 
+  if (isCreatingFirstRoadmap) {
+    return (
+      <DashboardLayout>
+        <Loader variant="page" message="Creating your first roadmap..." />
+      </DashboardLayout>
+    );
+  }
+
   const userName = user?.name || "Learner";
   const userRoadmaps = roadmaps ?? [];
   const userDocuments = documents?.data ?? [];
@@ -102,26 +106,24 @@ export function Dashboard() {
   const metrics = computeMetrics(userRoadmaps);
   const progressItems = computeRoadmapProgress(userRoadmaps);
   const recentRoadmaps = computeRecentRoadmaps(userRoadmaps);
-  const difficultyDistribution = computeDifficultyDistribution(userRoadmaps);
+  const insights = computeInsights(userRoadmaps);
 
-  // Only count completed roadmaps for the "has content" check
-  const hasCompletedRoadmaps = userRoadmaps.some(
-    (r) => r.roadmap.generationStatus === "completed",
-  );
+  const hasRoadmaps = userRoadmaps.length > 0;
+
   return (
     <DashboardLayout>
-      {/* Greeting */}
       <DashboardGreeting
         userName={userName}
         stepsCompleted={metrics.totalStepsCompleted}
       />
 
-      {/* Metrics Row */}
+      {!hasRoadmaps && <DashboardHeroCTA />}
+
       <DashboardMetrics metrics={metrics} />
 
-      {hasCompletedRoadmaps ? (
+      {hasRoadmaps ? (
         <Grid container spacing={3}>
-          {/* Row 1 — Progress & Activity (equal halves) */}
+          {/* Row 1 — Progress & Activity */}
           <Grid size={{ xs: 12, md: 6 }}>
             <DashboardProgress data={progressItems} />
           </Grid>
@@ -132,20 +134,18 @@ export function Dashboard() {
             />
           </Grid>
 
-          {/* Row 2 — Documents (2/3) & Topic Diversity (1/3) */}
-          <Grid size={{ xs: 12, md: 8 }} sx={{ display: "flex" }}>
+          {/* Row 2 — Documents (7/12) & Insights (5/12) */}
+          <Grid size={{ xs: 12, md: 7 }} sx={{ display: "flex" }}>
             <DashboardRecentDocuments documents={userDocuments} />
           </Grid>
-          {difficultyDistribution.length > 0 && (
-            <Grid size={{ xs: 12, md: 4 }} sx={{ display: "flex" }}>
-              <DashboardTopics
-                distribution={difficultyDistribution}
-                overallProgress={metrics.overallProgress}
-              />
-            </Grid>
-          )}
+          <Grid size={{ xs: 12, md: 5 }} sx={{ display: "flex" }}>
+            <DashboardInsights
+              data={insights}
+              overallProgress={metrics.overallProgress}
+            />
+          </Grid>
 
-          {/* Row 3 — Learning Insights */}
+          {/* Row 3 — News */}
           <Grid size={{ xs: 12 }}>
             <DashboardNews />
           </Grid>
@@ -159,21 +159,18 @@ export function Dashboard() {
             <DevTools />
           </Grid>
         </Grid>
-      ) : isCreatingFirstRoadmap ? (
-        <Loader variant="page" message="Creating your first roadmap..." />
       ) : (
-        <>
-          <EmptyState
-            title="No roadmaps yet"
-            description="Create your first learning roadmap to get started"
-            actionLabel="Create Roadmap"
-            onAction={() => router.push("/roadmaps/create")}
-          />
-          <Box sx={{ mt: 3 }}>
+        <Grid container spacing={3}>
+          <Grid size={{ xs: 12 }}>
             <DashboardNews />
-          </Box>
-          <DevTools />
-        </>
+          </Grid>
+          <Grid size={{ xs: 12 }}>
+            <DashboardQuickActions />
+          </Grid>
+          <Grid size={{ xs: 12 }}>
+            <DevTools />
+          </Grid>
+        </Grid>
       )}
     </DashboardLayout>
   );

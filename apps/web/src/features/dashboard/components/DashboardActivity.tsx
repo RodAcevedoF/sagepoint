@@ -3,8 +3,8 @@
 import { Box, Typography, Stack } from "@mui/material";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { ArrowRight } from "lucide-react";
-import { Card } from "@/shared/components";
+import { ArrowRight, Activity } from "lucide-react";
+import { Card, EmptyState } from "@/shared/components";
 import { palette } from "@/shared/theme";
 import type { RecentRoadmapItem } from "../types/dashboard.types";
 import { RoadmapActivityCard } from "./RoadmapActivityCard";
@@ -65,19 +65,30 @@ export function DashboardActivity({
           </Box>
         </Box>
 
-        <Stack
-          spacing={2}
-          sx={{ overflowY: "auto", overflowX: "hidden", flex: 1, p: 1 }}
-        >
-          {visible.map((item) => (
-            <RoadmapActivityCard
-              key={item.id}
-              item={item}
-              onClick={(id) => router.push(`/roadmaps/${id}`)}
-              onComplete={onRoadmapComplete}
-            />
-          ))}
-        </Stack>
+        {visible.length === 0 ? (
+          <EmptyState
+            inline
+            icon={Activity}
+            title="No activity yet"
+            description="Recently created roadmaps will appear here"
+            actionLabel="Create roadmap"
+            onAction={() => router.push("/roadmaps/create")}
+          />
+        ) : (
+          <Stack
+            spacing={2}
+            sx={{ overflowY: "auto", overflowX: "hidden", flex: 1, p: 1 }}
+          >
+            {visible.map((item) => (
+              <RoadmapActivityCard
+                key={item.id}
+                item={item}
+                onClick={(id) => router.push(`/roadmaps/${id}`)}
+                onComplete={onRoadmapComplete}
+              />
+            ))}
+          </Stack>
+        )}
       </Card>
     </motion.div>
   );

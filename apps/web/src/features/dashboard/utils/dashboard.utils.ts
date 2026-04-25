@@ -3,7 +3,7 @@ import type {
   UserMetrics,
   RoadmapProgressItem,
   RecentRoadmapItem,
-  TopicDistribution,
+  InsightsData,
 } from "../types/dashboard.types";
 import {
   FileText,
@@ -42,28 +42,28 @@ export function formatRelativeDate(dateStr: string): string {
 }
 
 export function computeMetrics(roadmaps: DashboardRoadmap[]): UserMetrics {
-  let totalHoursLearned = 0;
-  let topicsCompleted = 0;
+  let learnedMinutes = 0;
+  let completedRoadmaps = 0;
   let activeRoadmaps = 0;
   let totalStepsCompleted = 0;
   let totalPossibleSteps = 0;
 
   for (const { roadmap, progress } of roadmaps) {
-    for (const step of roadmap.steps) {
-      if (step.estimatedDuration) {
-        totalHoursLearned += step.estimatedDuration;
-      }
+    const roadmapMinutes = roadmap.steps.reduce(
+      (sum, step) => sum + (step.estimatedDuration ?? 0),
+      0,
+    );
+    if (progress.totalSteps > 0) {
+      learnedMinutes +=
+        roadmapMinutes * (progress.completedSteps / progress.totalSteps);
     }
 
     totalStepsCompleted += progress.completedSteps;
     totalPossibleSteps += progress.totalSteps;
-    topicsCompleted += progress.completedSteps;
 
-    if (
-      roadmap.generationStatus === "completed" &&
-      progress.progressPercentage < 100
-    ) {
-      activeRoadmaps++;
+    if (roadmap.generationStatus === "completed") {
+      if (progress.progressPercentage >= 100) completedRoadmaps++;
+      else activeRoadmaps++;
     }
   }
 
@@ -73,8 +73,8 @@ export function computeMetrics(roadmaps: DashboardRoadmap[]): UserMetrics {
       : 0;
 
   return {
-    totalHoursLearned: Math.round(totalHoursLearned / 60),
-    topicsCompleted,
+    totalHoursLearned: Math.round(learnedMinutes / 60),
+    completedRoadmaps,
     activeRoadmaps,
     totalStepsCompleted,
     overallProgress,
@@ -119,28 +119,45 @@ export function computeRecentRoadmaps(
     }));
 }
 
-export function computeDifficultyDistribution(
-  roadmaps: DashboardRoadmap[],
-): TopicDistribution[] {
+export function computeInsights(roadmaps: DashboardRoadmap[]): InsightsData {
   const counts: Record<string, number> = {};
+  let totalMinutes = 0;
+  let remainingMinutes = 0;
+  let totalSteps = 0;
 
-  for (const { roadmap } of roadmaps) {
+  for (const { roadmap, progress } of roadmaps) {
+    const completionRatio =
+      progress.totalSteps > 0
+        ? progress.completedSteps / progress.totalSteps
+        : 0;
+
     for (const step of roadmap.steps) {
       const difficulty = step.difficulty ?? "unknown";
       counts[difficulty] = (counts[difficulty] ?? 0) + 1;
+      totalSteps++;
+      if (step.estimatedDuration) {
+        totalMinutes += step.estimatedDuration;
+        remainingMinutes += step.estimatedDuration * (1 - completionRatio);
+      }
     }
   }
 
-  const total = Object.values(counts).reduce((sum, v) => sum + v, 0);
-  if (total === 0) return [];
-
-  return Object.entries(counts)
+  const difficultyBreakdown = Object.entries(counts)
     .map(([name, count]) => ({
       name: name.charAt(0).toUpperCase() + name.slice(1),
-      value: Math.round((count / total) * 100),
+      count,
       color: DIFFICULTY_COLORS[name] ?? DIFFICULTY_COLORS.unknown,
     }))
-    .sort((a, b) => b.value - a.value);
+    .sort((a, b) => b.count - a.count);
+
+  return {
+    difficultyBreakdown,
+    avgMinutesPerStep:
+      totalSteps > 0 ? Math.round(totalMinutes / totalSteps) : 0,
+    hoursInvested: Math.round((totalMinutes - remainingMinutes) / 60),
+    hoursRemaining: Math.round(remainingMinutes / 60),
+    totalSteps,
+  };
 }
 
 export function getGreeting(): string {

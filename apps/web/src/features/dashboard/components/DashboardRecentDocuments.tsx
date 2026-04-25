@@ -103,9 +103,12 @@ export function DashboardRecentDocuments({
 
         {recentDocs.length === 0 ? (
           <EmptyState
+            inline
             title="No documents yet"
-            description="Upload a PDF, DOCX, or XLSX to extract concepts"
+            description="Upload a PDF, DOCX, or XLSX to extract concepts and generate roadmaps"
             icon={FileStack}
+            actionLabel="Upload document"
+            onAction={() => router.push("/documents")}
           />
         ) : (
           <Stack spacing={2}>

@@ -56,16 +56,18 @@ describe("Dashboard", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Learning Hours")).toBeInTheDocument();
-      expect(screen.getByText("Topics Completed")).toBeInTheDocument();
+      expect(screen.getByText("Roadmaps Completed")).toBeInTheDocument();
     });
   });
 
-  it("shows empty state when no completed roadmaps", async () => {
+  it("shows hero CTA when no roadmaps exist", async () => {
     setupHandlers({ roadmaps: [] });
     renderWithProviders(<Dashboard />);
 
     await waitFor(() => {
-      expect(screen.getByText("No roadmaps yet")).toBeInTheDocument();
+      expect(
+        screen.getByText("Start your learning journey"),
+      ).toBeInTheDocument();
     });
   });
 

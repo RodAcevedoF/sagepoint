@@ -14,6 +14,7 @@ interface EmptyStateProps {
   actionLabel?: string;
   actionIcon?: LucideIcon;
   onAction?: () => void;
+  inline?: boolean;
 }
 
 export function EmptyState({
@@ -23,6 +24,7 @@ export function EmptyState({
   actionLabel,
   actionIcon,
   onAction,
+  inline = false,
 }: EmptyStateProps) {
   return (
     <Box
@@ -32,32 +34,33 @@ export function EmptyState({
         alignItems: "center",
         justifyContent: "center",
         textAlign: "center",
-        py: 8,
-        px: 4,
+        py: inline ? 3 : 8,
+        px: inline ? 2 : 4,
+        flex: 1,
       }}
     >
       <Box
         sx={{
-          width: 80,
-          height: 80,
-          borderRadius: 4,
+          width: inline ? 48 : 80,
+          height: inline ? 48 : 80,
+          borderRadius: inline ? 3 : 4,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           bgcolor: alpha(palette.primary.main, 0.1),
           color: palette.primary.light,
-          mb: 3,
+          mb: inline ? 1.5 : 3,
         }}
       >
-        <Icon size={40} strokeWidth={1.5} />
+        <Icon size={inline ? 24 : 40} strokeWidth={1.5} />
       </Box>
 
       <Typography
-        variant="h5"
+        variant={inline ? "subtitle2" : "h5"}
         sx={{
           color: palette.text.primary,
           fontWeight: 600,
-          mb: 1,
+          mb: 0.5,
         }}
       >
         {title}
@@ -65,11 +68,11 @@ export function EmptyState({
 
       {description && (
         <Typography
-          variant="body1"
+          variant={inline ? "caption" : "body1"}
           sx={{
             color: palette.text.secondary,
-            maxWidth: 320,
-            mb: actionLabel ? 3 : 0,
+            maxWidth: inline ? 240 : 320,
+            mb: actionLabel ? (inline ? 2 : 3) : 0,
           }}
         >
           {description}

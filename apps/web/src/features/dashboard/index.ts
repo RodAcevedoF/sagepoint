@@ -5,6 +5,6 @@ export { DashboardMetrics } from "./components/DashboardMetrics";
 export { DashboardProgress } from "./components/DashboardProgress";
 export { DashboardActivity } from "./components/DashboardActivity";
 export { DashboardQuickActions } from "./components/DashboardQuickActions";
-export { DashboardTopics } from "./components/DashboardTopics";
+export { DashboardInsights } from "./components/DashboardInsights";
 
 export type * from "./types/dashboard.types";

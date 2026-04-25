@@ -3,7 +3,8 @@
 import { Box, Typography, Stack } from "@mui/material";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Card } from "@/shared/components";
+import { TrendingUp } from "lucide-react";
+import { Card, EmptyState } from "@/shared/components";
 import { palette } from "@/shared/theme";
 import type { RoadmapProgressItem } from "../types/dashboard.types";
 import { RoadmapProgressCard } from "./RoadmapProgressCard";
@@ -65,20 +66,31 @@ export function DashboardProgress({ data }: DashboardProgressProps) {
           </Box>
         </Box>
 
-        <Stack
-          spacing={2}
-          sx={{ overflowY: "auto", overflowX: "hidden", flex: 1 }}
-        >
-          {visible.map((item, index) => (
-            <RoadmapProgressCard
-              key={item.id}
-              item={item}
-              color={PROGRESS_COLORS[index % PROGRESS_COLORS.length]}
-              index={index}
-              onClick={(id) => router.push(`/roadmaps/${id}`)}
-            />
-          ))}
-        </Stack>
+        {visible.length === 0 ? (
+          <EmptyState
+            inline
+            icon={TrendingUp}
+            title="No progress yet"
+            description="Start a step in any roadmap to see your progress here"
+            actionLabel="Browse roadmaps"
+            onAction={() => router.push("/roadmaps")}
+          />
+        ) : (
+          <Stack
+            spacing={2}
+            sx={{ overflowY: "auto", overflowX: "hidden", flex: 1 }}
+          >
+            {visible.map((item, index) => (
+              <RoadmapProgressCard
+                key={item.id}
+                item={item}
+                color={PROGRESS_COLORS[index % PROGRESS_COLORS.length]}
+                index={index}
+                onClick={(id) => router.push(`/roadmaps/${id}`)}
+              />
+            ))}
+          </Stack>
+        )}
       </Card>
     </motion.div>
   );

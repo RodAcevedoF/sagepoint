@@ -3,7 +3,7 @@ import {
   computeMetrics,
   computeRoadmapProgress,
   computeRecentRoadmaps,
-  computeDifficultyDistribution,
+  computeInsights,
 } from "@/features/dashboard/utils/dashboard.utils";
 import type { DashboardRoadmap } from "@/features/dashboard/types/dashboard.types";
 
@@ -54,14 +54,14 @@ describe("computeMetrics", () => {
     const result = computeMetrics([]);
     expect(result).toEqual({
       totalHoursLearned: 0,
-      topicsCompleted: 0,
+      completedRoadmaps: 0,
       activeRoadmaps: 0,
       totalStepsCompleted: 0,
       overallProgress: 0,
     });
   });
 
-  it("sums duration across steps and converts minutes to hours", () => {
+  it("pro-rates duration by completion ratio and converts minutes to hours", () => {
     const roadmap = makeDashboardRoadmap({
       roadmap: {
         steps: [
@@ -69,6 +69,8 @@ describe("computeMetrics", () => {
           makeStep({ estimatedDuration: 60 }),
         ],
       },
+      // 4/4 completed → 100% → all 180min count → 3h
+      progress: { completedSteps: 4, totalSteps: 4, progressPercentage: 100 },
     });
     const result = computeMetrics([roadmap]);
     expect(result.totalHoursLearned).toBe(3);
@@ -162,33 +164,35 @@ describe("computeRecentRoadmaps", () => {
   });
 });
 
-describe("computeDifficultyDistribution", () => {
-  it("computes percentage distribution grouped by difficulty", () => {
+describe("computeInsights", () => {
+  it("groups steps by difficulty with correct counts", () => {
     const roadmap = makeDashboardRoadmap({
       roadmap: {
         steps: [
           makeStep({ difficulty: "beginner" }),
           makeStep({ difficulty: "beginner" }),
           makeStep({ difficulty: "advanced" }),
-          makeStep({ difficulty: "advanced" }),
         ],
       },
     });
-    const result = computeDifficultyDistribution([roadmap]);
-    expect(result).toHaveLength(2);
-    expect(result.every((d) => d.value === 50)).toBe(true);
+    const result = computeInsights([roadmap]);
+    expect(result.difficultyBreakdown).toHaveLength(2);
+    const beginner = result.difficultyBreakdown.find(
+      (d) => d.name === "Beginner",
+    );
+    expect(beginner?.count).toBe(2);
   });
 
-  it("returns empty array when no steps exist", () => {
+  it("returns zero totalSteps when no steps exist", () => {
     const roadmap = makeDashboardRoadmap({ roadmap: { steps: [] } });
-    expect(computeDifficultyDistribution([roadmap])).toEqual([]);
+    expect(computeInsights([roadmap]).totalSteps).toBe(0);
   });
 
   it("capitalizes difficulty names", () => {
     const roadmap = makeDashboardRoadmap({
       roadmap: { steps: [makeStep({ difficulty: "beginner" })] },
     });
-    const result = computeDifficultyDistribution([roadmap]);
-    expect(result[0].name).toBe("Beginner");
+    const result = computeInsights([roadmap]);
+    expect(result.difficultyBreakdown[0].name).toBe("Beginner");
   });
 });

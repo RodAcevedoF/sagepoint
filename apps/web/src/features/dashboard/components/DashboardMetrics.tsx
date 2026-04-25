@@ -2,7 +2,7 @@
 
 import { Box, Typography, Grid, alpha } from "@mui/material";
 import { motion } from "framer-motion";
-import { Clock, BookCheck, Map, CheckCircle } from "lucide-react";
+import { Clock, Trophy, Map, CheckCircle } from "lucide-react";
 import { Card } from "@/shared/components";
 import { palette } from "@/shared/theme";
 import type { UserMetrics } from "../types/dashboard.types";
@@ -41,9 +41,9 @@ const metricConfigs = [
     lightColor: palette.info.light,
   },
   {
-    key: "topicsCompleted",
-    label: "Topics Completed",
-    icon: BookCheck,
+    key: "completedRoadmaps",
+    label: "Roadmaps Completed",
+    icon: Trophy,
     format: (v: number) => v.toString(),
     color: palette.success.main,
     lightColor: palette.success.light,

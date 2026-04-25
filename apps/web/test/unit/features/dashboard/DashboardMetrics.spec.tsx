@@ -5,7 +5,7 @@ import type { UserMetrics } from "@/features/dashboard/types/dashboard.types";
 
 const metrics: UserMetrics = {
   totalHoursLearned: 42,
-  topicsCompleted: 15,
+  completedRoadmaps: 5,
   activeRoadmaps: 3,
   totalStepsCompleted: 28,
   overallProgress: 65,
@@ -18,8 +18,8 @@ describe("DashboardMetrics", () => {
     expect(screen.getByText("42h")).toBeInTheDocument();
     expect(screen.getByText("Learning Hours")).toBeInTheDocument();
 
-    expect(screen.getByText("15")).toBeInTheDocument();
-    expect(screen.getByText("Topics Completed")).toBeInTheDocument();
+    expect(screen.getByText("5")).toBeInTheDocument();
+    expect(screen.getByText("Roadmaps Completed")).toBeInTheDocument();
 
     expect(screen.getByText("3")).toBeInTheDocument();
     expect(screen.getByText("Active Roadmaps")).toBeInTheDocument();
@@ -31,14 +31,13 @@ describe("DashboardMetrics", () => {
   it("renders zero values correctly", () => {
     const zeroMetrics: UserMetrics = {
       totalHoursLearned: 0,
-      topicsCompleted: 0,
+      completedRoadmaps: 0,
       activeRoadmaps: 0,
       totalStepsCompleted: 0,
       overallProgress: 0,
     };
     render(<DashboardMetrics metrics={zeroMetrics} />);
     expect(screen.getByText("0h")).toBeInTheDocument();
-    // All zeros
     const zeros = screen.getAllByText("0");
     expect(zeros).toHaveLength(3);
   });

@@ -18,7 +18,7 @@ export interface DashboardRoadmap {
 
 export interface UserMetrics {
   totalHoursLearned: number;
-  topicsCompleted: number;
+  completedRoadmaps: number;
   activeRoadmaps: number;
   totalStepsCompleted: number;
   overallProgress: number;
@@ -42,8 +42,16 @@ export interface RecentRoadmapItem {
   totalSteps: number;
 }
 
-export interface TopicDistribution {
+export interface DifficultySegment {
   name: string;
-  value: number;
+  count: number;
   color: string;
+}
+
+export interface InsightsData {
+  difficultyBreakdown: DifficultySegment[];
+  avgMinutesPerStep: number;
+  hoursInvested: number;
+  hoursRemaining: number;
+  totalSteps: number;
 }
