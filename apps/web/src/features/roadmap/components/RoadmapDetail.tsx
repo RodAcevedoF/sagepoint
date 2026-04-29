@@ -21,7 +21,7 @@ import { useCurrentUser } from "@/features/auth/context/UserContext";
 import { TimelineStep } from "./TimelineStep/TimelineStep";
 import { LikeButton } from "./LikeButton";
 import { SuggestionsPanel } from "./SuggestionsPanel";
-import { CategorySelector } from "./CategorySelector";
+import { CategorySelector } from "./Category/CategorySelector";
 import { makeStyles } from "./RoadmapDetail.styles";
 
 const LazyRoadmapGraph = lazy(() =>

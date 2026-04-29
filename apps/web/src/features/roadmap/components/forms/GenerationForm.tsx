@@ -4,17 +4,17 @@ import { Box, TextField, Typography, useTheme } from "@mui/material";
 import { Sparkles } from "lucide-react";
 import { Button, ResourceQuotaBar } from "@/shared/components";
 import { ButtonTypes, ButtonIconPositions, ButtonSizes } from "@/shared/types";
-import { RoadmapRecommendations } from "./RoadmapRecommendations";
+import { RoadmapRecommendations } from "../RoadmapRecommendations";
 import {
   ExperienceLevelSelector,
   type ExperienceLevel,
-} from "./ExperienceLevelSelector";
+} from "../ExperienceLevelSelector";
 import {
   CommitmentLevelSelector,
   type CommitmentLevel,
-} from "./CommitmentLevelSelector";
+} from "../Category/CommitmentLevelSelector";
 import type { ResourceQuotaDto } from "@/infrastructure/api/userApi";
-import { makeStyles } from "./GenerationView.styles";
+import { makeStyles } from "../GenerateTimeline/GenerationView.styles";
 
 interface GenerationFormProps {
   topic: string;

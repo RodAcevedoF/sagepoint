@@ -1,13 +1,13 @@
 export { RoadmapList } from "./components/RoadmapList";
 export { RoadmapDetail } from "./components/RoadmapDetail";
-export { RoadmapCard } from "./components/RoadmapCard";
+export { RoadmapCard } from "./components/RoadmapCard/RoadmapCard";
 export { StepResources } from "./components/StepResources";
 export { CreateRoadmapModal } from "./components/CreateRoadmapModal/CreateRoadmapModal";
 export { RoadmapHero } from "./components/RoadmapHero";
 export { RoadmapStats } from "./components/RoadmapStats";
 export { TimelineStep } from "./components/TimelineStep/TimelineStep";
 export { GenerationStage } from "./components/GenerationStage";
-export { GenerationView } from "./components/GenerationView";
-export { GeneratingTimeline } from "./components/GeneratingTimeline";
+export { GenerationView } from "./components/GenerateTimeline/GenerationView";
+export { GeneratingTimeline } from "./components/GenerateTimeline/GeneratingTimeline";
 export { ExploreRoadmaps } from "./components/ExploreRoadmaps";
 export { LikeButton } from "./components/LikeButton";

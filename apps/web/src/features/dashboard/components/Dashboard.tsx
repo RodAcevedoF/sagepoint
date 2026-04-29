@@ -3,10 +3,11 @@
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Grid } from "@mui/material";
+import { AnimatePresence } from "framer-motion";
 import { useCurrentUser } from "@/features/auth/context/UserContext";
 import { useWatchGenerationCommand } from "@/application/roadmap";
 import { useSnackbar } from "@/shared/components";
-import { GeneratingTimeline } from "@/features/roadmap";
+import { OnboardingRoadmapReveal } from "@/features/onboarding";
 import { DevTools } from "./DevTools";
 import { DashboardSkeleton } from "./DashboardSkeleton";
 import { useUserRoadmapsQuery } from "@/application/roadmap/queries/get-user-roadmaps.query";
@@ -92,16 +93,19 @@ export function Dashboard() {
     );
   }
 
-  if (isCreatingFirstRoadmap) {
+  if (!isCreatingFirstRoadmap) {
     const creatingRoadmap = creatingRoadmapId
       ? roadmaps?.find((r) => r.roadmap.id === creatingRoadmapId)
       : undefined;
     return (
       <DashboardLayout>
-        <GeneratingTimeline
-          topic={creatingRoadmap?.roadmap.title ?? ""}
-          sseStage={sseStage}
-        />
+        <AnimatePresence mode="wait">
+          <OnboardingRoadmapReveal
+            key="onboarding-reveal"
+            topic={creatingRoadmap?.roadmap.title ?? ""}
+            sseStage={sseStage}
+          />
+        </AnimatePresence>
       </DashboardLayout>
     );
   }

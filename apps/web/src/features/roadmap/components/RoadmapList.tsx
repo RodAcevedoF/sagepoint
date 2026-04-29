@@ -9,12 +9,12 @@ import { useUserRoadmapsQuery } from "@/application/roadmap";
 import { useCategoriesQuery } from "@/application/onboarding/queries/get-categories.query";
 import { ErrorState, Button } from "@/shared/components";
 import { ButtonIconPositions, ButtonSizes } from "@/shared/types";
-import { RoadmapCard } from "./RoadmapCard";
+import { RoadmapCard } from "./RoadmapCard/RoadmapCard";
 import { RoadmapCardSkeleton } from "./RoadmapCardSkeleton";
 import { RoadmapHero } from "./RoadmapHero";
 import { RoadmapStats } from "./RoadmapStats";
-import { CategoryFilter } from "./CategoryFilter";
-import { GeneratingCard } from "./GeneratingCard";
+import { CategoryFilter } from "./Category/CategoryFilter";
+import { GeneratingCard } from "./GeneratingCard/GeneratingCard";
 import { makeStyles } from "./RoadmapList.styles";
 
 const MotionGrid = motion.create(Grid);

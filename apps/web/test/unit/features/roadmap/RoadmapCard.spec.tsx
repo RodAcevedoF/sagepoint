@@ -5,7 +5,7 @@ import { describe, it, expect, vi } from "vitest";
 import { http, HttpResponse } from "msw";
 import { server } from "@test/_helpers/msw-server";
 import { renderWithProviders } from "@test/_helpers/render";
-import { RoadmapCard } from "@/features/roadmap/components/RoadmapCard";
+import { RoadmapCard } from "@/features/roadmap/components/RoadmapCard/RoadmapCard";
 import { mockRouter } from "@test/_helpers/next-mocks";
 import { makeUserRoadmap } from "@test/_helpers/fixtures";
 import { RoadmapVisibility } from "@sagepoint/domain";

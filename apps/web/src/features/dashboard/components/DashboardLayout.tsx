@@ -12,7 +12,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     <Container
       maxWidth="xl"
       sx={{
-        pt: { xs: 4, md: 6 },
+        pt: { xs: 2, md: 4 },
         pb: { xs: 12, md: 10 },
       }}
     >

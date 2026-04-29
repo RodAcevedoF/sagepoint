@@ -12,13 +12,19 @@ import {
 } from "lucide-react";
 import { useCurrentUser } from "@/features/auth/context/UserContext";
 import { AppBar } from "./AppBar";
+import { useDashboardAppBarVisibility } from "./DashboardAppBarVisibilityContext";
 
 export function DashboardAppBar() {
   const router = useRouter();
   const pathname = usePathname();
   const user = useCurrentUser();
+  const { isHidden } = useDashboardAppBarVisibility();
 
   const isAdmin = user?.role === "ADMIN";
+
+  if (isHidden) {
+    return null;
+  }
 
   const getActiveItem = () => {
     if (pathname === "/dashboard") return "home";

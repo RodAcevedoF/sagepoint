@@ -1,4 +1,5 @@
 export { OnboardingLayout } from "./components/OnboardingLayout";
+export { OnboardingRoadmapReveal } from "./components/OnboardingRoadmapReveal";
 export { OnboardingProvider, useOnboarding } from "./context/OnboardingContext";
 export {
   WelcomeStep,

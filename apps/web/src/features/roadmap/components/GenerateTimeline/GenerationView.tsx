@@ -12,13 +12,13 @@ import { useGetResourceQuotaQuery } from "@/infrastructure/api/userApi";
 import {
   isExperienceLevel,
   type ExperienceLevel,
-} from "./ExperienceLevelSelector";
+} from "../ExperienceLevelSelector";
 import {
   COMMITMENT_LEVELS,
   type CommitmentLevel,
-} from "./CommitmentLevelSelector";
+} from "../Category/CommitmentLevelSelector";
 import { GeneratingTimeline } from "./GeneratingTimeline";
-import { GenerationForm } from "./GenerationForm";
+import { GenerationForm } from "../forms/GenerationForm";
 
 const MotionBox = motion.create(Box);
 

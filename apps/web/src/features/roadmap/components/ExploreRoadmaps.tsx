@@ -18,7 +18,7 @@ import { useCategoriesQuery } from "@/application/onboarding/queries/get-categor
 import { ErrorState, SearchInput } from "@/shared/components";
 import { palette } from "@/shared/theme";
 import { RoadmapCardSkeleton } from "./RoadmapCardSkeleton";
-import { CategoryFilter } from "./CategoryFilter";
+import { CategoryFilter } from "./Category/CategoryFilter";
 import { ExploreCard } from "./ExploreCard";
 import { ExploreHero } from "./ExploreHero";
 

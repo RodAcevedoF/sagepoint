@@ -28,7 +28,7 @@ import {
   formatRelativeTime,
   getDifficultyDistribution,
   getStatus,
-} from "../utils/roadmap.utils";
+} from "../../utils/roadmap.utils";
 
 interface RoadmapCardProps {
   data: UserRoadmapDto;
