@@ -43,8 +43,8 @@ export function FeatureReel({
         width: "100%",
         height: "100%",
         minHeight: 0,
-        overflow: "hidden",
-        borderRadius: { xs: 3, md: 4 },
+        overflowX: "hidden",
+        overflowY: { xs: "visible", md: "hidden" },
       }}
     >
       <AnimatePresence mode="wait">
@@ -71,7 +71,7 @@ export function FeatureReel({
       <Box
         sx={{
           position: "absolute",
-          bottom: { xs: 10, md: 16 },
+          bottom: { xs: 2, sm: 6, md: 16 },
           left: 0,
           right: 0,
           display: "flex",
@@ -84,13 +84,13 @@ export function FeatureReel({
           <Box
             key={i}
             sx={{
-              height: { xs: 5, md: 6 },
-              width: i === index ? { xs: 22, md: 28 } : { xs: 5, md: 6 },
-              borderRadius: 3,
+              height: 2,
+              width: i === index ? { xs: 24, md: 34 } : { xs: 10, md: 14 },
+              borderRadius: 999,
               background:
                 i === index
                   ? theme.palette.primary.light
-                  : alpha(theme.palette.primary.light, 0.22),
+                  : alpha(theme.palette.common.white, 0.18),
               transition: "all 0.5s ease",
             }}
           />

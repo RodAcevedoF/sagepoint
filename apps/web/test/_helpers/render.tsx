@@ -7,6 +7,9 @@ import { ModalContext } from "@/shared/components/ui/Modal/modal-context";
 import { SnackbarContext } from "@/shared/components/feedback/Snackbar/snackbar-context";
 import { UserProvider } from "@/features/auth/context/UserContext";
 import type { UserDto } from "@/infrastructure/api/authApi";
+import { CssBaseline, ThemeProvider } from "@mui/material";
+import { darkTheme } from "@/shared/theme";
+import { DashboardAppBarVisibilityProvider } from "@/shared/components/layout/AppBar/DashboardAppBarVisibilityContext";
 import { mockUser } from "./fixtures";
 import { vi } from "vitest";
 import type { ReactElement } from "react";
@@ -40,28 +43,33 @@ export function renderWithProviders(
   function Wrapper({ children }: { children: React.ReactNode }) {
     return (
       <Provider store={store}>
-        <UserProvider user={user}>
-          <SnackbarContext.Provider
-            value={{
-              snackbars: [],
-              showSnackbar: vi.fn(() => "snack-1"),
-              hideSnackbar: vi.fn(),
-              clearAll: vi.fn(),
-            }}
-          >
-            <ModalContext.Provider
-              value={{
-                isOpen: false,
-                content: null,
-                options: {},
-                openModal: vi.fn(),
-                closeModal: vi.fn(),
-              }}
-            >
-              {children}
-            </ModalContext.Provider>
-          </SnackbarContext.Provider>
-        </UserProvider>
+        <ThemeProvider theme={darkTheme}>
+          <CssBaseline />
+          <DashboardAppBarVisibilityProvider>
+            <UserProvider user={user}>
+              <SnackbarContext.Provider
+                value={{
+                  snackbars: [],
+                  showSnackbar: vi.fn(() => "snack-1"),
+                  hideSnackbar: vi.fn(),
+                  clearAll: vi.fn(),
+                }}
+              >
+                <ModalContext.Provider
+                  value={{
+                    isOpen: false,
+                    content: null,
+                    options: {},
+                    openModal: vi.fn(),
+                    closeModal: vi.fn(),
+                  }}
+                >
+                  {children}
+                </ModalContext.Provider>
+              </SnackbarContext.Provider>
+            </UserProvider>
+          </DashboardAppBarVisibilityProvider>
+        </ThemeProvider>
       </Provider>
     );
   }

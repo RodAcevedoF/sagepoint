@@ -93,7 +93,7 @@ export function Dashboard() {
     );
   }
 
-  if (!isCreatingFirstRoadmap) {
+  if (isCreatingFirstRoadmap) {
     const creatingRoadmap = creatingRoadmapId
       ? roadmaps?.find((r) => r.roadmap.id === creatingRoadmapId)
       : undefined;

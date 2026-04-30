@@ -13,16 +13,29 @@ import {
 
 const API = "http://localhost:3001";
 
+const emptyActivitySummary = {
+  days: [],
+  totalLast7: 0,
+  totalLast30: 0,
+  totalPrev30: 0,
+  currentStreak: 0,
+  longestStreak: 0,
+};
+
 function setupHandlers({
   user = mockUser,
   roadmaps = [
     makeUserRoadmap({ title: "React Basics", completed: 3, total: 5 }),
   ],
   documents = [makeDocument()],
+  activity = emptyActivitySummary,
 } = {}) {
   server.use(
     http.get(`${API}/auth/me`, () => HttpResponse.json(user)),
     http.get(`${API}/roadmaps/user/me`, () => HttpResponse.json(roadmaps)),
+    http.get(`${API}/roadmaps/user/me/activity`, () =>
+      HttpResponse.json(activity),
+    ),
     http.get(`${API}/documents/user/me`, () =>
       HttpResponse.json({
         data: documents,
