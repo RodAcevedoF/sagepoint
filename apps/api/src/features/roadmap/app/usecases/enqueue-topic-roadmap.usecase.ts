@@ -51,9 +51,7 @@ export class EnqueueTopicRoadmapUseCase {
       command.topic,
       title,
       command.userId,
-      command.userContext
-        ? { experienceLevel: command.userContext.experienceLevel }
-        : undefined,
+      command.userContext,
     );
 
     return saved;

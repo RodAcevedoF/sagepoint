@@ -37,6 +37,8 @@ export interface RoadmapDto {
   description?: string;
   steps: RoadmapStep[];
   generationStatus: RoadmapGenerationStatus;
+  resourcesStatus: "pending" | "processing" | "completed" | "failed";
+  resourcesErrorMessage?: string;
   totalEstimatedDuration?: number;
   recommendedPace?: string;
   errorMessage?: string;

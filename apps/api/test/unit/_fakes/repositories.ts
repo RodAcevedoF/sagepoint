@@ -318,6 +318,10 @@ export class FakeRoadmapRepository implements IRoadmapRepository {
     return Promise.resolve();
   }
 
+  updateResources(): Promise<void> {
+    return Promise.resolve();
+  }
+
   saveConcept(concept: Concept): Promise<Concept> {
     return Promise.resolve(concept);
   }

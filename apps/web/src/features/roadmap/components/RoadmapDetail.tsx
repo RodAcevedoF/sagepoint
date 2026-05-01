@@ -280,7 +280,9 @@ export function RoadmapDetail({ roadmapId }: RoadmapDetailProps) {
               roadmapId={roadmapId}
               status={stepProgress[step.concept.id] || StepStatus.NOT_STARTED}
               resources={resourcesByConceptId[step.concept.id] || []}
-              resourcesLoading={false}
+              resourcesLoading={
+                roadmapData.roadmap.resourcesStatus !== "completed"
+              }
               isLast={index === topLevelSteps.length - 1}
               index={index}
               parentDocumentId={roadmap.documentId}

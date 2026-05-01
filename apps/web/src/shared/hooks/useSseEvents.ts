@@ -74,13 +74,20 @@ export function useSseEvents<TStage extends string>(
             });
             break;
           case "completed":
-          case "partial-complete":
             setState({
               status: "completed",
               stage: completedStageRef.current,
               errorMessage: null,
             });
             es.close();
+            break;
+          case "partial-complete":
+            // Phase 1 done — roadmap is navigable, keep stream open for phase 2
+            setState({
+              status: "processing",
+              stage: (data.stage as TStage) ?? null,
+              errorMessage: null,
+            });
             break;
           case "failed":
           case "error":

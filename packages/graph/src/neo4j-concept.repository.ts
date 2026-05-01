@@ -1,8 +1,8 @@
-import { IConceptRepository, Concept } from '@sagepoint/domain';
-import type { ConceptGraph } from '@sagepoint/domain';
-import { Neo4jService } from './neo4j.service';
-import { Injectable, Logger } from '@nestjs/common';
-import type { Record as Neo4jRecord, Node } from 'neo4j-driver';
+import { IConceptRepository, Concept } from "@sagepoint/domain";
+import type { ConceptGraph } from "@sagepoint/domain";
+import { Neo4jService } from "./neo4j.service";
+import { Injectable, Logger } from "@nestjs/common";
+import type { Record as Neo4jRecord, Node } from "neo4j-driver";
 
 interface Neo4jConceptProperties {
   id: string;
@@ -25,8 +25,8 @@ export class Neo4jConceptRepository implements IConceptRepository {
     await this.neo4j.write(cypher, {
       id: concept.id,
       name: concept.name,
-      description: concept.description || '',
-      documentId: concept.documentId || '',
+      description: concept.description || "",
+      documentId: concept.documentId || "",
     });
   }
 
@@ -34,16 +34,15 @@ export class Neo4jConceptRepository implements IConceptRepository {
     concepts: Concept[],
     relationships: { fromId: string; toId: string; type: string }[],
     sourceId?: string,
-    sourceType?: 'Document' | 'Roadmap',
+    sourceType?: "Document" | "Roadmap",
   ): Promise<void> {
     const session = this.neo4j.getDriver().session();
     try {
       // Create source node if provided
       if (sourceId && sourceType) {
-        await session.run(
-          `MERGE (s:${sourceType} {id: $id})`,
-          { id: sourceId },
-        );
+        await session.run(`MERGE (s:${sourceType} {id: $id})`, {
+          id: sourceId,
+        });
       }
 
       // MERGE concepts by ID, link same-name concepts with SAME_AS
@@ -52,7 +51,7 @@ export class Neo4jConceptRepository implements IConceptRepository {
           `
           MERGE (c:Concept {id: $id})
           SET c.name = $name, c.description = $description
-          ${concept.documentId ? ', c.documentId = $documentId' : ''}
+          ${concept.documentId ? ", c.documentId = $documentId" : ""}
           WITH c
           OPTIONAL MATCH (existing:Concept)
           WHERE existing.id <> c.id AND toLower(existing.name) = toLower(c.name)
@@ -63,8 +62,8 @@ export class Neo4jConceptRepository implements IConceptRepository {
           {
             id: concept.id,
             name: concept.name,
-            description: concept.description || '',
-            documentId: concept.documentId || '',
+            description: concept.description || "",
+            documentId: concept.documentId || "",
           },
         );
 
@@ -83,7 +82,7 @@ export class Neo4jConceptRepository implements IConceptRepository {
 
       // Create relationships
       for (const rel of relationships) {
-        const relType = rel.type.toUpperCase().replace(/[^A-Z_]/g, '_');
+        const relType = rel.type.toUpperCase().replace(/[^A-Z_]/g, "_");
         await session.run(
           `
           MATCH (a:Concept {id: $fromId})
@@ -132,9 +131,9 @@ export class Neo4jConceptRepository implements IConceptRepository {
     );
 
     const edges = edgesResult.records.map((r) => ({
-      from: r.get('from') as string,
-      to: r.get('to') as string,
-      type: r.get('type') as string,
+      from: r.get("from") as string,
+      to: r.get("to") as string,
+      type: r.get("type") as string,
     }));
 
     return { nodes, edges };
@@ -154,7 +153,7 @@ export class Neo4jConceptRepository implements IConceptRepository {
       MATCH (c:Concept)
       WHERE ANY(term IN $names WHERE toLower(c.name) CONTAINS term)
       RETURN c
-      LIMIT $limit
+      LIMIT toInteger($limit)
       `,
       { names: lowerNames, limit },
     );
@@ -179,9 +178,9 @@ export class Neo4jConceptRepository implements IConceptRepository {
     );
 
     const edges = edgesResult.records.map((r) => ({
-      from: r.get('from') as string,
-      to: r.get('to') as string,
-      type: r.get('type') as string,
+      from: r.get("from") as string,
+      to: r.get("to") as string,
+      type: r.get("type") as string,
     }));
 
     return { nodes, edges };
@@ -214,7 +213,7 @@ export class Neo4jConceptRepository implements IConceptRepository {
   }
 
   private extractConceptNode(record: Neo4jRecord): Neo4jConceptProperties {
-    const node = record.get('c') as Node;
+    const node = record.get("c") as Node;
     const props = node.properties as Neo4jConceptProperties;
     return {
       id: props.id,

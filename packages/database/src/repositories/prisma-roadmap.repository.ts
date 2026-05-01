@@ -4,12 +4,15 @@ import {
   IRoadmapRepository,
   RoadmapStep,
   RoadmapGenerationStatus,
+  RoadmapResourcesStatus,
   RoadmapVisibility,
 } from "@sagepoint/domain";
+import type { RoadmapResourcesUpdate } from "@sagepoint/domain";
 import type {
   PrismaClient,
   Roadmap as PrismaRoadmap,
   RoadmapGenerationStatus as PrismaGenStatus,
+  RoadmapResourcesStatus as PrismaResourcesStatus,
   RoadmapVisibility as PrismaVisibility,
 } from "../generated/prisma/client";
 
@@ -170,6 +173,22 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
     });
   }
 
+  async updateResources(
+    id: string,
+    data: RoadmapResourcesUpdate,
+  ): Promise<void> {
+    await this.prisma.roadmap.update({
+      where: { id },
+      data: {
+        resourcesStatus:
+          data.resourcesStatus.toUpperCase() as PrismaResourcesStatus,
+        ...(data.resourcesErrorMessage !== undefined && {
+          resourcesErrorMessage: data.resourcesErrorMessage,
+        }),
+      },
+    });
+  }
+
   async delete(id: string): Promise<void> {
     await this.prisma.roadmap.delete({ where: { id } });
   }
@@ -268,6 +287,10 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
       description: data.description || undefined,
       steps: this.deserializeSteps(data.steps),
       generationStatus: this.mapStatusToDomain(data.generationStatus),
+      resourcesStatus: (
+        data.resourcesStatus as string
+      ).toLowerCase() as RoadmapResourcesStatus,
+      resourcesErrorMessage: data.resourcesErrorMessage || undefined,
       totalEstimatedDuration: data.totalDuration || undefined,
       recommendedPace: data.recommendedPace || undefined,
       errorMessage: data.errorMessage || undefined,

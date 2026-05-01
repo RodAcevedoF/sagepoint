@@ -1,6 +1,7 @@
 import type {
   Roadmap,
   RoadmapGenerationStatus,
+  RoadmapResourcesStatus,
   RoadmapStep,
 } from "../entities/roadmap.entity";
 import { type RoadmapVisibility } from "../entities/roadmap.entity";
@@ -18,6 +19,11 @@ export interface RoadmapGenerationUpdate {
   errorMessage?: string;
 }
 
+export interface RoadmapResourcesUpdate {
+  resourcesStatus: RoadmapResourcesStatus;
+  resourcesErrorMessage?: string;
+}
+
 export interface IRoadmapRepository {
   save(roadmap: Roadmap): Promise<Roadmap>;
   findById(id: string): Promise<Roadmap | null>;
@@ -27,6 +33,7 @@ export interface IRoadmapRepository {
   updateVisibility(id: string, visibility: RoadmapVisibility): Promise<Roadmap>;
   updateCategory(id: string, categoryId: string | null): Promise<Roadmap>;
   updateGeneration(id: string, data: RoadmapGenerationUpdate): Promise<void>;
+  updateResources(id: string, data: RoadmapResourcesUpdate): Promise<void>;
   delete(id: string): Promise<void>;
 
   searchPublic(query: string, limit?: number): Promise<Roadmap[]>;

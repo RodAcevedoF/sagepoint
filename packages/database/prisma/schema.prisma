@@ -36,6 +36,13 @@ enum RoadmapGenerationStatus {
   FAILED
 }
 
+enum RoadmapResourcesStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
 enum StepStatus {
   NOT_STARTED
   IN_PROGRESS
@@ -320,6 +327,8 @@ model Roadmap {
 
   steps              Json     // Storing steps as JSON for simplicity, or could be separate model
   generationStatus   RoadmapGenerationStatus @default(PENDING)
+  resourcesStatus    RoadmapResourcesStatus  @default(PENDING)
+  resourcesErrorMessage String?
   totalDuration      Int?     // Total estimated duration in minutes
   recommendedPace    String?  // e.g., "2-3 concepts per week"
   errorMessage       String?

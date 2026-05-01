@@ -71,6 +71,8 @@ export class RoadmapController {
     private readonly roadmapService: IRoadmapService,
     @Inject('ROADMAP_QUEUE_EVENTS')
     private readonly queueEvents: QueueEvents,
+    @Inject('ROADMAP_RESOURCES_QUEUE_EVENTS')
+    private readonly resourcesQueueEvents: QueueEvents,
   ) {}
 
   @Post()
@@ -113,8 +115,8 @@ export class RoadmapController {
         subscriber.complete();
       };
 
-      // 1. Subscribe to BullMQ events FIRST (so nothing is missed)
-      const onProgress = (args: { jobId: string; data: unknown }) => {
+      // Phase 1 (roadmap-generation) handlers
+      const onPhase1Progress = (args: { jobId: string; data: unknown }) => {
         if (args.jobId === roadmapId) {
           subscriber.next({
             data: JSON.stringify({
@@ -125,12 +127,15 @@ export class RoadmapController {
         }
       };
 
-      const onCompleted = (args: { jobId: string }) => {
+      const onPhase1Completed = (args: { jobId: string }) => {
         if (args.jobId === roadmapId) {
+          // Phase 1 done — roadmap is navigable, keep stream open for phase 2
           subscriber.next({
-            data: JSON.stringify({ type: 'completed' }),
+            data: JSON.stringify({
+              type: 'partial-complete',
+              stage: 'learning-path',
+            }),
           });
-          finish();
         }
       };
 
@@ -146,17 +151,45 @@ export class RoadmapController {
         }
       };
 
-      this.queueEvents.on('progress', onProgress);
-      this.queueEvents.on('completed', onCompleted);
-      this.queueEvents.on('failed', onFailed);
-
-      const cleanup = () => {
-        this.queueEvents.off('progress', onProgress);
-        this.queueEvents.off('completed', onCompleted);
-        this.queueEvents.off('failed', onFailed);
+      // Phase 2 (roadmap-resources) handlers
+      const onPhase2Progress = (args: { jobId: string; data: unknown }) => {
+        if (args.jobId === roadmapId) {
+          subscriber.next({
+            data: JSON.stringify({
+              type: 'progress',
+              ...(args.data as Record<string, unknown>),
+            }),
+          });
+        }
       };
 
-      // 2. THEN check DB for already-terminal state (handles race condition)
+      const onPhase2Completed = (args: { jobId: string }) => {
+        if (args.jobId === roadmapId) {
+          subscriber.next({
+            data: JSON.stringify({ type: 'completed', stage: 'done' }),
+          });
+          finish();
+        }
+      };
+
+      // 1. Subscribe to both queues FIRST (so nothing is missed)
+      this.queueEvents.on('progress', onPhase1Progress);
+      this.queueEvents.on('completed', onPhase1Completed);
+      this.queueEvents.on('failed', onFailed);
+      this.resourcesQueueEvents.on('progress', onPhase2Progress);
+      this.resourcesQueueEvents.on('completed', onPhase2Completed);
+      this.resourcesQueueEvents.on('failed', onFailed);
+
+      const cleanup = () => {
+        this.queueEvents.off('progress', onPhase1Progress);
+        this.queueEvents.off('completed', onPhase1Completed);
+        this.queueEvents.off('failed', onFailed);
+        this.resourcesQueueEvents.off('progress', onPhase2Progress);
+        this.resourcesQueueEvents.off('completed', onPhase2Completed);
+        this.resourcesQueueEvents.off('failed', onFailed);
+      };
+
+      // 2. THEN check DB for already-terminal or mid-flight state
       this.roadmapService
         .findById(roadmapId)
         .then((roadmap) => {
@@ -173,14 +206,6 @@ export class RoadmapController {
             return;
           }
 
-          if (roadmap.generationStatus === 'completed') {
-            subscriber.next({
-              data: JSON.stringify({ type: 'completed' }),
-            });
-            finish();
-            return;
-          }
-
           if (roadmap.generationStatus === 'failed') {
             subscriber.next({
               data: JSON.stringify({
@@ -192,7 +217,41 @@ export class RoadmapController {
             return;
           }
 
-          // Still in progress — emit current status, keep stream open for live events
+          // Phase 1 done, phase 2 also done
+          if (
+            roadmap.generationStatus === 'completed' &&
+            roadmap.resourcesStatus === 'completed'
+          ) {
+            subscriber.next({
+              data: JSON.stringify({ type: 'completed', stage: 'done' }),
+            });
+            finish();
+            return;
+          }
+
+          // Phase 1 done, phase 2 still running or failed
+          if (roadmap.generationStatus === 'completed') {
+            subscriber.next({
+              data: JSON.stringify({
+                type: 'partial-complete',
+                stage: 'learning-path',
+              }),
+            });
+            if (roadmap.resourcesStatus === 'failed') {
+              subscriber.next({
+                data: JSON.stringify({
+                  type: 'failed',
+                  message:
+                    roadmap.resourcesErrorMessage ||
+                    'Resource discovery failed',
+                }),
+              });
+              finish();
+            }
+            return;
+          }
+
+          // Still in phase 1 — emit current status, keep stream open for live events
           subscriber.next({
             data: JSON.stringify({
               type: 'status',

@@ -21,6 +21,12 @@ export type RoadmapGenerationStatus =
   | "completed"
   | "failed";
 
+export type RoadmapResourcesStatus =
+  | "pending"
+  | "processing"
+  | "completed"
+  | "failed";
+
 export interface RoadmapProps {
   id: string;
   title: string;
@@ -31,6 +37,8 @@ export interface RoadmapProps {
   description?: string;
   steps: RoadmapStep[];
   generationStatus?: RoadmapGenerationStatus;
+  resourcesStatus?: RoadmapResourcesStatus;
+  resourcesErrorMessage?: string;
   totalEstimatedDuration?: number; // in minutes
   recommendedPace?: string;
   errorMessage?: string;
@@ -49,6 +57,8 @@ export class Roadmap {
   readonly description?: string;
   readonly steps: RoadmapStep[];
   readonly generationStatus: RoadmapGenerationStatus;
+  readonly resourcesStatus: RoadmapResourcesStatus;
+  readonly resourcesErrorMessage?: string;
   readonly totalEstimatedDuration?: number;
   readonly recommendedPace?: string;
   readonly errorMessage?: string;
@@ -66,6 +76,8 @@ export class Roadmap {
     this.description = props.description;
     this.steps = props.steps;
     this.generationStatus = props.generationStatus || "pending";
+    this.resourcesStatus = props.resourcesStatus ?? "pending";
+    this.resourcesErrorMessage = props.resourcesErrorMessage;
     this.totalEstimatedDuration = props.totalEstimatedDuration;
     this.recommendedPace = props.recommendedPace;
     this.errorMessage = props.errorMessage;

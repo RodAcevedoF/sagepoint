@@ -1,4 +1,6 @@
-export const ROADMAP_GENERATION_QUEUE = Symbol('ROADMAP_GENERATION_QUEUE');
+import type { UserContext } from "../../../ports/roadmap-generation.port";
+
+export const ROADMAP_GENERATION_QUEUE = Symbol("ROADMAP_GENERATION_QUEUE");
 
 export interface IRoadmapGenerationQueue {
   add(
@@ -6,6 +8,6 @@ export interface IRoadmapGenerationQueue {
     topic: string,
     title: string,
     userId: string,
-    userContext?: { experienceLevel?: string },
+    userContext?: UserContext,
   ): Promise<void>;
 }

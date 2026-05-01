@@ -1,4 +1,4 @@
-import type { IRoadmapGenerationQueue } from '@sagepoint/domain';
+import type { IRoadmapGenerationQueue, UserContext } from '@sagepoint/domain';
 import { Queue } from 'bullmq';
 
 export class BullMqRoadmapGenerationQueue implements IRoadmapGenerationQueue {
@@ -9,7 +9,7 @@ export class BullMqRoadmapGenerationQueue implements IRoadmapGenerationQueue {
     topic: string,
     title: string,
     userId: string,
-    userContext?: { experienceLevel?: string },
+    userContext?: UserContext,
   ): Promise<void> {
     await this.queue.add(
       'generate-roadmap',

@@ -3,13 +3,11 @@ import { FakeLogger } from "../_fakes/logger.fake";
 import { FakeJob } from "../_fakes/job.fake";
 import {
   FakeRoadmapRepository,
-  FakeResourceRepository,
   FakeCategoryRepository,
 } from "../_fakes/repositories.fake";
 import {
   FakeTopicConceptGenerationService,
   FakeRoadmapGenerationService,
-  FakeResourceDiscoveryService,
   FakeConceptRepository,
 } from "../_fakes/services.fake";
 import type { Job } from "bullmq";
@@ -17,6 +15,7 @@ import {
   Concept,
   type ConceptForOrdering,
   type ConceptRelationshipForOrdering,
+  type UserContext,
 } from "@sagepoint/domain";
 
 interface JobData {
@@ -24,7 +23,7 @@ interface JobData {
   topic: string;
   title: string;
   userId: string;
-  userContext?: { experienceLevel?: string };
+  userContext?: UserContext;
 }
 
 const ROADMAP_ID = "roadmap-001";
@@ -44,10 +43,8 @@ const RELATIONSHIPS: ConceptRelationshipForOrdering[] = [
 function buildService(overrides?: {
   topicConceptGenerator?: FakeTopicConceptGenerationService;
   roadmapGenerator?: FakeRoadmapGenerationService;
-  resourceDiscovery?: FakeResourceDiscoveryService;
   conceptRepository?: FakeConceptRepository;
   roadmapRepo?: FakeRoadmapRepository;
-  resourceRepo?: FakeResourceRepository;
   categoryRepo?: FakeCategoryRepository;
   logger?: FakeLogger;
 }) {
@@ -56,12 +53,9 @@ function buildService(overrides?: {
     overrides?.topicConceptGenerator ?? new FakeTopicConceptGenerationService();
   const roadmapGenerator =
     overrides?.roadmapGenerator ?? new FakeRoadmapGenerationService();
-  const resourceDiscovery =
-    overrides?.resourceDiscovery ?? new FakeResourceDiscoveryService();
   const conceptRepository =
     overrides?.conceptRepository ?? new FakeConceptRepository();
   const roadmapRepo = overrides?.roadmapRepo ?? new FakeRoadmapRepository();
-  const resourceRepo = overrides?.resourceRepo ?? new FakeResourceRepository();
   const categoryRepo = overrides?.categoryRepo ?? new FakeCategoryRepository();
 
   const fakeTokenBalanceRepo = {
@@ -75,17 +69,20 @@ function buildService(overrides?: {
     classify: jest.fn().mockResolvedValue(null),
   } as never;
 
+  const fakeResourcesQueue = {
+    add: jest.fn().mockResolvedValue(undefined),
+  } as never;
+
   const service = new RoadmapProcessorService(
     logger as never,
     topicConceptGenerator,
     roadmapGenerator,
-    resourceDiscovery,
     conceptRepository,
     roadmapRepo,
     categoryRepo,
-    resourceRepo,
     fakeTokenBalanceRepo,
     fakeCategoryClassifier,
+    fakeResourcesQueue,
   );
 
   return {
@@ -93,12 +90,11 @@ function buildService(overrides?: {
     logger,
     topicConceptGenerator,
     roadmapGenerator,
-    resourceDiscovery,
     conceptRepository,
     roadmapRepo,
-    resourceRepo,
     categoryRepo,
     fakeCategoryClassifier,
+    fakeResourcesQueue,
   };
 }
 
@@ -107,12 +103,11 @@ describe("RoadmapProcessorService", () => {
   let logger: FakeLogger;
   let topicConceptGenerator: FakeTopicConceptGenerationService;
   let roadmapGenerator: FakeRoadmapGenerationService;
-  let resourceDiscovery: FakeResourceDiscoveryService;
   let conceptRepository: FakeConceptRepository;
   let roadmapRepo: FakeRoadmapRepository;
-  let resourceRepo: FakeResourceRepository;
   let categoryRepo: FakeCategoryRepository;
   let fakeCategoryClassifier: { classify: jest.Mock };
+  let fakeResourcesQueue: { add: jest.Mock };
 
   beforeEach(() => {
     const ctx = buildService();
@@ -120,12 +115,11 @@ describe("RoadmapProcessorService", () => {
     logger = ctx.logger;
     topicConceptGenerator = ctx.topicConceptGenerator;
     roadmapGenerator = ctx.roadmapGenerator;
-    resourceDiscovery = ctx.resourceDiscovery;
     conceptRepository = ctx.conceptRepository;
     roadmapRepo = ctx.roadmapRepo;
-    resourceRepo = ctx.resourceRepo;
     categoryRepo = ctx.categoryRepo;
     fakeCategoryClassifier = ctx.fakeCategoryClassifier;
+    fakeResourcesQueue = ctx.fakeResourcesQueue;
 
     roadmapRepo.seedRoadmap(ROADMAP_ID);
   });
@@ -167,18 +161,9 @@ describe("RoadmapProcessorService", () => {
         description: "ML fundamentals roadmap",
         recommendedPace: "1 hour/day",
       });
-
-      resourceDiscovery.setResults([
-        {
-          title: "Resource 1",
-          url: "https://example.com/r1",
-          type: "ARTICLE" as never,
-          description: "A resource",
-        },
-      ]);
     });
 
-    it("should generate a complete roadmap with concepts, steps, and resources", async () => {
+    it("should generate a complete roadmap with concepts and steps, then enqueue resource discovery", async () => {
       const job = new FakeJob<JobData>("job-1", {
         roadmapId: ROADMAP_ID,
         topic: TOPIC,
@@ -188,7 +173,7 @@ describe("RoadmapProcessorService", () => {
 
       await service.process(job as unknown as Job<JobData>);
 
-      // Roadmap should be COMPLETED
+      // Roadmap should be COMPLETED (phase 1 done)
       const roadmap = roadmapRepo.getRoadmap(ROADMAP_ID);
       expect(roadmap?.generationStatus).toBe("completed");
       expect(roadmap?.description).toBe("ML fundamentals roadmap");
@@ -204,15 +189,17 @@ describe("RoadmapProcessorService", () => {
       // Concepts should be persisted to Neo4j
       expect(conceptRepository.getSavedConcepts()).toHaveLength(3);
 
-      // Resources should be saved (3 steps × 1 resource each)
-      const resources = resourceRepo.getResourcesByRoadmapId(ROADMAP_ID);
-      expect(resources).toHaveLength(3);
+      // Phase 2 job should be enqueued
+      expect(fakeResourcesQueue.add).toHaveBeenCalledWith(
+        "discover-resources",
+        { roadmapId: ROADMAP_ID },
+        { jobId: ROADMAP_ID },
+      );
 
-      // Progress should track all stages
+      // Progress should track phase 1 stages only (resources handled in phase 2)
       expect(job.progressUpdates).toEqual([
         { stage: "concepts" },
         { stage: "learning-path" },
-        { stage: "resources" },
         { stage: "done" },
       ]);
     });
@@ -271,72 +258,6 @@ describe("RoadmapProcessorService", () => {
       const roadmap = roadmapRepo.getRoadmap(ROADMAP_ID);
       expect(roadmap?.generationStatus).toBe("completed");
       expect(logger.hasLevel("warn")).toBe(true);
-    });
-  });
-
-  describe("resource discovery failure", () => {
-    it("should complete roadmap generation even if resource discovery fails", async () => {
-      topicConceptGenerator.setResult({
-        concepts: CONCEPTS.slice(0, 1),
-        relationships: [],
-      });
-      roadmapGenerator.setResult({
-        orderedConcepts: [
-          {
-            conceptId: "c1",
-            order: 0,
-            learningObjective: "Learn",
-            estimatedDuration: 30,
-            difficulty: "beginner",
-            rationale: "R",
-          },
-        ],
-        description: "Test roadmap",
-        recommendedPace: "30m/day",
-      });
-
-      // Make inner discovery throw
-      const failingDiscovery = new FakeResourceDiscoveryService();
-      Object.defineProperty(failingDiscovery, "discoverResourcesForConcepts", {
-        value: () => Promise.reject(new Error("Discovery failed")),
-      });
-
-      const ctx = buildService({ resourceDiscovery: failingDiscovery });
-      roadmapRepo = ctx.roadmapRepo;
-      resourceRepo = ctx.resourceRepo;
-      categoryRepo = ctx.categoryRepo;
-      roadmapRepo.seedRoadmap(ROADMAP_ID);
-      ctx.topicConceptGenerator.setResult({
-        concepts: CONCEPTS.slice(0, 1),
-        relationships: [],
-      });
-      ctx.roadmapGenerator.setResult({
-        orderedConcepts: [
-          {
-            conceptId: "c1",
-            order: 0,
-            learningObjective: "Learn",
-            estimatedDuration: 30,
-            difficulty: "beginner",
-            rationale: "R",
-          },
-        ],
-        description: "Test roadmap",
-        recommendedPace: "30m/day",
-      });
-
-      const job = new FakeJob<JobData>("job-4", {
-        roadmapId: ROADMAP_ID,
-        topic: TOPIC,
-        title: "ML Roadmap",
-        userId: USER_ID,
-      });
-
-      await ctx.service.process(job as unknown as Job<JobData>);
-
-      const roadmap = ctx.roadmapRepo.getRoadmap(ROADMAP_ID);
-      expect(roadmap?.generationStatus).toBe("completed");
-      expect(ctx.logger.hasLevel("warn")).toBe(true);
     });
   });
 
@@ -459,23 +380,68 @@ describe("RoadmapProcessorService", () => {
     });
   });
 
-  describe("user context parsing", () => {
-    it("should pass user context to generators when provided", async () => {
+  describe("user context passing", () => {
+    it("should pass all UserContext fields to both generators", async () => {
       topicConceptGenerator.setResult({ concepts: [], relationships: [] });
+
+      const fullContext: UserContext = {
+        goal: "Become an ML engineer",
+        experienceLevel: "beginner",
+        timeAvailable: 10,
+        preferredLearningStyle: "visual",
+      };
 
       const job = new FakeJob<JobData>("job-8", {
         roadmapId: ROADMAP_ID,
         topic: TOPIC,
         title: "ML Roadmap",
         userId: USER_ID,
-        userContext: { experienceLevel: "beginner" },
+        userContext: fullContext,
       });
 
-      // Should not throw even with user context
       await service.process(job as unknown as Job<JobData>);
 
-      const roadmap = roadmapRepo.getRoadmap(ROADMAP_ID);
-      expect(roadmap?.generationStatus).toBe("completed");
+      expect(topicConceptGenerator.lastUserContext).toEqual(fullContext);
+    });
+
+    it("should pass all UserContext fields to learning-path generator", async () => {
+      const fullContext: UserContext = {
+        goal: "Become an ML engineer",
+        experienceLevel: "intermediate",
+        timeAvailable: 5,
+        preferredLearningStyle: "reading",
+      };
+
+      topicConceptGenerator.setResult({
+        concepts: CONCEPTS,
+        relationships: RELATIONSHIPS,
+      });
+      roadmapGenerator.setResult({
+        orderedConcepts: [
+          {
+            conceptId: "c1",
+            order: 0,
+            learningObjective: "Learn LA",
+            estimatedDuration: 30,
+            difficulty: "beginner",
+            rationale: "Foundation",
+          },
+        ],
+        description: "ML roadmap",
+        recommendedPace: "1 hour/day",
+      });
+
+      const job = new FakeJob<JobData>("job-8b", {
+        roadmapId: ROADMAP_ID,
+        topic: TOPIC,
+        title: "ML Roadmap",
+        userId: USER_ID,
+        userContext: fullContext,
+      });
+
+      await service.process(job as unknown as Job<JobData>);
+
+      expect(roadmapGenerator.lastUserContext).toEqual(fullContext);
     });
   });
 

@@ -282,6 +282,12 @@ export class FakeRoadmapRepository implements IRoadmapRepository {
     return Promise.resolve();
   }
 
+  updateResources(id: string, fields: unknown): Promise<void> {
+    const existing = this.roadmaps.get(id) ?? { id };
+    this.roadmaps.set(id, { ...existing, ...(fields as object) });
+    return Promise.resolve();
+  }
+
   delete(_id: string): Promise<void> {
     return Promise.resolve();
   }

@@ -19,6 +19,7 @@ import type {
   ResourceDiscoveryOptions,
   ConceptGraph,
   GeneratedLearningPath,
+  UserContext,
 } from "@sagepoint/domain";
 import { Concept, NewsArticle } from "@sagepoint/domain";
 
@@ -137,6 +138,7 @@ export class FakeTopicConceptGenerationService implements ITopicConceptGeneratio
     concepts: [],
     relationships: [],
   };
+  lastUserContext: UserContext | undefined;
 
   setResult(result: {
     concepts: ConceptForOrdering[];
@@ -145,10 +147,14 @@ export class FakeTopicConceptGenerationService implements ITopicConceptGeneratio
     this.result = result;
   }
 
-  generateConceptsFromTopic(): Promise<{
+  generateConceptsFromTopic(
+    _topic: string,
+    userContext?: UserContext,
+  ): Promise<{
     concepts: ConceptForOrdering[];
     relationships: ConceptRelationshipForOrdering[];
   }> {
+    this.lastUserContext = userContext;
     return Promise.resolve({
       concepts: [...this.result.concepts],
       relationships: [...this.result.relationships],
@@ -164,12 +170,18 @@ export class FakeRoadmapGenerationService implements IRoadmapGenerationService {
     description: "Test roadmap",
     recommendedPace: "1 hour/day",
   };
+  lastUserContext: UserContext | undefined;
 
   setResult(result: GeneratedLearningPath) {
     this.result = result;
   }
 
-  generateLearningPath(): Promise<GeneratedLearningPath> {
+  generateLearningPath(
+    _concepts: ConceptForOrdering[],
+    _relationships: ConceptRelationshipForOrdering[],
+    userContext?: UserContext,
+  ): Promise<GeneratedLearningPath> {
+    this.lastUserContext = userContext;
     return Promise.resolve({
       ...this.result,
       orderedConcepts: [...this.result.orderedConcepts],

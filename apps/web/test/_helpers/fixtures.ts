@@ -42,6 +42,7 @@ export function makeUserRoadmap(
         difficulty: "beginner" as const,
       })),
       generationStatus: (overrides.status ?? "completed") as "completed",
+      resourcesStatus: "completed" as const,
       totalEstimatedDuration: total * 30,
       recommendedPace: "2 hours/day",
       visibility:

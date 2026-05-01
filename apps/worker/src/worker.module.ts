@@ -6,6 +6,7 @@ import { BullModule } from "@nestjs/bullmq";
 import { LoggerModule } from "nestjs-pino";
 import { DocumentProcessorService } from "./document-processor/document-processor.service";
 import { RoadmapProcessorService } from "./roadmap-processor/roadmap-processor.service";
+import { ResourceDiscoveryProcessorService } from "./roadmap-processor/resource-discovery-processor.service";
 import { InsightsRefreshService } from "./insights-refresh/insights-refresh.service";
 import { BlogGenerationCron } from "./blog-generation/infra/cron/blog-generation.cron";
 import { PickNextCategoryUseCase } from "./blog-generation/app/usecases/pick-next-category.usecase";
@@ -43,6 +44,7 @@ import {
   TOKEN_BALANCE_REPOSITORY,
   BLOG_POST_REPOSITORY,
   BLOG_POST_GENERATION_SERVICE,
+  ROADMAP_RESOURCES_QUEUE,
 } from "@sagepoint/domain";
 import type {
   ICacheService,
@@ -133,11 +135,15 @@ const isDev = process.env.NODE_ENV !== "production";
     BullModule.registerQueue({
       name: "roadmap-generation",
     }),
+    BullModule.registerQueue({
+      name: ROADMAP_RESOURCES_QUEUE,
+    }),
   ],
   providers: [
     { provide: APP_FILTER, useClass: SentryGlobalFilter },
     DocumentProcessorService,
     RoadmapProcessorService,
+    ResourceDiscoveryProcessorService,
     InsightsRefreshService,
     BlogGenerationCron,
     {

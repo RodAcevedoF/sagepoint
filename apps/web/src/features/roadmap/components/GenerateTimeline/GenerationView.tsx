@@ -69,16 +69,20 @@ export function GenerationView({
         "Something went wrong generating your roadmap. Please try again."
       : errorMessage;
 
-  // Handle SSE completed → redirect
+  // Redirect once phase 1 is done (partial-complete), don't wait for resources
+  const shouldRedirect =
+    sseStatus === "completed" ||
+    (sseStatus === "processing" && sseStage === "learning-path");
+
   useEffect(() => {
-    if (!roadmapId || sseStatus !== "completed") return;
+    if (!roadmapId || !shouldRedirect) return;
 
     const timeout = setTimeout(() => {
       router.push(`/roadmaps/${roadmapId}`);
     }, DONE_DELAY_MS);
 
     return () => clearTimeout(timeout);
-  }, [sseStatus, roadmapId, router]);
+  }, [shouldRedirect, roadmapId, router]);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {

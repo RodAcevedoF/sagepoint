@@ -1,30 +1,26 @@
-import { Processor, WorkerHost } from "@nestjs/bullmq";
+import { Processor, WorkerHost, InjectQueue } from "@nestjs/bullmq";
 import { InjectPinoLogger, PinoLogger } from "nestjs-pino";
-import { Job } from "bullmq";
+import { Job, Queue } from "bullmq";
 import {
   RoadmapStep,
   Concept,
-  Resource,
   TOPIC_CONCEPT_GENERATION_SERVICE,
   ROADMAP_GENERATION_SERVICE,
   CONCEPT_REPOSITORY,
   ROADMAP_REPOSITORY,
   CATEGORY_REPOSITORY,
-  RESOURCE_REPOSITORY,
-  RESOURCE_DISCOVERY_SERVICE,
   TOKEN_BALANCE_REPOSITORY,
   OPERATION_COSTS,
   CATEGORY_CLASSIFIER_SERVICE,
+  ROADMAP_RESOURCES_QUEUE,
 } from "@sagepoint/domain";
 import type {
   IConceptRepository,
   IRoadmapRepository,
   ICategoryRepository,
-  IResourceRepository,
   ITokenBalanceRepository,
   ITopicConceptGenerationService,
   IRoadmapGenerationService,
-  IResourceDiscoveryService,
   IRoadmapProcessorService,
   RoadmapGenerationInput,
   RoadmapGenerationProgress,
@@ -40,7 +36,7 @@ interface JobData {
   topic: string;
   title: string;
   userId: string;
-  userContext?: { experienceLevel?: string };
+  userContext?: UserContext;
 }
 
 @Processor("roadmap-generation")
@@ -55,20 +51,18 @@ export class RoadmapProcessorService
     private readonly topicConceptGenerator: ITopicConceptGenerationService,
     @Inject(ROADMAP_GENERATION_SERVICE)
     private readonly roadmapGenerator: IRoadmapGenerationService,
-    @Inject(RESOURCE_DISCOVERY_SERVICE)
-    private readonly resourceDiscovery: IResourceDiscoveryService,
     @Inject(CONCEPT_REPOSITORY)
     private readonly conceptRepository: IConceptRepository,
     @Inject(ROADMAP_REPOSITORY)
     private readonly roadmapRepo: IRoadmapRepository,
     @Inject(CATEGORY_REPOSITORY)
     private readonly categoryRepo: ICategoryRepository,
-    @Inject(RESOURCE_REPOSITORY)
-    private readonly resourceRepo: IResourceRepository,
     @Inject(TOKEN_BALANCE_REPOSITORY)
     private readonly tokenBalanceRepo: ITokenBalanceRepository,
     @Inject(CATEGORY_CLASSIFIER_SERVICE)
     private readonly categoryClassifier: ICategoryClassifierService,
+    @InjectQueue(ROADMAP_RESOURCES_QUEUE)
+    private readonly resourcesQueue: Queue,
   ) {
     super();
   }
@@ -91,7 +85,7 @@ export class RoadmapProcessorService
 
     try {
       await this.markProcessing(roadmapId);
-      const parsedContext = this.parseUserContext(userContext);
+      const parsedContext = userContext;
 
       const { concepts, relationships } = await this.generateConcepts(
         roadmapId,
@@ -106,7 +100,7 @@ export class RoadmapProcessorService
 
       await this.persistToNeo4j(roadmapId, concepts, relationships);
 
-      const steps = await this.buildLearningPath(
+      await this.buildLearningPath(
         roadmapId,
         topic,
         concepts,
@@ -115,13 +109,18 @@ export class RoadmapProcessorService
         onProgress,
       );
 
-      await this.discoverAndSaveResources(roadmapId, steps, onProgress);
       await this.deductTokens((input as JobData).userId, roadmapId);
+
+      await this.resourcesQueue.add(
+        "discover-resources",
+        { roadmapId },
+        { jobId: roadmapId },
+      );
 
       onProgress?.({ stage: "done" });
       this.logger.info(
         { roadmapId, stage: "done" },
-        "Roadmap resources discovered",
+        "Roadmap learning path complete, resources queued",
       );
     } catch (error) {
       await this.handleFailure(roadmapId, error);
@@ -144,15 +143,6 @@ export class RoadmapProcessorService
         "Token deduction failed after roadmap generation (race condition — overage accepted)",
       );
     }
-  }
-
-  private parseUserContext(raw?: {
-    experienceLevel?: string;
-  }): UserContext | undefined {
-    if (!raw) return undefined;
-    return {
-      experienceLevel: raw.experienceLevel as UserContext["experienceLevel"],
-    };
   }
 
   private async markProcessing(roadmapId: string): Promise<void> {
@@ -249,7 +239,7 @@ export class RoadmapProcessorService
     relationships: ConceptRelationshipForOrdering[],
     userContext?: UserContext,
     onProgress?: (progress: RoadmapGenerationProgress) => void,
-  ): Promise<RoadmapStep[]> {
+  ): Promise<void> {
     onProgress?.({ stage: "learning-path" });
 
     const learningPath = await this.roadmapGenerator.generateLearningPath(
@@ -311,8 +301,6 @@ export class RoadmapProcessorService
       { roadmapId, stepCount: steps.length, stage: "completed" },
       "Roadmap generation complete",
     );
-
-    return steps;
   }
 
   private async handleFailure(
@@ -348,61 +336,5 @@ export class RoadmapProcessorService
       this.logger.info({ topic }, "No confident category match; leaving null");
     }
     return categoryId;
-  }
-
-  private async discoverAndSaveResources(
-    roadmapId: string,
-    steps: RoadmapStep[],
-    onProgress?: (progress: RoadmapGenerationProgress) => void,
-  ): Promise<void> {
-    onProgress?.({ stage: "resources" });
-
-    try {
-      const concepts = steps.map((step) => ({
-        id: step.concept.id,
-        name: step.concept.name,
-        description: step.concept.description,
-      }));
-
-      const difficulty = steps[0]?.difficulty;
-      const resourceMap =
-        await this.resourceDiscovery.discoverResourcesForConcepts(concepts, {
-          maxResults: 3,
-          difficulty,
-        });
-
-      const allResources = steps.flatMap((step) => {
-        const discovered = resourceMap.get(step.concept.id) ?? [];
-        return discovered.map((d, idx) =>
-          Resource.create({
-            title: d.title,
-            url: d.url,
-            type: d.type,
-            description: d.description,
-            provider: d.provider,
-            estimatedDuration: d.estimatedDuration,
-            difficulty: d.difficulty,
-            conceptId: step.concept.id,
-            roadmapId,
-            order: idx,
-          }),
-        );
-      });
-
-      if (allResources.length > 0) {
-        await this.resourceRepo.saveMany(allResources);
-      }
-
-      this.logger.info(
-        { roadmapId, resourceCount: allResources.length },
-        "Saved resources for roadmap",
-      );
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error));
-      this.logger.warn(
-        { roadmapId, err },
-        "Resource discovery failed for roadmap",
-      );
-    }
   }
 }
