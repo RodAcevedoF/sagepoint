@@ -1,11 +1,31 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import type { RoadmapStep } from "@sagepoint/domain";
 import {
   getStatus,
   formatDuration,
   formatRelativeTime,
   getDifficultyDistribution,
+  groupRoadmapStepsForTimeline,
+  isSubConceptStep,
   STATUS_CONFIG,
 } from "@/features/roadmap/utils/roadmap.utils";
+
+function makeStep(
+  overrides: Partial<RoadmapStep> & { id: string; name: string },
+): RoadmapStep {
+  return {
+    concept: {
+      id: overrides.id,
+      name: overrides.name,
+      description: overrides.name,
+    },
+    order: overrides.order ?? 0,
+    dependsOn: overrides.dependsOn ?? [],
+    learningObjective: overrides.learningObjective,
+    difficulty: overrides.difficulty,
+    ...overrides,
+  } as RoadmapStep;
+}
 
 describe("getStatus", () => {
   it("returns completed when progress is 100%", () => {
@@ -121,5 +141,57 @@ describe("getDifficultyDistribution", () => {
     ] as never;
     const result = getDifficultyDistribution(steps);
     expect(result).toEqual({ beginner: 1 });
+  });
+});
+
+describe("isSubConceptStep", () => {
+  it("detects steps marked as sub-concepts", () => {
+    expect(
+      isSubConceptStep(
+        makeStep({
+          id: "react-hooks",
+          name: "React Hooks",
+          rationale: 'Sub-concept of "React"',
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it("keeps regular dependent steps as top-level steps", () => {
+    expect(
+      isSubConceptStep(
+        makeStep({
+          id: "css",
+          name: "CSS",
+          dependsOn: ["html"],
+        }),
+      ),
+    ).toBe(false);
+  });
+});
+
+describe("groupRoadmapStepsForTimeline", () => {
+  it("groups sub-concepts under each dependency and preserves top-level steps", () => {
+    const html = makeStep({ id: "html", name: "HTML", order: 1 });
+    const css = makeStep({
+      id: "css",
+      name: "CSS",
+      order: 2,
+      dependsOn: ["html"],
+    });
+    const flexbox = makeStep({
+      id: "flexbox",
+      name: "Flexbox",
+      order: 3,
+      dependsOn: ["css", "html"],
+      rationale: 'Sub-concept of "CSS"',
+    });
+
+    const result = groupRoadmapStepsForTimeline([html, css, flexbox]);
+
+    expect(result.topLevelSteps).toEqual([html, css]);
+    expect(result.subConceptsByParent.get("css")).toEqual([flexbox]);
+    expect(result.subConceptsByParent.get("html")).toEqual([flexbox]);
+    expect(Array.from(result.expandedConceptIds)).toEqual(["css", "html"]);
   });
 });

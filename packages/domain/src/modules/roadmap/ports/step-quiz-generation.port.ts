@@ -3,6 +3,9 @@ import type { StepQuizQuestion } from "../entities/step-quiz-attempt.entity";
 export const STEP_QUIZ_GENERATION_SERVICE = Symbol(
   "STEP_QUIZ_GENERATION_SERVICE",
 );
+export const STEP_QUIZ_ENRICHMENT_SERVICE = Symbol(
+  "STEP_QUIZ_ENRICHMENT_SERVICE",
+);
 
 export interface StepQuizInput {
   conceptId: string;
@@ -12,6 +15,7 @@ export interface StepQuizInput {
   rationale?: string;
   difficulty?: "beginner" | "intermediate" | "advanced" | "expert";
   questionCount?: number;
+  resourceSnippets?: string[];
 }
 
 export interface GeneratedStepQuiz {

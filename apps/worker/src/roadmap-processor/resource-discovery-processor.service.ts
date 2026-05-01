@@ -7,18 +7,26 @@ import {
   RESOURCE_REPOSITORY,
   RESOURCE_DISCOVERY_SERVICE,
   ROADMAP_RESOURCES_QUEUE,
+  STEP_QUIZ_ENRICHMENT_SERVICE,
+  ROADMAP_STEP_QUESTION_REPOSITORY,
 } from "@sagepoint/domain";
 import type {
   IRoadmapRepository,
   IResourceRepository,
   IResourceDiscoveryService,
   RoadmapGenerationProgress,
+  IStepQuizGenerationService,
+  IRoadmapStepQuestionRepository,
+  RoadmapStep,
+  RoadmapStepQuestion,
+  DiscoveredResource,
 } from "@sagepoint/domain";
 import type {
   IResourceDiscoveryProcessorService,
   ResourceJobData,
 } from "./contracts";
 import { Inject } from "@nestjs/common";
+import { enrichStepQuizzes } from "./step-quiz-enricher";
 
 @Processor(ROADMAP_RESOURCES_QUEUE)
 export class ResourceDiscoveryProcessorService
@@ -34,6 +42,10 @@ export class ResourceDiscoveryProcessorService
     private readonly resourceRepo: IResourceRepository,
     @Inject(RESOURCE_DISCOVERY_SERVICE)
     private readonly resourceDiscovery: IResourceDiscoveryService,
+    @Inject(STEP_QUIZ_ENRICHMENT_SERVICE)
+    private readonly stepQuizEnrichmentService: IStepQuizGenerationService,
+    @Inject(ROADMAP_STEP_QUESTION_REPOSITORY)
+    private readonly stepQuizQuestionRepo: IRoadmapStepQuestionRepository,
   ) {
     super();
   }
@@ -109,6 +121,13 @@ export class ResourceDiscoveryProcessorService
         await this.resourceRepo.saveMany(allResources);
       }
 
+      const enriched = await this.buildEnrichedQuizzes(
+        roadmapId,
+        steps,
+        resourceMap,
+      );
+      await this.persistEnrichedQuizzes(roadmapId, enriched);
+
       await this.roadmapRepo.updateResources(roadmapId, {
         resourcesStatus: "completed",
       });
@@ -118,16 +137,54 @@ export class ResourceDiscoveryProcessorService
         "Resource discovery complete",
       );
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      this.logger.warn(
-        { roadmapId, err: message },
-        "Resource discovery failed",
-      );
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.warn({ roadmapId, err }, "Resource discovery failed");
       await this.roadmapRepo.updateResources(roadmapId, {
         resourcesStatus: "failed",
-        resourcesErrorMessage: message,
+        resourcesErrorMessage: err.message,
       });
       throw error;
+    }
+  }
+
+  private async buildEnrichedQuizzes(
+    roadmapId: string,
+    steps: RoadmapStep[],
+    resourceMap: Map<string, DiscoveredResource[]>,
+  ): Promise<RoadmapStepQuestion[]> {
+    try {
+      return await enrichStepQuizzes(
+        { roadmapId, steps, resourceMap },
+        { service: this.stepQuizEnrichmentService },
+      );
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.warn(
+        { roadmapId, err },
+        "Step quiz enrichment failed; keeping original questions",
+      );
+      return [];
+    }
+  }
+
+  private async persistEnrichedQuizzes(
+    roadmapId: string,
+    questions: RoadmapStepQuestion[],
+  ): Promise<void> {
+    if (questions.length === 0) return;
+    try {
+      await this.stepQuizQuestionRepo.deleteByRoadmapId(roadmapId);
+      await this.stepQuizQuestionRepo.saveMany(questions);
+      this.logger.info(
+        { roadmapId, questionCount: questions.length },
+        "Step quiz enrichment complete",
+      );
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.warn(
+        { roadmapId, err },
+        "Failed to persist enriched quiz questions",
+      );
     }
   }
 }

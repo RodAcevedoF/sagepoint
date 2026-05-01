@@ -22,4 +22,5 @@ export interface RoadmapStepQuestion {
 export interface IRoadmapStepQuestionRepository {
   saveMany(items: RoadmapStepQuestion[]): Promise<void>;
   findByRoadmapId(roadmapId: string): Promise<RoadmapStepQuestion[]>;
+  deleteByRoadmapId(roadmapId: string): Promise<void>;
 }

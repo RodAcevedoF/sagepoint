@@ -18,6 +18,7 @@ import { useRoadmapWithProgressQuery } from "@/application/roadmap";
 import { EmptyState, ErrorState, Loader, Button } from "@/shared/components";
 import { ButtonVariants, ButtonIconPositions } from "@/shared/types";
 import { useCurrentUser } from "@/features/auth/context/UserContext";
+import { groupRoadmapStepsForTimeline } from "../utils/roadmap.utils";
 import { TimelineStep } from "./TimelineStep/TimelineStep";
 import { LikeButton } from "./LikeButton";
 import { SuggestionsPanel } from "./SuggestionsPanel";
@@ -83,32 +84,10 @@ export function RoadmapDetail({ roadmapId }: RoadmapDetailProps) {
     [roadmapData],
   );
 
-  // Separate top-level steps from sub-concepts and build grouping
-  const { topLevelSteps, subConceptsByParent, expandedConceptIds } =
-    useMemo(() => {
-      const topLevel: typeof allSteps = [];
-      const byParent = new Map<string, typeof allSteps>();
-      const expanded = new Set<string>();
-
-      for (const step of allSteps) {
-        if (step.rationale?.startsWith("Sub-concept of")) {
-          for (const depId of step.dependsOn) {
-            expanded.add(depId);
-            const group = byParent.get(depId) ?? [];
-            group.push(step);
-            byParent.set(depId, group);
-          }
-        } else {
-          topLevel.push(step);
-        }
-      }
-
-      return {
-        topLevelSteps: topLevel,
-        subConceptsByParent: byParent,
-        expandedConceptIds: expanded,
-      };
-    }, [allSteps]);
+  const { topLevelSteps, subConceptsByParent, expandedConceptIds } = useMemo(
+    () => groupRoadmapStepsForTimeline(allSteps),
+    [allSteps],
+  );
 
   if (roadmapLoading) {
     return <Loader variant="page" message="Loading roadmap" />;

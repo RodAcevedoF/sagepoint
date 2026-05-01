@@ -10,6 +10,7 @@ import {
   Resource,
   UserContext,
 } from '@sagepoint/domain';
+import { buildTopicRoadmapTitle } from './topic-roadmap-title';
 
 export interface GenerateTopicRoadmapCommand {
   topic: string;
@@ -30,7 +31,7 @@ export class GenerateTopicRoadmapUseCase {
 
   async execute(command: GenerateTopicRoadmapCommand): Promise<Roadmap> {
     const shouldDiscoverResources = command.discoverResources !== false;
-    const title = command.title || `Learn ${command.topic}`;
+    const title = buildTopicRoadmapTitle(command.topic, command.title);
 
     // 1. Generate concepts from topic via AI
     const { concepts, relationships } =

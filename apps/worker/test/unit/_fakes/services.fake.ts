@@ -458,6 +458,11 @@ export class FakeStepQuizQuestionRepository implements IRoadmapStepQuestionRepos
     return Promise.resolve(this.saved.filter((q) => q.roadmapId === roadmapId));
   }
 
+  deleteByRoadmapId(roadmapId: string): Promise<void> {
+    this.saved = this.saved.filter((q) => q.roadmapId !== roadmapId);
+    return Promise.resolve();
+  }
+
   getSaved(): RoadmapStepQuestion[] {
     return [...this.saved];
   }

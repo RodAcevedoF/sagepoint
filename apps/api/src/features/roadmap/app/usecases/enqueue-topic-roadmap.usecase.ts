@@ -10,6 +10,7 @@ import {
   OPERATION_COSTS,
 } from '@sagepoint/domain';
 import type { ITokenBalanceRepository } from '@sagepoint/domain';
+import { buildTopicRoadmapTitle } from './topic-roadmap-title';
 
 export interface EnqueueTopicRoadmapCommand {
   topic: string;
@@ -29,7 +30,7 @@ export class EnqueueTopicRoadmapUseCase {
   async execute(command: EnqueueTopicRoadmapCommand): Promise<Roadmap> {
     await this.enforceTokenBalance(command.userId);
 
-    const title = command.title || `Learn ${command.topic}`;
+    const title = buildTopicRoadmapTitle(command.topic, command.title);
     const roadmapId = crypto.randomUUID();
 
     // Save skeleton roadmap

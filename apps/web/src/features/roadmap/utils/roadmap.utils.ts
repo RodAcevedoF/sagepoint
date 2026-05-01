@@ -1,10 +1,55 @@
+import type { RoadmapStep } from "@sagepoint/domain";
 import { UserRoadmapDto } from "@/infrastructure/api/roadmapApi";
 import { palette } from "@/shared/theme";
+
+interface GroupedRoadmapSteps {
+  topLevelSteps: RoadmapStep[];
+  subConceptsByParent: Map<string, RoadmapStep[]>;
+  expandedConceptIds: Set<string>;
+}
+
 export function getStatus(progress: UserRoadmapDto["progress"]) {
   if (progress.progressPercentage === 100) return STATUS_CONFIG.completed;
   if (progress.inProgressSteps > 0 || progress.completedSteps > 0)
     return STATUS_CONFIG.inProgress;
   return STATUS_CONFIG.new;
+}
+
+export function isSubConceptStep(step: RoadmapStep): boolean {
+  return step.rationale?.startsWith("Sub-concept of") ?? false;
+}
+
+export function groupRoadmapStepsForTimeline(
+  steps: RoadmapStep[],
+): GroupedRoadmapSteps {
+  const topLevelSteps: RoadmapStep[] = [];
+  const subConceptsByParent = new Map<string, RoadmapStep[]>();
+  const expandedConceptIds = new Set<string>();
+
+  for (const step of steps) {
+    if (!isSubConceptStep(step)) {
+      topLevelSteps.push(step);
+      continue;
+    }
+
+    for (const dependencyId of step.dependsOn) {
+      expandedConceptIds.add(dependencyId);
+
+      const existingGroup = subConceptsByParent.get(dependencyId);
+      if (existingGroup) {
+        existingGroup.push(step);
+        continue;
+      }
+
+      subConceptsByParent.set(dependencyId, [step]);
+    }
+  }
+
+  return {
+    topLevelSteps,
+    subConceptsByParent,
+    expandedConceptIds,
+  };
 }
 
 export function formatDuration(minutes?: number): string {

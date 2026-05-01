@@ -25,6 +25,10 @@ export class PrismaRoadmapStepQuestionRepository implements IRoadmapStepQuestion
     });
   }
 
+  async deleteByRoadmapId(roadmapId: string): Promise<void> {
+    await this.prisma.roadmapStepQuestion.deleteMany({ where: { roadmapId } });
+  }
+
   async findByRoadmapId(roadmapId: string): Promise<RoadmapStepQuestion[]> {
     const rows = await this.prisma.roadmapStepQuestion.findMany({
       where: { roadmapId },

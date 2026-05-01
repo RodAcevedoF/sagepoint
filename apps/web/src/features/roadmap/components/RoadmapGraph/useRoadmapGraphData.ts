@@ -6,6 +6,7 @@ import type {
   BlueprintEdge,
   BlueprintNodeStatus,
 } from "@/shared/components/data-display/BlueprintGraph";
+import { isSubConceptStep } from "../../utils/roadmap.utils";
 
 function toNodeStatus(stepStatus: StepStatus): BlueprintNodeStatus {
   switch (stepStatus) {
@@ -20,10 +21,6 @@ function toNodeStatus(stepStatus: StepStatus): BlueprintNodeStatus {
   }
 }
 
-function isSubConcept(step: RoadmapStep): boolean {
-  return step.rationale?.startsWith("Sub-concept of") ?? false;
-}
-
 export function useRoadmapGraphData(
   steps: RoadmapStep[],
   stepProgress: Record<string, StepStatus>,
@@ -34,13 +31,13 @@ export function useRoadmapGraphData(
     const subCountByParent = new Map<string, number>();
 
     for (const step of steps) {
-      if (!isSubConcept(step)) {
+      if (!isSubConceptStep(step)) {
         parentOrderById.set(step.concept.id, step.order);
       }
     }
 
     function getDisplayOrder(step: RoadmapStep): number | string {
-      if (!isSubConcept(step)) return step.order;
+      if (!isSubConceptStep(step)) return step.order;
 
       // Find parent concept ID (first dependsOn that is a top-level step)
       const parentId = step.dependsOn.find((id) => parentOrderById.has(id));

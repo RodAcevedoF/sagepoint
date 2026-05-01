@@ -12,6 +12,7 @@ import {
   CATEGORY_CLASSIFIER_SERVICE,
   EMBEDDING_SERVICE,
   STEP_QUIZ_GENERATION_SERVICE,
+  STEP_QUIZ_ENRICHMENT_SERVICE,
 } from "@sagepoint/domain";
 import { OpenAiContentAnalysisAdapter } from "./openai-content-analysis.adapter";
 import { CerebrasCategoryClassifierAdapter } from "./cerebras-category-classifier.adapter";
@@ -24,6 +25,7 @@ import { OpenAiQuizGenerationAdapter } from "./openai-quiz-generation.adapter";
 import { OpenAiBlogPostGenerationAdapter } from "./openai-blog-post-generation.adapter";
 import { OpenAiEmbeddingAdapter } from "./openai-embedding.adapter";
 import { OpenAiStepQuizGenerationAdapter } from "./openai-step-quiz-generation.adapter";
+import { CerebrasStepQuizEnrichmentAdapter } from "./cerebras-step-quiz-enrichment.adapter";
 
 @Module({
   imports: [ConfigModule],
@@ -125,6 +127,15 @@ import { OpenAiStepQuizGenerationAdapter } from "./openai-step-quiz-generation.a
         }),
       inject: [ConfigService],
     },
+    {
+      provide: STEP_QUIZ_ENRICHMENT_SERVICE,
+      useFactory: (config: ConfigService) =>
+        new CerebrasStepQuizEnrichmentAdapter({
+          apiKey: config.get("CEREBRAS_API_KEY") ?? "",
+          modelName: config.get("CEREBRAS_MODEL") ?? "llama3.1-70b",
+        }),
+      inject: [ConfigService],
+    },
   ],
   exports: [
     CONTENT_ANALYSIS_SERVICE,
@@ -138,6 +149,7 @@ import { OpenAiStepQuizGenerationAdapter } from "./openai-step-quiz-generation.a
     CATEGORY_CLASSIFIER_SERVICE,
     EMBEDDING_SERVICE,
     STEP_QUIZ_GENERATION_SERVICE,
+    STEP_QUIZ_ENRICHMENT_SERVICE,
   ],
 })
 export class AiModule {}
