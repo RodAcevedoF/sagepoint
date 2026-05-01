@@ -10,6 +10,9 @@ import type {
   INewsService,
   IFileStorage,
   IConceptRepository,
+  IEmbeddingService,
+  IConceptEmbeddingRepository,
+  ConceptEmbedding,
   ExtractedConcept,
   DocumentAnalysisResult,
   GeneratedQuestion,
@@ -342,5 +345,53 @@ export class FakeConceptRepository implements IConceptRepository {
 
   getSavedRelations() {
     return [...this.relations];
+  }
+}
+
+// ─── EmbeddingService ─────────────────────────────────────────────────────────
+
+export class FakeEmbeddingService implements IEmbeddingService {
+  readonly dimensions = 3;
+  private _vectors: number[][] = [];
+
+  setVectors(vectors: number[][]) {
+    this._vectors = vectors;
+  }
+
+  embed(texts: string[]): Promise<number[][]> {
+    if (texts.length === 0) return Promise.resolve([]);
+    // Return unique orthogonal-ish vectors by default; override with setVectors for precision
+    if (this._vectors.length >= texts.length) {
+      return Promise.resolve(this._vectors.slice(0, texts.length));
+    }
+    return Promise.resolve(
+      texts.map((_, i) => {
+        const v = new Array<number>(this.dimensions).fill(0);
+        v[i % this.dimensions] = 1;
+        return v;
+      }),
+    );
+  }
+}
+
+// ─── ConceptEmbeddingRepository ───────────────────────────────────────────────
+
+export class FakeConceptEmbeddingRepository implements IConceptEmbeddingRepository {
+  private saved: ConceptEmbedding[] = [];
+  private shouldFail = false;
+
+  setShouldFail(fail: boolean) {
+    this.shouldFail = fail;
+  }
+
+  saveMany(items: ConceptEmbedding[]): Promise<void> {
+    if (this.shouldFail)
+      return Promise.reject(new Error("Embedding repo failed"));
+    this.saved.push(...items);
+    return Promise.resolve();
+  }
+
+  getSaved(): ConceptEmbedding[] {
+    return [...this.saved];
   }
 }

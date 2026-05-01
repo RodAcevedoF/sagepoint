@@ -7,20 +7,24 @@ import {
   TOPIC_CONCEPT_GENERATION_SERVICE,
   ROADMAP_GENERATION_SERVICE,
   CONCEPT_REPOSITORY,
+  CONCEPT_EMBEDDING_REPOSITORY,
   ROADMAP_REPOSITORY,
   CATEGORY_REPOSITORY,
   TOKEN_BALANCE_REPOSITORY,
   OPERATION_COSTS,
   CATEGORY_CLASSIFIER_SERVICE,
+  EMBEDDING_SERVICE,
   ROADMAP_RESOURCES_QUEUE,
 } from "@sagepoint/domain";
 import type {
   IConceptRepository,
+  IConceptEmbeddingRepository,
   IRoadmapRepository,
   ICategoryRepository,
   ITokenBalanceRepository,
   ITopicConceptGenerationService,
   IRoadmapGenerationService,
+  IEmbeddingService,
   IRoadmapProcessorService,
   RoadmapGenerationInput,
   RoadmapGenerationProgress,
@@ -29,6 +33,7 @@ import type {
   UserContext,
   ICategoryClassifierService,
 } from "@sagepoint/domain";
+import { applyQualityGate } from "./concept-quality-gate";
 import { Inject } from "@nestjs/common";
 
 interface JobData {
@@ -63,6 +68,10 @@ export class RoadmapProcessorService
     private readonly categoryClassifier: ICategoryClassifierService,
     @InjectQueue(ROADMAP_RESOURCES_QUEUE)
     private readonly resourcesQueue: Queue,
+    @Inject(EMBEDDING_SERVICE)
+    private readonly embedder: IEmbeddingService,
+    @Inject(CONCEPT_EMBEDDING_REPOSITORY)
+    private readonly conceptEmbeddingRepo: IConceptEmbeddingRepository,
   ) {
     super();
   }
@@ -87,18 +96,33 @@ export class RoadmapProcessorService
       await this.markProcessing(roadmapId);
       const parsedContext = userContext;
 
-      const { concepts, relationships } = await this.generateConcepts(
+      const raw = await this.generateConcepts(
         roadmapId,
         topic,
         parsedContext,
         onProgress,
       );
-      if (concepts.length === 0) {
+      if (raw.concepts.length === 0) {
         await this.completeEmpty(roadmapId);
         return;
       }
 
+      const gate = await applyQualityGate(
+        { concepts: raw.concepts, relationships: raw.relationships },
+        { embedder: this.embedder },
+      );
+      this.logger.info(
+        { roadmapId, kept: gate.concepts.length, dropped: gate.dropped.length },
+        "Quality gate applied",
+      );
+      if (gate.concepts.length < 3) {
+        await this.completeEmpty(roadmapId);
+        return;
+      }
+
+      const { concepts, relationships } = gate;
       await this.persistToNeo4j(roadmapId, concepts, relationships);
+      await this.persistEmbeddings(roadmapId, gate.embeddings);
 
       await this.buildLearningPath(
         roadmapId,
@@ -228,6 +252,21 @@ export class RoadmapProcessorService
       this.logger.warn(
         { roadmapId, err },
         "Failed to persist concepts to Neo4j",
+      );
+    }
+  }
+
+  private async persistEmbeddings(
+    roadmapId: string,
+    embeddings: import("@sagepoint/domain").ConceptEmbedding[],
+  ): Promise<void> {
+    try {
+      await this.conceptEmbeddingRepo.saveMany(embeddings);
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.warn(
+        { roadmapId, err },
+        "Failed to persist concept embeddings",
       );
     }
   }

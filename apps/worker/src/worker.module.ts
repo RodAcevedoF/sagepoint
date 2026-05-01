@@ -31,6 +31,7 @@ import Redis from "ioredis";
 import {
   CATEGORY_REPOSITORY,
   CONCEPT_REPOSITORY,
+  CONCEPT_EMBEDDING_REPOSITORY,
   FILE_STORAGE,
   NEWS_ARTICLE_REPOSITORY,
   NEWS_SERVICE,
@@ -67,6 +68,7 @@ import {
   PrismaResourceRepository,
   PrismaTokenBalanceRepository,
   PrismaBlogPostRepository,
+  PrismaConceptEmbeddingRepository,
 } from "@sagepoint/database";
 
 function createWorkerPrisma(): PrismaClient {
@@ -273,6 +275,12 @@ const isDev = process.env.NODE_ENV !== "production";
       useFactory: (neo4jService: Neo4jService) =>
         new Neo4jConceptRepository(neo4jService),
       inject: [Neo4jService],
+    },
+    {
+      provide: CONCEPT_EMBEDDING_REPOSITORY,
+      useFactory: (prisma: PrismaClient) =>
+        new PrismaConceptEmbeddingRepository(prisma),
+      inject: ["WORKER_PRISMA"],
     },
   ],
 })

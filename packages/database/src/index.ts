@@ -20,3 +20,4 @@ export { PrismaAdoptionRepository } from "./repositories/prisma-adoption.reposit
 export { PrismaCategoryRoomRepository } from "./repositories/prisma-category-room.repository";
 export { PrismaTokenBalanceRepository } from "./repositories/prisma-token-balance.repository";
 export { PrismaBlogPostRepository } from "./repositories/prisma-blog-post.repository";
+export { PrismaConceptEmbeddingRepository } from "./repositories/prisma-concept-embedding.repository";

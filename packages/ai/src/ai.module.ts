@@ -10,6 +10,7 @@ import {
   RESOURCE_DISCOVERY_SERVICE,
   BLOG_POST_GENERATION_SERVICE,
   CATEGORY_CLASSIFIER_SERVICE,
+  EMBEDDING_SERVICE,
 } from "@sagepoint/domain";
 import { OpenAiContentAnalysisAdapter } from "./openai-content-analysis.adapter";
 import { CerebrasCategoryClassifierAdapter } from "./cerebras-category-classifier.adapter";
@@ -20,6 +21,7 @@ import { OpenAiVisionTextExtractorAdapter } from "./openai-vision-text-extractor
 import { OpenAiDocumentAnalysisAdapter } from "./openai-document-analysis.adapter";
 import { OpenAiQuizGenerationAdapter } from "./openai-quiz-generation.adapter";
 import { OpenAiBlogPostGenerationAdapter } from "./openai-blog-post-generation.adapter";
+import { OpenAiEmbeddingAdapter } from "./openai-embedding.adapter";
 
 @Module({
   imports: [ConfigModule],
@@ -104,6 +106,14 @@ import { OpenAiBlogPostGenerationAdapter } from "./openai-blog-post-generation.a
         }),
       inject: [ConfigService],
     },
+    {
+      provide: EMBEDDING_SERVICE,
+      useFactory: (config: ConfigService) =>
+        new OpenAiEmbeddingAdapter({
+          apiKey: config.get("OPENAI_API_KEY") ?? "",
+        }),
+      inject: [ConfigService],
+    },
   ],
   exports: [
     CONTENT_ANALYSIS_SERVICE,
@@ -115,6 +125,7 @@ import { OpenAiBlogPostGenerationAdapter } from "./openai-blog-post-generation.a
     QUIZ_GENERATION_SERVICE,
     BLOG_POST_GENERATION_SERVICE,
     CATEGORY_CLASSIFIER_SERVICE,
+    EMBEDDING_SERVICE,
   ],
 })
 export class AiModule {}

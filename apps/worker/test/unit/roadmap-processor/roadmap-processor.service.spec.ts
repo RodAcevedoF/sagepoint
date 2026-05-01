@@ -9,6 +9,8 @@ import {
   FakeTopicConceptGenerationService,
   FakeRoadmapGenerationService,
   FakeConceptRepository,
+  FakeEmbeddingService,
+  FakeConceptEmbeddingRepository,
 } from "../_fakes/services.fake";
 import type { Job } from "bullmq";
 import {
@@ -38,6 +40,7 @@ const CONCEPTS: ConceptForOrdering[] = [
 
 const RELATIONSHIPS: ConceptRelationshipForOrdering[] = [
   { fromId: "c1", toId: "c2", type: "DEPENDS_ON" },
+  { fromId: "c2", toId: "c3", type: "RELATED_TO" },
 ];
 
 function buildService(overrides?: {
@@ -47,6 +50,8 @@ function buildService(overrides?: {
   roadmapRepo?: FakeRoadmapRepository;
   categoryRepo?: FakeCategoryRepository;
   logger?: FakeLogger;
+  embedder?: FakeEmbeddingService;
+  conceptEmbeddingRepo?: FakeConceptEmbeddingRepository;
 }) {
   const logger = overrides?.logger ?? new FakeLogger();
   const topicConceptGenerator =
@@ -57,6 +62,9 @@ function buildService(overrides?: {
     overrides?.conceptRepository ?? new FakeConceptRepository();
   const roadmapRepo = overrides?.roadmapRepo ?? new FakeRoadmapRepository();
   const categoryRepo = overrides?.categoryRepo ?? new FakeCategoryRepository();
+  const embedder = overrides?.embedder ?? new FakeEmbeddingService();
+  const conceptEmbeddingRepo =
+    overrides?.conceptEmbeddingRepo ?? new FakeConceptEmbeddingRepository();
 
   const fakeTokenBalanceRepo = {
     findByUserId: jest.fn().mockResolvedValue(null),
@@ -83,6 +91,8 @@ function buildService(overrides?: {
     fakeTokenBalanceRepo,
     fakeCategoryClassifier,
     fakeResourcesQueue,
+    embedder,
+    conceptEmbeddingRepo,
   );
 
   return {
@@ -95,6 +105,8 @@ function buildService(overrides?: {
     categoryRepo,
     fakeCategoryClassifier,
     fakeResourcesQueue,
+    embedder,
+    conceptEmbeddingRepo,
   };
 }
 
@@ -108,6 +120,8 @@ describe("RoadmapProcessorService", () => {
   let categoryRepo: FakeCategoryRepository;
   let fakeCategoryClassifier: { classify: jest.Mock };
   let fakeResourcesQueue: { add: jest.Mock };
+  let embedder: FakeEmbeddingService;
+  let conceptEmbeddingRepo: FakeConceptEmbeddingRepository;
 
   beforeEach(() => {
     const ctx = buildService();
@@ -120,6 +134,8 @@ describe("RoadmapProcessorService", () => {
     categoryRepo = ctx.categoryRepo;
     fakeCategoryClassifier = ctx.fakeCategoryClassifier;
     fakeResourcesQueue = ctx.fakeResourcesQueue;
+    embedder = ctx.embedder;
+    conceptEmbeddingRepo = ctx.conceptEmbeddingRepo;
 
     roadmapRepo.seedRoadmap(ROADMAP_ID);
   });
@@ -279,8 +295,8 @@ describe("RoadmapProcessorService", () => {
       });
 
       topicConceptGenerator.setResult({
-        concepts: CONCEPTS.slice(0, 1),
-        relationships: [],
+        concepts: CONCEPTS,
+        relationships: RELATIONSHIPS,
       });
       roadmapGenerator.setResult({
         orderedConcepts: [
@@ -319,8 +335,8 @@ describe("RoadmapProcessorService", () => {
       });
 
       topicConceptGenerator.setResult({
-        concepts: CONCEPTS.slice(0, 1),
-        relationships: [],
+        concepts: CONCEPTS,
+        relationships: RELATIONSHIPS,
       });
       roadmapGenerator.setResult({
         orderedConcepts: [
@@ -467,6 +483,102 @@ describe("RoadmapProcessorService", () => {
       // Should complete without errors (ontology context was fetched)
       const roadmap = roadmapRepo.getRoadmap(ROADMAP_ID);
       expect(roadmap?.generationStatus).toBe("completed");
+    });
+  });
+
+  describe("quality gate", () => {
+    it("should persist embeddings for kept concepts after gate", async () => {
+      topicConceptGenerator.setResult({
+        concepts: CONCEPTS,
+        relationships: RELATIONSHIPS,
+      });
+      roadmapGenerator.setResult({
+        orderedConcepts: [
+          {
+            conceptId: "c1",
+            order: 0,
+            learningObjective: "Learn LA",
+            estimatedDuration: 30,
+            difficulty: "beginner",
+            rationale: "Foundation",
+          },
+        ],
+        description: "ML roadmap",
+        recommendedPace: "1 hour/day",
+      });
+
+      const job = new FakeJob<JobData>("job-gate-1", {
+        roadmapId: ROADMAP_ID,
+        topic: TOPIC,
+        title: "ML Roadmap",
+        userId: USER_ID,
+      });
+
+      await service.process(job as unknown as Job<JobData>);
+
+      const saved = conceptEmbeddingRepo.getSaved();
+      expect(saved.length).toBeGreaterThan(0);
+      expect(saved.every((e) => Array.isArray(e.embedding))).toBe(true);
+    });
+
+    it("should complete-empty when fewer than 3 concepts survive the gate", async () => {
+      // Only 2 isolated concepts — will be pruned to largest component (1)
+      topicConceptGenerator.setResult({
+        concepts: [
+          { id: "x1", name: "Isolated A" },
+          { id: "x2", name: "Isolated B" },
+        ],
+        relationships: [], // no edges -> each is its own component of size 1
+      });
+
+      const job = new FakeJob<JobData>("job-gate-2", {
+        roadmapId: ROADMAP_ID,
+        topic: TOPIC,
+        title: "ML Roadmap",
+        userId: USER_ID,
+      });
+
+      await service.process(job as unknown as Job<JobData>);
+
+      const roadmap = roadmapRepo.getRoadmap(ROADMAP_ID);
+      expect(roadmap?.generationStatus).toBe("completed");
+      expect(roadmap?.description).toContain("Could not generate concepts");
+    });
+
+    it("should continue roadmap generation even if embedding repo save fails", async () => {
+      conceptEmbeddingRepo.setShouldFail(true);
+
+      topicConceptGenerator.setResult({
+        concepts: CONCEPTS,
+        relationships: RELATIONSHIPS,
+      });
+      roadmapGenerator.setResult({
+        orderedConcepts: [
+          {
+            conceptId: "c1",
+            order: 0,
+            learningObjective: "Learn LA",
+            estimatedDuration: 30,
+            difficulty: "beginner",
+            rationale: "Foundation",
+          },
+        ],
+        description: "ML roadmap",
+        recommendedPace: "1 hour/day",
+      });
+
+      const job = new FakeJob<JobData>("job-gate-3", {
+        roadmapId: ROADMAP_ID,
+        topic: TOPIC,
+        title: "ML Roadmap",
+        userId: USER_ID,
+      });
+
+      await service.process(job as unknown as Job<JobData>);
+
+      const roadmap = roadmapRepo.getRoadmap(ROADMAP_ID);
+      expect(roadmap?.generationStatus).toBe("completed");
+      expect(embedder).toBeDefined(); // gate still ran
     });
   });
 });

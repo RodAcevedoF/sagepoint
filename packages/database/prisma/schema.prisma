@@ -463,3 +463,11 @@ model UserAdoptedRoadmap {
   @@index([roadmapId])
   @@map("user_adopted_roadmaps")
 }
+
+model ConceptEmbedding {
+  conceptId String                      @id
+  embedding Unsupported("vector(1536)")
+  createdAt DateTime                    @default(now())
+
+  @@map("concept_embeddings")
+}

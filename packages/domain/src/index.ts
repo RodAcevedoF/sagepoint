@@ -37,6 +37,7 @@ export * from "./modules/roadmap/ports/concept.repository";
 export * from "./modules/roadmap/ports/resource.repository";
 export * from "./modules/roadmap/ports/progress.repository";
 export * from "./modules/roadmap/ports/roadmap-generation-queue.port";
+export * from "./modules/roadmap/ports/concept-embedding.port";
 export * from "./modules/roadmap/entities/adoption.entity";
 export * from "./modules/roadmap/ports/adoption.repository";
 export * from "./modules/roadmap/entities/step-quiz-attempt.entity";
@@ -63,6 +64,7 @@ export * from "./modules/blog/entities/blog-post.entity";
 export * from "./modules/blog/ports/blog-post.repository";
 
 // Shared Ports
+export * from "./ports/embedding-service.port";
 export * from "./ports/file-storage.port";
 export * from "./ports/content-analysis.port";
 export * from "./ports/roadmap-generation.port";
