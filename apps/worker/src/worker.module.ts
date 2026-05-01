@@ -14,7 +14,7 @@ import { GenerateBlogPostUseCase } from "./blog-generation/app/usecases/generate
 import {
   TavilyNewsAdapter,
   CachedResourceDiscoveryAdapter,
-  PerplexityResearchAdapter,
+  ExaResearchAdapter,
 } from "@sagepoint/ai";
 
 import { ConfigModule } from "@nestjs/config";
@@ -191,8 +191,8 @@ const isDev = process.env.NODE_ENV !== "production";
     {
       provide: RESOURCE_DISCOVERY_SERVICE,
       useFactory: (config: ConfigService, cache: ICacheService) => {
-        const inner = new PerplexityResearchAdapter({
-          apiKey: config.get<string>("PERPLEXITY_API_KEY") ?? "",
+        const inner = new ExaResearchAdapter({
+          apiKey: config.get<string>("EXA_API_KEY") ?? "",
         });
         return new CachedResourceDiscoveryAdapter(inner, cache);
       },

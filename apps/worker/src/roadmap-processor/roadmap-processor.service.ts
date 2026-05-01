@@ -35,14 +35,7 @@ import type {
 } from "@sagepoint/domain";
 import { applyQualityGate } from "./concept-quality-gate";
 import { Inject } from "@nestjs/common";
-
-interface JobData {
-  roadmapId: string;
-  topic: string;
-  title: string;
-  userId: string;
-  userContext?: UserContext;
-}
+import { JobData } from "./contracts";
 
 @Processor("roadmap-generation")
 export class RoadmapProcessorService
@@ -229,6 +222,10 @@ export class RoadmapProcessorService
       generationStatus: "completed",
       description:
         "Could not generate concepts for this topic. Please try a more specific topic.",
+    });
+
+    await this.roadmapRepo.updateResources(roadmapId, {
+      resourcesStatus: "completed",
     });
   }
 

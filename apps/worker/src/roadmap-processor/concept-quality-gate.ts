@@ -1,57 +1,21 @@
 import type {
   ConceptForOrdering,
   ConceptRelationshipForOrdering,
-  IEmbeddingService,
   ConceptEmbedding,
 } from "@sagepoint/domain";
-
-export interface QualityGateInput {
-  concepts: ConceptForOrdering[];
-  relationships: ConceptRelationshipForOrdering[];
-}
-
-export interface QualityGateResult {
-  concepts: ConceptForOrdering[];
-  relationships: ConceptRelationshipForOrdering[];
-  embeddings: ConceptEmbedding[];
-  dropped: Array<{
-    id: string;
-    reason: "name-dup" | "embedding-dup" | "disconnected";
-  }>;
-}
-
-export interface QualityGateDeps {
-  embedder: IEmbeddingService;
-  similarityThreshold?: number;
-}
-
-function normalizeName(name: string): string {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, " ")
-    .replace(/[^\w\s]/g, "");
-}
-
-function cosine(a: number[], b: number[]): number {
-  let dot = 0,
-    na = 0,
-    nb = 0;
-  for (let i = 0; i < a.length; i++) {
-    dot += a[i] * b[i];
-    na += a[i] * a[i];
-    nb += b[i] * b[i];
-  }
-  if (na === 0 || nb === 0) return 0;
-  return dot / (Math.sqrt(na) * Math.sqrt(nb));
-}
+import { cosine, normalizeName } from "../utils/worker.roadmap.util";
+import {
+  QualityGateDeps,
+  QualityGateInput,
+  QualityGateResult,
+} from "./contracts";
 
 export async function applyQualityGate(
   input: QualityGateInput,
   deps: QualityGateDeps,
 ): Promise<QualityGateResult> {
   const { concepts, relationships } = input;
-  const { embedder, similarityThreshold = 0.9 } = deps;
+  const { embedder, similarityThreshold = 0.95 } = deps;
   const dropped: QualityGateResult["dropped"] = [];
 
   // Step 1: Normalized name dedup — first occurrence wins
@@ -88,10 +52,11 @@ export async function applyQualityGate(
       dedupedEmbeddings.push(survivorEmbeddings[i]);
       for (let j = i + 1; j < survivors.length; j++) {
         if (dropped_flags[j]) continue;
-        if (
-          cosine(survivorEmbeddings[i], survivorEmbeddings[j]) >=
-          similarityThreshold
-        ) {
+        const sim = cosine(survivorEmbeddings[i], survivorEmbeddings[j]);
+        if (sim >= similarityThreshold) {
+          console.warn(
+            `[quality-gate] embedding-dup: "${survivors[j].name}" ~ "${survivors[i].name}" (sim=${sim.toFixed(3)})`,
+          );
           mergeMap.set(survivors[j].id, survivors[i].id);
           dropped.push({ id: survivors[j].id, reason: "embedding-dup" });
           dropped_flags[j] = true;

@@ -14,12 +14,11 @@ import type {
   IResourceDiscoveryService,
   RoadmapGenerationProgress,
 } from "@sagepoint/domain";
-import type { IResourceDiscoveryProcessorService } from "./contracts";
+import type {
+  IResourceDiscoveryProcessorService,
+  ResourceJobData,
+} from "./contracts";
 import { Inject } from "@nestjs/common";
-
-interface ResourceJobData {
-  roadmapId: string;
-}
 
 @Processor(ROADMAP_RESOURCES_QUEUE)
 export class ResourceDiscoveryProcessorService
