@@ -13,7 +13,7 @@ export interface RoadmapGenerationInput {
 }
 
 export interface RoadmapGenerationProgress {
-  stage: "concepts" | "learning-path" | "resources" | "done";
+  stage: "concepts" | "learning-path" | "step-quizzes" | "resources" | "done";
 }
 
 export interface IRoadmapProcessorService {

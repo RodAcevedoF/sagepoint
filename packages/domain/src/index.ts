@@ -42,6 +42,8 @@ export * from "./modules/roadmap/entities/adoption.entity";
 export * from "./modules/roadmap/ports/adoption.repository";
 export * from "./modules/roadmap/entities/step-quiz-attempt.entity";
 export * from "./modules/roadmap/ports/step-quiz-attempt.repository";
+export * from "./modules/roadmap/ports/step-quiz-generation.port";
+export * from "./modules/roadmap/ports/roadmap-step-question.port";
 
 // Invitation
 export * from "./modules/invitation/entities/invitation.entity";

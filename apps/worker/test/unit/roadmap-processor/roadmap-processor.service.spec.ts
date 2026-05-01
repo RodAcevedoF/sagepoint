@@ -11,6 +11,8 @@ import {
   FakeConceptRepository,
   FakeEmbeddingService,
   FakeConceptEmbeddingRepository,
+  FakeStepQuizGenerationService,
+  FakeStepQuizQuestionRepository,
 } from "../_fakes/services.fake";
 import type { Job } from "bullmq";
 import {
@@ -52,6 +54,8 @@ function buildService(overrides?: {
   logger?: FakeLogger;
   embedder?: FakeEmbeddingService;
   conceptEmbeddingRepo?: FakeConceptEmbeddingRepository;
+  stepQuizService?: FakeStepQuizGenerationService;
+  stepQuizQuestionRepo?: FakeStepQuizQuestionRepository;
 }) {
   const logger = overrides?.logger ?? new FakeLogger();
   const topicConceptGenerator =
@@ -65,6 +69,10 @@ function buildService(overrides?: {
   const embedder = overrides?.embedder ?? new FakeEmbeddingService();
   const conceptEmbeddingRepo =
     overrides?.conceptEmbeddingRepo ?? new FakeConceptEmbeddingRepository();
+  const stepQuizService =
+    overrides?.stepQuizService ?? new FakeStepQuizGenerationService();
+  const stepQuizQuestionRepo =
+    overrides?.stepQuizQuestionRepo ?? new FakeStepQuizQuestionRepository();
 
   const fakeTokenBalanceRepo = {
     findByUserId: jest.fn().mockResolvedValue(null),
@@ -77,9 +85,9 @@ function buildService(overrides?: {
     classify: jest.fn().mockResolvedValue(null),
   } as never;
 
-  const fakeResourcesQueue = {
+  const fakeResourcesQueue: { add: jest.Mock } = {
     add: jest.fn().mockResolvedValue(undefined),
-  } as never;
+  };
 
   const service = new RoadmapProcessorService(
     logger as never,
@@ -90,9 +98,11 @@ function buildService(overrides?: {
     categoryRepo,
     fakeTokenBalanceRepo,
     fakeCategoryClassifier,
-    fakeResourcesQueue,
+    fakeResourcesQueue as never,
     embedder,
     conceptEmbeddingRepo,
+    stepQuizService,
+    stepQuizQuestionRepo,
   );
 
   return {
@@ -107,6 +117,8 @@ function buildService(overrides?: {
     fakeResourcesQueue,
     embedder,
     conceptEmbeddingRepo,
+    stepQuizService,
+    stepQuizQuestionRepo,
   };
 }
 
@@ -122,6 +134,8 @@ describe("RoadmapProcessorService", () => {
   let fakeResourcesQueue: { add: jest.Mock };
   let embedder: FakeEmbeddingService;
   let conceptEmbeddingRepo: FakeConceptEmbeddingRepository;
+  //let stepQuizService: FakeStepQuizGenerationService;
+  let stepQuizQuestionRepo: FakeStepQuizQuestionRepository;
 
   beforeEach(() => {
     const ctx = buildService();
@@ -136,6 +150,8 @@ describe("RoadmapProcessorService", () => {
     fakeResourcesQueue = ctx.fakeResourcesQueue;
     embedder = ctx.embedder;
     conceptEmbeddingRepo = ctx.conceptEmbeddingRepo;
+    //stepQuizService = ctx.stepQuizService;
+    stepQuizQuestionRepo = ctx.stepQuizQuestionRepo;
 
     roadmapRepo.seedRoadmap(ROADMAP_ID);
   });
@@ -216,6 +232,7 @@ describe("RoadmapProcessorService", () => {
       expect(job.progressUpdates).toEqual([
         { stage: "concepts" },
         { stage: "learning-path" },
+        { stage: "step-quizzes" },
         { stage: "done" },
       ]);
     });
@@ -458,6 +475,149 @@ describe("RoadmapProcessorService", () => {
       await service.process(job as unknown as Job<JobData>);
 
       expect(roadmapGenerator.lastUserContext).toEqual(fullContext);
+    });
+  });
+
+  describe("step quiz generation", () => {
+    beforeEach(() => {
+      topicConceptGenerator.setResult({
+        concepts: CONCEPTS,
+        relationships: RELATIONSHIPS,
+      });
+      roadmapGenerator.setResult({
+        orderedConcepts: [
+          {
+            conceptId: "c1",
+            order: 0,
+            learningObjective: "Learn LA",
+            estimatedDuration: 30,
+            difficulty: "beginner",
+            rationale: "Foundation",
+          },
+          {
+            conceptId: "c2",
+            order: 1,
+            learningObjective: "Learn NN",
+            estimatedDuration: 60,
+            difficulty: "intermediate",
+            rationale: "Core topic",
+          },
+        ],
+        description: "ML roadmap",
+        recommendedPace: "1 hour/day",
+      });
+    });
+
+    it("should generate and persist step questions after assembleSteps and before deductTokens", async () => {
+      const job = new FakeJob<JobData>("job-quiz-1", {
+        roadmapId: ROADMAP_ID,
+        topic: TOPIC,
+        title: "ML Roadmap",
+        userId: USER_ID,
+      });
+
+      await service.process(job as unknown as Job<JobData>);
+
+      const saved = stepQuizQuestionRepo.getSaved();
+      expect(saved.length).toBeGreaterThan(0);
+      expect(saved.every((q) => q.roadmapId === ROADMAP_ID)).toBe(true);
+      // stepOrder should come from step.order, not array index
+      const orders = saved.map((q) => q.stepOrder);
+      expect(orders).toContain(0);
+      expect(orders).toContain(1);
+    });
+
+    it("should complete and enqueue resources even if quiz generation fails", async () => {
+      const failingQuizService = new FakeStepQuizGenerationService();
+      failingQuizService.setShouldFail(true);
+      const ctx = buildService({ stepQuizService: failingQuizService });
+      ctx.roadmapRepo.seedRoadmap(ROADMAP_ID);
+      ctx.topicConceptGenerator.setResult({
+        concepts: CONCEPTS,
+        relationships: RELATIONSHIPS,
+      });
+      ctx.roadmapGenerator.setResult({
+        orderedConcepts: [
+          {
+            conceptId: "c1",
+            order: 0,
+            learningObjective: "Learn LA",
+            estimatedDuration: 30,
+            difficulty: "beginner",
+            rationale: "Foundation",
+          },
+        ],
+        description: "ML roadmap",
+        recommendedPace: "1 hour/day",
+      });
+
+      const job = new FakeJob<JobData>("job-quiz-2", {
+        roadmapId: ROADMAP_ID,
+        topic: TOPIC,
+        title: "ML Roadmap",
+        userId: USER_ID,
+      });
+
+      await ctx.service.process(job as unknown as Job<JobData>);
+
+      // Roadmap still completes
+      expect(ctx.roadmapRepo.getRoadmap(ROADMAP_ID)?.generationStatus).toBe(
+        "completed",
+      );
+      // Resources still enqueued
+      expect(ctx.fakeResourcesQueue.add).toHaveBeenCalledWith(
+        "discover-resources",
+        { roadmapId: ROADMAP_ID },
+        { jobId: ROADMAP_ID },
+      );
+      // Warning was logged
+      expect(ctx.logger.hasLevel("warn")).toBe(true);
+    });
+
+    it("should not call repo saveMany when quiz generation produces no questions", async () => {
+      // Override: service returns empty questions for all steps
+      const emptyService = new FakeStepQuizGenerationService();
+      // Return empty questions array for each step
+      jest
+        .spyOn(emptyService, "generateForSteps")
+        .mockResolvedValue([{ conceptId: "c1", questions: [] }]);
+
+      const ctx = buildService({ stepQuizService: emptyService });
+      ctx.roadmapRepo.seedRoadmap(ROADMAP_ID);
+      ctx.topicConceptGenerator.setResult({
+        concepts: CONCEPTS,
+        relationships: RELATIONSHIPS,
+      });
+      ctx.roadmapGenerator.setResult({
+        orderedConcepts: [
+          {
+            conceptId: "c1",
+            order: 5,
+            learningObjective: "Learn LA",
+            estimatedDuration: 30,
+            difficulty: "beginner",
+            rationale: "Foundation",
+          },
+        ],
+        description: "ML roadmap",
+        recommendedPace: "1 hour/day",
+      });
+
+      const job = new FakeJob<JobData>("job-quiz-3", {
+        roadmapId: ROADMAP_ID,
+        topic: TOPIC,
+        title: "ML Roadmap",
+        userId: USER_ID,
+      });
+
+      await ctx.service.process(job as unknown as Job<JobData>);
+
+      // No questions saved — saveMany short-circuits on empty
+      expect(ctx.stepQuizQuestionRepo.getSaved()).toHaveLength(0);
+      // Roadmap still completed
+      expect(ctx.roadmapRepo.getRoadmap(ROADMAP_ID)?.generationStatus).toBe(
+        "completed",
+      );
     });
   });
 

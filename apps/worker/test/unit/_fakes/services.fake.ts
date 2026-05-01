@@ -12,6 +12,8 @@ import type {
   IConceptRepository,
   IEmbeddingService,
   IConceptEmbeddingRepository,
+  IStepQuizGenerationService,
+  IRoadmapStepQuestionRepository,
   ConceptEmbedding,
   ExtractedConcept,
   DocumentAnalysisResult,
@@ -23,8 +25,11 @@ import type {
   ConceptGraph,
   GeneratedLearningPath,
   UserContext,
+  StepQuizInput,
+  GeneratedStepQuiz,
+  RoadmapStepQuestion,
 } from "@sagepoint/domain";
-import { Concept, NewsArticle } from "@sagepoint/domain";
+import { Concept, NewsArticle, QuestionType } from "@sagepoint/domain";
 
 // ─── FileStorage ──────────────────────────────────────────────────────────────
 
@@ -392,6 +397,68 @@ export class FakeConceptEmbeddingRepository implements IConceptEmbeddingReposito
   }
 
   getSaved(): ConceptEmbedding[] {
+    return [...this.saved];
+  }
+}
+
+// ─── StepQuizGenerationService ────────────────────────────────────────────────
+
+export class FakeStepQuizGenerationService implements IStepQuizGenerationService {
+  private shouldFail = false;
+  lastInput: StepQuizInput[] = [];
+
+  setShouldFail(fail: boolean) {
+    this.shouldFail = fail;
+  }
+
+  generateForSteps(steps: StepQuizInput[]): Promise<GeneratedStepQuiz[]> {
+    this.lastInput = steps;
+    if (this.shouldFail)
+      return Promise.reject(new Error("Step quiz generation failed"));
+    return Promise.resolve(
+      steps.map((s) => ({
+        conceptId: s.conceptId,
+        questions: [
+          {
+            type: QuestionType.MULTIPLE_CHOICE,
+            text: `What is ${s.conceptName}?`,
+            options: [
+              { label: "A", text: "Correct answer", isCorrect: true },
+              { label: "B", text: "Wrong answer", isCorrect: false },
+              { label: "C", text: "Wrong answer", isCorrect: false },
+              { label: "D", text: "Wrong answer", isCorrect: false },
+            ],
+            explanation: "Because it is.",
+            difficulty: s.difficulty ?? "intermediate",
+          },
+        ],
+      })),
+    );
+  }
+}
+
+// ─── StepQuizQuestionRepository ───────────────────────────────────────────────
+
+export class FakeStepQuizQuestionRepository implements IRoadmapStepQuestionRepository {
+  private saved: RoadmapStepQuestion[] = [];
+  private shouldFail = false;
+
+  setShouldFail(fail: boolean) {
+    this.shouldFail = fail;
+  }
+
+  saveMany(items: RoadmapStepQuestion[]): Promise<void> {
+    if (this.shouldFail)
+      return Promise.reject(new Error("Step quiz repo failed"));
+    this.saved.push(...items);
+    return Promise.resolve();
+  }
+
+  findByRoadmapId(roadmapId: string): Promise<RoadmapStepQuestion[]> {
+    return Promise.resolve(this.saved.filter((q) => q.roadmapId === roadmapId));
+  }
+
+  getSaved(): RoadmapStepQuestion[] {
     return [...this.saved];
   }
 }

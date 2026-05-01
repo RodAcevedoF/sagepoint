@@ -46,6 +46,7 @@ import {
   BLOG_POST_REPOSITORY,
   BLOG_POST_GENERATION_SERVICE,
   ROADMAP_RESOURCES_QUEUE,
+  ROADMAP_STEP_QUESTION_REPOSITORY,
 } from "@sagepoint/domain";
 import type {
   ICacheService,
@@ -69,6 +70,7 @@ import {
   PrismaTokenBalanceRepository,
   PrismaBlogPostRepository,
   PrismaConceptEmbeddingRepository,
+  PrismaRoadmapStepQuestionRepository,
 } from "@sagepoint/database";
 
 function createWorkerPrisma(): PrismaClient {
@@ -280,6 +282,12 @@ const isDev = process.env.NODE_ENV !== "production";
       provide: CONCEPT_EMBEDDING_REPOSITORY,
       useFactory: (prisma: PrismaClient) =>
         new PrismaConceptEmbeddingRepository(prisma),
+      inject: ["WORKER_PRISMA"],
+    },
+    {
+      provide: ROADMAP_STEP_QUESTION_REPOSITORY,
+      useFactory: (prisma: PrismaClient) =>
+        new PrismaRoadmapStepQuestionRepository(prisma),
       inject: ["WORKER_PRISMA"],
     },
   ],

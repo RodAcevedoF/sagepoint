@@ -335,11 +335,12 @@ model Roadmap {
   isFeatured         Boolean @default(false)
   visibility         RoadmapVisibility @default(PRIVATE)
 
-  resources         Resource[]
-  progress          UserRoadmapProgress[]
-  stepQuizAttempts  StepQuizAttempt[]
-  likes             RoadmapLike[]
-  adoptedBy         UserAdoptedRoadmap[]
+  resources             Resource[]
+  progress              UserRoadmapProgress[]
+  stepQuizAttempts      StepQuizAttempt[]
+  roadmapStepQuestions  RoadmapStepQuestion[]
+  likes                 RoadmapLike[]
+  adoptedBy             UserAdoptedRoadmap[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -412,6 +413,25 @@ model StepQuizAttempt {
   @@index([userId, roadmapId, conceptId])
   @@index([userId])
   @@map("step_quiz_attempts")
+}
+
+model RoadmapStepQuestion {
+  id          String   @id @default(uuid()) @db.Uuid
+  roadmapId   String   @db.Uuid
+  conceptId   String
+  stepOrder   Int
+  text        String
+  type        String
+  options     Json
+  explanation String?
+  difficulty  String
+  createdAt   DateTime @default(now())
+
+  roadmap     Roadmap  @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+
+  @@index([roadmapId, stepOrder])
+  @@index([roadmapId, conceptId])
+  @@map("roadmap_step_questions")
 }
 
 model Invitation {

@@ -11,6 +11,7 @@ import {
   BLOG_POST_GENERATION_SERVICE,
   CATEGORY_CLASSIFIER_SERVICE,
   EMBEDDING_SERVICE,
+  STEP_QUIZ_GENERATION_SERVICE,
 } from "@sagepoint/domain";
 import { OpenAiContentAnalysisAdapter } from "./openai-content-analysis.adapter";
 import { CerebrasCategoryClassifierAdapter } from "./cerebras-category-classifier.adapter";
@@ -22,6 +23,7 @@ import { OpenAiDocumentAnalysisAdapter } from "./openai-document-analysis.adapte
 import { OpenAiQuizGenerationAdapter } from "./openai-quiz-generation.adapter";
 import { OpenAiBlogPostGenerationAdapter } from "./openai-blog-post-generation.adapter";
 import { OpenAiEmbeddingAdapter } from "./openai-embedding.adapter";
+import { OpenAiStepQuizGenerationAdapter } from "./openai-step-quiz-generation.adapter";
 
 @Module({
   imports: [ConfigModule],
@@ -114,6 +116,15 @@ import { OpenAiEmbeddingAdapter } from "./openai-embedding.adapter";
         }),
       inject: [ConfigService],
     },
+    {
+      provide: STEP_QUIZ_GENERATION_SERVICE,
+      useFactory: (config: ConfigService) =>
+        new OpenAiStepQuizGenerationAdapter({
+          apiKey: config.get("OPENAI_API_KEY") ?? "",
+          modelName: config.get("MODEL_STEP_QUIZ_GENERATION"),
+        }),
+      inject: [ConfigService],
+    },
   ],
   exports: [
     CONTENT_ANALYSIS_SERVICE,
@@ -126,6 +137,7 @@ import { OpenAiEmbeddingAdapter } from "./openai-embedding.adapter";
     BLOG_POST_GENERATION_SERVICE,
     CATEGORY_CLASSIFIER_SERVICE,
     EMBEDDING_SERVICE,
+    STEP_QUIZ_GENERATION_SERVICE,
   ],
 })
 export class AiModule {}

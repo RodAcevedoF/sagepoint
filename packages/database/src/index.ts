@@ -21,3 +21,4 @@ export { PrismaCategoryRoomRepository } from "./repositories/prisma-category-roo
 export { PrismaTokenBalanceRepository } from "./repositories/prisma-token-balance.repository";
 export { PrismaBlogPostRepository } from "./repositories/prisma-blog-post.repository";
 export { PrismaConceptEmbeddingRepository } from "./repositories/prisma-concept-embedding.repository";
+export { PrismaRoadmapStepQuestionRepository } from "./repositories/prisma-roadmap-step-question.repository";

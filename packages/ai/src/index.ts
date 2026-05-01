@@ -16,3 +16,4 @@ export * from "./cached-resource-discovery.adapter";
 export * from "./cerebras-category-classifier.adapter";
 export * from "./openai-embedding.adapter";
 export * from "./exa-research.adapter";
+export * from "./openai-step-quiz-generation.adapter";
