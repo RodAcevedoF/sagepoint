@@ -6,15 +6,109 @@ import type {
   GeneratedStepQuiz,
 } from "@sagepoint/domain";
 import { QuestionType } from "@sagepoint/domain";
-import { ChatOpenAI } from "@langchain/openai";
+import { Cerebras } from "@cerebras/cerebras_cloud_sdk";
 import { z } from "zod";
-import { resolveCerebrasConfig, createCerebrasModel } from "./llm-config";
+import { resolveCerebrasConfig, createCerebrasClient } from "./llm-config";
 import type { LlmAdapterConfig } from "./llm-config";
+
+const QUIZ_JSON_SCHEMA = {
+  type: "object",
+  properties: {
+    results: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          conceptId: { type: "string" },
+          questions: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                type: { type: "string", enum: ["MULTIPLE_CHOICE"] },
+                text: { type: "string" },
+                options: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      label: { type: "string" },
+                      text: { type: "string" },
+                      isCorrect: { type: "boolean" },
+                    },
+                    required: ["label", "text", "isCorrect"],
+                    additionalProperties: false,
+                  },
+                },
+                explanation: { type: "string" },
+                difficulty: {
+                  type: "string",
+                  enum: ["beginner", "intermediate", "advanced", "expert"],
+                },
+              },
+              required: [
+                "type",
+                "text",
+                "options",
+                "explanation",
+                "difficulty",
+              ],
+              additionalProperties: false,
+            },
+          },
+        },
+        required: ["conceptId", "questions"],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ["results"],
+  additionalProperties: false,
+} as const;
+
+const zodSchema = z.object({
+  results: z.array(
+    z.object({
+      conceptId: z.string(),
+      questions: z.array(
+        z.object({
+          type: z.enum(["MULTIPLE_CHOICE"]),
+          text: z.string(),
+          options: z.array(
+            z.object({
+              label: z.string(),
+              text: z.string(),
+              isCorrect: z.boolean(),
+            }),
+          ),
+          explanation: z.string(),
+          difficulty: z.enum([
+            "beginner",
+            "intermediate",
+            "advanced",
+            "expert",
+          ]),
+        }),
+      ),
+    }),
+  ),
+});
+
+const completionSchema = z.object({
+  choices: z.array(
+    z.object({
+      message: z.object({
+        content: z.string(),
+      }),
+    }),
+  ),
+});
 
 @Injectable()
 export class CerebrasStepQuizEnrichmentAdapter implements IStepQuizGenerationService {
   private readonly logger = new Logger(CerebrasStepQuizEnrichmentAdapter.name);
-  private readonly model: ChatOpenAI;
+  private readonly client: Cerebras;
+  private readonly modelName: string;
 
   constructor(
     @Optional()
@@ -22,10 +116,8 @@ export class CerebrasStepQuizEnrichmentAdapter implements IStepQuizGenerationSer
     configOrService?: ConfigService | LlmAdapterConfig,
   ) {
     const resolved = resolveCerebrasConfig(configOrService);
-    this.model = createCerebrasModel({
-      ...resolved,
-      modelName: resolved.modelName || "llama3.1-70b",
-    });
+    this.client = createCerebrasClient(resolved);
+    this.modelName = resolved.modelName || "llama3.1-70b";
   }
 
   async generateForSteps(steps: StepQuizInput[]): Promise<GeneratedStepQuiz[]> {
@@ -34,44 +126,6 @@ export class CerebrasStepQuizEnrichmentAdapter implements IStepQuizGenerationSer
     this.logger.log(`Enriching step quizzes for ${steps.length} steps`);
 
     const questionCount = steps[0].questionCount ?? 2;
-
-    const schema = z.object({
-      results: z.array(
-        z.object({
-          conceptId: z.string().describe("The conceptId from the input step"),
-          questions: z.array(
-            z.object({
-              type: z
-                .enum(["MULTIPLE_CHOICE"])
-                .describe("Always MULTIPLE_CHOICE"),
-              text: z.string().describe("The question text"),
-              options: z
-                .array(
-                  z.object({
-                    label: z
-                      .string()
-                      .describe("Single uppercase letter: A, B, C, or D"),
-                    text: z.string().describe("Option text"),
-                    isCorrect: z
-                      .boolean()
-                      .describe("True for exactly one option"),
-                  }),
-                )
-                .length(4)
-                .describe("Exactly 4 options"),
-              explanation: z
-                .string()
-                .describe("One-sentence explanation of the correct answer"),
-              difficulty: z
-                .enum(["beginner", "intermediate", "advanced", "expert"])
-                .describe("Question difficulty matching the step difficulty"),
-            }),
-          ),
-        }),
-      ),
-    });
-
-    const structuredModel = this.model.withStructuredOutput(schema);
 
     const stepsText = steps
       .map(
@@ -83,16 +137,13 @@ export class CerebrasStepQuizEnrichmentAdapter implements IStepQuizGenerationSer
   Difficulty: ${s.difficulty ?? "intermediate"}
   Questions to generate: ${s.questionCount ?? questionCount}${
     s.resourceSnippets && s.resourceSnippets.length > 0
-      ? `\n  Resources:\n${s.resourceSnippets.map((r) => `    - ${r}`).join("\n")}`
+      ? `\n  Resources:\n${s.resourceSnippets.map((r) => `    - ${r.slice(0, 300)}`).join("\n")}`
       : ""
   }`,
       )
       .join("\n\n");
 
-    const result = await structuredModel.invoke([
-      {
-        role: "system",
-        content: `You are an expert educational quiz designer. Generate ${questionCount} MULTIPLE_CHOICE questions per step.
+    const systemPrompt = `You are an expert educational quiz designer. Generate ${questionCount} MULTIPLE_CHOICE questions per step.
 
 Guidelines:
 - Return one result object per step, in the same order, with the exact conceptId from the input.
@@ -100,17 +151,40 @@ Guidelines:
 - Ground each question in the step's learningObjective and rationale — test understanding of WHY the step matters, not just terminology recall.
 - 4 options (A, B, C, D), exactly one correct.
 - Difficulty should match the step's stated difficulty.
-- One brief explanation sentence per question.`,
-      },
-      {
-        role: "user",
-        content: `Generate quiz questions for these roadmap steps:\n\n${stepsText}`,
-      },
-    ]);
+- One brief explanation sentence per question.`;
 
-    this.logger.log(`Enriched quizzes for ${result.results.length} steps`);
+    const response = await this.client.chat.completions.create({
+      model: this.modelName,
+      messages: [
+        { role: "system", content: systemPrompt },
+        {
+          role: "user",
+          content: `Generate quiz questions for these roadmap steps:\n\n${stepsText}`,
+        },
+      ],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "QuizResults",
+          schema: QUIZ_JSON_SCHEMA,
+          strict: true,
+        },
+      },
+    });
 
-    return result.results.map((r) => ({
+    const completion = completionSchema.parse(response);
+    const firstChoice = completion.choices.at(0);
+
+    if (!firstChoice) {
+      throw new Error("Cerebras returned no quiz completion choices");
+    }
+
+    const raw: unknown = JSON.parse(firstChoice.message.content);
+    const parsed = zodSchema.parse(raw);
+
+    this.logger.log(`Enriched quizzes for ${parsed.results.length} steps`);
+
+    return parsed.results.map((r) => ({
       conceptId: r.conceptId,
       questions: r.questions.map((q) => ({
         type: q.type as QuestionType,

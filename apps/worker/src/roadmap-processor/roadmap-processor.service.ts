@@ -15,8 +15,6 @@ import {
   CATEGORY_CLASSIFIER_SERVICE,
   EMBEDDING_SERVICE,
   ROADMAP_RESOURCES_QUEUE,
-  STEP_QUIZ_GENERATION_SERVICE,
-  ROADMAP_STEP_QUESTION_REPOSITORY,
 } from "@sagepoint/domain";
 import type {
   IConceptRepository,
@@ -34,12 +32,8 @@ import type {
   ConceptRelationshipForOrdering,
   UserContext,
   ICategoryClassifierService,
-  IStepQuizGenerationService,
-  IRoadmapStepQuestionRepository,
-  RoadmapStepQuestion,
 } from "@sagepoint/domain";
 import { applyQualityGate } from "./concept-quality-gate";
-import { generateStepQuizzes } from "./step-quiz-generator";
 import { Inject } from "@nestjs/common";
 import { JobData } from "./contracts";
 
@@ -71,10 +65,6 @@ export class RoadmapProcessorService
     private readonly embedder: IEmbeddingService,
     @Inject(CONCEPT_EMBEDDING_REPOSITORY)
     private readonly conceptEmbeddingRepo: IConceptEmbeddingRepository,
-    @Inject(STEP_QUIZ_GENERATION_SERVICE)
-    private readonly stepQuizService: IStepQuizGenerationService,
-    @Inject(ROADMAP_STEP_QUESTION_REPOSITORY)
-    private readonly stepQuizQuestionRepo: IRoadmapStepQuestionRepository,
   ) {
     super();
   }
@@ -136,14 +126,7 @@ export class RoadmapProcessorService
         onProgress,
       );
 
-      onProgress?.({ stage: "step-quizzes" });
-      const questions = await this.buildStepQuestions(
-        roadmapId,
-        assembled.steps,
-      );
-
       await this.persistLearningPath(roadmapId, assembled);
-      await this.persistStepQuestions(roadmapId, questions);
 
       await this.deductTokens((input as JobData).userId, roadmapId);
 
@@ -383,41 +366,6 @@ export class RoadmapProcessorService
       { roadmapId, stepCount: assembled.steps.length, stage: "completed" },
       "Roadmap generation complete",
     );
-  }
-
-  private async buildStepQuestions(
-    roadmapId: string,
-    steps: RoadmapStep[],
-  ): Promise<RoadmapStepQuestion[]> {
-    try {
-      return await generateStepQuizzes(
-        { roadmapId, steps },
-        { service: this.stepQuizService },
-      );
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error));
-      this.logger.warn(
-        { roadmapId, err },
-        "Step quiz generation failed, skipping",
-      );
-      return [];
-    }
-  }
-
-  private async persistStepQuestions(
-    roadmapId: string,
-    questions: RoadmapStepQuestion[],
-  ): Promise<void> {
-    if (questions.length === 0) return;
-    try {
-      await this.stepQuizQuestionRepo.saveMany(questions);
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error));
-      this.logger.warn(
-        { roadmapId, err },
-        "Failed to persist step quiz questions",
-      );
-    }
   }
 
   private async handleFailure(

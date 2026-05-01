@@ -1,4 +1,5 @@
 import { ChatOpenAI } from "@langchain/openai";
+import { Cerebras } from "@cerebras/cerebras_cloud_sdk";
 import type { ConfigService } from "@nestjs/config";
 
 export interface LlmAdapterConfig {
@@ -101,6 +102,10 @@ export function resolveCerebrasConfig(
     apiKey: process.env.CEREBRAS_API_KEY ?? "",
     modelName: process.env.CEREBRAS_MODEL ?? "llama3.1-8b",
   };
+}
+
+export function createCerebrasClient(config: LlmAdapterConfig): Cerebras {
+  return new Cerebras({ apiKey: config.apiKey });
 }
 
 export function createCerebrasModel(config: LlmAdapterConfig): ChatOpenAI {

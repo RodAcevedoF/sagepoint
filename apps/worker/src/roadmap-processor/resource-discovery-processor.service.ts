@@ -7,6 +7,7 @@ import {
   RESOURCE_REPOSITORY,
   RESOURCE_DISCOVERY_SERVICE,
   ROADMAP_RESOURCES_QUEUE,
+  STEP_QUIZ_GENERATION_SERVICE,
   STEP_QUIZ_ENRICHMENT_SERVICE,
   ROADMAP_STEP_QUESTION_REPOSITORY,
 } from "@sagepoint/domain";
@@ -26,6 +27,7 @@ import type {
   ResourceJobData,
 } from "./contracts";
 import { Inject } from "@nestjs/common";
+import { generateStepQuizzes } from "./step-quiz-generator";
 import { enrichStepQuizzes } from "./step-quiz-enricher";
 
 @Processor(ROADMAP_RESOURCES_QUEUE)
@@ -42,6 +44,8 @@ export class ResourceDiscoveryProcessorService
     private readonly resourceRepo: IResourceRepository,
     @Inject(RESOURCE_DISCOVERY_SERVICE)
     private readonly resourceDiscovery: IResourceDiscoveryService,
+    @Inject(STEP_QUIZ_GENERATION_SERVICE)
+    private readonly stepQuizGenerationService: IStepQuizGenerationService,
     @Inject(STEP_QUIZ_ENRICHMENT_SERVICE)
     private readonly stepQuizEnrichmentService: IStepQuizGenerationService,
     @Inject(ROADMAP_STEP_QUESTION_REPOSITORY)
@@ -93,11 +97,13 @@ export class ResourceDiscoveryProcessorService
       }));
 
       const difficulty = steps[0]?.difficulty;
-      const resourceMap =
-        await this.resourceDiscovery.discoverResourcesForConcepts(concepts, {
+      const [questions, resourceMap] = await Promise.all([
+        this.buildInitialQuizzes(roadmapId, steps),
+        this.resourceDiscovery.discoverResourcesForConcepts(concepts, {
           maxResults: 3,
           difficulty,
-        });
+        }),
+      ]);
 
       const allResources = steps.flatMap((step) => {
         const discovered = resourceMap.get(step.concept.id) ?? [];
@@ -120,6 +126,8 @@ export class ResourceDiscoveryProcessorService
       if (allResources.length > 0) {
         await this.resourceRepo.saveMany(allResources);
       }
+
+      await this.persistInitialQuizzes(roadmapId, questions);
 
       const enriched = await this.buildEnrichedQuizzes(
         roadmapId,
@@ -144,6 +152,41 @@ export class ResourceDiscoveryProcessorService
         resourcesErrorMessage: err.message,
       });
       throw error;
+    }
+  }
+
+  private async buildInitialQuizzes(
+    roadmapId: string,
+    steps: RoadmapStep[],
+  ): Promise<RoadmapStepQuestion[]> {
+    try {
+      return await generateStepQuizzes(
+        { roadmapId, steps },
+        { service: this.stepQuizGenerationService },
+      );
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.warn(
+        { roadmapId, err },
+        "Phase-1 quiz generation failed; proceeding without initial questions",
+      );
+      return [];
+    }
+  }
+
+  private async persistInitialQuizzes(
+    roadmapId: string,
+    questions: RoadmapStepQuestion[],
+  ): Promise<void> {
+    if (questions.length === 0) return;
+    try {
+      await this.stepQuizQuestionRepo.saveMany(questions);
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.warn(
+        { roadmapId, err },
+        "Failed to persist initial quiz questions",
+      );
     }
   }
 
