@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useGenerateTopicRoadmapCommand } from "@/application/roadmap";
+import { normalizeTopicInput } from "@/features/roadmap/utils/roadmap.utils";
 import { useRoadmapEvents } from "@/shared/hooks";
 import { useSnackbar } from "@/shared/components";
 import { useGetResourceQuotaQuery } from "@/infrastructure/api/userApi";
@@ -91,13 +92,15 @@ export function GenerationView({
 
       setErrorMessage(null);
       setRoadmapId(null);
+      const normalizedTopic = normalizeTopicInput(topic);
+      setTopic(normalizedTopic);
       if (fromOnboarding) setPhase("generating");
 
       const timeAvailable = commitment
         ? COMMITMENT_LEVELS.find((c) => c.id === commitment)?.hours
         : undefined;
 
-      const result = await execute(topic.trim(), title.trim() || undefined, {
+      const result = await execute(normalizedTopic, title.trim() || undefined, {
         userContext:
           experienceLevel || timeAvailable
             ? { experienceLevel, timeAvailable }

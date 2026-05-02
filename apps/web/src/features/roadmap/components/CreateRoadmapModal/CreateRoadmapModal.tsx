@@ -12,6 +12,7 @@ import { Sparkles } from "lucide-react";
 import { Button, useModal } from "@/shared/components";
 import { ButtonTypes, ButtonIconPositions } from "@/shared/types";
 import { useGenerateTopicRoadmapCommand } from "../../../../application/roadmap";
+import { normalizeTopicInput } from "../../utils/roadmap.utils";
 import { makeStyles } from "./CreateRoadmapModal.styles";
 
 export function CreateRoadmapModal() {
@@ -28,7 +29,8 @@ export function CreateRoadmapModal() {
     if (!topic.trim()) return;
 
     setError(false);
-    const result = await execute(topic.trim(), title.trim() || undefined, {
+    const normalizedTopic = normalizeTopicInput(topic);
+    const result = await execute(normalizedTopic, title.trim() || undefined, {
       navigateOnSuccess: true,
     });
     if (result.ok) {

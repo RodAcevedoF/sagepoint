@@ -95,3 +95,9 @@ export const DIFFICULTY_COLORS: Record<string, string> = {
   intermediate: palette.warning.light,
   advanced: palette.error.light,
 };
+
+export function normalizeTopicInput(topic: string): string {
+  const trimmed = topic.trim();
+  const stripped = trimmed.replace(/^(learn\b[\s:,-]*)+/i, "").trim();
+  return stripped || trimmed;
+}

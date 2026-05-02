@@ -7,6 +7,7 @@ import {
   getDifficultyDistribution,
   groupRoadmapStepsForTimeline,
   isSubConceptStep,
+  normalizeTopicInput,
   STATUS_CONFIG,
 } from "@/features/roadmap/utils/roadmap.utils";
 
@@ -193,5 +194,35 @@ describe("groupRoadmapStepsForTimeline", () => {
     expect(result.subConceptsByParent.get("css")).toEqual([flexbox]);
     expect(result.subConceptsByParent.get("html")).toEqual([flexbox]);
     expect(Array.from(result.expandedConceptIds)).toEqual(["css", "html"]);
+  });
+});
+
+describe("normalizeTopicInput", () => {
+  it("leaves a plain topic unchanged", () => {
+    expect(normalizeTopicInput("React")).toBe("React");
+  });
+
+  it("strips a leading Learn prefix", () => {
+    expect(normalizeTopicInput("Learn React")).toBe("React");
+  });
+
+  it("is case-insensitive", () => {
+    expect(normalizeTopicInput("learn react")).toBe("react");
+  });
+
+  it("collapses repeated Learn prefixes with punctuation", () => {
+    expect(normalizeTopicInput("Learn: Learn React")).toBe("React");
+  });
+
+  it("trims surrounding whitespace and internal gap after prefix", () => {
+    expect(normalizeTopicInput("  Learn   React  ")).toBe("React");
+  });
+
+  it("falls back to original trimmed value when only Learn is typed", () => {
+    expect(normalizeTopicInput("Learn")).toBe("Learn");
+  });
+
+  it("does not strip a Learn-prefixed word boundary like Learning", () => {
+    expect(normalizeTopicInput("Learning React")).toBe("Learning React");
   });
 });
