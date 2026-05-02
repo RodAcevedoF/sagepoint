@@ -1,4 +1,3 @@
-import React from "react";
 import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { Provider } from "react-redux";
@@ -41,7 +40,7 @@ function triggerError() {
 }
 
 function wrapper({ children }: { children: React.ReactNode }) {
-  return React.createElement(Provider, { store: setupStore(), children });
+  return <Provider store={setupStore()}>{children}</Provider>;
 }
 
 beforeEach(() => {
