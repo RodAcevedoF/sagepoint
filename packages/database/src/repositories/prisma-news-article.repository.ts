@@ -40,7 +40,7 @@ export class PrismaNewsArticleRepository implements INewsArticleRepository {
       where: { category: { slug: { in: slugs } } },
       include: { category: { select: { slug: true } } },
       orderBy: { publishedAt: "desc" },
-      take: 30,
+      take: 60,
     });
     return found.map((row) => this.toDomain(row, row.category.slug));
   }

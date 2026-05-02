@@ -1,6 +1,9 @@
+import React from "react";
 import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { Provider } from "react-redux";
 import { useRoadmapEvents } from "@/shared/hooks/useRoadmapEvents";
+import { setupStore } from "@/infrastructure/store/store";
 
 // ─── EventSource mock ───────────────────────────────────────────────────────
 
@@ -37,6 +40,10 @@ function triggerError() {
   lastInstance.onerror();
 }
 
+function wrapper({ children }: { children: React.ReactNode }) {
+  return React.createElement(Provider, { store: setupStore() }, children);
+}
+
 beforeEach(() => {
   lastInstance = null;
   vi.stubGlobal("EventSource", vi.fn(mockEventSource));
@@ -49,7 +56,7 @@ afterEach(() => {
 describe("useRoadmapEvents", () => {
   describe("when roadmapId is null", () => {
     it("returns initial state without connecting", () => {
-      const { result } = renderHook(() => useRoadmapEvents(null));
+      const { result } = renderHook(() => useRoadmapEvents(null), { wrapper });
 
       expect(result.current.status).toBe("connecting");
       expect(result.current.stage).toBeNull();
@@ -60,7 +67,7 @@ describe("useRoadmapEvents", () => {
 
   describe("when roadmapId is provided", () => {
     it("connects to SSE endpoint with credentials", () => {
-      renderHook(() => useRoadmapEvents("r1"));
+      renderHook(() => useRoadmapEvents("r1"), { wrapper });
 
       expect(EventSource).toHaveBeenCalledWith(
         "http://localhost:3001/roadmaps/r1/events",
@@ -69,7 +76,7 @@ describe("useRoadmapEvents", () => {
     });
 
     it('updates status on "status" event', () => {
-      const { result } = renderHook(() => useRoadmapEvents("r1"));
+      const { result } = renderHook(() => useRoadmapEvents("r1"), { wrapper });
 
       act(() => {
         sendMessage({ type: "status", status: "pending" });
@@ -79,7 +86,7 @@ describe("useRoadmapEvents", () => {
     });
 
     it('updates stage on "progress" event', () => {
-      const { result } = renderHook(() => useRoadmapEvents("r1"));
+      const { result } = renderHook(() => useRoadmapEvents("r1"), { wrapper });
 
       act(() => {
         sendMessage({ type: "progress", stage: "concepts" });
@@ -90,7 +97,7 @@ describe("useRoadmapEvents", () => {
     });
 
     it("transitions through all stages", () => {
-      const { result } = renderHook(() => useRoadmapEvents("r1"));
+      const { result } = renderHook(() => useRoadmapEvents("r1"), { wrapper });
 
       act(() => sendMessage({ type: "progress", stage: "concepts" }));
       expect(result.current.stage).toBe("concepts");
@@ -107,7 +114,7 @@ describe("useRoadmapEvents", () => {
     });
 
     it('closes EventSource on "completed"', () => {
-      renderHook(() => useRoadmapEvents("r1"));
+      renderHook(() => useRoadmapEvents("r1"), { wrapper });
 
       act(() => {
         sendMessage({ type: "completed" });
@@ -117,7 +124,7 @@ describe("useRoadmapEvents", () => {
     });
 
     it('sets error and closes on "failed"', () => {
-      const { result } = renderHook(() => useRoadmapEvents("r1"));
+      const { result } = renderHook(() => useRoadmapEvents("r1"), { wrapper });
 
       act(() => {
         sendMessage({ type: "failed", message: "LLM quota exceeded" });
@@ -129,7 +136,7 @@ describe("useRoadmapEvents", () => {
     });
 
     it('sets error on "error" event type', () => {
-      const { result } = renderHook(() => useRoadmapEvents("r1"));
+      const { result } = renderHook(() => useRoadmapEvents("r1"), { wrapper });
 
       act(() => {
         sendMessage({ type: "error", message: "Internal error" });
@@ -140,7 +147,7 @@ describe("useRoadmapEvents", () => {
     });
 
     it('sets status to "connecting" on connection error', () => {
-      const { result } = renderHook(() => useRoadmapEvents("r1"));
+      const { result } = renderHook(() => useRoadmapEvents("r1"), { wrapper });
 
       // First move to processing
       act(() => sendMessage({ type: "progress", stage: "concepts" }));
@@ -152,7 +159,7 @@ describe("useRoadmapEvents", () => {
     });
 
     it("closes EventSource on unmount", () => {
-      const { unmount } = renderHook(() => useRoadmapEvents("r1"));
+      const { unmount } = renderHook(() => useRoadmapEvents("r1"), { wrapper });
 
       unmount();
 
@@ -160,7 +167,7 @@ describe("useRoadmapEvents", () => {
     });
 
     it("ignores malformed JSON messages", () => {
-      const { result } = renderHook(() => useRoadmapEvents("r1"));
+      const { result } = renderHook(() => useRoadmapEvents("r1"), { wrapper });
 
       act(() => {
         lastInstance!.onmessage!(

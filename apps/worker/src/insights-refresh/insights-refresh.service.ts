@@ -14,7 +14,7 @@ import {
 } from "@sagepoint/domain";
 import { randomUUID } from "crypto";
 
-const RETENTION_DAYS = 5;
+const RETENTION_DAYS = 14;
 const REFRESH_INTERVAL_DAYS = 3;
 const MAX_NEWS_CATEGORIES = 20;
 
