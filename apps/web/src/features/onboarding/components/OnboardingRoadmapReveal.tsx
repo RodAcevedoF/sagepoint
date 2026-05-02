@@ -63,7 +63,8 @@ export function OnboardingRoadmapReveal({ topic, sseStage }: Props) {
         </Typography>
 
         <Typography variant="h3" sx={styles.title}>
-          Generating &ldquo;{topic}&rdquo;
+          Generating &ldquo;{topic || "Learning DevOps and Machine Learning"}
+          &rdquo;
         </Typography>
 
         <Typography variant="body1" sx={styles.subtitle}>
