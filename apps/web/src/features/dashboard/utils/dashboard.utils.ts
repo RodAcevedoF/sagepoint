@@ -184,13 +184,19 @@ export function computeCategoriesOverview(
   roadmaps: DashboardRoadmap[],
 ): CategoryCount[] {
   const counts: Record<string, number> = {};
-  for (const { roadmap } of roadmaps) {
-    if (!roadmap.categoryName) continue;
-    counts[roadmap.categoryName] = (counts[roadmap.categoryName] ?? 0) + 1;
+  const latestMs: Record<string, number> = {};
+  for (const r of roadmaps) {
+    const { categoryName } = r.roadmap;
+    if (!categoryName) continue;
+    counts[categoryName] = (counts[categoryName] ?? 0) + 1;
+    const ts = roadmapStamp(r);
+    if (latestMs[categoryName] === undefined || ts > latestMs[categoryName]) {
+      latestMs[categoryName] = ts;
+    }
   }
   return Object.entries(counts)
     .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count);
+    .sort((a, b) => (latestMs[b.name] ?? 0) - (latestMs[a.name] ?? 0));
 }
 
 export function getGreeting(): string {

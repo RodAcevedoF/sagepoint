@@ -101,7 +101,7 @@ export function CategoriesPanel({ categories }: CategoriesPanelProps) {
         </Box>
       ) : (
         <Stack spacing={1.25}>
-          {categories.map(({ name, count }, i) => (
+          {categories.slice(0, 4).map(({ name, count }, i) => (
             <CategoryTile
               key={name}
               name={name}

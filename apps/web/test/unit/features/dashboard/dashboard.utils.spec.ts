@@ -4,6 +4,7 @@ import {
   computeRoadmaps,
   computeRoadmapsOverview,
   computeInsights,
+  computeCategoriesOverview,
 } from "@/features/dashboard/utils/dashboard.utils";
 import type { DashboardRoadmap } from "@/features/dashboard/types/dashboard.types";
 
@@ -229,5 +230,98 @@ describe("computeInsights", () => {
     });
     const result = computeInsights([roadmap]);
     expect(result.difficultyBreakdown[0].name).toBe("Beginner");
+  });
+});
+
+describe("computeCategoriesOverview", () => {
+  it("returns empty array for empty input", () => {
+    expect(computeCategoriesOverview([])).toEqual([]);
+  });
+
+  it("skips roadmaps with no categoryName", () => {
+    const r = makeDashboardRoadmap({ roadmap: { categoryName: undefined } });
+    expect(computeCategoriesOverview([r])).toEqual([]);
+  });
+
+  it("sorts categories by most recent lastActivityAt desc", () => {
+    const old = makeDashboardRoadmap({
+      roadmap: {
+        id: "r1",
+        categoryName: "TypeScript",
+        createdAt: "2025-01-01T00:00:00Z",
+      },
+      progress: { lastActivityAt: "2025-06-01T00:00:00Z" },
+    });
+    const recent = makeDashboardRoadmap({
+      roadmap: {
+        id: "r2",
+        categoryName: "React",
+        createdAt: "2025-01-01T00:00:00Z",
+      },
+      progress: { lastActivityAt: "2026-03-01T00:00:00Z" },
+    });
+    const result = computeCategoriesOverview([old, recent]);
+    expect(result[0].name).toBe("React");
+    expect(result[1].name).toBe("TypeScript");
+  });
+
+  it("falls back to createdAt when lastActivityAt is null", () => {
+    const older = makeDashboardRoadmap({
+      roadmap: {
+        id: "r1",
+        categoryName: "Go",
+        createdAt: "2025-01-01T00:00:00Z",
+      },
+      progress: { lastActivityAt: null },
+    });
+    const newer = makeDashboardRoadmap({
+      roadmap: {
+        id: "r2",
+        categoryName: "Rust",
+        createdAt: "2026-01-01T00:00:00Z",
+      },
+      progress: { lastActivityAt: null },
+    });
+    const result = computeCategoriesOverview([older, newer]);
+    expect(result[0].name).toBe("Rust");
+  });
+
+  it("uses max timestamp across multiple roadmaps in the same category", () => {
+    const early = makeDashboardRoadmap({
+      roadmap: {
+        id: "r1",
+        categoryName: "Python",
+        createdAt: "2025-01-01T00:00:00Z",
+      },
+      progress: { lastActivityAt: "2025-03-01T00:00:00Z" },
+    });
+    const late = makeDashboardRoadmap({
+      roadmap: {
+        id: "r2",
+        categoryName: "Python",
+        createdAt: "2025-01-01T00:00:00Z",
+      },
+      progress: { lastActivityAt: "2026-04-01T00:00:00Z" },
+    });
+    const other = makeDashboardRoadmap({
+      roadmap: {
+        id: "r3",
+        categoryName: "Java",
+        createdAt: "2025-01-01T00:00:00Z",
+      },
+      progress: { lastActivityAt: "2026-01-01T00:00:00Z" },
+    });
+    const result = computeCategoriesOverview([early, other, late]);
+    expect(result[0].name).toBe("Python");
+    expect(result[0].count).toBe(2);
+  });
+
+  it("returns all categories without slicing", () => {
+    const roadmaps = Array.from({ length: 6 }, (_, i) =>
+      makeDashboardRoadmap({
+        roadmap: { id: `r${i}`, categoryName: `Cat${i}` },
+      }),
+    );
+    expect(computeCategoriesOverview(roadmaps)).toHaveLength(6);
   });
 });
