@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -26,20 +25,16 @@ import {
   CheckCircle2,
   MoreVertical,
   Trash2,
+  Ban,
+  UserCheck,
+  ShieldCheck,
+  ShieldOff,
 } from "lucide-react";
-import {
-  useAdminUsersQuery,
-  useUpdateAdminUserMutation,
-  useDeleteAdminUserMutation,
-  useGetUserLimitsQuery,
-  useUpdateUserLimitsMutation,
-} from "@/application/admin";
+import { useAdminUsersQuery } from "@/application/admin";
 import { adminTableStyles } from "../AdminRoadmaps/adminTable.styles";
 import { StatusChip } from "../Cards/StatusChip";
-import { useAdminSnackbar } from "../../hooks/useAdminSnackbar";
 import { UserActionsMenu } from "../Dialogs/UserActionsMenu";
 import { UserLimitsDialog } from "../Dialogs/UserLimitsDialog";
-import type { AdminUserDto } from "@/infrastructure/api/adminApi";
 import {
   HEADERS,
   activeColors,
@@ -48,101 +43,35 @@ import {
   usersTableStyles,
 } from "./AdminUsersTable.styles";
 import { formatRelativeDate } from "../../utils/adminFeat.utils";
+import { useUserActions } from "../../hooks/useUserActions";
 
 export function AdminUsersTable() {
   const { data: users, isLoading, isError } = useAdminUsersQuery();
-  const [updateUser] = useUpdateAdminUserMutation();
-  const [deleteUser] = useDeleteAdminUserMutation();
-  const [updateLimits] = useUpdateUserLimitsMutation();
-  const { show, SnackbarAlert } = useAdminSnackbar();
-
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [userToDelete, setUserToDelete] = useState<AdminUserDto | null>(null);
-  const [userToEditLimits, setUserToEditLimits] = useState<AdminUserDto | null>(
-    null,
-  );
-
-  const { data: selectedUserLimits } = useGetUserLimitsQuery(
-    userToEditLimits?.id ?? "",
-    { skip: !userToEditLimits },
-  );
-
-  const selectedUser = users?.find((u) => u.id === selectedUserId);
-
-  const handleMenuOpen = (
-    event: React.MouseEvent<HTMLElement>,
-    userId: string,
-  ) => {
-    setAnchorEl(event.currentTarget);
-    setSelectedUserId(userId);
-  };
-
-  const handleMenuClose = () => setAnchorEl(null);
-
-  const handleMenuExited = () => setSelectedUserId(null);
-
-  const handleToggleBan = async () => {
-    if (!selectedUser) return;
-    const action = selectedUser.isActive ? "ban" : "unban";
-    if (
-      !window.confirm(
-        `Are you sure you want to ${action} ${selectedUser.name}?`,
-      )
-    )
-      return;
-    const userId = selectedUser.id;
-    const wasActive = selectedUser.isActive;
-    handleMenuClose();
-    try {
-      await updateUser({ id: userId, data: { isActive: !wasActive } }).unwrap();
-      show(`User ${wasActive ? "banned" : "unbanned"} successfully`, "success");
-    } catch {
-      show(`Failed to ${action} user`, "error");
-    }
-  };
-
-  const handleToggleRole = async () => {
-    if (!selectedUser) return;
-    const newRole = selectedUser.role === "ADMIN" ? "USER" : "ADMIN";
-    if (!window.confirm(`Change ${selectedUser.name}'s role to ${newRole}?`))
-      return;
-    const userId = selectedUser.id;
-    handleMenuClose();
-    try {
-      await updateUser({ id: userId, data: { role: newRole } }).unwrap();
-      show(`Role changed to ${newRole} successfully`, "success");
-    } catch {
-      show("Failed to change role", "error");
-    }
-  };
-
-  const handleDeleteConfirm = async () => {
-    const target = userToDelete;
-    if (!target) return;
-    setUserToDelete(null);
-    try {
-      await deleteUser(target.id).unwrap();
-      show("User deleted permanently", "success");
-    } catch {
-      show("Failed to delete user", "error");
-    }
-  };
-
-  const handleLimitsConfirm = async (data: {
-    balance?: number | null;
-    credit?: number;
-  }) => {
-    const target = userToEditLimits;
-    if (!target) return;
-    setUserToEditLimits(null);
-    try {
-      await updateLimits({ id: target.id, data }).unwrap();
-      show("Token balance updated", "success");
-    } catch {
-      show("Failed to update token balance", "error");
-    }
-  };
+  const {
+    anchorEl,
+    selectedUser,
+    handleMenuOpen,
+    handleMenuClose,
+    handleMenuExited,
+    openBanDialog,
+    openRoleDialog,
+    openEditLimitsDialog,
+    openDeleteDialog,
+    userToDelete,
+    userToToggleBan,
+    userToToggleRole,
+    userToEditLimits,
+    selectedUserLimits,
+    handleBanConfirm,
+    handleRoleConfirm,
+    handleDeleteConfirm,
+    handleLimitsConfirm,
+    cancelDelete,
+    cancelBan,
+    cancelRole,
+    cancelEditLimits,
+    SnackbarAlert,
+  } = useUserActions(users);
 
   if (isLoading) return <Loader variant="page" message="Loading users" />;
   if (isError || !users)
@@ -221,11 +150,7 @@ export function AdminUsersTable() {
                       </TableCell>
                       <TableCell>
                         <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                          }}
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
                         >
                           <Mail
                             size={14}
@@ -241,11 +166,7 @@ export function AdminUsersTable() {
                       </TableCell>
                       <TableCell>
                         <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                          }}
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
                         >
                           {user.role === "ADMIN" && (
                             <Shield size={12} color={palette.error.light} />
@@ -255,11 +176,7 @@ export function AdminUsersTable() {
                       </TableCell>
                       <TableCell>
                         <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                          }}
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
                         >
                           <StatusChip
                             label={user.isActive ? "Active" : "Banned"}
@@ -272,11 +189,7 @@ export function AdminUsersTable() {
                       </TableCell>
                       <TableCell>
                         <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                          }}
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
                         >
                           <Calendar
                             size={14}
@@ -312,16 +225,10 @@ export function AdminUsersTable() {
         user={selectedUser}
         onClose={handleMenuClose}
         onMenuExited={handleMenuExited}
-        onBan={handleToggleBan}
-        onToggleRole={handleToggleRole}
-        onEditLimits={() => {
-          if (selectedUser) setUserToEditLimits(selectedUser);
-          setAnchorEl(null);
-        }}
-        onDelete={() => {
-          if (selectedUser) setUserToDelete(selectedUser);
-          setAnchorEl(null);
-        }}
+        onBan={openBanDialog}
+        onToggleRole={openRoleDialog}
+        onEditLimits={openEditLimitsDialog}
+        onDelete={openDeleteDialog}
       />
 
       <ConfirmDialog
@@ -337,14 +244,69 @@ export function AdminUsersTable() {
         confirmLabel="Delete Permanently"
         confirmIcon={Trash2}
         onConfirm={handleDeleteConfirm}
-        onCancel={() => setUserToDelete(null)}
+        onCancel={cancelDelete}
+      />
+
+      <ConfirmDialog
+        open={Boolean(userToToggleBan)}
+        title={userToToggleBan?.isActive ? "Ban User" : "Unban User"}
+        description={
+          userToToggleBan?.isActive ? (
+            <>
+              This will prevent <strong>{userToToggleBan?.name}</strong> from
+              accessing the platform.
+            </>
+          ) : (
+            <>
+              This will restore access for{" "}
+              <strong>{userToToggleBan?.name}</strong>.
+            </>
+          )
+        }
+        confirmLabel={userToToggleBan?.isActive ? "Ban User" : "Unban User"}
+        confirmIcon={userToToggleBan?.isActive ? Ban : UserCheck}
+        variant={userToToggleBan?.isActive ? "danger" : "default"}
+        onConfirm={handleBanConfirm}
+        onCancel={cancelBan}
+      />
+
+      <ConfirmDialog
+        open={Boolean(userToToggleRole)}
+        title={
+          userToToggleRole?.role === "ADMIN"
+            ? "Revoke Admin Role"
+            : "Grant Admin Role"
+        }
+        description={
+          userToToggleRole?.role === "ADMIN" ? (
+            <>
+              This will remove admin privileges from{" "}
+              <strong>{userToToggleRole?.name}</strong>.
+            </>
+          ) : (
+            <>
+              This will grant admin privileges to{" "}
+              <strong>{userToToggleRole?.name}</strong>. They will gain full
+              access to the admin panel.
+            </>
+          )
+        }
+        confirmLabel={
+          userToToggleRole?.role === "ADMIN" ? "Revoke Admin" : "Make Admin"
+        }
+        confirmIcon={
+          userToToggleRole?.role === "ADMIN" ? ShieldOff : ShieldCheck
+        }
+        variant={userToToggleRole?.role === "ADMIN" ? "danger" : "default"}
+        onConfirm={handleRoleConfirm}
+        onCancel={cancelRole}
       />
 
       <UserLimitsDialog
         open={Boolean(userToEditLimits)}
         user={userToEditLimits ?? undefined}
         initialBalance={selectedUserLimits?.balance}
-        onClose={() => setUserToEditLimits(null)}
+        onClose={cancelEditLimits}
         onConfirm={handleLimitsConfirm}
       />
 
