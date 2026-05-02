@@ -7,6 +7,7 @@ import type {
 } from "@sagepoint/domain";
 import { QuestionType } from "@sagepoint/domain";
 import { Cerebras } from "@cerebras/cerebras_cloud_sdk";
+import { traceable } from "langsmith/traceable";
 import { z } from "zod";
 import { resolveCerebrasConfig, createCerebrasClient } from "./llm-config";
 import type { LlmAdapterConfig } from "./llm-config";
@@ -153,24 +154,28 @@ Guidelines:
 - Difficulty should match the step's stated difficulty.
 - One brief explanation sentence per question.`;
 
-    const response = await this.client.chat.completions.create({
-      model: this.modelName,
-      messages: [
-        { role: "system", content: systemPrompt },
-        {
-          role: "user",
-          content: `Generate quiz questions for these roadmap steps:\n\n${stepsText}`,
-        },
-      ],
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: "QuizResults",
-          schema: QUIZ_JSON_SCHEMA,
-          strict: true,
-        },
-      },
-    });
+    const response = await traceable(
+      () =>
+        this.client.chat.completions.create({
+          model: this.modelName,
+          messages: [
+            { role: "system", content: systemPrompt },
+            {
+              role: "user",
+              content: `Generate quiz questions for these roadmap steps:\n\n${stepsText}`,
+            },
+          ],
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "QuizResults",
+              schema: QUIZ_JSON_SCHEMA,
+              strict: true,
+            },
+          },
+        }),
+      { name: "cerebras.step-quiz-enrichment", run_type: "llm" },
+    )();
 
     const completion = completionSchema.parse(response);
     const firstChoice = completion.choices.at(0);

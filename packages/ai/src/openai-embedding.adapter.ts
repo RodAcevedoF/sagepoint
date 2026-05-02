@@ -2,6 +2,7 @@ import { Injectable, Optional, Inject } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { IEmbeddingService } from "@sagepoint/domain";
 import OpenAI from "openai";
+import { traceable } from "langsmith/traceable";
 import type { LlmAdapterConfig } from "./llm-config";
 import { resolveOpenAiConfig } from "./llm-config";
 
@@ -24,10 +25,11 @@ export class OpenAiEmbeddingAdapter implements IEmbeddingService {
 
   async embed(texts: string[]): Promise<number[][]> {
     if (texts.length === 0) return [];
-    const response = await this.client.embeddings.create({
-      model: EMBEDDING_MODEL,
-      input: texts,
-    });
+    const response = await traceable(
+      () =>
+        this.client.embeddings.create({ model: EMBEDDING_MODEL, input: texts }),
+      { name: "openai.embeddings", run_type: "embedding" },
+    )();
     return response.data.map((d) => d.embedding);
   }
 }
