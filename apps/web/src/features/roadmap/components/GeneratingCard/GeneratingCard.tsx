@@ -53,11 +53,18 @@ export function GeneratingCard({ data, onComplete }: GeneratingCardProps) {
   const { status, stage } = useRoadmapEvents(isFailed ? null : roadmap.id);
 
   useEffect(() => {
-    if (status === "completed" && !hasNotified.current) {
+    const isDone =
+      status === "completed" ||
+      (status === "processing" && stage === "learning-path");
+    if (isDone && !hasNotified.current) {
       hasNotified.current = true;
       onComplete?.();
+    } else if (!isDone) {
+      // Reset so final "completed" can still fire onComplete if the initial
+      // partial-complete refetch returned stale data and the card stayed mounted.
+      hasNotified.current = false;
     }
-  }, [status, onComplete]);
+  }, [status, stage, onComplete]);
 
   const styles = makeStyles(isFailed, theme);
   const progress = stageProgress(stage);

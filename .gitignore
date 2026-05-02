@@ -4,7 +4,6 @@ dist
 *.tsbuildinfo
 coverage
 .env
-.claude
 .env.*
 .env.production.example
 .env.staging.example

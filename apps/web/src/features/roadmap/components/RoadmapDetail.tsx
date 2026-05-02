@@ -1,6 +1,6 @@
 "use client";
 
-import { lazy, Suspense, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import {
   Box,
   Typography,
@@ -14,10 +14,15 @@ import { Clock, BookOpen, Zap, ArrowLeft, List, GitFork } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { StepStatus } from "@sagepoint/domain";
-import { useRoadmapWithProgressQuery } from "@/application/roadmap";
+import {
+  useRoadmapWithProgressQuery,
+  useRoadmapWithProgressQueryState,
+} from "@/application/roadmap";
+import { roadmapApi } from "@/infrastructure/api/roadmapApi";
 import { EmptyState, ErrorState, Loader, Button } from "@/shared/components";
 import { ButtonVariants, ButtonIconPositions } from "@/shared/types";
 import { useCurrentUser } from "@/features/auth/context/UserContext";
+import { useRoadmapEvents, useAppDispatch } from "@/shared/hooks";
 import { groupRoadmapStepsForTimeline } from "../utils/roadmap.utils";
 import { TimelineStep } from "./TimelineStep/TimelineStep";
 import { LikeButton } from "./LikeButton";
@@ -64,11 +69,35 @@ export function RoadmapDetail({ roadmapId }: RoadmapDetailProps) {
   const styles = makeStyles(theme);
   const [view, setView] = useState<"timeline" | "graph">("timeline");
   const currentUserId = useCurrentUser()?.id;
+  const dispatch = useAppDispatch();
+
+  // Derive pending state from the RTK cache to avoid setState-in-effect.
+  const { data: cachedData } = useRoadmapWithProgressQueryState(roadmapId);
+  const isResourcesPending =
+    !cachedData || cachedData.roadmap.resourcesStatus === "processing";
+
+  // SSE: instant refresh when the background job completes.
+  // Only subscribe while resources are still processing; disconnect once done.
+  const { status: sseStatus } = useRoadmapEvents(
+    isResourcesPending ? roadmapId : null,
+  );
+  useEffect(() => {
+    if (sseStatus !== "completed") return;
+    dispatch(
+      roadmapApi.util.invalidateTags([
+        { type: "Roadmap", id: roadmapId },
+        { type: "RoadmapProgress", id: roadmapId },
+      ]),
+    );
+  }, [sseStatus, roadmapId, dispatch]);
+
+  // 5s polling fallback in case the SSE event is missed.
+  const pollingInterval = isResourcesPending ? 5_000 : 0;
   const {
     data: roadmapData,
     isLoading: roadmapLoading,
     error: roadmapError,
-  } = useRoadmapWithProgressQuery(roadmapId);
+  } = useRoadmapWithProgressQuery(roadmapId, { pollingInterval });
 
   const resourcesByConceptId = useMemo(
     () =>
@@ -242,10 +271,14 @@ export function RoadmapDetail({ roadmapId }: RoadmapDetailProps) {
 
       {/* Content */}
       {topLevelSteps.length === 0 ? (
-        <EmptyState
-          title="No steps yet"
-          description="This roadmap doesn't have any steps defined."
-        />
+        roadmap.generationStatus !== "completed" ? (
+          <Loader variant="page" message="Building your roadmap..." />
+        ) : (
+          <EmptyState
+            title="No steps yet"
+            description="This roadmap doesn't have any steps defined."
+          />
+        )
       ) : view === "graph" ? (
         <Suspense fallback={<Loader message="Loading graph" />}>
           <LazyRoadmapGraph steps={allSteps} stepProgress={stepProgress} />
@@ -260,7 +293,7 @@ export function RoadmapDetail({ roadmapId }: RoadmapDetailProps) {
               status={stepProgress[step.concept.id] || StepStatus.NOT_STARTED}
               resources={resourcesByConceptId[step.concept.id] || []}
               resourcesLoading={
-                roadmapData.roadmap.resourcesStatus !== "completed"
+                roadmapData.roadmap.resourcesStatus === "processing"
               }
               isLast={index === topLevelSteps.length - 1}
               index={index}

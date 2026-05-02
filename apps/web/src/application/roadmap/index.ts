@@ -4,6 +4,7 @@ export { usePublicRoadmapsQuery } from "./queries/get-public-roadmaps.query";
 export {
   useRoadmapQuery,
   useRoadmapWithProgressQuery,
+  useRoadmapWithProgressQueryState,
 } from "./queries/get-roadmap.query";
 export {
   useResourcesQuery,

@@ -90,49 +90,61 @@ export class ResourceDiscoveryProcessorService
       }
 
       const steps = roadmap.getOrderedSteps();
-      const concepts = steps.map((step) => ({
-        id: step.concept.id,
-        name: step.concept.name,
-        description: step.concept.description,
-      }));
-
       const difficulty = steps[0]?.difficulty;
-      const [questions, resourceMap] = await Promise.all([
-        this.buildInitialQuizzes(roadmapId, steps),
-        this.resourceDiscovery.discoverResourcesForConcepts(concepts, {
-          maxResults: 3,
-          difficulty,
-        }),
-      ]);
 
-      const allResources = steps.flatMap((step) => {
-        const discovered = resourceMap.get(step.concept.id) ?? [];
-        return discovered.map((d, idx) =>
-          Resource.create({
-            title: d.title,
-            url: d.url,
-            type: d.type,
-            description: d.description,
-            provider: d.provider,
-            estimatedDuration: d.estimatedDuration,
-            difficulty: d.difficulty,
-            conceptId: step.concept.id,
-            roadmapId,
-            order: idx,
-          }),
+      // Initial quiz generation runs concurrently with resource discovery.
+      const questionsPromise = this.buildInitialQuizzes(roadmapId, steps);
+
+      // Discover and save per batch of 4 so the frontend sees resources
+      // appear progressively via polling rather than all at once at the end.
+      const BATCH_SIZE = 4;
+      const fullResourceMap = new Map<string, DiscoveredResource[]>();
+      let totalSaved = 0;
+      for (let i = 0; i < steps.length; i += BATCH_SIZE) {
+        const batch = steps.slice(i, i + BATCH_SIZE);
+        const batchResults = await Promise.all(
+          batch.map((step) =>
+            this.resourceDiscovery
+              .discoverResourcesForConcept(
+                step.concept.name,
+                step.concept.description,
+                { maxResults: 3, difficulty },
+              )
+              .then((resources) => ({ step, resources })),
+          ),
         );
-      });
 
-      if (allResources.length > 0) {
-        await this.resourceRepo.saveMany(allResources);
+        const batchEntities = batchResults.flatMap(({ step, resources }) => {
+          fullResourceMap.set(step.concept.id, resources);
+          return resources.map((d, idx) =>
+            Resource.create({
+              title: d.title,
+              url: d.url,
+              type: d.type,
+              description: d.description,
+              provider: d.provider,
+              estimatedDuration: d.estimatedDuration,
+              difficulty: d.difficulty,
+              conceptId: step.concept.id,
+              roadmapId,
+              order: idx,
+            }),
+          );
+        });
+
+        if (batchEntities.length > 0) {
+          await this.resourceRepo.saveMany(batchEntities);
+          totalSaved += batchEntities.length;
+        }
       }
 
+      const questions = await questionsPromise;
       await this.persistInitialQuizzes(roadmapId, questions);
 
       const enriched = await this.buildEnrichedQuizzes(
         roadmapId,
         steps,
-        resourceMap,
+        fullResourceMap,
       );
       await this.persistEnrichedQuizzes(roadmapId, enriched);
 
@@ -141,7 +153,7 @@ export class ResourceDiscoveryProcessorService
       });
 
       this.logger.info(
-        { roadmapId, resourceCount: allResources.length, stage: "done" },
+        { roadmapId, resourceCount: totalSaved, stage: "done" },
         "Resource discovery complete",
       );
     } catch (error) {
