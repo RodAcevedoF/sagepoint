@@ -41,7 +41,7 @@ function triggerError() {
 }
 
 function wrapper({ children }: { children: React.ReactNode }) {
-  return React.createElement(Provider, { store: setupStore() }, children);
+  return React.createElement(Provider, { store: setupStore(), children });
 }
 
 beforeEach(() => {
