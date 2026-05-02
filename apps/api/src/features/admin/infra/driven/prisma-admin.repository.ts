@@ -85,7 +85,29 @@ export class PrismaAdminRepository implements IAdminRepository {
   }
 
   async deleteUser(id: string): Promise<void> {
-    await this.prisma.user.delete({ where: { id } });
+    await this.prisma.$transaction(async (tx) => {
+      const userDocIds = await tx.document
+        .findMany({ where: { userId: id }, select: { id: true } })
+        .then((docs) => docs.map((d) => d.id));
+
+      if (userDocIds.length > 0) {
+        await tx.roadmap.updateMany({
+          where: { documentId: { in: userDocIds }, userId: { not: id } },
+          data: { documentId: null },
+        });
+      }
+
+      await tx.roadmap.deleteMany({ where: { userId: id } });
+      await tx.document.deleteMany({ where: { userId: id } });
+
+      await tx.invitation.updateMany({
+        where: { acceptedById: id },
+        data: { acceptedById: null },
+      });
+      await tx.invitation.deleteMany({ where: { invitedById: id } });
+
+      await tx.user.delete({ where: { id } });
+    });
   }
 
   // --- Roadmaps ---
