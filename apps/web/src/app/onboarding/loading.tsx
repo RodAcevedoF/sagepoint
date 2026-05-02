@@ -6,7 +6,8 @@ export default function OnboardingLoading() {
   return (
     <Box
       sx={{
-        minHeight: "100vh",
+        position: "fixed",
+        inset: 0,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",

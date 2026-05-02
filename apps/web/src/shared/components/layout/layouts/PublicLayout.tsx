@@ -5,13 +5,14 @@ import { Box } from "@mui/material";
 import { PublicThemeProvider } from "./PublicThemeProvider";
 import { Navbar, NavbarActions } from "../Navbar";
 import { Footer } from "../Footer";
+import { palette } from "@/shared/theme";
 
 const styles = {
   root: {
     minHeight: "100vh",
     display: "flex",
     flexDirection: "column",
-    bgcolor: "background.default",
+    background: palette.background.gradient,
     position: "relative",
     overflowX: "clip",
   },
