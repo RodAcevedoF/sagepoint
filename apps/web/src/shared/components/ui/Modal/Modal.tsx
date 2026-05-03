@@ -79,6 +79,7 @@ export function Modal() {
       onClose={handleClose}
       maxWidth={options.maxWidth}
       fullWidth
+      disableScrollLock
       slots={{ transition: Fade }}
       slotProps={{
         backdrop: { sx: styles.backdrop },

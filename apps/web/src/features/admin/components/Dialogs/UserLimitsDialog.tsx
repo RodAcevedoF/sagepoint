@@ -139,6 +139,7 @@ export function UserLimitsDialog({
     <Dialog
       open={open}
       onClose={onClose}
+      disableScrollLock
       slotProps={{
         paper: {
           sx: {

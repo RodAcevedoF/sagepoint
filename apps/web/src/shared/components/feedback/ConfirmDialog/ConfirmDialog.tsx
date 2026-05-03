@@ -46,6 +46,7 @@ export function ConfirmDialog({
     <Dialog
       open={open}
       onClose={loading ? undefined : onCancel}
+      disableScrollLock
       slotProps={{
         paper: {
           sx: {
