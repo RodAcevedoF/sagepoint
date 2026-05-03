@@ -6,6 +6,7 @@ import { Brain, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Loader, EmptyState, Button } from "@/shared/components";
+import { useCurrentUser } from "@/features/auth/context/UserContext";
 import { ButtonVariants, ButtonIconPositions } from "@/shared/types";
 import { useDocumentEvents, useAppDispatch } from "@/shared/hooks";
 import {
@@ -37,6 +38,7 @@ interface DocumentDetailProps {
 export function DocumentDetail({ documentId }: DocumentDetailProps) {
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const currentUserId = useCurrentUser()?.id;
   const { data: document, isLoading: docLoading } =
     useGetDocumentByIdQuery(documentId);
   const { data: summary, isLoading: summaryLoading } =
@@ -106,7 +108,11 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
         />
       </Box>
 
-      <DocumentDetailHero document={document} summary={summary} />
+      <DocumentDetailHero
+        document={document}
+        summary={summary}
+        editable={!!currentUserId && document.userId === currentUserId}
+      />
 
       {isFullyProcessing ? (
         <DocumentProcessingView documentId={documentId} />

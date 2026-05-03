@@ -27,6 +27,7 @@ export interface IDocumentRepository {
     params: CursorPaginationParams,
   ): Promise<CursorPaginatedResult<Document>>;
   updateStatus(id: string, fields: DocumentStatusUpdate): Promise<void>;
+  updateFilename(id: string, filename: string): Promise<Document>;
   delete(id: string): Promise<void>;
   countByUserId(userId: string): Promise<number>;
 }

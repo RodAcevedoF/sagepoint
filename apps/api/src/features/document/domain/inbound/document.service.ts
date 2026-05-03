@@ -34,6 +34,11 @@ export interface IDocumentService {
     params: CursorPaginationParams,
   ): Promise<CursorPaginatedResult<Document>>;
   delete(id: string, userId: string): Promise<void>;
+  updateFilename(
+    id: string,
+    userId: string,
+    filename: string,
+  ): Promise<Document>;
   getSummary(documentId: string): Promise<DocumentSummary | null>;
   getQuizzes(documentId: string): Promise<Quiz[]>;
   getQuizWithQuestions(quizId: string): Promise<QuizWithQuestions>;

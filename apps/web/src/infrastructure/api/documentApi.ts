@@ -184,6 +184,20 @@ export const documentApi = baseApi.injectEndpoints({
         { type: "QuizAttempt", id: quizId },
       ],
     }),
+    updateFilename: builder.mutation<
+      DocumentDetailDto,
+      { documentId: string; filename: string }
+    >({
+      query: ({ documentId, filename }) => ({
+        url: `/documents/${documentId}/filename`,
+        method: "PATCH",
+        body: { filename },
+      }),
+      invalidatesTags: (_result, _error, { documentId }) => [
+        { type: "Document", id: documentId },
+        { type: "Document", id: "LIST" },
+      ],
+    }),
   }),
 });
 
@@ -197,4 +211,5 @@ export const {
   useGetQuizWithQuestionsQuery,
   useSubmitQuizAttemptMutation,
   useGetQuizAttemptsQuery,
+  useUpdateFilenameMutation,
 } = documentApi;

@@ -19,6 +19,7 @@ import { GetQuizQuestionsUseCase } from './app/usecases/get-quiz-questions.useca
 import { SubmitQuizAttemptUseCase } from './app/usecases/submit-quiz-attempt.usecase';
 import { GetQuizAttemptsUseCase } from './app/usecases/get-quiz-attempts.usecase';
 import { DeleteDocumentUseCase } from './app/usecases/delete-document.usecase';
+import { UpdateFilenameUseCase } from './app/usecases/update-filename.usecase';
 import { BullMqDocumentProcessingQueue } from '@/core/infra/queue/bull-mq.queue';
 import { Queue } from 'bullmq';
 import {
@@ -94,6 +95,7 @@ export function makeDocumentDependencies(
     documentRepository,
     fileStorage,
   );
+  const updateFilenameUseCase = new UpdateFilenameUseCase(documentRepository);
 
   const documentService = new DocumentService(
     uploadDocumentUseCase,
@@ -105,6 +107,7 @@ export function makeDocumentDependencies(
     submitQuizAttemptUseCase,
     getQuizAttemptsUseCase,
     deleteDocumentUseCase,
+    updateFilenameUseCase,
   );
 
   return {

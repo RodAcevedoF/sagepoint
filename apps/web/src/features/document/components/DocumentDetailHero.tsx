@@ -19,6 +19,7 @@ import {
 } from "@/shared/types";
 import { useDeleteDocumentCommand } from "@/application/document";
 import { ProcessingStatusBadge } from "./ProcessingStatusBadge";
+import { DocumentFilenameEditor } from "./DocumentFilenameEditor/DocumentFilenameEditor";
 import { makeStyles } from "./DocumentDetailHero.styles";
 import type {
   DocumentDetailDto,
@@ -57,11 +58,13 @@ function formatRelativeDate(dateStr: string): string {
 interface DocumentDetailHeroProps {
   document: DocumentDetailDto;
   summary?: DocumentSummaryDto | null;
+  editable?: boolean;
 }
 
 export function DocumentDetailHero({
   document,
   summary,
+  editable = false,
 }: DocumentDetailHeroProps) {
   const theme = useTheme();
   const router = useRouter();
@@ -113,9 +116,11 @@ export function DocumentDetailHero({
         <Box sx={styles.orbTopRight} />
         <Box sx={styles.orbBottomLeft} />
 
-        <Typography variant="h3" sx={styles.title}>
-          {document.filename}
-        </Typography>
+        <DocumentFilenameEditor
+          documentId={document.id}
+          filename={document.filename}
+          editable={editable}
+        />
 
         <Box sx={styles.chipRow}>
           <ProcessingStatusBadge stage={document.processingStage} />

@@ -1,3 +1,4 @@
+import { UpdateFilenameUseCase } from '@/features/document/app/usecases/update-filename.usecase';
 import { UploadDocumentUseCase } from '@/features/document/app/usecases/upload-document.usecase';
 import { GetDocumentUseCase } from '@/features/document/app/usecases/get-document.usecase';
 import { GetUserDocumentsUseCase } from '@/features/document/app/usecases/get-user-documents.usecase';
@@ -33,6 +34,7 @@ export class DocumentService implements IDocumentService {
     private readonly submitQuizAttemptUseCase: SubmitQuizAttemptUseCase,
     private readonly getQuizAttemptsUseCase: GetQuizAttemptsUseCase,
     private readonly deleteDocumentUseCase: DeleteDocumentUseCase,
+    private readonly updateFilenameUseCase: UpdateFilenameUseCase,
   ) {}
 
   async upload(input: UploadDocumentInput): Promise<Document> {
@@ -89,5 +91,13 @@ export class DocumentService implements IDocumentService {
     quizId: string,
   ): Promise<QuizAttempt[]> {
     return await this.getQuizAttemptsUseCase.execute(userId, quizId);
+  }
+
+  async updateFilename(
+    id: string,
+    userId: string,
+    filename: string,
+  ): Promise<Document> {
+    return await this.updateFilenameUseCase.execute(id, userId, filename);
   }
 }

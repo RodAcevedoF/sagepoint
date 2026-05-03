@@ -119,6 +119,14 @@ export class PrismaDocumentRepository implements IDocumentRepository {
     });
   }
 
+  async updateFilename(id: string, filename: string): Promise<Document> {
+    const data = await this.prisma.document.update({
+      where: { id },
+      data: { filename },
+    });
+    return this.mapToDomain(data);
+  }
+
   async delete(id: string): Promise<void> {
     await this.prisma.document.delete({ where: { id } });
   }

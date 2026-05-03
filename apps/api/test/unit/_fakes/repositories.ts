@@ -220,6 +220,29 @@ export class FakeDocumentRepository implements IDocumentRepository {
     return Promise.resolve();
   }
 
+  updateFilename(id: string, filename: string): Promise<Document> {
+    const doc = this.documents.find((d) => d.id === id);
+    if (!doc) throw new Error('Document not found');
+    const updated = new Document(
+      doc.id,
+      filename,
+      doc.storagePath,
+      doc.status,
+      doc.userId,
+      doc.createdAt,
+      doc.updatedAt,
+      doc.errorMessage,
+      doc.progress,
+      doc.processingStage,
+      doc.mimeType,
+      doc.fileSize,
+      doc.conceptCount,
+    );
+    this.documents = this.documents.filter((d) => d.id !== id);
+    this.documents.push(updated);
+    return Promise.resolve(updated);
+  }
+
   countByUserId(userId: string): Promise<number> {
     return Promise.resolve(
       this.documents.filter((d) => d.userId === userId).length,

@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Delete,
   Body,
   Param,
@@ -129,6 +130,15 @@ export class DocumentController {
     @CurrentUser() user: RequestUser,
   ) {
     return await this.documentService.getQuizAttempts(user.id, quizId);
+  }
+
+  @Patch(':id/filename')
+  async updateFilename(
+    @Param('id') id: string,
+    @Body() dto: { filename: string },
+    @CurrentUser() user: RequestUser,
+  ) {
+    return await this.documentService.updateFilename(id, user.id, dto.filename);
   }
 
   @Delete(':id')
