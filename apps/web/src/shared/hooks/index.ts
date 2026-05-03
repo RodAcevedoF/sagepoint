@@ -15,3 +15,4 @@ export {
   type DocumentEventStage,
 } from "./useDocumentEvents";
 export { useInfiniteScroll } from "./useInfiniteScroll";
+export { useLocalStorage } from "./useLocalStorage";

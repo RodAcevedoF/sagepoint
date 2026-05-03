@@ -35,6 +35,7 @@ export {
   ConfirmDialog,
   type ConfirmDialogProps,
 } from "./feedback/ConfirmDialog";
+export { CookieBanner } from "./feedback/CookieBanner";
 
 // data-display
 export { Brand } from "./data-display/Brand";
