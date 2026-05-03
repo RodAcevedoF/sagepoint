@@ -14,7 +14,7 @@ import {
   type CommitmentLevel,
 } from "../Category/CommitmentLevelSelector";
 import type { ResourceQuotaDto } from "@/infrastructure/api/userApi";
-import { makeStyles } from "../GenerateTimeline/GenerationView.styles";
+import { makeStyles } from "./GenerationForm.styles";
 
 interface GenerationFormProps {
   topic: string;
@@ -25,7 +25,6 @@ interface GenerationFormProps {
   limitReached: boolean;
   errorMessage: string | null;
   quota: ResourceQuotaDto | undefined;
-  fromOnboarding?: boolean;
   onTopicChange: (value: string) => void;
   onTitleChange: (value: string) => void;
   onExperienceLevelChange: (value: ExperienceLevel | undefined) => void;
@@ -42,7 +41,6 @@ export function GenerationForm({
   limitReached,
   errorMessage,
   quota,
-  fromOnboarding,
   onTopicChange,
   onTitleChange,
   onExperienceLevelChange,
@@ -52,29 +50,8 @@ export function GenerationForm({
   const theme = useTheme();
   const styles = makeStyles(theme);
 
-  const headingTitle = fromOnboarding
-    ? "Let's create your first roadmap!"
-    : "Create a Learning Roadmap";
-
-  const headingSubtitle = fromOnboarding
-    ? "We've pre-filled your goal. Adjust if needed and hit generate!"
-    : "Tell us what you want to learn and AI will build a personalized path.";
-
   return (
-    <Box component="form" onSubmit={onSubmit} sx={styles.inputCard}>
-      <Box sx={styles.iconCenter}>
-        <Box sx={styles.iconWrapper}>
-          <Sparkles size={28} />
-        </Box>
-      </Box>
-
-      <Typography variant="h5" sx={styles.title}>
-        {headingTitle}
-      </Typography>
-      <Typography variant="body2" sx={styles.subtitle}>
-        {headingSubtitle}
-      </Typography>
-
+    <Box component="form" onSubmit={onSubmit} sx={styles.container}>
       <TextField
         autoFocus
         fullWidth

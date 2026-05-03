@@ -4,10 +4,9 @@ import { useState, useMemo } from "react";
 import { Box, Grid, Typography, useTheme } from "@mui/material";
 import { BookOpen, Lightbulb, Rocket, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
 import { useUserRoadmapsQuery } from "@/application/roadmap";
 import { useCategoriesQuery } from "@/application/onboarding/queries/get-categories.query";
-import { ErrorState, Button } from "@/shared/components";
+import { ErrorState, Button, useModal } from "@/shared/components";
 import { ButtonIconPositions, ButtonSizes } from "@/shared/types";
 import { RoadmapCard } from "./RoadmapCard/RoadmapCard";
 import { RoadmapCardSkeleton } from "./RoadmapCardSkeleton";
@@ -15,6 +14,7 @@ import { RoadmapHero } from "./RoadmapHero";
 import { RoadmapStats } from "./RoadmapStats";
 import { CategoryFilter } from "./Category/CategoryFilter";
 import { GeneratingCard } from "./GeneratingCard/GeneratingCard";
+import { CreateRoadmapModal } from "./CreateRoadmapModal/CreateRoadmapModal";
 import { makeStyles } from "./RoadmapList.styles";
 
 const MotionGrid = motion.create(Grid);
@@ -39,8 +39,16 @@ const floatingIcons = [
 
 function EmptyRoadmapState() {
   const theme = useTheme();
-  const router = useRouter();
+  const { openModal } = useModal();
   const styles = makeStyles(theme);
+
+  const handleCreate = () => {
+    openModal(<CreateRoadmapModal />, {
+      title: "Create Roadmap",
+      showCloseButton: true,
+      maxWidth: "sm",
+    });
+  };
 
   return (
     <Box sx={styles.emptyStateContainer}>
@@ -71,7 +79,7 @@ function EmptyRoadmapState() {
         icon={Sparkles}
         iconPos={ButtonIconPositions.START}
         size={ButtonSizes.LARGE}
-        onClick={() => router.push("/roadmaps/create")}
+        onClick={handleCreate}
       />
     </Box>
   );

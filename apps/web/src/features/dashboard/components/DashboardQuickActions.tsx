@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Plus, Map, FileUp, ArrowUpRight } from "lucide-react";
 import { useModal, Loader, SectionTitle } from "@/shared/components";
+import { CreateRoadmapModal } from "@/features/roadmap";
 import { palette } from "@/shared/theme";
 
 const LazyUploadDocumentModal = lazy(() =>
@@ -141,6 +142,18 @@ export function DashboardQuickActions() {
   const router = useRouter();
   const { openModal } = useModal();
 
+  const handleCreate = () => {
+    openModal(
+      <CreateRoadmapModal
+        onCreated={() => {
+          router.push("/roadmaps");
+          router.refresh();
+        }}
+      />,
+      { title: "Create Roadmap", showCloseButton: true, maxWidth: "sm" },
+    );
+  };
+
   const handleUpload = () => {
     openModal(
       <Suspense fallback={<Loader />}>
@@ -163,7 +176,7 @@ export function DashboardQuickActions() {
         {[
           {
             sx: [styles.action, styles.createAction] as const,
-            onClick: () => router.push("/roadmaps/create"),
+            onClick: handleCreate,
             iconSx: styles.actionIcon,
             Icon: Plus,
             title: "Create Roadmap",

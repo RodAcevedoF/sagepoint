@@ -9,9 +9,9 @@ import {
 } from "@mui/material";
 import { Sparkles, Route, Map, GitFork } from "lucide-react";
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
-import { Button } from "@/shared/components";
+import { Button, useModal } from "@/shared/components";
 import { ButtonIconPositions, ButtonSizes } from "@/shared/types";
+import { CreateRoadmapModal } from "./CreateRoadmapModal/CreateRoadmapModal";
 import { palette } from "@/shared/theme";
 
 const MotionBox = motion.create(Box);
@@ -135,8 +135,16 @@ const makeStyles = (): Record<string, SxProps<Theme>> => ({
 });
 
 export function RoadmapHero() {
-  const router = useRouter();
+  const { openModal } = useModal();
   const styles = makeStyles();
+
+  const handleCreate = () => {
+    openModal(<CreateRoadmapModal />, {
+      title: "Create Roadmap",
+      showCloseButton: true,
+      maxWidth: "sm",
+    });
+  };
 
   return (
     <MotionBox
@@ -207,7 +215,7 @@ export function RoadmapHero() {
           icon={Sparkles}
           iconPos={ButtonIconPositions.START}
           size={ButtonSizes.LARGE}
-          onClick={() => router.push("/roadmaps/create")}
+          onClick={handleCreate}
           sx={styles.createButton}
         />
       </Box>

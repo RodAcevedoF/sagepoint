@@ -4,10 +4,11 @@ import { Box, Typography, alpha } from "@mui/material";
 import { motion } from "framer-motion";
 import { Map } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Card } from "@/shared/components";
+import { Card, useModal } from "@/shared/components";
 import { Button } from "@/shared/components/ui/Button/Button";
 import { ButtonVariants } from "@/shared/types";
 import { palette } from "@/shared/theme";
+import { CreateRoadmapModal } from "@/features/roadmap";
 
 const styles = {
   card: {
@@ -58,6 +59,19 @@ const styles = {
 
 export function DashboardHeroCTA() {
   const router = useRouter();
+  const { openModal } = useModal();
+
+  const handleCreate = () => {
+    openModal(
+      <CreateRoadmapModal
+        onCreated={() => {
+          router.push("/roadmaps");
+          router.refresh();
+        }}
+      />,
+      { title: "Create Roadmap", showCloseButton: true, maxWidth: "sm" },
+    );
+  };
 
   return (
     <motion.div
@@ -87,7 +101,7 @@ export function DashboardHeroCTA() {
           </Box>
           <Button
             label="Create your first roadmap"
-            onClick={() => router.push("/roadmaps/create")}
+            onClick={handleCreate}
             variant={ButtonVariants.DEFAULT}
           />
         </Box>
