@@ -44,22 +44,31 @@ export function Dashboard() {
     isCreatingFirstRoadmap ? creatingRoadmapId : null,
   );
 
-  const phaseOneDone =
-    sseStage === "resources" ||
-    sseStage === "done" ||
-    sseStatus === "completed";
-
   const {
     data: roadmaps,
     isLoading: isLoadingRoadmaps,
     refetch: refetchRoadmaps,
   } = useUserRoadmapsQuery();
 
+  const creatingRoadmap = creatingRoadmapId
+    ? roadmaps?.find((r) => r.roadmap.id === creatingRoadmapId)
+    : undefined;
+
+  const phaseOneDone =
+    sseStage === "resources" ||
+    sseStage === "done" ||
+    sseStatus === "completed" ||
+    creatingRoadmap?.roadmap.generationStatus === "completed";
+
   const { data: documents, isLoading: isLoadingDocuments } =
     useUserDocumentsQuery();
 
   useEffect(() => {
-    if (isCreatingFirstRoadmap && sseStatus === "completed") {
+    if (
+      isCreatingFirstRoadmap &&
+      (sseStatus === "completed" ||
+        creatingRoadmap?.roadmap.generationStatus === "completed")
+    ) {
       refetchRoadmaps();
       showSnackbar("Your first roadmap is ready!", { severity: "success" });
       router.replace("/dashboard", { scroll: false });
@@ -67,6 +76,7 @@ export function Dashboard() {
   }, [
     isCreatingFirstRoadmap,
     sseStatus,
+    creatingRoadmap?.roadmap.generationStatus,
     refetchRoadmaps,
     router,
     showSnackbar,
@@ -99,9 +109,6 @@ export function Dashboard() {
   }
 
   if (isCreatingFirstRoadmap && !phaseOneDone) {
-    const creatingRoadmap = creatingRoadmapId
-      ? roadmaps?.find((r) => r.roadmap.id === creatingRoadmapId)
-      : undefined;
     return (
       <DashboardLayout>
         <AnimatePresence mode="wait">
