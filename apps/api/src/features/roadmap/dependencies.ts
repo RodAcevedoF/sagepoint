@@ -27,6 +27,7 @@ import { GenerateStepQuizUseCase } from '@/features/roadmap/app/usecases/generat
 import { SubmitStepQuizUseCase } from '@/features/roadmap/app/usecases/submit-step-quiz.usecase';
 import { UpdateVisibilityUseCase } from '@/features/roadmap/app/usecases/update-visibility.usecase';
 import { UpdateCategoryUseCase } from '@/features/roadmap/app/usecases/update-category.usecase';
+import { UpdateTitleUseCase } from '@/features/roadmap/app/usecases/update-title.usecase';
 import { GetUserActivityUseCase } from '@/features/roadmap/app/usecases/get-user-activity.usecase';
 import { GetPublicRoadmapsUseCase } from '@/features/roadmap/app/usecases/get-public-roadmaps.usecase';
 import { SearchPublicRoadmapsUseCase } from '@/features/roadmap/app/usecases/search-public-roadmaps.usecase';
@@ -184,7 +185,11 @@ export function makeRoadmapDependencies(
     conceptRepository,
   );
 
-  // Visibility
+  // Visibility & title
+  const updateTitleUseCase = new UpdateTitleUseCase(
+    roadmapRepository,
+    cacheService,
+  );
   const updateVisibilityUseCase = new UpdateVisibilityUseCase(
     roadmapRepository,
     cacheService,
@@ -241,6 +246,7 @@ export function makeRoadmapDependencies(
     isRoadmapAdoptedUseCase,
     updateCategoryUseCase,
     getUserActivityUseCase,
+    updateTitleUseCase,
   );
 
   return {

@@ -309,6 +309,19 @@ export class FakeRoadmapRepository implements IRoadmapRepository {
     return Promise.resolve(updated);
   }
 
+  updateTitle(id: string, title: string): Promise<Roadmap> {
+    const roadmap = this.roadmaps.find((r) => r.id === id);
+    if (!roadmap) throw new Error('Roadmap not found');
+    const updated = new Roadmap({
+      ...roadmap,
+      title,
+      createdAt: roadmap.createdAt,
+    });
+    this.roadmaps = this.roadmaps.filter((r) => r.id !== id);
+    this.roadmaps.push(updated);
+    return Promise.resolve(updated);
+  }
+
   delete(id: string): Promise<void> {
     this.roadmaps = this.roadmaps.filter((r) => r.id !== id);
     return Promise.resolve();

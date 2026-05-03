@@ -56,6 +56,10 @@ interface UpdateCategoryDto {
   categoryId: string | null;
 }
 
+interface UpdateTitleDto {
+  title: string;
+}
+
 interface RefreshResourcesDto {
   conceptIds?: string[];
 }
@@ -266,6 +270,16 @@ export class RoadmapController {
     @CurrentUser() user: RequestUser,
   ) {
     return this.roadmapService.updateVisibility(id, user.id, dto.visibility);
+  }
+
+  @Patch(':id/title')
+  @UseGuards(JwtAuthGuard)
+  async updateTitle(
+    @Param('id') id: string,
+    @Body() dto: UpdateTitleDto,
+    @CurrentUser() user: RequestUser,
+  ) {
+    return this.roadmapService.updateTitle(id, user.id, dto.title);
   }
 
   @Patch(':id/category')

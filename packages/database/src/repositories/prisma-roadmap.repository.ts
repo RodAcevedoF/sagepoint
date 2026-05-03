@@ -137,6 +137,14 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
     return this.mapToDomain(data);
   }
 
+  async updateTitle(id: string, title: string): Promise<Roadmap> {
+    const data = await this.prisma.roadmap.update({
+      where: { id },
+      data: { title },
+    });
+    return this.mapToDomain(data);
+  }
+
   async updateGeneration(
     id: string,
     data: {

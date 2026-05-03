@@ -32,6 +32,7 @@ export interface IRoadmapRepository {
   findPublic(): Promise<Roadmap[]>;
   updateVisibility(id: string, visibility: RoadmapVisibility): Promise<Roadmap>;
   updateCategory(id: string, categoryId: string | null): Promise<Roadmap>;
+  updateTitle(id: string, title: string): Promise<Roadmap>;
   updateGeneration(id: string, data: RoadmapGenerationUpdate): Promise<void>;
   updateResources(id: string, data: RoadmapResourcesUpdate): Promise<void>;
   delete(id: string): Promise<void>;

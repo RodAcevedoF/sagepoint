@@ -276,6 +276,10 @@ export class FakeRoadmapRepository implements IRoadmapRepository {
     return Promise.reject(new Error("not implemented"));
   }
 
+  updateTitle(_id: string, _title: string): Promise<Roadmap> {
+    return Promise.reject(new Error("not implemented"));
+  }
+
   updateGeneration(id: string, fields: RoadmapGenerationUpdate): Promise<void> {
     const existing = this.roadmaps.get(id) ?? { id };
     this.roadmaps.set(id, { ...existing, ...fields });

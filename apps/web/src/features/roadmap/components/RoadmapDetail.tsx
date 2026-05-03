@@ -28,6 +28,7 @@ import { TimelineStep } from "./TimelineStep/TimelineStep";
 import { LikeButton } from "./LikeButton";
 import { SuggestionsPanel } from "./SuggestionsPanel";
 import { CategorySelector } from "./Category/CategorySelector";
+import { RoadmapTitleEditor } from "./RoadmapTitleEditor/RoadmapTitleEditor";
 import { makeStyles } from "./RoadmapDetail.styles";
 
 const LazyRoadmapGraph = lazy(() =>
@@ -163,9 +164,11 @@ export function RoadmapDetail({ roadmapId }: RoadmapDetailProps) {
           {/* Text content */}
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Typography variant="h4" sx={styles.title}>
-                {roadmap.title}
-              </Typography>
+              <RoadmapTitleEditor
+                roadmapId={roadmap.id}
+                title={roadmap.title}
+                editable={isOwner}
+              />
               <LikeButton roadmapId={roadmap.id} />
             </Box>
             {roadmap.description && (

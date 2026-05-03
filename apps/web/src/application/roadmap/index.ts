@@ -14,6 +14,7 @@ export {
 // Commands
 export { useUpdateProgressCommand } from "./commands/update-progress.command";
 export { useUpdateVisibilityCommand } from "./commands/update-visibility.command";
+export { useUpdateTitleCommand } from "./commands/update-title.command";
 export { useUpdateRoadmapCategoryCommand } from "./commands/update-category.command";
 export { useGenerateRoadmapCommand } from "./commands/generate-roadmap.command";
 export { useGenerateTopicRoadmapCommand } from "./commands/generate-topic-roadmap.command";

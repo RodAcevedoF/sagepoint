@@ -103,6 +103,7 @@ export interface IRoadmapService {
     userId: string,
     categoryId: string | null,
   ): Promise<Roadmap>;
+  updateTitle(id: string, userId: string, title: string): Promise<Roadmap>;
   getPublicRoadmaps(): Promise<Roadmap[]>;
 
   // Search & adopt
