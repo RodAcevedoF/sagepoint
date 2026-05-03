@@ -79,6 +79,10 @@ export class FakeDocumentRepository implements IDocumentRepository {
     return Promise.resolve();
   }
 
+  updateFilename(_id: string, _filename: string): Promise<Document> {
+    return Promise.reject(new Error("not implemented"));
+  }
+
   delete(_id: string): Promise<void> {
     return Promise.resolve();
   }
