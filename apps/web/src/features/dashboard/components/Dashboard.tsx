@@ -44,6 +44,11 @@ export function Dashboard() {
     isCreatingFirstRoadmap ? creatingRoadmapId : null,
   );
 
+  const phaseOneDone =
+    sseStage === "resources" ||
+    sseStage === "done" ||
+    sseStatus === "completed";
+
   const {
     data: roadmaps,
     isLoading: isLoadingRoadmaps,
@@ -93,7 +98,7 @@ export function Dashboard() {
     );
   }
 
-  if (isCreatingFirstRoadmap) {
+  if (isCreatingFirstRoadmap && !phaseOneDone) {
     const creatingRoadmap = creatingRoadmapId
       ? roadmaps?.find((r) => r.roadmap.id === creatingRoadmapId)
       : undefined;
