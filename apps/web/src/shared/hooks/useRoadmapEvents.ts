@@ -6,6 +6,7 @@ import type { SseState } from "./useSseEvents";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/infrastructure/store/store";
 import { userApi } from "@/infrastructure/api/userApi";
+import { roadmapApi } from "@/infrastructure/api/roadmapApi";
 
 export type RoadmapEventStage =
   | "concepts"
@@ -43,6 +44,9 @@ export function useRoadmapEvents(
     if (phaseOneDone || state.status === "completed") {
       invalidatedRef.current = true;
       dispatch(userApi.util.invalidateTags(["User"]));
+      dispatch(
+        roadmapApi.util.invalidateTags([{ type: "Roadmap", id: "LIST" }]),
+      );
     }
   }, [state.status, state.stage, dispatch]);
 

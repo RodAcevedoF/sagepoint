@@ -143,15 +143,11 @@ export function DashboardQuickActions() {
   const { openModal } = useModal();
 
   const handleCreate = () => {
-    openModal(
-      <CreateRoadmapModal
-        onCreated={() => {
-          router.push("/roadmaps");
-          router.refresh();
-        }}
-      />,
-      { title: "Create Roadmap", showCloseButton: true, maxWidth: "sm" },
-    );
+    openModal(<CreateRoadmapModal />, {
+      title: "Create Roadmap",
+      showCloseButton: true,
+      maxWidth: "sm",
+    });
   };
 
   const handleUpload = () => {

@@ -3,7 +3,6 @@
 import { Box, Typography, alpha } from "@mui/material";
 import { motion } from "framer-motion";
 import { Map } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { Card, useModal } from "@/shared/components";
 import { Button } from "@/shared/components/ui/Button/Button";
 import { ButtonVariants } from "@/shared/types";
@@ -58,19 +57,14 @@ const styles = {
 };
 
 export function DashboardHeroCTA() {
-  const router = useRouter();
   const { openModal } = useModal();
 
   const handleCreate = () => {
-    openModal(
-      <CreateRoadmapModal
-        onCreated={() => {
-          router.push("/roadmaps");
-          router.refresh();
-        }}
-      />,
-      { title: "Create Roadmap", showCloseButton: true, maxWidth: "sm" },
-    );
+    openModal(<CreateRoadmapModal />, {
+      title: "Create Roadmap",
+      showCloseButton: true,
+      maxWidth: "sm",
+    });
   };
 
   return (
