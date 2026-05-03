@@ -2,7 +2,7 @@
 export { Button } from "./ui/Button";
 export { Card } from "./ui/Card";
 export { Form } from "./ui/Form";
-export { Loader } from "./ui/Loader";
+export { Loader, PageLoader } from "./ui/Loader";
 export { Modal, ModalProvider, useModal, type ModalOptions } from "./ui/Modal";
 export { EmptyState, ErrorState } from "./ui/States";
 export { FilterChips, type FilterChipOption } from "./ui/FilterChips";

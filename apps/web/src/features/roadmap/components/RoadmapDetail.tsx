@@ -19,7 +19,13 @@ import {
   useRoadmapWithProgressQueryState,
 } from "@/application/roadmap";
 import { roadmapApi } from "@/infrastructure/api/roadmapApi";
-import { EmptyState, ErrorState, Loader, Button } from "@/shared/components";
+import {
+  EmptyState,
+  ErrorState,
+  Loader,
+  PageLoader,
+  Button,
+} from "@/shared/components";
 import { ButtonVariants, ButtonIconPositions } from "@/shared/types";
 import { useCurrentUser } from "@/features/auth/context/UserContext";
 import { useRoadmapEvents, useAppDispatch } from "@/shared/hooks";
@@ -120,7 +126,7 @@ export function RoadmapDetail({ roadmapId }: RoadmapDetailProps) {
   );
 
   if (roadmapLoading) {
-    return <Loader variant="page" message="Loading roadmap" />;
+    return <PageLoader message="Loading roadmap" />;
   }
 
   if (roadmapError || !roadmapData) {
