@@ -86,6 +86,15 @@ const styles = {
   },
 };
 
+function isConflict(err: unknown): boolean {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "status" in err &&
+    (err as { status: unknown }).status === 409
+  );
+}
+
 interface RoadmapRecommendationsProps {
   topic: string;
   disabled?: boolean;
@@ -122,8 +131,13 @@ export function RoadmapRecommendations({
         severity: "success",
       });
       router.push(`/roadmaps/${roadmap.id}`);
-    } catch {
-      showSnackbar("Failed to adopt roadmap", { severity: "error" });
+    } catch (err) {
+      // 409 = it's already yours (you can't adopt your own roadmap). Just open it.
+      if (isConflict(err)) {
+        router.push(`/roadmaps/${roadmap.id}`);
+      } else {
+        showSnackbar("Failed to adopt roadmap", { severity: "error" });
+      }
     } finally {
       setAdoptingId(null);
     }

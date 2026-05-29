@@ -7,6 +7,7 @@ import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/infrastructure/store/store";
 import { userApi } from "@/infrastructure/api/userApi";
 import { roadmapApi } from "@/infrastructure/api/roadmapApi";
+import { useSnackbar } from "@/shared/components/feedback/Snackbar/snackbar-context";
 
 export type RoadmapEventStage =
   | "concepts"
@@ -15,6 +16,11 @@ export type RoadmapEventStage =
   | "done";
 
 export type RoadmapEventStatus = SseState["status"];
+
+// Module-level dedupe: each roadmap toasts at most once per session, even when
+// the hook is mounted in several cards/views simultaneously.
+const startedIds = new Set<string>();
+const finishedIds = new Set<string>();
 
 /**
  * SSE hook for roadmap generation events.
@@ -29,11 +35,31 @@ export function useRoadmapEvents(
   );
 
   const dispatch = useDispatch<AppDispatch>();
+  const { showSnackbar } = useSnackbar();
   const invalidatedRef = useRef(false);
 
   useEffect(() => {
     invalidatedRef.current = false;
   }, [roadmapId]);
+
+  useEffect(() => {
+    if (!roadmapId) return;
+
+    const isProcessing =
+      state.status === "pending" || state.status === "processing";
+    // The backend emits exactly one stage-less status event at a genuine
+    // phase-1 start; partial-complete reconnects always carry a stage, so this
+    // never fires when opening a roadmap that is already mid-generation.
+    if (isProcessing && state.stage === null && !startedIds.has(roadmapId)) {
+      startedIds.add(roadmapId);
+      showSnackbar("Generating your roadmap…", { severity: "info" });
+    }
+
+    if (state.status === "completed" && !finishedIds.has(roadmapId)) {
+      finishedIds.add(roadmapId);
+      showSnackbar("Your roadmap is ready!", { severity: "success" });
+    }
+  }, [state.status, state.stage, roadmapId, showSnackbar]);
 
   useEffect(() => {
     if (invalidatedRef.current) return;
