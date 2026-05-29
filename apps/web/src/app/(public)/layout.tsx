@@ -38,6 +38,12 @@ export default function PublicRoutesLayout({
         color={palette.primary.light}
         fieldStrength={12}
         particleSize={1.5}
+        containerStyle={{
+          position: "fixed",
+          inset: 0,
+          width: "100vw",
+          height: "100vh",
+        }}
       />
       <Box sx={styles.content}>{children}</Box>
     </PublicLayout>

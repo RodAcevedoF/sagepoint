@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import React, { useMemo, useRef, useEffect, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
@@ -34,6 +35,7 @@ export interface AntigravityProps {
   particleShape?: "capsule" | "sphere" | "box" | "tetrahedron" | "circle";
   fieldStrength?: number;
   idleTimeout?: number;
+  containerStyle?: CSSProperties;
 }
 
 interface ParticleData {
@@ -229,6 +231,7 @@ export const Antigravity: React.FC<AntigravityProps> = (props) => {
   const [supported] = useState(() =>
     typeof window === "undefined" ? false : isWebGLAvailable(),
   );
+  const { containerStyle, ...animationProps } = props;
 
   if (!supported) return null;
 
@@ -242,6 +245,7 @@ export const Antigravity: React.FC<AntigravityProps> = (props) => {
         height: "100%",
         pointerEvents: "none",
         zIndex: 0,
+        ...containerStyle,
       }}
     >
       <Canvas
@@ -252,7 +256,7 @@ export const Antigravity: React.FC<AntigravityProps> = (props) => {
           });
         }}
       >
-        <AntigravityInner {...props} />
+        <AntigravityInner {...animationProps} />
       </Canvas>
     </div>
   );
