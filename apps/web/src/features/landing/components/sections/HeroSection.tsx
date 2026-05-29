@@ -19,7 +19,6 @@ const styles = {
     alignItems: "center",
     position: "relative",
     overflow: "hidden",
-    bgcolor: "background.default",
   },
   meshContainer: {
     position: "absolute",
