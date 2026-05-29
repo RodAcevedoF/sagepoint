@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -13,17 +12,9 @@ import {
   alpha,
 } from "@mui/material";
 import { CheckCircle2, CircleAlert, Loader2, MailQuestion } from "lucide-react";
-import { PublicLayout, Card, Button } from "@/shared/components";
+import { Card, Button } from "@/shared/components";
 import { ButtonVariants } from "@/shared/types";
 import { palette } from "@/shared/theme";
-
-const Antigravity = dynamic(
-  () =>
-    import("@/shared/components/ui/animations/Antigravity").then(
-      (m) => m.Antigravity,
-    ),
-  { ssr: false },
-);
 
 type Status = "idle" | "loading" | "success" | "error";
 
@@ -78,15 +69,7 @@ export function VerifyEmailPage() {
   }, [token, router]);
 
   return (
-    <PublicLayout>
-      <Antigravity
-        count={300}
-        magnetRadius={10}
-        lerpSpeed={0.08}
-        color={palette.primary.light}
-        fieldStrength={10}
-        particleSize={1.3}
-      />
+    <>
       <Toolbar sx={{ mb: 2 }} />
       <Container
         component="main"
@@ -113,7 +96,7 @@ export function VerifyEmailPage() {
           </Card>
         </Box>
       </Container>
-    </PublicLayout>
+    </>
   );
 }
 

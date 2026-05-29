@@ -1,20 +1,9 @@
 "use client";
 
 import { type ReactNode } from "react";
-import dynamic from "next/dynamic";
 import { Container, Box, Toolbar } from "@mui/material";
 import { AnimatePresence } from "framer-motion";
-import { PublicLayout } from "@/shared/components";
-import { palette } from "@/shared/theme";
 import { OnboardingProvider } from "../context/OnboardingContext";
-
-const Antigravity = dynamic(
-  () =>
-    import("@/shared/components/ui/animations/Antigravity").then(
-      (m) => m.Antigravity,
-    ),
-  { ssr: false },
-);
 
 // ============================================================================
 // Styles
@@ -48,22 +37,12 @@ interface OnboardingLayoutProps {
 export function OnboardingLayout({ children }: OnboardingLayoutProps) {
   return (
     <OnboardingProvider>
-      <PublicLayout>
-        <Antigravity
-          count={300}
-          magnetRadius={12}
-          lerpSpeed={0.06}
-          color={palette.primary.light}
-          fieldStrength={8}
-          particleSize={1.2}
-        />
-        <Toolbar />
-        <Container component="main" maxWidth="sm" sx={styles.container}>
-          <Box sx={styles.content}>
-            <AnimatePresence mode="wait">{children}</AnimatePresence>
-          </Box>
-        </Container>
-      </PublicLayout>
+      <Toolbar />
+      <Container component="main" maxWidth="sm" sx={styles.container}>
+        <Box sx={styles.content}>
+          <AnimatePresence mode="wait">{children}</AnimatePresence>
+        </Box>
+      </Container>
     </OnboardingProvider>
   );
 }

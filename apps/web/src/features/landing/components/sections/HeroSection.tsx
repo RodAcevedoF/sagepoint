@@ -1,18 +1,9 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { Box, Container, Typography, Stack, alpha } from "@mui/material";
 import { HeroActions } from "./HeroActions";
 import { palette } from "@/shared/theme";
 import { keyframes } from "@emotion/react";
-
-const Antigravity = dynamic(
-  () =>
-    import("@/shared/components/ui/animations/Antigravity").then(
-      (m) => m.Antigravity,
-    ),
-  { ssr: false },
-);
 
 const float = keyframes`
   0% { transform: translate(0, 0) scale(1); }
@@ -115,16 +106,6 @@ const styles = {
 export function HeroSection() {
   return (
     <Box sx={styles.root}>
-      {/* Particle Animation Background */}
-      <Antigravity
-        count={450}
-        magnetRadius={10}
-        lerpSpeed={0.08}
-        color={palette.primary.light}
-        fieldStrength={15}
-        particleSize={1.5}
-      />
-
       {/* Decorative Mesh Background */}
       <Box sx={styles.meshContainer}>
         <Box sx={styles.blob1} />
