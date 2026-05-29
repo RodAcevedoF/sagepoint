@@ -124,7 +124,8 @@ export function HeroSection() {
                 boxShadow: `0 0 12px ${palette.primary.light}`,
               }}
             />
-            Beta v1.0 • Powered by AI Multi-agents System
+            Beta {process.env.NEXT_PUBLIC_APP_VERSION} • Powered by AI
+            Multi-agents System
           </Box>
 
           <Typography variant="h1" sx={styles.title}>

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Grid } from "@mui/material";
 import { AnimatePresence } from "framer-motion";
 import { useCurrentUser } from "@/features/auth/context/UserContext";
-import { useWatchGenerationCommand } from "@/application/roadmap";
+import { useRoadmapEvents } from "@/shared/hooks";
 import { useSnackbar } from "@/shared/components";
 import { OnboardingRoadmapReveal } from "@/features/onboarding";
 import { DevTools } from "./DevTools";
@@ -40,7 +40,7 @@ export function Dashboard() {
   const isCreatingFirstRoadmap = searchParams.get("creating") === "roadmap";
   const creatingRoadmapId = searchParams.get("roadmapId");
 
-  const { status: sseStatus, stage: sseStage } = useWatchGenerationCommand(
+  const { status: sseStatus, stage: sseStage } = useRoadmapEvents(
     isCreatingFirstRoadmap ? creatingRoadmapId : null,
   );
 

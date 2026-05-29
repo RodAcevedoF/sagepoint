@@ -5,6 +5,7 @@ export const useAppDispatch = () => useDispatch<AppDispatch>();
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
 export { useSseEvents, type SseState, type SseStatus } from "./useSseEvents";
+export { useEventStream, type EventStreamConfig } from "./useEventStream";
 export {
   useRoadmapEvents,
   type RoadmapEventStatus,

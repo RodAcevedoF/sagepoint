@@ -9,4 +9,3 @@ export { useUploadDocumentCommand } from "./commands/upload-document.command";
 export { useDeleteDocumentCommand } from "./commands/delete-document.command";
 export { useUpdateFilenameCommand } from "./commands/update-filename.command";
 export { useSubmitQuizAttemptCommand } from "./commands/submit-quiz-attempt.command";
-export { useWatchDocumentProcessingCommand } from "./commands/watch-document-processing.command";
