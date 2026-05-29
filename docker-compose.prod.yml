@@ -46,35 +46,37 @@ services:
     networks:
       - shared
 
+  # Staging services are intentionally disabled while the VPS runs production only.
+  # Uncomment this block to restore staging containers.
   # ── Staging ──
-  api-staging:
-    image: ${IMAGE_PREFIX:-ghcr.io/rodacevedof/sagepoint}-api:staging
-    container_name: sagepoint_api_staging
-    restart: unless-stopped
-    ports:
-      - "127.0.0.1:3002:3002"
-    env_file: .env.staging
-    environment:
-      PORT: 3002
-      REDIS_HOST: shared_redis
-      NEO4J_URI: bolt://shared_neo4j:7687
-    volumes:
-      - ${GCP_KEY_PATH:-./gcp-key.json}:/app/gcp-key.json:ro
-    networks:
-      - shared
+  # api-staging:
+  #   image: ${IMAGE_PREFIX:-ghcr.io/rodacevedof/sagepoint}-api:staging
+  #   container_name: sagepoint_api_staging
+  #   restart: unless-stopped
+  #   ports:
+  #     - "127.0.0.1:3002:3002"
+  #   env_file: .env.staging
+  #   environment:
+  #     PORT: 3002
+  #     REDIS_HOST: shared_redis
+  #     NEO4J_URI: bolt://shared_neo4j:7687
+  #   volumes:
+  #     - ${GCP_KEY_PATH:-./gcp-key.json}:/app/gcp-key.json:ro
+  #   networks:
+  #     - shared
 
-  worker-staging:
-    image: ${IMAGE_PREFIX:-ghcr.io/rodacevedof/sagepoint}-worker:staging
-    container_name: sagepoint_worker_staging
-    restart: unless-stopped
-    env_file: .env.staging
-    environment:
-      REDIS_HOST: shared_redis
-      NEO4J_URI: bolt://shared_neo4j:7687
-    volumes:
-      - ${GCP_KEY_PATH:-./gcp-key.json}:/app/gcp-key.json:ro
-    networks:
-      - shared
+  # worker-staging:
+  #   image: ${IMAGE_PREFIX:-ghcr.io/rodacevedof/sagepoint}-worker:staging
+  #   container_name: sagepoint_worker_staging
+  #   restart: unless-stopped
+  #   env_file: .env.staging
+  #   environment:
+  #     REDIS_HOST: shared_redis
+  #     NEO4J_URI: bolt://shared_neo4j:7687
+  #   volumes:
+  #     - ${GCP_KEY_PATH:-./gcp-key.json}:/app/gcp-key.json:ro
+  #   networks:
+  #     - shared
 
 networks:
   shared:

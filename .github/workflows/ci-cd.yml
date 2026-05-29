@@ -2,9 +2,9 @@ name: CI/CD
 
 on:
   push:
-    branches: [ "**" ]
+    branches: ["**"]
   pull_request:
-    branches: [ master, develop ]
+    branches: [master, develop]
 
 concurrency:
   group: ci-cd-${{ github.ref }}
@@ -95,7 +95,8 @@ jobs:
           DATABASE_URL: postgresql://user@localhost:5440/sagepoint?schema=public
 
       - name: Create test database
-        run: PGPASSWORD="" psql -h localhost -p 5440 -U user -d sagepoint -c "CREATE
+        run:
+          PGPASSWORD="" psql -h localhost -p 5440 -U user -d sagepoint -c "CREATE
           DATABASE sagepoint_test;"
 
       - name: Run migrations on test database
@@ -119,17 +120,18 @@ jobs:
           JWT_REFRESH_SECRET: ci-test-refresh-secret
 
   build-and-push:
-    needs: [ quality, integration ]
+    needs: [quality, integration]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/develop' ||
-      startsWith(github.ref, 'refs/heads/release/'))
+    # Staging image publishing is intentionally disabled while only production is active.
+    # Restore develop branch publishing by re-adding github.ref == 'refs/heads/develop'.
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/release/')
     permissions:
       contents: read
       packages: write
 
     strategy:
       matrix:
-        app: [ api, worker ]
+        app: [api, worker]
 
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -158,61 +160,63 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-  deploy-staging:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop'
-    concurrency:
-      group: vps-deploy
-      cancel-in-progress: false
-    permissions:
-      contents: read
-      packages: read
-
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-
-      - name: Sync compose file to VPS
-        uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345 # v1
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ secrets.VPS_SSH_PORT }}
-          source: docker-compose.prod.yml
-          target: /opt/sagepoint
-          overwrite: true
-
-      - name: Deploy staging to VPS
-        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1
-        env:
-          GHCR_USERNAME: ${{ github.actor }}
-          GHCR_TOKEN: ${{ github.token }}
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ secrets.VPS_SSH_PORT }}
-          envs: GHCR_USERNAME,GHCR_TOKEN
-          script: |
-            set -e
-            if [ -z "$GHCR_USERNAME" ] || [ -z "$GHCR_TOKEN" ]; then
-              echo "GHCR credentials are not configured on this repository."
-              exit 1
-            fi
-            cd /opt/sagepoint
-            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
-            docker compose -f docker-compose.prod.yml pull api-staging worker-staging
-            docker compose -f docker-compose.prod.yml up -d api-staging worker-staging
-            for i in $(seq 1 30); do
-              docker compose -f docker-compose.prod.yml exec -T api-staging node -e "process.exit(0)" 2>/dev/null && break
-              sleep 2
-            done
-            docker compose -f docker-compose.prod.yml exec -T api-staging node scripts/migrate.js up --author ci
-            docker compose -f docker-compose.prod.yml exec -T api-staging node scripts/init.js
-            docker image prune -f || true
-            docker container prune -f || true
-            docker builder prune -f --keep-storage=2gb || true
+  # Staging deployment is intentionally disabled while the VPS runs production only.
+  # Uncomment this block to restore automated staging deploys.
+  #  deploy-staging:
+  #    needs: build-and-push
+  #    runs-on: ubuntu-latest
+  #    if: github.ref == 'refs/heads/develop'
+  #    concurrency:
+  #      group: vps-deploy
+  #      cancel-in-progress: false
+  #    permissions:
+  #      contents: read
+  #      packages: read
+  #
+  #    steps:
+  #      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+  #
+  #      - name: Sync compose file to VPS
+  #        uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345 # v1
+  #        with:
+  #          host: ${{ secrets.VPS_HOST }}
+  #          username: ${{ secrets.VPS_USER }}
+  #          key: ${{ secrets.VPS_SSH_KEY }}
+  #          port: ${{ secrets.VPS_SSH_PORT }}
+  #          source: docker-compose.prod.yml
+  #          target: /opt/sagepoint
+  #          overwrite: true
+  #
+  #      - name: Deploy staging to VPS
+  #        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1
+  #        env:
+  #          GHCR_USERNAME: ${{ github.actor }}
+  #          GHCR_TOKEN: ${{ github.token }}
+  #        with:
+  #          host: ${{ secrets.VPS_HOST }}
+  #          username: ${{ secrets.VPS_USER }}
+  #          key: ${{ secrets.VPS_SSH_KEY }}
+  #          port: ${{ secrets.VPS_SSH_PORT }}
+  #          envs: GHCR_USERNAME,GHCR_TOKEN
+  #          script: |
+  #            set -e
+  #            if [ -z "$GHCR_USERNAME" ] || [ -z "$GHCR_TOKEN" ]; then
+  #              echo "GHCR credentials are not configured on this repository."
+  #              exit 1
+  #            fi
+  #            cd /opt/sagepoint
+  #            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+  #            docker compose -f docker-compose.prod.yml pull api-staging worker-staging
+  #            docker compose -f docker-compose.prod.yml up -d api-staging worker-staging
+  #            for i in $(seq 1 30); do
+  #              docker compose -f docker-compose.prod.yml exec -T api-staging node -e "process.exit(0)" 2>/dev/null && break
+  #              sleep 2
+  #            done
+  #            docker compose -f docker-compose.prod.yml exec -T api-staging node scripts/migrate.js up --author ci
+  #            docker compose -f docker-compose.prod.yml exec -T api-staging node scripts/init.js
+  #            docker image prune -f || true
+  #            docker container prune -f || true
+  #            docker builder prune -f --keep-storage=2gb || true
 
   deploy-production:
     needs: build-and-push
