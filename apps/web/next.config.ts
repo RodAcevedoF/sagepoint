@@ -1,28 +1,11 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
-import { execSync } from "child_process";
-
-function resolveAppVersion(): string {
-  const branch =
-    process.env.VERCEL_GIT_COMMIT_REF ??
-    (() => {
-      try {
-        return execSync("git rev-parse --abbrev-ref HEAD", {
-          stdio: ["ignore", "pipe", "ignore"],
-        })
-          .toString()
-          .trim();
-      } catch {
-        return "";
-      }
-    })();
-  return branch.match(/v\d+\.\d+\.\d+/)?.[0] ?? "dev";
-}
+import pkg from "./package.json" with { type: "json" };
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
   env: {
-    NEXT_PUBLIC_APP_VERSION: resolveAppVersion(),
+    NEXT_PUBLIC_APP_VERSION: `v${pkg.version}`,
   },
 };
 
