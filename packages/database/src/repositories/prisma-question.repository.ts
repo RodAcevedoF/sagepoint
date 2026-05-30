@@ -50,6 +50,14 @@ export class PrismaQuestionRepository implements IQuestionRepository {
     return data.map((d) => this.mapToDomain(d));
   }
 
+  async findManyByIds(ids: string[]): Promise<Question[]> {
+    if (ids.length === 0) return [];
+    const data = await this.prisma.question.findMany({
+      where: { id: { in: ids } },
+    });
+    return data.map((d) => this.mapToDomain(d));
+  }
+
   async deleteByQuizId(quizId: string): Promise<void> {
     await this.prisma.question.deleteMany({ where: { quizId } });
   }

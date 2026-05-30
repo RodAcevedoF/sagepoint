@@ -22,7 +22,7 @@ export async function generateStepQuizzes(
       learningObjective: step.learningObjective,
       rationale: step.rationale,
       difficulty: step.difficulty,
-      questionCount: 2,
+      questionCount: 3,
     })),
   );
 
@@ -30,11 +30,12 @@ export async function generateStepQuizzes(
 
   return generated.flatMap((result) => {
     const stepOrder = conceptOrderMap.get(result.conceptId) ?? 0;
-    return result.questions.map((q) => ({
+    return result.questions.map((q, position) => ({
       id: randomUUID(),
       roadmapId,
       conceptId: result.conceptId,
       stepOrder,
+      position,
       text: q.text,
       type: q.type,
       options: q.options,

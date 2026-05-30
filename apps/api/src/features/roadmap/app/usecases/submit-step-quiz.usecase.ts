@@ -1,7 +1,8 @@
 import type { IStepQuizAttemptRepository } from '@sagepoint/domain';
-import { StepQuizAttempt } from '@sagepoint/domain';
+import { ReviewSource, StepQuizAttempt, StepStatus } from '@sagepoint/domain';
+import { Logger } from '@nestjs/common';
 import { UpdateStepProgressUseCase } from './update-step-progress.usecase';
-import { StepStatus } from '@sagepoint/domain';
+import { ScheduleReviewUseCase } from '@/features/review/app/usecases/schedule-review.usecase';
 
 export interface SubmitStepQuizCommand {
   userId: string;
@@ -27,11 +28,16 @@ export interface SubmitStepQuizResult {
 }
 
 const PASS_THRESHOLD = 2; // Need at least 2/3 correct
+const QUALITY_CORRECT = 4;
+const QUALITY_INCORRECT = 1;
 
 export class SubmitStepQuizUseCase {
+  private readonly logger = new Logger(SubmitStepQuizUseCase.name);
+
   constructor(
     private readonly stepQuizAttemptRepository: IStepQuizAttemptRepository,
     private readonly updateStepProgressUseCase: UpdateStepProgressUseCase,
+    private readonly scheduleReviewUseCase: ScheduleReviewUseCase,
   ) {}
 
   async execute(command: SubmitStepQuizCommand): Promise<SubmitStepQuizResult> {
@@ -96,6 +102,45 @@ export class SubmitStepQuizUseCase {
       });
     }
 
+    await this.scheduleReviewsBestEffort(
+      command.userId,
+      attempt.conceptId,
+      attempt.questions,
+      results,
+      updatedAttempt.completedAt!,
+    );
+
     return { passed, score, totalQuestions, correctAnswers, results };
+  }
+
+  private async scheduleReviewsBestEffort(
+    userId: string,
+    conceptId: string,
+    questions: StepQuizAttempt['questions'],
+    results: QuestionResult[],
+    now: Date,
+  ): Promise<void> {
+    await Promise.all(
+      results.map(async (result) => {
+        const question = questions[result.index];
+        if (!question?.id) return; // pre-id-migration attempts skip SR
+        try {
+          await this.scheduleReviewUseCase.execute({
+            userId,
+            source: ReviewSource.ROADMAP_STEP,
+            sourceId: conceptId,
+            questionId: question.id,
+            quality: result.isCorrect ? QUALITY_CORRECT : QUALITY_INCORRECT,
+            now,
+          });
+        } catch (error) {
+          this.logger.warn(
+            `Failed to schedule review for question ${question.id}: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+          );
+        }
+      }),
+    );
   }
 }

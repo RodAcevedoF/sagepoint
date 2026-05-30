@@ -499,6 +499,7 @@ describe('Roadmap repositories (integration)', () => {
   describe('PrismaStepQuizAttemptRepository', () => {
     const questions = [
       {
+        id: '00000000-0000-0000-0000-0000000f0001',
         text: 'Q1?',
         type: QuestionType.MULTIPLE_CHOICE,
         options: [
@@ -508,6 +509,7 @@ describe('Roadmap repositories (integration)', () => {
         difficulty: 'medium',
       },
       {
+        id: '00000000-0000-0000-0000-0000000f0002',
         text: 'Q2?',
         type: QuestionType.MULTIPLE_CHOICE,
         options: [

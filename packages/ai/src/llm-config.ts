@@ -95,12 +95,12 @@ export function resolveCerebrasConfig(
   if (configOrService && "get" in configOrService) {
     return {
       apiKey: configOrService.get<string>("CEREBRAS_API_KEY") ?? "",
-      modelName: configOrService.get<string>("CEREBRAS_MODEL") ?? "llama3.1-8b",
+      modelName: configOrService.get<string>("CEREBRAS_MODEL") ?? "zai-glm-4.7",
     };
   }
   return {
     apiKey: process.env.CEREBRAS_API_KEY ?? "",
-    modelName: process.env.CEREBRAS_MODEL ?? "llama3.1-8b",
+    modelName: process.env.CEREBRAS_MODEL ?? "zai-glm-4.7",
   };
 }
 

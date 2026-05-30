@@ -17,6 +17,7 @@ import { InvitationModule } from '@/features/invitation/invitation.module';
 import { CategoryModule } from '@/features/category/category.module';
 import { SocialModule } from '@/features/social/social.module';
 import { BlogModule } from '@/features/blog/blog.module';
+import { ReviewModule } from '@/features/review/review.module';
 import { CacheModule } from '@/core/infra/cache/cache.module';
 import { DomainExceptionFilter } from '@/core/filters/domain-exception.filter';
 
@@ -79,6 +80,7 @@ const isDev = process.env.NODE_ENV !== 'production';
     CategoryModule,
     SocialModule,
     BlogModule,
+    ReviewModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: SentryGlobalFilter },

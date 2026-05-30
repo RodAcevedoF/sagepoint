@@ -3,8 +3,13 @@ import type {
   IRoadmapRepository,
   IQuizGenerationService,
   IStepQuizAttemptRepository,
+  IRoadmapStepQuestionRepository,
+  RoadmapStep,
+  RoadmapStepQuestion,
 } from '@sagepoint/domain';
 import { StepQuizAttempt, type StepQuizQuestion } from '@sagepoint/domain';
+
+const QUESTIONS_PER_QUIZ = 3;
 
 export interface GenerateStepQuizCommand {
   userId: string;
@@ -30,6 +35,7 @@ export class GenerateStepQuizUseCase {
     private readonly roadmapRepository: IRoadmapRepository,
     private readonly quizGenerationService: IQuizGenerationService,
     private readonly stepQuizAttemptRepository: IStepQuizAttemptRepository,
+    private readonly roadmapStepQuestionRepository: IRoadmapStepQuestionRepository,
   ) {}
 
   async execute(
@@ -50,7 +56,6 @@ export class GenerateStepQuizUseCase {
       );
     }
 
-    // Return existing pending attempt if one exists (idempotency)
     const pending =
       await this.stepQuizAttemptRepository.findPendingByUserAndConcept(
         command.userId,
@@ -59,41 +64,18 @@ export class GenerateStepQuizUseCase {
       );
 
     if (pending) {
-      const clientQuestions: StepQuizQuestionForClient[] =
-        pending.questions.map((q, i) => ({
-          index: i,
-          text: q.text,
-          type: q.type,
-          options: q.options.map((o) => ({ label: o.label, text: o.text })),
-          difficulty: q.difficulty,
-        }));
-      return { attemptId: pending.id, questions: clientQuestions };
+      return {
+        attemptId: pending.id,
+        questions: toClientQuestions(pending.questions),
+      };
     }
 
-    // Build context text for quiz generation
-    const contextParts = [step.concept.name];
-    if (step.concept.description) contextParts.push(step.concept.description);
-    if (step.learningObjective)
-      contextParts.push(`Learning objective: ${step.learningObjective}`);
-    const contextText = contextParts.join('. ');
-
-    // Generate quiz questions via AI
-    const generatedQuestions = await this.quizGenerationService.generateQuiz(
-      contextText,
-      [step.concept.name],
-      { questionCount: 3, difficulty: step.difficulty ?? 'intermediate' },
+    const questions = await this.loadOrGenerateQuestions(
+      command.roadmapId,
+      command.conceptId,
+      step,
     );
 
-    // Map to our domain type
-    const questions: StepQuizQuestion[] = generatedQuestions.map((q) => ({
-      text: q.text,
-      type: q.type,
-      options: q.options,
-      explanation: q.explanation,
-      difficulty: q.difficulty,
-    }));
-
-    // Persist attempt with full questions (including isCorrect)
     const attempt = new StepQuizAttempt({
       id: uuid(),
       userId: command.userId,
@@ -110,17 +92,95 @@ export class GenerateStepQuizUseCase {
 
     await this.stepQuizAttemptRepository.create(attempt);
 
-    // Return questions stripped of isCorrect
-    const clientQuestions: StepQuizQuestionForClient[] = questions.map(
-      (q, i) => ({
-        index: i,
-        text: q.text,
-        type: q.type,
-        options: q.options.map((o) => ({ label: o.label, text: o.text })),
-        difficulty: q.difficulty,
-      }),
+    return {
+      attemptId: attempt.id,
+      questions: toClientQuestions(questions),
+    };
+  }
+
+  private async loadOrGenerateQuestions(
+    roadmapId: string,
+    conceptId: string,
+    step: RoadmapStep,
+  ): Promise<StepQuizQuestion[]> {
+    const canonical =
+      await this.roadmapStepQuestionRepository.findByRoadmapAndConcept(
+        roadmapId,
+        conceptId,
+      );
+
+    if (canonical.length > 0) {
+      return canonical.map(canonicalToDomain);
+    }
+
+    return this.generateAndPersist(roadmapId, conceptId, step);
+  }
+
+  private async generateAndPersist(
+    roadmapId: string,
+    conceptId: string,
+    step: RoadmapStep,
+  ): Promise<StepQuizQuestion[]> {
+    const contextParts = [step.concept.name];
+    if (step.concept.description) contextParts.push(step.concept.description);
+    if (step.learningObjective)
+      contextParts.push(`Learning objective: ${step.learningObjective}`);
+    const contextText = contextParts.join('. ');
+
+    const generated = await this.quizGenerationService.generateQuiz(
+      contextText,
+      [step.concept.name],
+      {
+        questionCount: QUESTIONS_PER_QUIZ,
+        difficulty: step.difficulty ?? 'intermediate',
+      },
     );
 
-    return { attemptId: attempt.id, questions: clientQuestions };
+    const rows: RoadmapStepQuestion[] = generated.map((q, position) => ({
+      id: uuid(),
+      roadmapId,
+      conceptId,
+      stepOrder: step.order,
+      position,
+      text: q.text,
+      type: q.type,
+      options: q.options,
+      explanation: q.explanation,
+      difficulty: q.difficulty,
+    }));
+
+    await this.roadmapStepQuestionRepository.upsertMany(rows);
+
+    // Re-read so concurrent generators converge on the first writer's ids;
+    // the attempt then stores ids that match the canonical rows used by SR.
+    const canonical =
+      await this.roadmapStepQuestionRepository.findByRoadmapAndConcept(
+        roadmapId,
+        conceptId,
+      );
+    return canonical.map(canonicalToDomain);
   }
+}
+
+function canonicalToDomain(row: RoadmapStepQuestion): StepQuizQuestion {
+  return {
+    id: row.id,
+    text: row.text,
+    type: row.type,
+    options: row.options,
+    explanation: row.explanation,
+    difficulty: row.difficulty,
+  };
+}
+
+function toClientQuestions(
+  questions: StepQuizQuestion[],
+): StepQuizQuestionForClient[] {
+  return questions.map((q, index) => ({
+    index,
+    text: q.text,
+    type: q.type,
+    options: q.options.map((o) => ({ label: o.label, text: o.text })),
+    difficulty: q.difficulty,
+  }));
 }

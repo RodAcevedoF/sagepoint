@@ -1,6 +1,10 @@
-import type { QuestionOption, QuestionType } from '../../document/entities/question.entity';
+import type {
+  QuestionOption,
+  QuestionType,
+} from "../../document/entities/question.entity";
 
 export interface StepQuizQuestion {
+  id: string;
   text: string;
   type: QuestionType;
   options: QuestionOption[];

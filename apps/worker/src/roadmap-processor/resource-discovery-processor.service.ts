@@ -192,7 +192,7 @@ export class ResourceDiscoveryProcessorService
   ): Promise<void> {
     if (questions.length === 0) return;
     try {
-      await this.stepQuizQuestionRepo.saveMany(questions);
+      await this.stepQuizQuestionRepo.upsertMany(questions);
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
       this.logger.warn(
@@ -228,8 +228,7 @@ export class ResourceDiscoveryProcessorService
   ): Promise<void> {
     if (questions.length === 0) return;
     try {
-      await this.stepQuizQuestionRepo.deleteByRoadmapId(roadmapId);
-      await this.stepQuizQuestionRepo.saveMany(questions);
+      await this.stepQuizQuestionRepo.upsertMany(questions);
       this.logger.info(
         { roadmapId, questionCount: questions.length },
         "Step quiz enrichment complete",

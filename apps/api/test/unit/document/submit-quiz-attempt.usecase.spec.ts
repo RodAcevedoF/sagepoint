@@ -1,9 +1,11 @@
 import { SubmitQuizAttemptUseCase } from '../../../src/features/document/app/usecases/submit-quiz-attempt.usecase';
-import { Question, QuestionType } from '@sagepoint/domain';
+import { ScheduleReviewUseCase } from '../../../src/features/review/app/usecases/schedule-review.usecase';
+import { Question, QuestionType, ReviewSource } from '@sagepoint/domain';
 import { NotFoundException } from '@nestjs/common';
 import {
   FakeQuestionRepository,
   FakeQuizAttemptRepository,
+  FakeReviewCardRepository,
 } from '../_fakes/repositories';
 
 function buildQuestion(
@@ -30,12 +32,20 @@ function buildQuestion(
 describe('SubmitQuizAttemptUseCase', () => {
   let questionRepo: FakeQuestionRepository;
   let attemptRepo: FakeQuizAttemptRepository;
+  let reviewCardRepo: FakeReviewCardRepository;
+  let scheduleReviewUseCase: ScheduleReviewUseCase;
   let useCase: SubmitQuizAttemptUseCase;
 
   beforeEach(() => {
     questionRepo = new FakeQuestionRepository();
     attemptRepo = new FakeQuizAttemptRepository();
-    useCase = new SubmitQuizAttemptUseCase(questionRepo, attemptRepo);
+    reviewCardRepo = new FakeReviewCardRepository();
+    scheduleReviewUseCase = new ScheduleReviewUseCase(reviewCardRepo);
+    useCase = new SubmitQuizAttemptUseCase(
+      questionRepo,
+      attemptRepo,
+      scheduleReviewUseCase,
+    );
   });
 
   describe('scoring', () => {
@@ -105,6 +115,37 @@ describe('SubmitQuizAttemptUseCase', () => {
       await expect(
         useCase.execute({ quizId: 'empty', userId: 'user1', answers: {} }),
       ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('spaced repetition scheduling', () => {
+    beforeEach(() => {
+      questionRepo.seed(buildQuestion('q1', 'A'), buildQuestion('q2', 'B'));
+    });
+
+    it('schedules a review card per question with quality keyed to correctness', async () => {
+      await useCase.execute({
+        quizId: 'quiz1',
+        userId: 'user1',
+        answers: { q1: 'A', q2: 'C' }, // q1 correct, q2 wrong
+      });
+
+      const cards = reviewCardRepo.getAll();
+      expect(cards).toHaveLength(2);
+
+      const q1Card = cards.find((c) => c.questionId === 'q1');
+      const q2Card = cards.find((c) => c.questionId === 'q2');
+      expect(q1Card).toBeDefined();
+      expect(q2Card).toBeDefined();
+      expect(q1Card!.source).toBe(ReviewSource.DOCUMENT);
+      expect(q1Card!.sourceId).toBe('quiz1');
+      expect(q1Card!.userId).toBe('user1');
+      // Correct: SM-2 quality 4 → repetitions=1, lapses=0
+      expect(q1Card!.repetitions).toBe(1);
+      expect(q1Card!.lapses).toBe(0);
+      // Incorrect: SM-2 quality 1 → repetitions=0, lapses=1
+      expect(q2Card!.repetitions).toBe(0);
+      expect(q2Card!.lapses).toBe(1);
     });
   });
 });

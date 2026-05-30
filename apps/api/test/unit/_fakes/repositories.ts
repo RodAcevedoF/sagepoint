@@ -8,11 +8,13 @@ import type {
   IQuestionRepository,
   IQuizAttemptRepository,
   IStepQuizAttemptRepository,
+  IRoadmapStepQuestionRepository,
   IQuizRepository,
   IDocumentSummaryRepository,
   IConceptRepository,
   IInvitationRepository,
   ITokenBalanceRepository,
+  IReviewCardRepository,
   IFileStorage,
   IDocumentProcessingQueue,
   ICacheService,
@@ -26,6 +28,7 @@ import type {
   DiscoveredResource,
   GeneratedQuestion,
   SubConceptResult,
+  RoadmapStepQuestion,
 } from '@sagepoint/domain';
 import {
   User,
@@ -45,6 +48,8 @@ import {
   InvitationStatus,
   UserRole,
   TokenBalance,
+  ReviewCard,
+  ReviewSource,
 } from '@sagepoint/domain';
 import { RoadmapVisibility } from '@sagepoint/domain';
 import type { ITokenStore } from '../../../src/features/auth/domain/outbound/token-store.port';
@@ -579,6 +584,12 @@ export class FakeQuestionRepository implements IQuestionRepository {
     return Promise.resolve(this.questions.filter((q) => q.quizId === quizId));
   }
 
+  findManyByIds(ids: string[]): Promise<Question[]> {
+    if (ids.length === 0) return Promise.resolve([]);
+    const idSet = new Set(ids);
+    return Promise.resolve(this.questions.filter((q) => idSet.has(q.id)));
+  }
+
   deleteByQuizId(quizId: string): Promise<void> {
     this.questions = this.questions.filter((q) => q.quizId !== quizId);
     return Promise.resolve();
@@ -652,6 +663,172 @@ export class FakeStepQuizAttemptRepository implements IStepQuizAttemptRepository
 
   getById(id: string): StepQuizAttempt | undefined {
     return this.attempts.find((a) => a.id === id);
+  }
+}
+
+// ─── RoadmapStepQuestion ─────────────────────────────────────────────────────
+
+export class FakeRoadmapStepQuestionRepository implements IRoadmapStepQuestionRepository {
+  private questions: RoadmapStepQuestion[] = [];
+
+  seed(...questions: RoadmapStepQuestion[]) {
+    this.questions.push(...questions);
+  }
+
+  saveMany(items: RoadmapStepQuestion[]): Promise<void> {
+    this.questions.push(...items);
+    return Promise.resolve();
+  }
+
+  upsertMany(items: RoadmapStepQuestion[]): Promise<void> {
+    for (const item of items) {
+      const matchIdx = this.questions.findIndex(
+        (q) =>
+          q.roadmapId === item.roadmapId &&
+          q.conceptId === item.conceptId &&
+          q.position === item.position,
+      );
+      if (matchIdx >= 0) {
+        this.questions[matchIdx] = { ...item, id: this.questions[matchIdx].id };
+      } else {
+        this.questions.push(item);
+      }
+    }
+    return Promise.resolve();
+  }
+
+  findByRoadmapId(roadmapId: string): Promise<RoadmapStepQuestion[]> {
+    return Promise.resolve(
+      this.questions
+        .filter((q) => q.roadmapId === roadmapId)
+        .sort((a, b) => a.stepOrder - b.stepOrder || a.position - b.position),
+    );
+  }
+
+  findByRoadmapAndConcept(
+    roadmapId: string,
+    conceptId: string,
+  ): Promise<RoadmapStepQuestion[]> {
+    return Promise.resolve(
+      this.questions
+        .filter((q) => q.roadmapId === roadmapId && q.conceptId === conceptId)
+        .sort((a, b) => a.position - b.position),
+    );
+  }
+
+  findManyByIds(ids: string[]): Promise<RoadmapStepQuestion[]> {
+    if (ids.length === 0) return Promise.resolve([]);
+    const idSet = new Set(ids);
+    return Promise.resolve(this.questions.filter((q) => idSet.has(q.id)));
+  }
+
+  deleteByRoadmapId(roadmapId: string): Promise<void> {
+    this.questions = this.questions.filter((q) => q.roadmapId !== roadmapId);
+    return Promise.resolve();
+  }
+
+  getAll(): RoadmapStepQuestion[] {
+    return [...this.questions];
+  }
+}
+
+// ─── ReviewCard ──────────────────────────────────────────────────────────────
+
+export class FakeReviewCardRepository implements IReviewCardRepository {
+  private cards: ReviewCard[] = [];
+
+  seed(...cards: ReviewCard[]) {
+    this.cards.push(...cards);
+  }
+
+  save(card: ReviewCard): Promise<void> {
+    this.cards = this.cards.filter((c) => c.id !== card.id);
+    this.cards.push(card);
+    return Promise.resolve();
+  }
+
+  findById(id: string): Promise<ReviewCard | null> {
+    return Promise.resolve(this.cards.find((c) => c.id === id) ?? null);
+  }
+
+  findByUserAndQuestion(
+    userId: string,
+    source: ReviewSource,
+    questionId: string,
+  ): Promise<ReviewCard | null> {
+    return Promise.resolve(
+      this.cards.find(
+        (c) =>
+          c.userId === userId &&
+          c.source === source &&
+          c.questionId === questionId,
+      ) ?? null,
+    );
+  }
+
+  findDueByUser(
+    userId: string,
+    now: Date,
+    limit: number,
+  ): Promise<ReviewCard[]> {
+    return Promise.resolve(
+      this.cards
+        .filter(
+          (c) => c.userId === userId && c.dueAt.getTime() <= now.getTime(),
+        )
+        .sort((a, b) => a.dueAt.getTime() - b.dueAt.getTime())
+        .slice(0, limit),
+    );
+  }
+
+  findDueByUserAndSource(
+    userId: string,
+    source: ReviewSource,
+    sourceId: string,
+    now: Date,
+    limit: number,
+  ): Promise<ReviewCard[]> {
+    return Promise.resolve(
+      this.cards
+        .filter(
+          (c) =>
+            c.userId === userId &&
+            c.source === source &&
+            c.sourceId === sourceId &&
+            c.dueAt.getTime() <= now.getTime(),
+        )
+        .sort((a, b) => a.dueAt.getTime() - b.dueAt.getTime())
+        .slice(0, limit),
+    );
+  }
+
+  countDueByUser(userId: string, now: Date): Promise<number> {
+    return Promise.resolve(
+      this.cards.filter(
+        (c) => c.userId === userId && c.dueAt.getTime() <= now.getTime(),
+      ).length,
+    );
+  }
+
+  countDueByUserAndSource(
+    userId: string,
+    source: ReviewSource,
+    sourceId: string,
+    now: Date,
+  ): Promise<number> {
+    return Promise.resolve(
+      this.cards.filter(
+        (c) =>
+          c.userId === userId &&
+          c.source === source &&
+          c.sourceId === sourceId &&
+          c.dueAt.getTime() <= now.getTime(),
+      ).length,
+    );
+  }
+
+  getAll(): ReviewCard[] {
+    return [...this.cards];
   }
 }
 

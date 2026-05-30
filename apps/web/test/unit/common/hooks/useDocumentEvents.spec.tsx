@@ -1,6 +1,9 @@
 import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { Provider } from "react-redux";
 import { useDocumentEvents } from "@/shared/hooks/useDocumentEvents";
+import { setupStore } from "@/infrastructure/store/store";
+import { SnackbarProvider } from "@/shared/components/feedback/Snackbar/snackbar.provider";
 
 // ─── EventSource mock ───────────────────────────────────────────────────────
 
@@ -32,6 +35,14 @@ function sendMessage(data: Record<string, unknown>) {
   );
 }
 
+function wrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <Provider store={setupStore()}>
+      <SnackbarProvider>{children}</SnackbarProvider>
+    </Provider>
+  );
+}
+
 beforeEach(() => {
   lastInstance = null;
   vi.stubGlobal("EventSource", vi.fn(mockEventSource));
@@ -44,7 +55,7 @@ afterEach(() => {
 describe("useDocumentEvents", () => {
   describe("when documentId is null", () => {
     it("returns initial state without connecting", () => {
-      const { result } = renderHook(() => useDocumentEvents(null));
+      const { result } = renderHook(() => useDocumentEvents(null), { wrapper });
 
       expect(result.current.status).toBe("connecting");
       expect(result.current.stage).toBeNull();
@@ -55,7 +66,7 @@ describe("useDocumentEvents", () => {
 
   describe("when documentId is provided", () => {
     it("connects to SSE endpoint", () => {
-      renderHook(() => useDocumentEvents("d1"));
+      renderHook(() => useDocumentEvents("d1"), { wrapper });
 
       expect(EventSource).toHaveBeenCalledWith(
         "http://localhost:3001/documents/d1/events",
@@ -64,7 +75,7 @@ describe("useDocumentEvents", () => {
     });
 
     it('updates on "progress" event with stage', () => {
-      const { result } = renderHook(() => useDocumentEvents("d1"));
+      const { result } = renderHook(() => useDocumentEvents("d1"), { wrapper });
 
       act(() => {
         sendMessage({ type: "progress", stage: "parsing" });
@@ -75,7 +86,7 @@ describe("useDocumentEvents", () => {
     });
 
     it("transitions through document processing stages", () => {
-      const { result } = renderHook(() => useDocumentEvents("d1"));
+      const { result } = renderHook(() => useDocumentEvents("d1"), { wrapper });
 
       act(() => sendMessage({ type: "progress", stage: "parsing" }));
       expect(result.current.stage).toBe("parsing");
@@ -92,7 +103,7 @@ describe("useDocumentEvents", () => {
     });
 
     it('closes connection on "completed"', () => {
-      renderHook(() => useDocumentEvents("d1"));
+      renderHook(() => useDocumentEvents("d1"), { wrapper });
 
       act(() => sendMessage({ type: "completed" }));
 
@@ -100,7 +111,7 @@ describe("useDocumentEvents", () => {
     });
 
     it('sets error on "failed" and closes', () => {
-      const { result } = renderHook(() => useDocumentEvents("d1"));
+      const { result } = renderHook(() => useDocumentEvents("d1"), { wrapper });
 
       act(() => {
         sendMessage({ type: "failed", message: "Parse error" });
@@ -112,7 +123,9 @@ describe("useDocumentEvents", () => {
     });
 
     it("closes EventSource on unmount", () => {
-      const { unmount } = renderHook(() => useDocumentEvents("d1"));
+      const { unmount } = renderHook(() => useDocumentEvents("d1"), {
+        wrapper,
+      });
       unmount();
       expect(lastInstance!.close).toHaveBeenCalled();
     });

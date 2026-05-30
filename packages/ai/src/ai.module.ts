@@ -106,7 +106,10 @@ import { CerebrasStepQuizEnrichmentAdapter } from "./cerebras-step-quiz-enrichme
       useFactory: (config: ConfigService) =>
         new CerebrasCategoryClassifierAdapter({
           apiKey: config.get("CEREBRAS_API_KEY") ?? "",
-          modelName: config.get("CEREBRAS_MODEL") ?? "llama3.1-8b",
+          modelName:
+            config.get("CEREBRAS_CLASSIFIER_MODEL") ??
+            config.get("CEREBRAS_MODEL") ??
+            "zai-glm-4.7",
         }),
       inject: [ConfigService],
     },
@@ -132,7 +135,10 @@ import { CerebrasStepQuizEnrichmentAdapter } from "./cerebras-step-quiz-enrichme
       useFactory: (config: ConfigService) =>
         new CerebrasStepQuizEnrichmentAdapter({
           apiKey: config.get("CEREBRAS_API_KEY") ?? "",
-          modelName: config.get("CEREBRAS_MODEL") ?? "llama3.1-70b",
+          modelName:
+            config.get("CEREBRAS_ENRICHMENT_MODEL") ??
+            config.get("CEREBRAS_MODEL") ??
+            "gpt-oss-120b",
         }),
       inject: [ConfigService],
     },

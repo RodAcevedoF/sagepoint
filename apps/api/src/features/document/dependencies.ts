@@ -22,6 +22,7 @@ import { DeleteDocumentUseCase } from './app/usecases/delete-document.usecase';
 import { UpdateFilenameUseCase } from './app/usecases/update-filename.usecase';
 import { BullMqDocumentProcessingQueue } from '@/core/infra/queue/bull-mq.queue';
 import { Queue } from 'bullmq';
+import { ScheduleReviewUseCase } from '@/features/review/app/usecases/schedule-review.usecase';
 import {
   PrismaDocumentRepository,
   PrismaDocumentSummaryRepository,
@@ -44,6 +45,7 @@ export function makeDocumentDependencies(
   prismaService: PrismaClient,
   fileStorage: IFileStorage,
   userRepository: IUserRepository,
+  scheduleReviewUseCase: ScheduleReviewUseCase,
 ): DocumentDependencies {
   const documentRepository = new PrismaDocumentRepository(prismaService);
   const documentSummaryRepository = new PrismaDocumentSummaryRepository(
@@ -87,6 +89,7 @@ export function makeDocumentDependencies(
   const submitQuizAttemptUseCase = new SubmitQuizAttemptUseCase(
     questionRepository,
     quizAttemptRepository,
+    scheduleReviewUseCase,
   );
   const getQuizAttemptsUseCase = new GetQuizAttemptsUseCase(
     quizAttemptRepository,

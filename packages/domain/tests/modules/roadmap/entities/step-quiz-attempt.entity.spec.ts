@@ -4,6 +4,7 @@ import { QuestionType } from "../../../../src";
 const FIXED_DATE = new Date("2026-01-01T00:00:00.000Z");
 
 const QUESTION = {
+  id: "question-1",
   text: "What is a generic?",
   type: QuestionType.MULTIPLE_CHOICE,
   options: [

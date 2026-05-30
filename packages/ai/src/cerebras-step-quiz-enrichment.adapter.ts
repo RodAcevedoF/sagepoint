@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { Injectable, Logger, Optional, Inject } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type {
@@ -192,6 +193,7 @@ Guidelines:
     return parsed.results.map((r) => ({
       conceptId: r.conceptId,
       questions: r.questions.map((q) => ({
+        id: randomUUID(),
         type: q.type as QuestionType,
         text: q.text,
         options: q.options,

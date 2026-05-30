@@ -215,6 +215,10 @@ export class FakeQuestionRepository implements IQuestionRepository {
     return Promise.resolve([]);
   }
 
+  findManyByIds(_ids: string[]): Promise<Question[]> {
+    return Promise.resolve([]);
+  }
+
   deleteByQuizId(_quizId: string): Promise<void> {
     return Promise.resolve();
   }

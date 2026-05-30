@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { Provider } from "react-redux";
 import { useRoadmapEvents } from "@/shared/hooks/useRoadmapEvents";
 import { setupStore } from "@/infrastructure/store/store";
+import { SnackbarProvider } from "@/shared/components/feedback/Snackbar/snackbar.provider";
 
 // ─── EventSource mock ───────────────────────────────────────────────────────
 
@@ -40,7 +41,11 @@ function triggerError() {
 }
 
 function wrapper({ children }: { children: React.ReactNode }) {
-  return <Provider store={setupStore()}>{children}</Provider>;
+  return (
+    <Provider store={setupStore()}>
+      <SnackbarProvider>{children}</SnackbarProvider>
+    </Provider>
+  );
 }
 
 beforeEach(() => {

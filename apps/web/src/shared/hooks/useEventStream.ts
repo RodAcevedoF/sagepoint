@@ -40,7 +40,9 @@ export function useEventStream<TStage extends string>(
   // Hold the latest config without making the effects depend on its identity;
   // mirrors how useSseEvents keeps completedStage in a ref.
   const configRef = useRef(config);
-  configRef.current = config;
+  useEffect(() => {
+    configRef.current = config;
+  }, [config]);
 
   const phaseOneInvalidatedRef = useRef(false);
   const completeInvalidatedRef = useRef(false);
@@ -52,17 +54,20 @@ export function useEventStream<TStage extends string>(
 
   useEffect(() => {
     if (!path) return;
-    const { toasts, startWhen } = configRef.current;
+    const { toasts, startWhen, isPhaseOneDone } = configRef.current;
 
     if (toasts?.start && startWhen?.(state) && !startedPaths.has(path)) {
       startedPaths.add(path);
       showSnackbar(toasts.start, { severity: "info" });
     }
-    if (
-      toasts?.finish &&
-      state.status === "completed" &&
-      !finishedPaths.has(path)
-    ) {
+    // Prefer phase-one-done as the "ready" signal when the consumer defines it:
+    // the listening component typically unmounts on phase-one invalidation, so a
+    // phase-two `status === 'completed'` event would arrive after the EventSource
+    // is gone. Falls back to status==='completed' for streams without phases.
+    const isFinished = isPhaseOneDone
+      ? isPhaseOneDone(state)
+      : state.status === "completed";
+    if (toasts?.finish && isFinished && !finishedPaths.has(path)) {
       finishedPaths.add(path);
       showSnackbar(toasts.finish, { severity: "success" });
     }

@@ -2,8 +2,10 @@
 
 import { Box, Typography, alpha, useTheme } from "@mui/material";
 import { Trophy, RotateCcw } from "lucide-react";
+import { ReviewSource } from "@sagepoint/domain";
 import { Card, Button } from "@/shared/components";
 import { ButtonIconPositions, ButtonSizes } from "@/shared/types";
+import { ReviewCallToAction } from "@/features/review";
 import type { QuizAttemptDto } from "@/infrastructure/api/documentApi";
 
 interface QuizResultsProps {
@@ -62,6 +64,13 @@ export function QuizResults({ attempt, onRetry }: QuizResultsProps) {
               onClick={onRetry}
             />
           )}
+        </Box>
+
+        <Box sx={{ mt: 2 }}>
+          <ReviewCallToAction
+            source={ReviewSource.DOCUMENT}
+            sourceId={attempt.quizId}
+          />
         </Box>
       </Card.Content>
     </Card>

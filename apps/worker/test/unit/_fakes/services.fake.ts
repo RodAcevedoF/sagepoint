@@ -420,6 +420,7 @@ export class FakeStepQuizGenerationService implements IStepQuizGenerationService
         conceptId: s.conceptId,
         questions: [
           {
+            id: `q-${s.conceptId}-0`,
             type: QuestionType.MULTIPLE_CHOICE,
             text: `What is ${s.conceptName}?`,
             options: [
@@ -454,8 +455,44 @@ export class FakeStepQuizQuestionRepository implements IRoadmapStepQuestionRepos
     return Promise.resolve();
   }
 
+  upsertMany(items: RoadmapStepQuestion[]): Promise<void> {
+    if (this.shouldFail)
+      return Promise.reject(new Error("Step quiz repo failed"));
+    for (const item of items) {
+      const idx = this.saved.findIndex(
+        (q) =>
+          q.roadmapId === item.roadmapId &&
+          q.conceptId === item.conceptId &&
+          q.position === item.position,
+      );
+      if (idx >= 0) {
+        this.saved[idx] = { ...item, id: this.saved[idx].id };
+      } else {
+        this.saved.push(item);
+      }
+    }
+    return Promise.resolve();
+  }
+
   findByRoadmapId(roadmapId: string): Promise<RoadmapStepQuestion[]> {
     return Promise.resolve(this.saved.filter((q) => q.roadmapId === roadmapId));
+  }
+
+  findByRoadmapAndConcept(
+    roadmapId: string,
+    conceptId: string,
+  ): Promise<RoadmapStepQuestion[]> {
+    return Promise.resolve(
+      this.saved
+        .filter((q) => q.roadmapId === roadmapId && q.conceptId === conceptId)
+        .sort((a, b) => a.position - b.position),
+    );
+  }
+
+  findManyByIds(ids: string[]): Promise<RoadmapStepQuestion[]> {
+    if (ids.length === 0) return Promise.resolve([]);
+    const idSet = new Set(ids);
+    return Promise.resolve(this.saved.filter((q) => idSet.has(q.id)));
   }
 
   deleteByRoadmapId(roadmapId: string): Promise<void> {

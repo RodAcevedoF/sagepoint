@@ -25,6 +25,7 @@ import { ExpandConceptUseCase } from '@/features/roadmap/app/usecases/expand-con
 import { SuggestRelatedTopicsUseCase } from '@/features/roadmap/app/usecases/suggest-related-topics.usecase';
 import { GenerateStepQuizUseCase } from '@/features/roadmap/app/usecases/generate-step-quiz.usecase';
 import { SubmitStepQuizUseCase } from '@/features/roadmap/app/usecases/submit-step-quiz.usecase';
+import { ScheduleReviewUseCase } from '@/features/review/app/usecases/schedule-review.usecase';
 import { UpdateVisibilityUseCase } from '@/features/roadmap/app/usecases/update-visibility.usecase';
 import { UpdateCategoryUseCase } from '@/features/roadmap/app/usecases/update-category.usecase';
 import { UpdateTitleUseCase } from '@/features/roadmap/app/usecases/update-title.usecase';
@@ -45,6 +46,7 @@ import {
   PrismaResourceRepository,
   PrismaProgressRepository,
   PrismaStepQuizAttemptRepository,
+  PrismaRoadmapStepQuestionRepository,
   PrismaAdoptionRepository,
   PrismaTokenBalanceRepository,
   PrismaUserRepository,
@@ -65,9 +67,10 @@ export interface RoadmapDependencies {
 export function makeRoadmapDependencies(
   prismaService: PrismaClient,
   neo4jService: Neo4jService,
-  cacheService?: ICacheService,
-  userRepository?: IUserRepository,
-  categoryRepository?: ICategoryRepository,
+  cacheService: ICacheService | undefined,
+  userRepository: IUserRepository | undefined,
+  categoryRepository: ICategoryRepository | undefined,
+  scheduleReviewUseCase: ScheduleReviewUseCase,
 ): RoadmapDependencies {
   const roadmapRepository = new PrismaRoadmapRepository(prismaService);
   const conceptRepository = new Neo4jConceptRepository(neo4jService);
@@ -162,14 +165,19 @@ export function makeRoadmapDependencies(
   const stepQuizAttemptRepository = new PrismaStepQuizAttemptRepository(
     prismaService,
   );
+  const roadmapStepQuestionRepository = new PrismaRoadmapStepQuestionRepository(
+    prismaService,
+  );
   const generateStepQuizUseCase = new GenerateStepQuizUseCase(
     roadmapRepository,
     aiAdapters.quizGeneration,
     stepQuizAttemptRepository,
+    roadmapStepQuestionRepository,
   );
   const submitStepQuizUseCase = new SubmitStepQuizUseCase(
     stepQuizAttemptRepository,
     updateStepProgressUseCase,
+    scheduleReviewUseCase,
   );
 
   // Concept expansion & suggestions

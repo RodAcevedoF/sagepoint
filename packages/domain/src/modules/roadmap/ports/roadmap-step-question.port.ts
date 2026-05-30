@@ -12,6 +12,7 @@ export interface RoadmapStepQuestion {
   roadmapId: string;
   conceptId: string;
   stepOrder: number;
+  position: number;
   text: string;
   type: QuestionType;
   options: QuestionOption[];
@@ -21,6 +22,12 @@ export interface RoadmapStepQuestion {
 
 export interface IRoadmapStepQuestionRepository {
   saveMany(items: RoadmapStepQuestion[]): Promise<void>;
+  upsertMany(items: RoadmapStepQuestion[]): Promise<void>;
   findByRoadmapId(roadmapId: string): Promise<RoadmapStepQuestion[]>;
+  findByRoadmapAndConcept(
+    roadmapId: string,
+    conceptId: string,
+  ): Promise<RoadmapStepQuestion[]>;
+  findManyByIds(ids: string[]): Promise<RoadmapStepQuestion[]>;
   deleteByRoadmapId(roadmapId: string): Promise<void>;
 }

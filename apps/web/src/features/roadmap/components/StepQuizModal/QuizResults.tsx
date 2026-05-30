@@ -7,12 +7,14 @@ import {
   Lightbulb,
   X,
 } from "lucide-react";
+import { ReviewSource } from "@sagepoint/domain";
 import { Button } from "@/shared/components";
 import {
   ButtonVariants,
   ButtonSizes,
   ButtonIconPositions,
 } from "@/shared/types";
+import { ReviewCallToAction } from "@/features/review";
 import type {
   StepQuizQuestionDto,
   QuestionResultDto,
@@ -24,6 +26,7 @@ interface QuizResultsProps {
   score: number;
   results: QuestionResultDto[];
   questions: StepQuizQuestionDto[];
+  conceptId: string;
   isGenerating: boolean;
   onRetry: () => void;
   onClose: () => void;
@@ -35,6 +38,7 @@ export function QuizResults({
   score,
   results,
   questions,
+  conceptId,
   isGenerating,
   onRetry,
   onClose,
@@ -173,6 +177,13 @@ export function QuizResults({
           </Box>
         );
       })}
+
+      <Box sx={{ mt: 3 }}>
+        <ReviewCallToAction
+          source={ReviewSource.ROADMAP_STEP}
+          sourceId={conceptId}
+        />
+      </Box>
 
       <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 3 }}>
         {!passed && (

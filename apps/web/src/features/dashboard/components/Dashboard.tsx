@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Grid } from "@mui/material";
+import { Box, Grid } from "@mui/material";
 import { AnimatePresence } from "framer-motion";
 import { useCurrentUser } from "@/features/auth/context/UserContext";
 import { useRoadmapEvents } from "@/shared/hooks";
@@ -13,6 +13,7 @@ import { DashboardSkeleton } from "./DashboardSkeleton";
 import { useUserRoadmapsQuery } from "@/application/roadmap/queries/get-user-roadmaps.query";
 import { useUserDocumentsQuery } from "@/application/document";
 
+import { DashboardReviewChip } from "@/features/review";
 import { DashboardLayout } from "./DashboardLayout";
 import { DashboardGreeting } from "./DashboardGreeting";
 import { DashboardMetrics } from "./DashboardMetrics";
@@ -139,6 +140,10 @@ export function Dashboard() {
         userName={userName}
         stepsCompleted={metrics.totalStepsCompleted}
       />
+
+      <Box sx={{ mb: 3 }}>
+        <DashboardReviewChip />
+      </Box>
 
       {!hasRoadmaps && <DashboardHeroCTA />}
 

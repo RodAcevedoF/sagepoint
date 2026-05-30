@@ -420,6 +420,7 @@ model RoadmapStepQuestion {
   roadmapId   String   @db.Uuid
   conceptId   String
   stepOrder   Int
+  position    Int
   text        String
   type        String
   options     Json
@@ -429,9 +430,31 @@ model RoadmapStepQuestion {
 
   roadmap     Roadmap  @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
 
+  @@unique([roadmapId, conceptId, position])
   @@index([roadmapId, stepOrder])
   @@index([roadmapId, conceptId])
   @@map("roadmap_step_questions")
+}
+
+model ReviewCard {
+  id             String    @id @default(uuid()) @db.Uuid
+  userId         String    @db.Uuid
+  source         String
+  sourceId       String
+  questionId     String
+  interval       Int       @default(0)
+  easeFactor     Float     @default(2.5)
+  repetitions    Int       @default(0)
+  lapses         Int       @default(0)
+  dueAt          DateTime
+  lastReviewedAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([userId, source, questionId])
+  @@index([userId, dueAt])
+  @@index([userId, source, sourceId])
+  @@map("review_cards")
 }
 
 model Invitation {

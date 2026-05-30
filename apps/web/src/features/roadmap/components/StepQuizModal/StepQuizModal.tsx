@@ -181,6 +181,7 @@ export function StepQuizModal({
         score={state.score}
         results={state.results}
         questions={state.questions}
+        conceptId={conceptId}
         isGenerating={isGenerating}
         onRetry={loadQuiz}
         onClose={onClose}

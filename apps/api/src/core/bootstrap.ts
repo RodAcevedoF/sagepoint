@@ -39,6 +39,10 @@ import {
   makeBlogDependencies,
   type BlogDependencies,
 } from '@/features/blog/dependencies';
+import {
+  makeReviewDependencies,
+  type ReviewDependencies,
+} from '@/features/review/dependencies';
 import { GCSStorage } from '@sagepoint/storage';
 import type { IFileStorage } from '@sagepoint/domain';
 import Redis from 'ioredis';
@@ -59,6 +63,7 @@ export interface AppDependencies {
   invitation: InvitationDependencies;
   social: SocialDependencies;
   blog: BlogDependencies;
+  review: ReviewDependencies;
   fileStorage: IFileStorage;
   neo4jService: Neo4jService;
 }
@@ -100,12 +105,14 @@ export function bootstrap(): AppDependencies {
   const cacheService = new RedisCacheService(cacheRedis);
 
   const categoryDeps = makeCategoryDependencies(prismaService, cacheService);
+  const reviewDeps = makeReviewDependencies(prismaService);
   const roadmapDeps = makeRoadmapDependencies(
     prismaService,
     neo4jService,
     cacheService,
     userDeps.userRepository,
     categoryDeps.categoryRepository,
+    reviewDeps.scheduleReviewUseCase,
   );
 
   dependencies = {
@@ -114,6 +121,7 @@ export function bootstrap(): AppDependencies {
       prismaService,
       fileStorage,
       userDeps.userRepository,
+      reviewDeps.scheduleReviewUseCase,
     ),
     user: userDeps,
     storage: makeStorageDependencies(fileStorage),
@@ -128,6 +136,7 @@ export function bootstrap(): AppDependencies {
     ),
     social: makeSocialDependencies(prismaService, roadmapDeps.roadmapService),
     blog: makeBlogDependencies(prismaService, cacheService),
+    review: reviewDeps,
     invitation: makeInvitationDependencies(
       prismaService,
       userDeps.userRepository,

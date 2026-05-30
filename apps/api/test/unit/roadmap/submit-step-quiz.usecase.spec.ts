@@ -1,5 +1,6 @@
 import { SubmitStepQuizUseCase } from '../../../src/features/roadmap/app/usecases/submit-step-quiz.usecase';
 import { UpdateStepProgressUseCase } from '../../../src/features/roadmap/app/usecases/update-step-progress.usecase';
+import { ScheduleReviewUseCase } from '../../../src/features/review/app/usecases/schedule-review.usecase';
 import {
   StepQuizAttempt,
   QuestionType,
@@ -11,6 +12,7 @@ import {
   FakeStepQuizAttemptRepository,
   FakeProgressRepository,
   FakeRoadmapRepository,
+  FakeReviewCardRepository,
 } from '../_fakes/repositories';
 
 function buildPendingAttempt(userId = 'user1'): StepQuizAttempt {
@@ -21,6 +23,7 @@ function buildPendingAttempt(userId = 'user1'): StepQuizAttempt {
     conceptId: 'c1',
     questions: [
       {
+        id: 'sq-1',
         text: 'Q1',
         type: QuestionType.MULTIPLE_CHOICE,
         options: [
@@ -30,6 +33,7 @@ function buildPendingAttempt(userId = 'user1'): StepQuizAttempt {
         difficulty: 'medium',
       },
       {
+        id: 'sq-2',
         text: 'Q2',
         type: QuestionType.MULTIPLE_CHOICE,
         options: [
@@ -39,6 +43,7 @@ function buildPendingAttempt(userId = 'user1'): StepQuizAttempt {
         difficulty: 'medium',
       },
       {
+        id: 'sq-3',
         text: 'Q3',
         type: QuestionType.MULTIPLE_CHOICE,
         options: [
@@ -60,12 +65,16 @@ describe('SubmitStepQuizUseCase', () => {
   let attemptRepo: FakeStepQuizAttemptRepository;
   let progressRepo: FakeProgressRepository;
   let roadmapRepo: FakeRoadmapRepository;
+  let reviewCardRepo: FakeReviewCardRepository;
+  let scheduleReviewUseCase: ScheduleReviewUseCase;
   let useCase: SubmitStepQuizUseCase;
 
   beforeEach(() => {
     attemptRepo = new FakeStepQuizAttemptRepository();
     progressRepo = new FakeProgressRepository();
     roadmapRepo = new FakeRoadmapRepository();
+    reviewCardRepo = new FakeReviewCardRepository();
+    scheduleReviewUseCase = new ScheduleReviewUseCase(reviewCardRepo);
 
     // Seed a roadmap with concept c1 so UpdateStepProgress can validate it
     roadmapRepo.seed(
@@ -84,7 +93,11 @@ describe('SubmitStepQuizUseCase', () => {
       progressRepo,
       roadmapRepo,
     );
-    useCase = new SubmitStepQuizUseCase(attemptRepo, updateStepProgress);
+    useCase = new SubmitStepQuizUseCase(
+      attemptRepo,
+      updateStepProgress,
+      scheduleReviewUseCase,
+    );
   });
 
   describe('grading', () => {

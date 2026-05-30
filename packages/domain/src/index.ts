@@ -45,6 +45,10 @@ export * from "./modules/roadmap/ports/step-quiz-attempt.repository";
 export * from "./modules/roadmap/ports/step-quiz-generation.port";
 export * from "./modules/roadmap/ports/roadmap-step-question.port";
 
+// Review
+export * from "./modules/review/entities/review-card.entity";
+export * from "./modules/review/ports/review-card.repository";
+
 // Invitation
 export * from "./modules/invitation/entities/invitation.entity";
 export * from "./modules/invitation/types";

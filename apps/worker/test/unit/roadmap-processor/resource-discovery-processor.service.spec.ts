@@ -10,7 +10,7 @@ import {
   FakeStepQuizQuestionRepository,
 } from "../_fakes/services.fake";
 import { Concept, Roadmap } from "@sagepoint/domain";
-import type { RoadmapStep } from "@sagepoint/domain";
+import type { RoadmapStep, RoadmapStepQuestion } from "@sagepoint/domain";
 
 const ROADMAP_ID = "roadmap-001";
 
@@ -142,40 +142,45 @@ describe("ResourceDiscoveryProcessorService", () => {
       expect(snippets).toContain("A great LA resource");
     });
 
-    it("persists initial questions then replaces them via deleteByRoadmapId + saveMany on enrichment", async () => {
+    it("persists initial questions, then enrichment upserts by (roadmapId, conceptId, position) preserving Phase-1 ids", async () => {
       const roadmapRepo = new FakeRoadmapRepository();
       roadmapRepo.seedRoadmap(ROADMAP_ID);
 
-      const stepQuizQuestionRepo = new FakeStepQuizQuestionRepository();
       const callOrder: string[] = [];
-      const origDelete: FakeStepQuizQuestionRepository["deleteByRoadmapId"] = (
-        id,
-      ) =>
-        FakeStepQuizQuestionRepository.prototype.deleteByRoadmapId.apply(
-          stepQuizQuestionRepo,
-          [id],
-        ) as Promise<void>;
-      const origSave: FakeStepQuizQuestionRepository["saveMany"] = (items) =>
-        FakeStepQuizQuestionRepository.prototype.saveMany.apply(
-          stepQuizQuestionRepo,
-          [items],
-        ) as ReturnType<FakeStepQuizQuestionRepository["saveMany"]>;
-      stepQuizQuestionRepo.deleteByRoadmapId = (id) => {
-        callOrder.push("delete");
-        return origDelete(id);
-      };
-      stepQuizQuestionRepo.saveMany = (items) => {
-        callOrder.push("save");
-        return origSave(items);
-      };
+      class TrackingRepo extends FakeStepQuizQuestionRepository {
+        override saveMany(items: RoadmapStepQuestion[]): Promise<void> {
+          callOrder.push("save");
+          return super.saveMany(items);
+        }
+        override upsertMany(items: RoadmapStepQuestion[]): Promise<void> {
+          callOrder.push("upsert");
+          return super.upsertMany(items);
+        }
+      }
+      const stepQuizQuestionRepo = new TrackingRepo();
 
       const { service } = buildService({ roadmapRepo, stepQuizQuestionRepo });
       roadmapRepo.findById = () => Promise.resolve(makeRoadmapWithSteps(STEPS));
 
       await service.discoverResources(ROADMAP_ID);
 
-      // initial save → enrichment delete → enrichment save
-      expect(callOrder).toEqual(["save", "delete", "save"]);
+      // Both phases upsert by (roadmapId, conceptId, position) so retries and
+      // concurrent writers stay idempotent without delete-recreate.
+      expect(callOrder).toEqual(["upsert", "upsert"]);
+
+      // ids stable across enrichment: Phase-1 question at (c1, position 0)
+      // keeps its id even though enrichment generated a fresh row with a
+      // different uuid in memory.
+      const saved = stepQuizQuestionRepo.getSaved();
+      const groups = new Map<string, typeof saved>();
+      for (const q of saved) {
+        const key = `${q.conceptId}#${q.position}`;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key)!.push(q);
+      }
+      for (const rows of groups.values()) {
+        expect(rows).toHaveLength(1);
+      }
     });
 
     it("does not fail resource discovery when enrichment throws; initial questions remain", async () => {
