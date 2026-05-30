@@ -120,7 +120,7 @@ export class CerebrasStepQuizEnrichmentAdapter implements IStepQuizGenerationSer
   ) {
     const resolved = resolveCerebrasConfig(configOrService);
     this.client = createCerebrasClient(resolved);
-    this.modelName = resolved.modelName || "llama3.1-70b";
+    this.modelName = resolved.modelName || "gpt-oss-120b";
   }
 
   async generateForSteps(steps: StepQuizInput[]): Promise<GeneratedStepQuiz[]> {
