@@ -1,5 +1,6 @@
 import { NewsArticle } from "@sagepoint/domain";
 import type { INewsService } from "@sagepoint/domain";
+import { withRetry } from "./retry";
 
 const CATEGORY_SEARCH_MAP: Record<
   string,
@@ -219,16 +220,21 @@ export class NewsdataApiAdapter implements INewsService {
     });
 
     try {
-      const res = await fetch(`${BASE_URL}?${params.toString()}`);
-
-      if (!res.ok) {
-        console.warn(
-          `[NewsdataIO] ${res.status} for slug="${slug}": ${await res.text()}`,
-        );
-        return [];
-      }
-
-      const body = (await res.json()) as NewsdataResponse;
+      const body = await withRetry<NewsdataResponse>(
+        async () => {
+          const res = await fetch(`${BASE_URL}?${params.toString()}`);
+          if (!res.ok) {
+            const text = await res.text();
+            const err = new Error(
+              `[NewsdataIO] ${res.status} for slug="${slug}": ${text}`,
+            );
+            (err as { status?: number }).status = res.status;
+            throw err;
+          }
+          return (await res.json()) as NewsdataResponse;
+        },
+        { opName: "newsdata-io.fetch-by-category" },
+      );
 
       if (body.status !== "success" || !body.results) return [];
 

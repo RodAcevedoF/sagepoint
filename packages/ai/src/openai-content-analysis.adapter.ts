@@ -5,6 +5,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
 import { resolveOpenAiConfig, createChatModel } from "./llm-config";
 import type { LlmAdapterConfig } from "./llm-config";
+import { withRetry } from "./retry";
 
 @Injectable()
 export class OpenAiContentAnalysisAdapter implements IContentAnalysisService {
@@ -64,10 +65,12 @@ export class OpenAiContentAnalysisAdapter implements IContentAnalysisService {
 
       const structuredModel = this.model.withStructuredOutput(conceptSchema);
 
-      const result = await structuredModel.invoke([
-        {
-          role: "system",
-          content: `You are an expert educational content analyzer. Extract key learning concepts from the provided text to build a knowledge graph.
+      const result = await withRetry(
+        () =>
+          structuredModel.invoke([
+            {
+              role: "system",
+              content: `You are an expert educational content analyzer. Extract key learning concepts from the provided text to build a knowledge graph.
 
             Guidelines:
             1. Identify core concepts, topics, or skills.
@@ -76,9 +79,11 @@ export class OpenAiContentAnalysisAdapter implements IContentAnalysisService {
                - NEXT_STEP: If Concept A logically leads to Concept B.
                - RELATED_TO: If concepts are merely related.
             3. Ensure names are consistent and normalized (title case).`,
-        },
-        { role: "user", content: text },
-      ]);
+            },
+            { role: "user", content: text },
+          ]),
+        { opName: "openai.content-analysis", logger: this.logger },
+      );
 
       return result.concepts.map((c) => ({
         name: c.name,

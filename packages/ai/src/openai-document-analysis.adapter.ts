@@ -8,6 +8,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
 import { resolveOpenAiConfig, createChatModel } from "./llm-config";
 import type { LlmAdapterConfig } from "./llm-config";
+import { withRetry } from "./retry";
 
 @Injectable()
 export class OpenAiDocumentAnalysisAdapter implements IDocumentAnalysisService {
@@ -52,22 +53,26 @@ export class OpenAiDocumentAnalysisAdapter implements IDocumentAnalysisService {
 
     const structuredModel = this.model.withStructuredOutput(analysisSchema);
 
-    const result = await structuredModel.invoke([
-      {
-        role: "system",
-        content: `You are an expert educational content analyst. Analyze the provided document text and produce a structured summary.
+    const result = await withRetry(
+      () =>
+        structuredModel.invoke([
+          {
+            role: "system",
+            content: `You are an expert educational content analyst. Analyze the provided document text and produce a structured summary.
 
 Guidelines:
 - The overview should capture the essence of the document in 2-4 sentences.
 - Key points should be actionable or informative takeaways (3-7 points).
 - Topic area should be a concise label for the subject matter.
 - Difficulty should reflect the assumed knowledge level needed to understand the content.`,
-      },
-      {
-        role: "user",
-        content: text,
-      },
-    ]);
+          },
+          {
+            role: "user",
+            content: text,
+          },
+        ]),
+      { opName: "openai.document-analysis", logger: this.logger },
+    );
 
     this.logger.log(
       `Analysis complete: topic="${result.topicArea}", difficulty="${result.difficulty}", keyPoints=${result.keyPoints.length}`,

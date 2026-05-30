@@ -7,6 +7,7 @@ import type {
 } from "@sagepoint/domain";
 import { resolveCerebrasConfig, createCerebrasModel } from "./llm-config";
 import type { LlmAdapterConfig } from "./llm-config";
+import { withRetry } from "./retry";
 
 @Injectable()
 export class CerebrasCategoryClassifierAdapter implements ICategoryClassifierService {
@@ -27,7 +28,10 @@ export class CerebrasCategoryClassifierAdapter implements ICategoryClassifierSer
 
     const prompt = this.buildPrompt(topic, conceptNames, candidates);
     try {
-      const res = await this.model.invoke(prompt);
+      const res = await withRetry(() => this.model.invoke(prompt), {
+        opName: "cerebras.category-classifier",
+        logger: this.logger,
+      });
       const content = Array.isArray(res.content)
         ? res.content.map((c) => (typeof c === "string" ? c : "")).join("")
         : typeof res.content === "string"

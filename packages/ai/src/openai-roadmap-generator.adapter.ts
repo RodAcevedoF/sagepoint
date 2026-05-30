@@ -11,6 +11,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
 import { resolveOpenAiConfig, createChatModel } from "./llm-config";
 import type { LlmAdapterConfig } from "./llm-config";
+import { withRetry } from "./retry";
 
 @Injectable()
 export class OpenAiRoadmapGeneratorAdapter implements IRoadmapGenerationService {
@@ -123,10 +124,12 @@ User Context:
 - Preferred Learning Style: ${userContext.preferredLearningStyle || "Not specified"}`
         : "";
 
-      const result = await structuredModel.invoke([
-        {
-          role: "system",
-          content: `You are an expert educational curriculum designer. Your task is to organize a set of concepts into an optimal learning path.
+      const result = await withRetry(
+        () =>
+          structuredModel.invoke([
+            {
+              role: "system",
+              content: `You are an expert educational curriculum designer. Your task is to organize a set of concepts into an optimal learning path.
 
 Guidelines:
 1. Order concepts from foundational to advanced, respecting dependencies.
@@ -137,10 +140,10 @@ Guidelines:
 6. Estimate realistic learning durations (typically 15-60 minutes per concept).
 7. Assign appropriate difficulty levels based on prerequisites and complexity.
 8. Consider the user's context if provided to personalize the path.`,
-        },
-        {
-          role: "user",
-          content: `Please organize these concepts into an optimal learning path:
+            },
+            {
+              role: "user",
+              content: `Please organize these concepts into an optimal learning path:
 
 Concepts:
 ${conceptsInfo}
@@ -150,8 +153,10 @@ ${relationshipsInfo}
 ${userContextInfo}
 
 Return a structured learning path with each concept ordered, along with learning objectives and rationale.`,
-        },
-      ]);
+            },
+          ]),
+        { opName: "openai.roadmap-generator", logger: this.logger },
+      );
 
       this.logger.log(
         `Generated learning path with ${result.orderedConcepts.length} ordered concepts`,

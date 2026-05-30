@@ -1,5 +1,6 @@
 import { NewsArticle } from "@sagepoint/domain";
 import type { INewsService } from "@sagepoint/domain";
+import { withRetry } from "./retry";
 
 const CATEGORY_SEARCH_MAP: Record<string, string> = {
   "web-development":
@@ -65,16 +66,21 @@ export class TheNewsApiAdapter implements INewsService {
     });
 
     try {
-      const res = await fetch(`${this.baseUrl}?${params.toString()}`);
-
-      if (!res.ok) {
-        console.warn(
-          `[TheNewsAPI] ${res.status} for slug="${slug}": ${await res.text()}`,
-        );
-        return [];
-      }
-
-      const body = (await res.json()) as TheNewsApiResponse;
+      const body = await withRetry<TheNewsApiResponse>(
+        async () => {
+          const res = await fetch(`${this.baseUrl}?${params.toString()}`);
+          if (!res.ok) {
+            const text = await res.text();
+            const err = new Error(
+              `[TheNewsAPI] ${res.status} for slug="${slug}": ${text}`,
+            );
+            (err as { status?: number }).status = res.status;
+            throw err;
+          }
+          return (await res.json()) as TheNewsApiResponse;
+        },
+        { opName: "the-news-api.fetch-by-category" },
+      );
 
       return (body.data ?? []).map(
         (a) =>

@@ -8,6 +8,7 @@ import type {
 } from "@sagepoint/domain";
 import { ResourceType } from "@sagepoint/domain";
 import Exa from "exa-js";
+import { withRetry } from "./retry";
 
 @Injectable()
 export class ExaResearchAdapter implements IResourceDiscoveryService {
@@ -43,15 +44,28 @@ export class ExaResearchAdapter implements IResourceDiscoveryService {
     try {
       this.logger.log(`Discovering resources for concept: "${conceptName}"`);
 
-      const searchPromise = this.exa.searchAndContents(query, {
-        type: "auto",
-        numResults: fetchCount,
-        highlights: true,
-      });
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("Exa search timeout")), 15_000),
+      const response = await withRetry(
+        () => {
+          const searchPromise = this.exa.searchAndContents(query, {
+            type: "auto",
+            numResults: fetchCount,
+            highlights: true,
+          });
+          const timeoutPromise = new Promise<never>((_, reject) =>
+            setTimeout(
+              () =>
+                reject(
+                  Object.assign(new Error("Exa search timeout"), {
+                    code: "ETIMEDOUT",
+                  }),
+                ),
+              15_000,
+            ),
+          );
+          return Promise.race([searchPromise, timeoutPromise]);
+        },
+        { opName: "exa.search-and-contents", logger: this.logger },
       );
-      const response = await Promise.race([searchPromise, timeoutPromise]);
 
       const PAID_DOMAINS = [
         "udemy.com",

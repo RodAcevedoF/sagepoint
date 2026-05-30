@@ -10,6 +10,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
 import { resolveOpenAiConfig, createChatModel } from "./llm-config";
 import type { LlmAdapterConfig } from "./llm-config";
+import { withRetry } from "./retry";
 
 @Injectable()
 export class OpenAiTopicConceptGeneratorAdapter implements ITopicConceptGenerationService {
@@ -123,10 +124,12 @@ User Context:
         ? `\n\nExisting Knowledge Graph Context (concepts already known in the system — reuse and build upon these where relevant, ensure consistency with existing terminology):\n${existingOntologyContext}`
         : "";
 
-      const result = await structuredModel.invoke([
-        {
-          role: "system",
-          content: `You are an expert curriculum designer. Given a learning topic, identify the key concepts a learner needs to understand, along with relationships between them.
+      const result = await withRetry(
+        () =>
+          structuredModel.invoke([
+            {
+              role: "system",
+              content: `You are an expert curriculum designer. Given a learning topic, identify the key concepts a learner needs to understand, along with relationships between them.
 
 Guidelines:
 ${experienceGuidelines}
@@ -136,15 +139,17 @@ ${experienceGuidelines}
 - Use RELATED_TO for concepts that are related but don't have a strict dependency.
 - Consider the user's context if provided to tailor the concepts appropriately.
 - If existing ontology context is provided, leverage it to create more precise and consistent concepts. Reuse concept names where they match, and add RELATED_TO relationships to relevant existing concepts.`,
-        },
-        {
-          role: "user",
-          content: `Identify key concepts and their relationships for learning about: "${topic}"
+            },
+            {
+              role: "user",
+              content: `Identify key concepts and their relationships for learning about: "${topic}"
 ${userContextInfo}${ontologyInfo}
 
 Return a structured list of concepts with their relationships.`,
-        },
-      ]);
+            },
+          ]),
+        { opName: "openai.topic-concept-generator", logger: this.logger },
+      );
 
       this.logger.log(
         `Generated ${result.concepts.length} concepts with ${result.relationships.length} relationships for topic "${topic}"`,

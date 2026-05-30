@@ -12,6 +12,7 @@ import { traceable } from "langsmith/traceable";
 import { z } from "zod";
 import { resolveCerebrasConfig, createCerebrasClient } from "./llm-config";
 import type { LlmAdapterConfig } from "./llm-config";
+import { withRetry } from "./retry";
 
 const QUIZ_JSON_SCHEMA = {
   type: "object",
@@ -155,28 +156,32 @@ Guidelines:
 - Difficulty should match the step's stated difficulty.
 - One brief explanation sentence per question.`;
 
-    const response = await traceable(
+    const response = await withRetry(
       () =>
-        this.client.chat.completions.create({
-          model: this.modelName,
-          messages: [
-            { role: "system", content: systemPrompt },
-            {
-              role: "user",
-              content: `Generate quiz questions for these roadmap steps:\n\n${stepsText}`,
-            },
-          ],
-          response_format: {
-            type: "json_schema",
-            json_schema: {
-              name: "QuizResults",
-              schema: QUIZ_JSON_SCHEMA,
-              strict: true,
-            },
-          },
-        }),
-      { name: "cerebras.step-quiz-enrichment", run_type: "llm" },
-    )();
+        traceable(
+          () =>
+            this.client.chat.completions.create({
+              model: this.modelName,
+              messages: [
+                { role: "system", content: systemPrompt },
+                {
+                  role: "user",
+                  content: `Generate quiz questions for these roadmap steps:\n\n${stepsText}`,
+                },
+              ],
+              response_format: {
+                type: "json_schema",
+                json_schema: {
+                  name: "QuizResults",
+                  schema: QUIZ_JSON_SCHEMA,
+                  strict: true,
+                },
+              },
+            }),
+          { name: "cerebras.step-quiz-enrichment", run_type: "llm" },
+        )(),
+      { opName: "cerebras.step-quiz-enrichment", logger: this.logger },
+    );
 
     const completion = completionSchema.parse(response);
     const firstChoice = completion.choices.at(0);

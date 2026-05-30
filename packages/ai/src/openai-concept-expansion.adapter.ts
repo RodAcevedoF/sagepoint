@@ -9,6 +9,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
 import { resolveOpenAiConfig, createChatModel } from "./llm-config";
 import type { LlmAdapterConfig } from "./llm-config";
+import { withRetry } from "./retry";
 
 @Injectable()
 export class OpenAiConceptExpansionAdapter implements IConceptExpansionService {
@@ -77,20 +78,24 @@ export class OpenAiConceptExpansionAdapter implements IConceptExpansionService {
         ? `\nUser context: Experience level: ${userContext.experienceLevel || "not specified"}, Goal: ${userContext.goal || "general learning"}`
         : "";
 
-      const result = await structuredModel.invoke([
-        {
-          role: "system",
-          content: `You are an expert educational content designer. Break down a concept into 3-5 learnable sub-concepts that progressively build understanding. Each sub-concept should be focused enough to learn in a single session.`,
-        },
-        {
-          role: "user",
-          content: `Break down this concept into sub-concepts:
+      const result = await withRetry(
+        () =>
+          structuredModel.invoke([
+            {
+              role: "system",
+              content: `You are an expert educational content designer. Break down a concept into 3-5 learnable sub-concepts that progressively build understanding. Each sub-concept should be focused enough to learn in a single session.`,
+            },
+            {
+              role: "user",
+              content: `Break down this concept into sub-concepts:
 
 Concept: "${parentName}"${parentDescription ? `\nDescription: "${parentDescription}"` : ""}${siblingsInfo}${userContextInfo}
 
 Generate 3-5 sub-concepts ordered from foundational to advanced.`,
-        },
-      ]);
+            },
+          ]),
+        { opName: "openai.concept-expansion", logger: this.logger },
+      );
 
       this.logger.log(
         `Generated ${result.subConcepts.length} sub-concepts for "${parentName}"`,

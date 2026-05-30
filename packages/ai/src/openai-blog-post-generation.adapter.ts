@@ -9,6 +9,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
 import { resolveOpenAiConfig, createChatModel } from "./llm-config";
 import type { LlmAdapterConfig } from "./llm-config";
+import { withRetry } from "./retry";
 
 const blogPostSchema = z.object({
   title: z.string().describe("Compelling blog post title (max 80 characters)"),
@@ -65,10 +66,12 @@ export class OpenAiBlogPostGenerationAdapter implements IBlogPostGenerationServi
       )
       .join("\n\n");
 
-    const result = await structuredModel.invoke([
-      {
-        role: "system",
-        content: `You are a technical writer for Sagepoint, an AI-powered learning platform.
+    const result = await withRetry(
+      () =>
+        structuredModel.invoke([
+          {
+            role: "system",
+            content: `You are a technical writer for Sagepoint, an AI-powered learning platform.
 Write insightful blog posts that synthesize recent developments in technology and learning.
 
 Guidelines:
@@ -79,12 +82,14 @@ Guidelines:
 - Structure with ## section headings for readability.
 - End with a ## Sources section listing the article titles (not URLs).
 - Target 600-800 words.`,
-      },
-      {
-        role: "user",
-        content: `Write a blog post about recent developments in ${input.categoryName} based on these articles:\n\n${articleSummaries}`,
-      },
-    ]);
+          },
+          {
+            role: "user",
+            content: `Write a blog post about recent developments in ${input.categoryName} based on these articles:\n\n${articleSummaries}`,
+          },
+        ]),
+      { opName: "openai.blog-post-generation", logger: this.logger },
+    );
 
     this.logger.log(`Blog post generated: "${result.title}"`);
     return result;

@@ -10,6 +10,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
 import { resolveOpenAiConfig, createChatModel } from "./llm-config";
 import type { LlmAdapterConfig } from "./llm-config";
+import { withRetry } from "./retry";
 
 @Injectable()
 export class OpenAiQuizGenerationAdapter implements IQuizGenerationService {
@@ -87,10 +88,12 @@ export class OpenAiQuizGenerationAdapter implements IQuizGenerationService {
         ? `\nKey concepts to test: ${conceptNames.join(", ")}`
         : "";
 
-    const result = await structuredModel.invoke([
-      {
-        role: "system",
-        content: `You are an expert quiz creator for educational content. Generate quiz questions based on the provided document text.
+    const result = await withRetry(
+      () =>
+        structuredModel.invoke([
+          {
+            role: "system",
+            content: `You are an expert quiz creator for educational content. Generate quiz questions based on the provided document text.
 
 Guidelines:
 - Generate exactly ${questionCount} questions.
@@ -101,14 +104,16 @@ Guidelines:
 - Each question should test understanding, not just memorization.
 - Provide a brief explanation for each correct answer.
 - If concept names are provided, link questions to relevant concepts.`,
-      },
-      {
-        role: "user",
-        content: `Generate quiz questions from this document:
+          },
+          {
+            role: "user",
+            content: `Generate quiz questions from this document:
 
 ${text}${conceptList}`,
-      },
-    ]);
+          },
+        ]),
+      { opName: "openai.quiz-generation", logger: this.logger },
+    );
 
     this.logger.log(`Generated ${result.questions.length} quiz questions`);
 

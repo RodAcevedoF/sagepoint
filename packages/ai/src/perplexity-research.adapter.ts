@@ -10,6 +10,7 @@ import {
 import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
 import { resolvePerplexityConfig, createChatModel } from "./llm-config";
+import { withRetry } from "./retry";
 
 const PERPLEXITY_BASE_URL = "https://api.perplexity.ai";
 
@@ -93,10 +94,12 @@ export class PerplexityResearchAdapter implements IResourceDiscoveryService {
         ? "Only include free resources."
         : "";
 
-      const result = await structuredModel.invoke([
-        {
-          role: "system",
-          content: `You are an expert learning resource curator. Find the best online learning resources for the given concept.
+      const result = await withRetry(
+        () =>
+          structuredModel.invoke([
+            {
+              role: "system",
+              content: `You are an expert learning resource curator. Find the best online learning resources for the given concept.
 
 Guidelines:
 1. Find real, currently available resources with valid URLs.
@@ -108,15 +111,17 @@ Guidelines:
 ${difficultyFilter}
 ${typeFilter}
 ${freeFilter}`,
-        },
-        {
-          role: "user",
-          content: `Find ${maxResults} high-quality learning resources for the concept: "${conceptName}"
+            },
+            {
+              role: "user",
+              content: `Find ${maxResults} high-quality learning resources for the concept: "${conceptName}"
 ${conceptDescription ? `\nContext: ${conceptDescription}` : ""}
 
 Return resources that would help someone learn and understand this concept effectively.`,
-        },
-      ]);
+            },
+          ]),
+        { opName: "perplexity.research.single", logger: this.logger },
+      );
 
       this.logger.log(
         `Discovered ${result.resources.length} resources for "${conceptName}"`,
@@ -258,10 +263,12 @@ Return resources that would help someone learn and understand this concept effec
       )
       .join("\n");
 
-    const result = await structuredModel.invoke([
-      {
-        role: "system",
-        content: `You are an expert learning resource curator. Find the best online learning resources for each of the given concepts.
+    const result = await withRetry(
+      () =>
+        structuredModel.invoke([
+          {
+            role: "system",
+            content: `You are an expert learning resource curator. Find the best online learning resources for each of the given concepts.
 
 Guidelines:
 1. Find real, currently available resources with valid URLs.
@@ -270,16 +277,18 @@ Guidelines:
 4. Prefer free resources unless paid ones are significantly better.
 5. Return exactly ${maxPerConcept} resources per concept.
 ${difficultyFilter}`,
-      },
-      {
-        role: "user",
-        content: `Find ${maxPerConcept} high-quality learning resources for EACH of the following concepts:
+          },
+          {
+            role: "user",
+            content: `Find ${maxPerConcept} high-quality learning resources for EACH of the following concepts:
 
 ${conceptList}
 
 Return resources grouped by concept, using the exact concept IDs provided.`,
-      },
-    ]);
+          },
+        ]),
+      { opName: "perplexity.research.batch", logger: this.logger },
+    );
 
     return result.conceptResources;
   }

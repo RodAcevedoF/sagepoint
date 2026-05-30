@@ -18,13 +18,13 @@ export interface LlmModelConfig {
 }
 
 const OPENAI_DEFAULTS = {
-  maxRetries: 3,
+  maxRetries: 0,
   timeout: 60_000,
   maxConcurrency: 5,
 } as const;
 
 const PERPLEXITY_DEFAULTS = {
-  maxRetries: 3,
+  maxRetries: 0,
   timeout: 45_000,
   maxConcurrency: 3,
 } as const;
@@ -78,7 +78,7 @@ export function resolvePerplexityConfig(
 export const CEREBRAS_BASE_URL = "https://api.cerebras.ai/v1";
 
 const CEREBRAS_DEFAULTS = {
-  maxRetries: 2,
+  maxRetries: 0,
   timeout: 8_000,
   maxConcurrency: 5,
 } as const;

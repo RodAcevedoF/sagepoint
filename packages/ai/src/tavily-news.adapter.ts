@@ -2,6 +2,7 @@ import { tavily } from "@tavily/core";
 import { Logger } from "@nestjs/common";
 import { NewsArticle } from "@sagepoint/domain";
 import type { INewsService } from "@sagepoint/domain";
+import { withRetry } from "./retry";
 
 const CATEGORY_SEARCH_MAP: Record<string, { query: string }> = {
   "web-development": {
@@ -69,12 +70,16 @@ export class TavilyNewsAdapter implements INewsService {
     const query = mapping?.query ?? name;
 
     try {
-      const response = await this.client.search(query, {
-        topic: "news",
-        searchDepth: "basic",
-        maxResults: 5,
-        timeRange: "week",
-      });
+      const response = await withRetry(
+        () =>
+          this.client.search(query, {
+            topic: "news",
+            searchDepth: "basic",
+            maxResults: 5,
+            timeRange: "week",
+          }),
+        { opName: "tavily.search", logger: this.logger },
+      );
 
       if (!response.results || response.results.length === 0) {
         this.logger.warn(

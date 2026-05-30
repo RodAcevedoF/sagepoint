@@ -11,6 +11,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
 import { resolveOpenAiConfig, createChatModel } from "./llm-config";
 import type { LlmAdapterConfig } from "./llm-config";
+import { withRetry } from "./retry";
 
 @Injectable()
 export class OpenAiStepQuizGenerationAdapter implements IStepQuizGenerationService {
@@ -91,10 +92,12 @@ export class OpenAiStepQuizGenerationAdapter implements IStepQuizGenerationServi
       )
       .join("\n\n");
 
-    const result = await structuredModel.invoke([
-      {
-        role: "system",
-        content: `You are an expert educational quiz designer. Generate ${questionCount} MULTIPLE_CHOICE questions per step.
+    const result = await withRetry(
+      () =>
+        structuredModel.invoke([
+          {
+            role: "system",
+            content: `You are an expert educational quiz designer. Generate ${questionCount} MULTIPLE_CHOICE questions per step.
 
 Guidelines:
 - Return one result object per step, in the same order, with the exact conceptId from the input.
@@ -102,12 +105,14 @@ Guidelines:
 - 4 options (A, B, C, D), exactly one correct.
 - Difficulty should match the step's stated difficulty.
 - One brief explanation sentence per question.`,
-      },
-      {
-        role: "user",
-        content: `Generate quiz questions for these roadmap steps:\n\n${stepsText}`,
-      },
-    ]);
+          },
+          {
+            role: "user",
+            content: `Generate quiz questions for these roadmap steps:\n\n${stepsText}`,
+          },
+        ]),
+      { opName: "openai.step-quiz-generation", logger: this.logger },
+    );
 
     this.logger.log(`Generated quizzes for ${result.results.length} steps`);
 

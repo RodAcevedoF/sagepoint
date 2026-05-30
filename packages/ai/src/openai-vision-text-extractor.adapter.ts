@@ -5,6 +5,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage } from "@langchain/core/messages";
 import { resolveOpenAiConfig, createChatModel } from "./llm-config";
 import type { LlmAdapterConfig } from "./llm-config";
+import { withRetry } from "./retry";
 
 @Injectable()
 export class OpenAiVisionTextExtractorAdapter implements IImageTextExtractionService {
@@ -48,7 +49,10 @@ export class OpenAiVisionTextExtractorAdapter implements IImageTextExtractionSer
       ],
     });
 
-    const response = await this.model.invoke([message]);
+    const response = await withRetry(() => this.model.invoke([message]), {
+      opName: "openai.vision-text-extractor",
+      logger: this.logger,
+    });
     const text = typeof response.content === "string" ? response.content : "";
 
     this.logger.log(`Extracted ${text.length} chars from image`);
