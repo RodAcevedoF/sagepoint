@@ -486,6 +486,14 @@ function patchBootstrapSingleton() {
         getBySlug: () => Promise.resolve(null),
       },
     },
+    review: {
+      reviewService: {
+        getDueQueue: () => Promise.resolve([]),
+        countDue: () => Promise.resolve({ count: 0 }),
+        grade: () => Promise.reject(new Error('not implemented in e2e')),
+      },
+      scheduleReviewUseCase: { execute: () => Promise.resolve(null) },
+    },
     fileStorage: fakeFileStorage,
     neo4jService: { close: async () => {} },
     newsService: new FakeNewsService(),
