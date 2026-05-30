@@ -14,7 +14,10 @@ import {
 } from '@/features/auth/app/usecases/verify-email.usecase';
 import { EmailNotVerifiedError } from '@/features/auth/app/usecases/validate-user.usecase';
 import { InvalidRefreshTokenError } from '@/features/auth/app/usecases/refresh-token.usecase';
-import { InsufficientTokensError } from '@sagepoint/domain';
+import {
+  InsufficientTokensError,
+  UnsafeUserTextError,
+} from '@sagepoint/domain';
 
 @Catch()
 export class DomainExceptionFilter implements ExceptionFilter {
@@ -52,6 +55,16 @@ export class DomainExceptionFilter implements ExceptionFilter {
         statusCode: HttpStatus.UNAUTHORIZED,
         message: exception.message,
         error: 'Unauthorized',
+      });
+    }
+
+    if (exception instanceof UnsafeUserTextError) {
+      return response.status(HttpStatus.BAD_REQUEST).json({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'The provided text was rejected.',
+        error: 'Bad Request',
+        code: 'UNSAFE_USER_TEXT',
+        reason: exception.reason,
       });
     }
 

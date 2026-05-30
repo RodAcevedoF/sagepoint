@@ -60,6 +60,8 @@ export function GenerationForm({
         value={topic}
         onChange={(e) => onTopicChange(e.target.value)}
         disabled={isLoading}
+        slotProps={{ htmlInput: { maxLength: 280 } }}
+        helperText={`${topic.length}/280`}
         sx={styles.textField}
       />
 
@@ -72,6 +74,7 @@ export function GenerationForm({
         value={title}
         onChange={(e) => onTitleChange(e.target.value)}
         disabled={isLoading}
+        slotProps={{ htmlInput: { maxLength: 120 } }}
         sx={styles.nameField}
       />
 

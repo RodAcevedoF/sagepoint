@@ -16,6 +16,16 @@ interface CreateRoadmapModalProps {
   onCreated?: (roadmapId: string) => void;
 }
 
+function resolveErrorMessage(tag: string | undefined): string {
+  if (tag === "ROADMAP_LIMIT") {
+    return "Not enough tokens. Contact your administrator to get more.";
+  }
+  if (tag === "UNSAFE_USER_TEXT") {
+    return "That input looks unsafe — please rephrase and try again.";
+  }
+  return "Something went wrong generating your roadmap. Please try again.";
+}
+
 export function CreateRoadmapModal({ onCreated }: CreateRoadmapModalProps) {
   const { closeModal } = useModal();
   const { execute, isLoading } = useGenerateTopicRoadmapCommand();
@@ -55,11 +65,7 @@ export function CreateRoadmapModal({ onCreated }: CreateRoadmapModalProps) {
         closeModal();
         onCreated?.(result.data.id);
       } else {
-        setErrorMessage(
-          result.error.tag === "ROADMAP_LIMIT"
-            ? "Not enough tokens. Contact your administrator to get more."
-            : "Something went wrong generating your roadmap. Please try again.",
-        );
+        setErrorMessage(resolveErrorMessage(result.error.tag));
       }
     },
     [topic, title, experienceLevel, commitment, execute, closeModal, onCreated],

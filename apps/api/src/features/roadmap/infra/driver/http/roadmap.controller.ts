@@ -31,15 +31,10 @@ import {
   type SseProgressEvent,
 } from '@/features/roadmap/domain/inbound/roadmap-progress.service';
 import { SearchPublicRoadmapsDto } from '@/features/roadmap/app/dto/search-public-roadmaps.dto';
+import { GenerateTopicRoadmapDto } from '@/features/roadmap/app/dto/generate-topic-roadmap.dto';
 
 interface GenerateRoadmapDto {
   documentId: string;
-  title?: string;
-  userContext?: UserContext;
-}
-
-interface GenerateTopicRoadmapDto {
-  topic: string;
   title?: string;
   userContext?: UserContext;
 }

@@ -44,6 +44,7 @@ export * from "./modules/roadmap/entities/step-quiz-attempt.entity";
 export * from "./modules/roadmap/ports/step-quiz-attempt.repository";
 export * from "./modules/roadmap/ports/step-quiz-generation.port";
 export * from "./modules/roadmap/ports/roadmap-step-question.port";
+export * from "./modules/roadmap/errors/unsafe-user-text.error";
 
 // Review
 export * from "./modules/review/entities/review-card.entity";
@@ -60,6 +61,7 @@ export * from "./modules/social/ports/like.repository";
 
 // Common
 export * from "./common/pagination";
+export * from "./common/user-text";
 
 // Insights
 export * from "./modules/insights/entities/news-article.entity";

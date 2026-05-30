@@ -5,9 +5,11 @@ import {
   IUserRepository,
   TokenBalance,
   InsufficientTokensError,
+  UnsafeUserTextError,
   UserRole,
   UserContext,
   OPERATION_COSTS,
+  validateUserText,
 } from '@sagepoint/domain';
 import type { ITokenBalanceRepository } from '@sagepoint/domain';
 import { buildTopicRoadmapTitle } from './topic-roadmap-title';
@@ -28,9 +30,15 @@ export class EnqueueTopicRoadmapUseCase {
   ) {}
 
   async execute(command: EnqueueTopicRoadmapCommand): Promise<Roadmap> {
+    const validation = validateUserText(command.topic);
+    if (!validation.ok) {
+      throw new UnsafeUserTextError(validation.reason);
+    }
+
     await this.enforceTokenBalance(command.userId);
 
-    const title = buildTopicRoadmapTitle(command.topic, command.title);
+    const topic = validation.value;
+    const title = buildTopicRoadmapTitle(topic, command.title);
     const roadmapId = crypto.randomUUID();
 
     // Save skeleton roadmap
@@ -38,7 +46,7 @@ export class EnqueueTopicRoadmapUseCase {
       id: roadmapId,
       title,
       userId: command.userId,
-      description: `Generating roadmap for "${command.topic}"...`,
+      description: `Generating roadmap for "${topic}"...`,
       steps: [],
       generationStatus: 'pending',
       createdAt: new Date(),
@@ -49,7 +57,7 @@ export class EnqueueTopicRoadmapUseCase {
     // Enqueue background job
     await this.generationQueue.add(
       roadmapId,
-      command.topic,
+      topic,
       title,
       command.userId,
       command.userContext,
