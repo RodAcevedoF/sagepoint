@@ -19,7 +19,7 @@ export interface LlmModelConfig {
 
 const OPENAI_DEFAULTS = {
   maxRetries: 0,
-  timeout: 60_000,
+  timeout: 120_000,
   maxConcurrency: 5,
 } as const;
 

@@ -39,6 +39,13 @@ describe("isRetryableError", () => {
     expect(isRetryableError(new Error("fetch failed"))).toBe(true);
   });
 
+  it("treats LangChain TimeoutError as retryable", () => {
+    const err = new Error("Request timed out.");
+    err.name = "TimeoutError";
+    expect(isRetryableError(err)).toBe(true);
+    expect(isRetryableError(new Error("Request timed out."))).toBe(true);
+  });
+
   it("treats validation errors as non-retryable", () => {
     expect(isRetryableError(new TypeError("ZodError"))).toBe(false);
     expect(isRetryableError(new Error("UnsafeUserText"))).toBe(false);

@@ -29,7 +29,7 @@ export class OpenAiRoadmapGeneratorAdapter implements IRoadmapGenerationService 
     );
     this.model = createChatModel({
       ...resolved,
-      modelName: resolved.modelName || "gpt-4o",
+      modelName: resolved.modelName || "gpt-5.4-mini",
       temperature: 0.3,
     });
   }

@@ -51,12 +51,15 @@ function isNetworkError(err: unknown): boolean {
   const code = (err as { code?: unknown }).code;
   if (typeof code === "string" && RETRYABLE_NETWORK_CODES.has(code))
     return true;
+  const name = (err as { name?: unknown }).name;
+  if (name === "TimeoutError") return true;
   const message = (err as { message?: unknown }).message;
   if (typeof message === "string") {
     const lower = message.toLowerCase();
     if (lower.includes("fetch failed")) return true;
     if (lower.includes("socket hang up")) return true;
     if (lower.includes("network error")) return true;
+    if (lower.includes("timed out")) return true;
   }
   return false;
 }

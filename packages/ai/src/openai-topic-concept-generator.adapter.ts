@@ -28,7 +28,7 @@ export class OpenAiTopicConceptGeneratorAdapter implements ITopicConceptGenerati
     );
     this.model = createChatModel({
       ...resolved,
-      modelName: resolved.modelName || "gpt-4o",
+      modelName: resolved.modelName || "gpt-5.4-mini",
       temperature: 0.3,
     });
   }
@@ -134,9 +134,11 @@ User Context:
 Guidelines:
 ${experienceGuidelines}
 - Each concept should have a unique short slug ID (e.g., "react-hooks", "state-management").
-- Use DEPENDS_ON when one concept requires understanding of another first.
-- Use NEXT_STEP for natural progression between concepts.
-- Use RELATED_TO for concepts that are related but don't have a strict dependency.
+- Relationship direction is strict. Every relationship object is {fromId, toId, type}:
+  - DEPENDS_ON: fromId is the concept that REQUIRES toId as a prerequisite. toId must be learned FIRST. Example: {fromId: "matrix-operations", toId: "matrices", type: "DEPENDS_ON"} means "to learn matrix-operations you first need matrices". Never invert this — the more advanced/derived concept goes in fromId, the simpler prerequisite goes in toId.
+  - NEXT_STEP: fromId is learned first, toId is the natural next step after it.
+  - RELATED_TO: concepts that share context but have no strict ordering.
+- Only emit relationships where both fromId and toId are concepts you defined in the concepts array above. Do not reference display names or concepts that aren't in the list.
 - Consider the user's context if provided to tailor the concepts appropriately.
 - If existing ontology context is provided, leverage it to create more precise and consistent concepts. Reuse concept names where they match, and add RELATED_TO relationships to relevant existing concepts.`,
             },
