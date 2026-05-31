@@ -1,7 +1,8 @@
 "use client";
 
-import { Box, alpha, useTheme } from "@mui/material";
+import { Box } from "@mui/material";
 import { motion } from "framer-motion";
+import { aurora, auroraTint } from "@/shared/theme";
 import { SlideShell, SlideVisualFrame } from "./SlideShell";
 
 type MilestoneTone = "primary" | "secondary" | "warning";
@@ -50,16 +51,15 @@ const MILESTONES: Milestone[] = [
   },
 ];
 
-function MilestonesVisual() {
-  const theme = useTheme();
-  const tones = {
-    primary: theme.palette.primary.light,
-    secondary: theme.palette.secondary.light,
-    warning: theme.palette.warning.light,
-  };
+const TONES: Record<MilestoneTone, string> = {
+  primary: aurora.status.ready,
+  secondary: aurora.status.enrich,
+  warning: aurora.status.proc,
+};
 
+function MilestonesVisual() {
   return (
-    <SlideVisualFrame label="BUILD STEPS" accent={theme.palette.warning.light}>
+    <SlideVisualFrame label="BUILD STEPS" accent={aurora.status.proc}>
       <Box
         component="svg"
         viewBox="0 0 340 240"
@@ -79,9 +79,9 @@ function MilestonesVisual() {
             y2="60"
             gradientUnits="userSpaceOnUse"
           >
-            <stop offset="0%" stopColor={alpha(tones.primary, 0.45)} />
-            <stop offset="55%" stopColor={alpha(tones.secondary, 0.45)} />
-            <stop offset="100%" stopColor={alpha(tones.warning, 0.45)} />
+            <stop offset="0%" stopColor={auroraTint(TONES.primary, 0.45)} />
+            <stop offset="55%" stopColor={auroraTint(TONES.secondary, 0.45)} />
+            <stop offset="100%" stopColor={auroraTint(TONES.warning, 0.45)} />
           </linearGradient>
           <linearGradient
             id="milestone-path"
@@ -91,16 +91,16 @@ function MilestonesVisual() {
             y2="60"
             gradientUnits="userSpaceOnUse"
           >
-            <stop offset="0%" stopColor={tones.primary} />
-            <stop offset="55%" stopColor={tones.secondary} />
-            <stop offset="100%" stopColor={tones.warning} />
+            <stop offset="0%" stopColor={TONES.primary} />
+            <stop offset="55%" stopColor={TONES.secondary} />
+            <stop offset="100%" stopColor={TONES.warning} />
           </linearGradient>
         </defs>
 
         <path
           d="M 26 196 C 102 206 154 162 214 126 C 254 102 286 84 322 44"
           fill="none"
-          stroke={alpha(theme.palette.primary.light, 0.08)}
+          stroke={auroraTint(aurora.teal, 0.08)}
           strokeWidth="44"
           strokeLinecap="round"
         />
@@ -119,7 +119,7 @@ function MilestonesVisual() {
         <motion.path
           d="M 52 172 C 112 176 150 144 194 106 C 228 78 260 64 300 56"
           fill="none"
-          stroke={alpha(theme.palette.common.white, 0.12)}
+          stroke={auroraTint(aurora.txHi, 0.12)}
           strokeWidth="1.2"
           strokeDasharray="4 10"
           initial={{ pathLength: 0, opacity: 0 }}
@@ -139,7 +139,7 @@ function MilestonesVisual() {
         />
 
         {MILESTONES.map((item, index) => {
-          const color = tones[item.color];
+          const color = TONES[item.color];
           return (
             <motion.g
               key={item.label}
@@ -151,20 +151,20 @@ function MilestonesVisual() {
                 cx={item.x}
                 cy={item.y}
                 r="26"
-                fill={alpha(color, 0.12)}
+                fill={auroraTint(color, 0.12)}
               />
               <circle
                 cx={item.x}
                 cy={item.y}
                 r="20"
-                fill={alpha(color, 0.18)}
+                fill={auroraTint(color, 0.18)}
               />
               <circle
                 cx={item.x}
                 cy={item.y}
                 r="8"
                 fill={color}
-                stroke={alpha("#fff", 0.7)}
+                stroke={auroraTint(aurora.txHi, 0.7)}
                 strokeWidth="2"
               />
               <text
@@ -173,7 +173,7 @@ function MilestonesVisual() {
                 textAnchor="middle"
                 fontSize="7"
                 fontWeight="700"
-                fill={theme.palette.background.default}
+                fill={aurora.tealInk}
               >
                 {String(index + 1).padStart(2, "0")}
               </text>
@@ -184,7 +184,7 @@ function MilestonesVisual() {
                 fontSize="12"
                 fontWeight="700"
                 letterSpacing="0.02em"
-                fill={alpha(theme.palette.text.primary, 0.94)}
+                fill={auroraTint(aurora.txHi, 0.94)}
               >
                 {item.label}
               </text>
@@ -201,7 +201,7 @@ function MilestonesVisual() {
                     : item.labelX + item.lineWidth
                 }
                 y2={item.labelY + 10}
-                stroke={alpha(color, 0.44)}
+                stroke={auroraTint(color, 0.44)}
                 strokeWidth="1.5"
                 strokeLinecap="round"
               />
@@ -214,14 +214,13 @@ function MilestonesVisual() {
 }
 
 export function MilestonesSlide({ reversed }: { reversed?: boolean }) {
-  const theme = useTheme();
   return (
     <SlideShell
       eyebrow="Learn by building"
       title="Turn theory into momentum"
       body="Small builds mark the jumps that matter."
       visual={<MilestonesVisual />}
-      accent={theme.palette.warning.light}
+      accent={aurora.status.proc}
       reversed={reversed}
     />
   );

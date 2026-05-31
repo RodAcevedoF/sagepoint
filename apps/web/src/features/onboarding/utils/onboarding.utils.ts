@@ -1,37 +1,37 @@
 import { RoadmapEventStage } from "@/shared/hooks";
-import { Theme } from "@mui/material";
 import { BookOpen, Brain, CheckCircle2, GitBranch, Search } from "lucide-react";
+import type { AuroraTone } from "@/shared/components/ui/Aurora/tones";
 
 export const STAGES = [
   {
     label: "Analyzing topic",
     description: "Understanding your learning goals",
     icon: Search,
-    color: (t: Theme) => t.palette.success.main,
+    tone: "ready" as AuroraTone,
   },
   {
     label: "Generating concepts",
     description: "Identifying key topics to cover",
     icon: Brain,
-    color: (t: Theme) => t.palette.info.light,
+    tone: "concept" as AuroraTone,
   },
   {
     label: "Building learning path",
     description: "Ordering concepts for optimal learning",
     icon: GitBranch,
-    color: (t: Theme) => t.palette.purple.light,
+    tone: "enrich" as AuroraTone,
   },
   {
     label: "Discovering resources",
     description: "Finding the best learning materials",
     icon: BookOpen,
-    color: (t: Theme) => t.palette.warning.light,
+    tone: "proc" as AuroraTone,
   },
   {
     label: "Done!",
     description: "Your roadmap is ready",
     icon: CheckCircle2,
-    color: (t: Theme) => t.palette.accent,
+    tone: "teal" as AuroraTone,
   },
 ] as const;
 
@@ -49,3 +49,12 @@ export function stageToIndex(stage: RoadmapEventStage): number {
       return 0;
   }
 }
+
+export const ONBOARDING_STEP_TONE: Record<string, AuroraTone> = {
+  welcome: "teal",
+  goal: "concept",
+  experience: "ready",
+  interests: "enrich",
+  schedule: "proc",
+  complete: "ready",
+};

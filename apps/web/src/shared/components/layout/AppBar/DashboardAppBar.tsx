@@ -1,18 +1,13 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import {
-  Home,
-  Map,
-  Compass,
-  FileText,
-  User,
-  Shield,
-  Newspaper,
-} from "lucide-react";
 import { useCurrentUser } from "@/features/auth/context/UserContext";
 import { AppBar } from "./AppBar";
 import { useDashboardAppBarVisibility } from "./DashboardAppBarVisibilityContext";
+import {
+  DASHBOARD_NAV_ITEMS,
+  getActiveDashboardNavId,
+} from "../dashboardNavItems";
 
 export function DashboardAppBar() {
   const router = useRouter();
@@ -26,71 +21,23 @@ export function DashboardAppBar() {
     return null;
   }
 
-  const getActiveItem = () => {
-    if (pathname === "/dashboard") return "home";
-    if (pathname.startsWith("/roadmaps")) return "roadmaps";
-    if (pathname.startsWith("/explore")) return "explore";
-    if (pathname.startsWith("/feed")) return "feed";
-    if (pathname.startsWith("/documents")) return "documents";
-    if (pathname.startsWith("/admin")) return "admin";
-    if (pathname.startsWith("/profile")) return "profile";
-    return null;
-  };
+  const items = DASHBOARD_NAV_ITEMS.filter(
+    (item) => !item.adminOnly || isAdmin,
+  );
 
   return (
-    <AppBar defaultActive={getActiveItem()}>
+    <AppBar defaultActive={getActiveDashboardNavId(pathname)}>
       <AppBar.Group>
-        <AppBar.Item
-          id="home"
-          icon={Home}
-          label="Home"
-          onClick={() => router.push("/dashboard")}
-          tone="teal"
-        />
-        <AppBar.Item
-          id="roadmaps"
-          icon={Map}
-          label="Roadmaps"
-          onClick={() => router.push("/roadmaps")}
-          tone="proc"
-        />
-        <AppBar.Item
-          id="explore"
-          icon={Compass}
-          label="Explore"
-          onClick={() => router.push("/explore")}
-          tone="concept"
-        />
-        <AppBar.Item
-          id="feed"
-          icon={Newspaper}
-          label="Feed"
-          onClick={() => router.push("/feed")}
-          tone="fail"
-        />
-        <AppBar.Item
-          id="documents"
-          icon={FileText}
-          label="Docs"
-          onClick={() => router.push("/documents")}
-          tone="ready"
-        />
-        <AppBar.Item
-          id="profile"
-          icon={User}
-          label="Profile"
-          onClick={() => router.push("/profile")}
-          tone="teal"
-        />
-        {isAdmin && (
+        {items.map((item) => (
           <AppBar.Item
-            id="admin"
-            icon={Shield}
-            label="Admin"
-            onClick={() => router.push("/admin")}
-            tone="enrich"
+            key={item.id}
+            id={item.id}
+            icon={item.icon}
+            label={item.label}
+            onClick={() => router.push(item.route)}
+            tone={item.tone}
           />
-        )}
+        ))}
       </AppBar.Group>
     </AppBar>
   );

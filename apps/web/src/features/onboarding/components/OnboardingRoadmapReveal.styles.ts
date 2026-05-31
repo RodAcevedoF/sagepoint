@@ -1,11 +1,11 @@
-import { type Theme, alpha } from "@mui/material";
+import { aurora, auroraTint } from "@/shared/theme";
 
-export const makeStyles = (theme: Theme) => ({
+export const makeStyles = () => ({
   card: {
     minHeight: { xs: "auto", md: "min(54vh, 540px)" },
     maxWidth: { xs: "100%", md: 1160 },
     mx: "auto",
-    borderRadius: { xs: 4, md: 7 },
+    borderRadius: { xs: aurora.radii.md, md: aurora.radii.card },
     py: { xs: 2.5, sm: 4, md: 4.5 },
     px: { xs: 1.5, sm: 4, md: 8 },
     position: "relative",
@@ -13,16 +13,15 @@ export const makeStyles = (theme: Theme) => ({
     display: "flex",
     flexDirection: "column",
     gap: { xs: 3.5, md: 3.75 },
-    background: `linear-gradient(180deg, ${alpha(theme.palette.background.paper, 0.72)} 0%, ${alpha(theme.palette.background.paper, 0.5)} 100%)`,
-    backdropFilter: "blur(18px)",
-    border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
-    boxShadow: `inset 0 1px 0 ${alpha(theme.palette.common.white, 0.08)}, 0 28px 80px ${alpha("#000", 0.28)}`,
+    background: `linear-gradient(168deg, oklch(0.235 0.026 262 / 0.92), oklch(0.175 0.026 262 / 0.82))`,
+    border: `1px solid ${aurora.line}`,
+    boxShadow: aurora.shadow.card,
     "&::before": {
       content: '""',
       position: "absolute",
       inset: 0,
       borderRadius: "inherit",
-      background: `radial-gradient(circle at 16% 22%, ${alpha(theme.palette.primary.light, 0.16)} 0%, transparent 28%), radial-gradient(circle at 82% 76%, ${alpha(theme.palette.purple.light, 0.12)} 0%, transparent 24%), linear-gradient(135deg, ${alpha(theme.palette.common.white, 0.04)} 0%, transparent 46%)`,
+      background: `radial-gradient(circle at 16% 22%, ${auroraTint(aurora.status.concept, 0.16)} 0%, transparent 28%), radial-gradient(circle at 82% 76%, ${auroraTint(aurora.status.enrich, 0.12)} 0%, transparent 24%), linear-gradient(135deg, ${auroraTint(aurora.txHi, 0.04)} 0%, transparent 46%)`,
       pointerEvents: "none",
     },
   },
@@ -33,7 +32,7 @@ export const makeStyles = (theme: Theme) => ({
     width: 280,
     height: 180,
     borderRadius: "50%",
-    background: alpha(theme.palette.purple.main, 0.12),
+    background: auroraTint(aurora.status.enrich, 0.14),
     filter: "blur(54px)",
     transform: "rotate(-14deg)",
     zIndex: 0,
@@ -46,7 +45,7 @@ export const makeStyles = (theme: Theme) => ({
     width: 240,
     height: 160,
     borderRadius: "50%",
-    background: alpha(theme.palette.accent as string, 0.1),
+    background: auroraTint(aurora.teal, 0.12),
     filter: "blur(48px)",
     transform: "rotate(18deg)",
     zIndex: 0,
@@ -64,7 +63,8 @@ export const makeStyles = (theme: Theme) => ({
     gap: 10,
     textTransform: "uppercase",
     letterSpacing: "0.22em",
-    color: alpha(theme.palette.text.secondary, 0.88),
+    color: aurora.txMid,
+    fontFamily: aurora.font.mono,
     mb: 1.25,
     fontWeight: 700,
     "&::before": {
@@ -72,12 +72,13 @@ export const makeStyles = (theme: Theme) => ({
       width: { xs: 24, sm: 36 },
       height: 1,
       borderRadius: 999,
-      background: alpha(theme.palette.primary.light, 0.75),
+      background: auroraTint(aurora.teal, 0.75),
     },
   },
   title: {
+    fontFamily: aurora.font.display,
     fontWeight: 800,
-    background: `linear-gradient(135deg, ${alpha(theme.palette.text.primary, 0.98)} 0%, ${alpha(theme.palette.text.primary, 0.88)} 52%, ${alpha(theme.palette.primary.light, 0.92)} 100%)`,
+    background: `linear-gradient(135deg, ${aurora.txHi} 0%, ${aurora.tx} 52%, ${aurora.teal} 100%)`,
     WebkitBackgroundClip: "text",
     WebkitTextFillColor: "transparent",
     backgroundClip: "text",
@@ -88,7 +89,8 @@ export const makeStyles = (theme: Theme) => ({
     fontSize: { xs: "1.5rem", sm: "2rem", md: "2.5rem" },
   },
   subtitle: {
-    color: alpha(theme.palette.text.secondary, 0.9),
+    color: aurora.txMid,
+    fontFamily: aurora.font.ui,
     maxWidth: 520,
     lineHeight: 1.7,
     fontSize: { xs: "0.94rem", sm: "1rem" },
@@ -124,64 +126,12 @@ export const makeStyles = (theme: Theme) => ({
     minHeight: { xs: 440, sm: 480, md: 480 },
     px: { xs: 0.25, sm: 1, md: 0 },
   },
-  cardSwapInner: {
-    position: "relative",
-    width: 540,
-    height: 380,
-  },
-  infoCard: (accent: string) => ({
-    p: 4,
-    width: "100%",
-    height: "100%",
-    position: "relative",
-    display: "flex",
-    flexDirection: "column",
-    gap: 1.75,
-    overflow: "hidden",
-    borderRadius: 4,
-    border: `1px solid ${alpha(accent, 0.22)}`,
-    background: `
-			radial-gradient(circle at 0% 0%, ${alpha(accent, 0.32)} 0%, transparent 55%),
-			radial-gradient(circle at 100% 100%, ${alpha(accent, 0.16)} 0%, transparent 50%),
-			linear-gradient(160deg, ${alpha(theme.palette.background.paper, 0.96)} 0%, ${alpha(theme.palette.background.default, 0.98)} 100%)
-		`,
-    boxShadow: `
-			0 32px 72px -12px ${alpha("#000", 0.6)},
-			0 0 0 1px ${alpha(accent, 0.08)} inset,
-			0 0 80px ${alpha(accent, 0.12)} inset,
-			0 12px 32px ${alpha(accent, 0.22)}
-		`,
-    color: theme.palette.text.primary,
-  }),
-  infoCardIcon: (accent: string) => ({
-    width: 52,
-    height: 52,
-    borderRadius: 2.5,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background: `linear-gradient(135deg, ${alpha(accent, 0.35)}, ${alpha(accent, 0.12)})`,
-    border: `1px solid ${alpha(accent, 0.4)}`,
-    color: accent,
-    boxShadow: `0 8px 18px ${alpha(accent, 0.25)}`,
-  }),
-  infoCardTitle: (accent: string) => ({
-    fontWeight: 700,
-    color: alpha(accent, 0.95),
-    letterSpacing: "-0.01em",
-  }),
-  infoCardBody: {
-    color: theme.palette.text.primary,
-    opacity: 0.85,
-    lineHeight: 1.55,
-  },
   stageRow: (state: "pending" | "active" | "completed") => ({
     display: "flex",
     flexDirection: "row",
     alignItems: "flex-start",
     opacity: state === "pending" ? 0.45 : 1,
     transition: "opacity 0.6s ease, transform 0.6s ease",
-    transform: state === "active" ? "translateX(0)" : "translateX(0)",
   }),
   leftColumn: {
     display: "flex",
@@ -201,7 +151,7 @@ export const makeStyles = (theme: Theme) => ({
     width: 72,
     height: 72,
     borderRadius: "50%",
-    background: alpha(stageColor, 0.15),
+    background: auroraTint(stageColor, 0.15),
     zIndex: 0,
   }),
   innerHalo: (stageColor: string) => ({
@@ -209,7 +159,7 @@ export const makeStyles = (theme: Theme) => ({
     width: 50,
     height: 50,
     borderRadius: "50%",
-    background: alpha(stageColor, 0.2),
+    background: auroraTint(stageColor, 0.2),
     zIndex: 0,
   }),
   dot: (state: "pending" | "active" | "completed", stageColor: string) => ({
@@ -225,21 +175,21 @@ export const makeStyles = (theme: Theme) => ({
     transition:
       "background 0.6s ease, border-color 0.6s ease, box-shadow 0.6s ease",
     ...(state === "pending" && {
-      background: alpha(stageColor, 0.06),
-      border: `1px solid ${alpha(stageColor, 0.16)}`,
-      color: alpha(stageColor, 0.42),
+      background: auroraTint(stageColor, 0.06),
+      border: `1px solid ${auroraTint(stageColor, 0.16)}`,
+      color: auroraTint(stageColor, 0.42),
     }),
     ...(state === "active" && {
-      background: alpha(stageColor, 0.14),
+      background: auroraTint(stageColor, 0.14),
       border: `1px solid ${stageColor}`,
       color: stageColor,
-      boxShadow: `0 0 16px ${alpha(stageColor, 0.18)}`,
+      boxShadow: `0 0 16px ${auroraTint(stageColor, 0.18)}`,
     }),
     ...(state === "completed" && {
       background: stageColor,
       border: `1px solid ${stageColor}`,
-      color: theme.palette.background.default,
-      boxShadow: `0 0 18px ${alpha(stageColor, 0.34)}`,
+      color: aurora.tealInk,
+      boxShadow: `0 0 18px ${auroraTint(stageColor, 0.34)}`,
     }),
   }),
   connector: (
@@ -255,8 +205,8 @@ export const makeStyles = (theme: Theme) => ({
     transition: "background 0.6s ease",
     background:
       state === "completed"
-        ? `linear-gradient(to bottom, ${alpha(stageColor, 0.54)}, ${alpha(prevColor, 0.4)})`
-        : alpha(theme.palette.common.white, 0.12),
+        ? `linear-gradient(to bottom, ${auroraTint(stageColor, 0.54)}, ${auroraTint(prevColor, 0.4)})`
+        : aurora.line2,
   }),
   rightColumn: (isLast: boolean) => ({
     display: "flex",
@@ -274,18 +224,18 @@ export const makeStyles = (theme: Theme) => ({
     state: "pending" | "active" | "completed",
     stageColor: string,
   ) => ({
+    fontFamily: aurora.font.display,
     fontWeight: 700,
     lineHeight: 1.15,
     letterSpacing: "-0.02em",
     fontSize: { xs: "0.98rem", md: "1.06rem" },
     transition: "color 0.6s ease",
     color:
-      state === "active" || state === "completed"
-        ? stageColor
-        : theme.palette.text.secondary,
+      state === "active" || state === "completed" ? stageColor : aurora.txMid,
   }),
   stageDescription: {
-    color: alpha(theme.palette.text.secondary, 0.84),
+    color: aurora.txLow,
+    fontFamily: aurora.font.ui,
     lineHeight: 1.6,
     fontSize: { xs: "0.8rem", md: "0.875rem" },
     fontWeight: 500,

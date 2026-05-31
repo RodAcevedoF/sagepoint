@@ -1,8 +1,9 @@
 "use client";
 
-import { Box, useTheme, alpha } from "@mui/material";
+import { Box } from "@mui/material";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState, type ReactNode } from "react";
+import { aurora, auroraTint } from "@/shared/theme";
 
 interface Props {
   slides: ReactNode[];
@@ -21,7 +22,6 @@ export function FeatureReel({
   interval = 5200,
   pauseOnHover = true,
 }: Props) {
-  const theme = useTheme();
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
 
@@ -88,9 +88,7 @@ export function FeatureReel({
               width: i === index ? { xs: 24, md: 34 } : { xs: 10, md: 14 },
               borderRadius: 999,
               background:
-                i === index
-                  ? theme.palette.primary.light
-                  : alpha(theme.palette.common.white, 0.18),
+                i === index ? aurora.teal : auroraTint(aurora.txHi, 0.18),
               transition: "all 0.5s ease",
             }}
           />

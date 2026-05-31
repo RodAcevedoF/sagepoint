@@ -1,6 +1,6 @@
 "use client";
 
-import { TextField, Box, Chip, Stack, Typography, alpha } from "@mui/material";
+import { TextField, Box, Chip, Stack } from "@mui/material";
 import {
   Target,
   Briefcase,
@@ -9,42 +9,10 @@ import {
   GraduationCap,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { palette } from "@/shared/theme";
+import { aurora, auroraTint } from "@/shared/theme";
 import { OnboardingCard } from "../OnboardingCard";
 import { useOnboarding } from "../../context/OnboardingContext";
-
-// ============================================================================
-// Styles
-// ============================================================================
-
-const styles = {
-  suggestionChip: {
-    py: 2.5,
-    px: 1,
-    borderRadius: 2,
-    borderColor: alpha(palette.primary.light, 0.2),
-    "&:hover": {
-      borderColor: palette.primary.light,
-      background: alpha(palette.primary.light, 0.1),
-    },
-    "&.MuiChip-filled": {
-      background: `linear-gradient(135deg, ${palette.primary.main}, ${palette.primary.light})`,
-      borderColor: "transparent",
-    },
-  },
-  textField: {
-    "& .MuiOutlinedInput-root": {
-      borderRadius: 2,
-      "&:hover .MuiOutlinedInput-notchedOutline": {
-        borderColor: palette.primary.light,
-      },
-    },
-  },
-};
-
-// ============================================================================
-// Data
-// ============================================================================
+import { ONBOARDING_STEP_TONE } from "../../utils/onboarding.utils";
 
 const suggestions = [
   { icon: <Code size={16} />, label: "Become a Senior Developer" },
@@ -52,10 +20,6 @@ const suggestions = [
   { icon: <Lightbulb size={16} />, label: "Learn AI & Machine Learning" },
   { icon: <GraduationCap size={16} />, label: "Master Cloud Architecture" },
 ];
-
-// ============================================================================
-// Component
-// ============================================================================
 
 export function GoalStep() {
   const { data, updateData } = useOnboarding();
@@ -66,10 +30,11 @@ export function GoalStep() {
 
   return (
     <OnboardingCard
-      icon={<Target size={32} color={palette.primary.light} />}
+      icon={<Target size={32} />}
       title="What's your goal?"
       subtitle="Tell us what you want to achieve. This helps us create your personalized learning path."
       canProceed={data.goal.length > 0}
+      tone={ONBOARDING_STEP_TONE.goal}
     >
       <Box>
         <TextField
@@ -78,34 +43,85 @@ export function GoalStep() {
           value={data.goal}
           onChange={(e) => updateData("goal", e.target.value)}
           autoFocus
-          sx={styles.textField}
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              borderRadius: aurora.radii.md,
+              background: aurora.surface,
+              color: aurora.txHi,
+              fontFamily: aurora.font.ui,
+              "& fieldset": { borderColor: aurora.line },
+              "&:hover": {
+                background: aurora.surface2,
+                "& fieldset": { borderColor: aurora.line2 },
+              },
+              "&.Mui-focused": {
+                background: aurora.surface2,
+                boxShadow: `0 0 0 4px ${auroraTint(aurora.teal, 0.18)}`,
+                "& fieldset": { borderColor: aurora.teal },
+              },
+            },
+            "& .MuiInputBase-input::placeholder": {
+              color: aurora.txLow,
+              opacity: 1,
+            },
+          }}
         />
 
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          sx={{ mt: 3, mb: 1.5, display: "block" }}
+        <Box
+          sx={{
+            mt: 3,
+            mb: 1.5,
+            fontFamily: aurora.font.mono,
+            fontSize: "11px",
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            color: aurora.txLow,
+          }}
         >
-          Or choose a suggestion:
-        </Typography>
+          Or choose a suggestion
+        </Box>
 
         <Stack direction="row" flexWrap="wrap" gap={1}>
-          {suggestions.map((suggestion, index) => (
-            <motion.div
-              key={suggestion.label}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 + index * 0.05 }}
-            >
-              <Chip
-                icon={suggestion.icon}
-                label={suggestion.label}
-                variant={data.goal === suggestion.label ? "filled" : "outlined"}
-                onClick={() => handleSuggestionClick(suggestion.label)}
-                sx={styles.suggestionChip}
-              />
-            </motion.div>
-          ))}
+          {suggestions.map((suggestion, index) => {
+            const selected = data.goal === suggestion.label;
+            return (
+              <motion.div
+                key={suggestion.label}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 + index * 0.05 }}
+              >
+                <Chip
+                  icon={suggestion.icon}
+                  label={suggestion.label}
+                  variant={selected ? "filled" : "outlined"}
+                  onClick={() => handleSuggestionClick(suggestion.label)}
+                  sx={{
+                    py: 2.25,
+                    px: 0.5,
+                    borderRadius: aurora.radii.sm,
+                    fontFamily: aurora.font.ui,
+                    fontWeight: 500,
+                    color: selected ? aurora.tealInk : aurora.txMid,
+                    borderColor: aurora.line,
+                    background: selected
+                      ? `linear-gradient(135deg, ${aurora.teal}, ${aurora.tealDeep})`
+                      : "transparent",
+                    "& .MuiChip-icon": {
+                      color: selected ? aurora.tealInk : aurora.txMid,
+                    },
+                    "&:hover": {
+                      borderColor: aurora.teal,
+                      background: selected
+                        ? `linear-gradient(135deg, ${aurora.teal}, ${aurora.tealDeep})`
+                        : auroraTint(aurora.teal, 0.08),
+                      filter: selected ? "brightness(1.05)" : "none",
+                    },
+                  }}
+                />
+              </motion.div>
+            );
+          })}
         </Stack>
       </Box>
     </OnboardingCard>

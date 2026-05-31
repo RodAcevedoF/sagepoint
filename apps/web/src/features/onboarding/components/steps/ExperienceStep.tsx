@@ -1,95 +1,60 @@
 "use client";
 
-import { Box, Typography, alpha } from "@mui/material";
+import { Box } from "@mui/material";
 import { Award, Sprout, Flame, Rocket } from "lucide-react";
 import { motion } from "framer-motion";
-import { palette } from "@/shared/theme";
+import { aurora, auroraTint } from "@/shared/theme";
 import { OnboardingCard } from "../OnboardingCard";
 import { useOnboarding } from "../../context/OnboardingContext";
+import { ONBOARDING_STEP_TONE } from "../../utils/onboarding.utils";
 
-// ============================================================================
-// Styles
-// ============================================================================
-
-const styles = {
-  optionCard: {
-    p: 2.5,
-    borderRadius: 3,
-    border: `1px solid ${alpha(palette.primary.light, 0.15)}`,
-    cursor: "pointer",
-    transition: "all 0.2s ease",
-    "&:hover": {
-      borderColor: palette.primary.light,
-      background: alpha(palette.primary.light, 0.05),
-      transform: "translateY(-2px)",
-    },
-  },
-  optionCardSelected: {
-    borderColor: palette.primary.main,
-    background: alpha(palette.primary.main, 0.1),
-    "&:hover": {
-      background: alpha(palette.primary.main, 0.15),
-    },
-  },
-  iconWrapper: {
-    width: 48,
-    height: 48,
-    borderRadius: 2,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    mb: 1.5,
-  },
-};
-
-// ============================================================================
-// Data
-// ============================================================================
-
-const experienceLevels = [
+const experienceLevels: Array<{
+  id: string;
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  color: string;
+}> = [
   {
     id: "beginner",
     icon: <Sprout size={24} />,
     title: "Beginner",
     description: "Just starting out",
-    color: "#4ade80",
+    color: aurora.difficulty.beginner,
   },
   {
     id: "intermediate",
     icon: <Flame size={24} />,
     title: "Intermediate",
     description: "Some experience",
-    color: "#f59e0b",
+    color: aurora.difficulty.intermediate,
   },
   {
     id: "advanced",
     icon: <Award size={24} />,
     title: "Advanced",
     description: "Solid foundation",
-    color: "#3b82f6",
+    color: aurora.difficulty.advanced,
   },
   {
     id: "expert",
     icon: <Rocket size={24} />,
     title: "Expert",
     description: "Deep expertise",
-    color: "#a855f7",
+    color: aurora.difficulty.expert,
   },
 ];
-
-// ============================================================================
-// Component
-// ============================================================================
 
 export function ExperienceStep() {
   const { data, updateData } = useOnboarding();
 
   return (
     <OnboardingCard
-      icon={<Award size={32} color={palette.primary.light} />}
+      icon={<Award size={32} />}
       title="Your experience level"
       subtitle="This helps us recommend content that matches your current knowledge."
       canProceed={data.experience.length > 0}
+      tone={ONBOARDING_STEP_TONE.experience}
     >
       <Box
         sx={{
@@ -98,38 +63,72 @@ export function ExperienceStep() {
           gap: 2,
         }}
       >
-        {experienceLevels.map((level, index) => (
-          <motion.div
-            key={level.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 + index * 0.05 }}
-          >
-            <Box
-              onClick={() => updateData("experience", level.id)}
-              sx={{
-                ...styles.optionCard,
-                ...(data.experience === level.id && styles.optionCardSelected),
-              }}
+        {experienceLevels.map((level, index) => {
+          const selected = data.experience === level.id;
+          return (
+            <motion.div
+              key={level.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 + index * 0.05 }}
             >
               <Box
+                onClick={() => updateData("experience", level.id)}
                 sx={{
-                  ...styles.iconWrapper,
-                  background: alpha(level.color, 0.15),
-                  color: level.color,
+                  p: 2.5,
+                  borderRadius: aurora.radii.md,
+                  border: `1px solid ${selected ? auroraTint(level.color, 0.5) : aurora.line}`,
+                  background: selected
+                    ? auroraTint(level.color, 0.1)
+                    : "transparent",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    borderColor: auroraTint(level.color, selected ? 0.6 : 0.35),
+                    background: auroraTint(level.color, selected ? 0.14 : 0.05),
+                    transform: "translateY(-2px)",
+                  },
                 }}
               >
-                {level.icon}
+                <Box
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: aurora.radii.sm,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    mb: 1.5,
+                    background: `color-mix(in oklch, ${level.color} 18%, ${aurora.surface2})`,
+                    border: `1px solid ${auroraTint(level.color, 0.3)}`,
+                    color: level.color,
+                  }}
+                >
+                  {level.icon}
+                </Box>
+                <Box
+                  sx={{
+                    fontFamily: aurora.font.ui,
+                    fontSize: "14px",
+                    fontWeight: 600,
+                    color: aurora.txHi,
+                  }}
+                >
+                  {level.title}
+                </Box>
+                <Box
+                  sx={{
+                    fontFamily: aurora.font.ui,
+                    fontSize: "12.5px",
+                    color: aurora.txMid,
+                  }}
+                >
+                  {level.description}
+                </Box>
               </Box>
-              <Typography variant="subtitle2" fontWeight={600}>
-                {level.title}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {level.description}
-              </Typography>
-            </Box>
-          </motion.div>
-        ))}
+            </motion.div>
+          );
+        })}
       </Box>
     </OnboardingCard>
   );

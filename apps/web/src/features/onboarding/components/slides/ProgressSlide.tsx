@@ -1,8 +1,9 @@
 "use client";
 
-import { Box, Typography, alpha, useTheme } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
+import { aurora, auroraTint } from "@/shared/theme";
 import { SlideShell, SlideVisualFrame } from "./SlideShell";
 
 type ProgressTint = "primary" | "success" | "accent" | "secondary";
@@ -21,16 +22,16 @@ const STEPS: Step[] = [
   { label: "Async / await", done: false, tint: "secondary" },
 ];
 
+const TINTS: Record<ProgressTint, string> = {
+  primary: aurora.teal,
+  success: aurora.status.ready,
+  accent: aurora.status.enrich,
+  secondary: aurora.status.concept,
+};
+
 function ProgressVisual() {
-  const theme = useTheme();
-  const accent = theme.palette.accent as string;
+  const accent = aurora.status.enrich;
   const completedCount = STEPS.filter((step) => step.done).length;
-  const tints = {
-    primary: theme.palette.primary.light,
-    success: theme.palette.success.light,
-    accent,
-    secondary: theme.palette.secondary.light,
-  };
 
   return (
     <SlideVisualFrame label="PATH STATUS" accent={accent}>
@@ -53,11 +54,12 @@ function ProgressVisual() {
           <Typography
             variant="h4"
             sx={{
+              fontFamily: aurora.font.display,
               fontSize: "2.3rem",
               lineHeight: 0.9,
               letterSpacing: "-0.06em",
               fontWeight: 700,
-              color: theme.palette.text.primary,
+              color: aurora.txHi,
             }}
           >
             0{completedCount}
@@ -66,7 +68,8 @@ function ProgressVisual() {
             <Typography
               variant="caption"
               sx={{
-                color: alpha(theme.palette.text.secondary, 0.78),
+                color: aurora.txMid,
+                fontFamily: aurora.font.mono,
                 fontWeight: 700,
                 letterSpacing: "0.14em",
               }}
@@ -77,7 +80,7 @@ function ProgressVisual() {
               sx={{
                 height: 8,
                 borderRadius: 999,
-                background: alpha(accent, 0.12),
+                background: auroraTint(accent, 0.12),
                 overflow: "hidden",
               }}
             >
@@ -89,8 +92,8 @@ function ProgressVisual() {
                 sx={{
                   height: "100%",
                   borderRadius: 999,
-                  background: `linear-gradient(90deg, ${theme.palette.primary.light}, ${accent})`,
-                  boxShadow: `0 0 18px ${alpha(accent, 0.38)}`,
+                  background: `linear-gradient(90deg, ${aurora.teal}, ${accent})`,
+                  boxShadow: `0 0 18px ${auroraTint(accent, 0.38)}`,
                 }}
               />
             </Box>
@@ -98,7 +101,8 @@ function ProgressVisual() {
           <Typography
             variant="caption"
             sx={{
-              color: theme.palette.text.secondary,
+              color: aurora.txMid,
+              fontFamily: aurora.font.mono,
               fontWeight: 700,
               pb: 0.25,
             }}
@@ -122,11 +126,11 @@ function ProgressVisual() {
               top: 12,
               bottom: 12,
               width: 1,
-              background: `linear-gradient(180deg, ${alpha(accent, 0.42)}, ${alpha(theme.palette.common.white, 0.08)})`,
+              background: `linear-gradient(180deg, ${auroraTint(accent, 0.42)}, ${auroraTint(aurora.txHi, 0.08)})`,
             }}
           />
           {STEPS.map((s, i) => {
-            const tint = tints[s.tint];
+            const tint = TINTS[s.tint];
             return (
               <Box
                 key={s.label}
@@ -150,15 +154,15 @@ function ProgressVisual() {
                     alignItems: "center",
                     justifyContent: "center",
                     boxShadow: s.active
-                      ? `0 0 18px ${alpha(tint, 0.24)}`
+                      ? `0 0 18px ${auroraTint(tint, 0.24)}`
                       : "none",
                     background: s.done
                       ? tint
                       : s.active
-                        ? alpha(tint, 0.18)
+                        ? auroraTint(tint, 0.18)
                         : "transparent",
-                    border: `1.5px solid ${s.done || s.active ? tint : alpha(theme.palette.text.secondary, 0.3)}`,
-                    color: s.done ? theme.palette.background.default : tint,
+                    border: `1.5px solid ${s.done || s.active ? tint : auroraTint(aurora.txMid, 0.3)}`,
+                    color: s.done ? aurora.tealInk : tint,
                     flexShrink: 0,
                   }}
                 >
@@ -168,10 +172,8 @@ function ProgressVisual() {
                   <Typography
                     variant="body2"
                     sx={{
-                      color:
-                        s.done || s.active
-                          ? theme.palette.text.primary
-                          : theme.palette.text.secondary,
+                      color: s.done || s.active ? aurora.txHi : aurora.txMid,
+                      fontFamily: aurora.font.ui,
                       fontWeight: s.active ? 600 : 500,
                       letterSpacing: "-0.01em",
                       opacity: s.done ? 0.7 : 1,
@@ -187,8 +189,8 @@ function ProgressVisual() {
                       borderRadius: 999,
                       background:
                         s.done || s.active
-                          ? alpha(tint, 0.42)
-                          : alpha(theme.palette.common.white, 0.12),
+                          ? auroraTint(tint, 0.42)
+                          : auroraTint(aurora.txHi, 0.12),
                     }}
                   />
                 </Box>
@@ -196,9 +198,8 @@ function ProgressVisual() {
                   variant="caption"
                   sx={{
                     color:
-                      s.done || s.active
-                        ? tint
-                        : alpha(theme.palette.text.secondary, 0.5),
+                      s.done || s.active ? tint : auroraTint(aurora.txMid, 0.5),
+                    fontFamily: aurora.font.mono,
                     fontWeight: 700,
                     letterSpacing: "0.08em",
                     textTransform: "uppercase",
@@ -216,14 +217,13 @@ function ProgressVisual() {
 }
 
 export function ProgressSlide({ reversed }: { reversed?: boolean }) {
-  const theme = useTheme();
   return (
     <SlideShell
       eyebrow="Track every step"
       title="Progress that keeps moving"
       body="Quick quizzes mark what is done and surface the next step."
       visual={<ProgressVisual />}
-      accent={theme.palette.accent as string}
+      accent={aurora.status.enrich}
       reversed={reversed}
     />
   );

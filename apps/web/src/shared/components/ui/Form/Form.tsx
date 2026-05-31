@@ -18,8 +18,17 @@ export function Form<T extends FormContextValue>({
 
   return (
     <FormContext.Provider value={{ error: state?.error }}>
-      <Card variant="glass" hoverable={false} sx={{ p: { xs: 3, md: 5 } }}>
-        <form action={formAction} noValidate style={{ width: "100%" }}>
+      <Card
+        variant="aurora"
+        hoverable={false}
+        withAura={false}
+        sx={{ p: { xs: 3, md: 5 } }}
+      >
+        <form
+          action={formAction}
+          noValidate
+          style={{ width: "100%", position: "relative", zIndex: 1 }}
+        >
           {children}
         </form>
       </Card>

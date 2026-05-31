@@ -1,8 +1,9 @@
 "use client";
 
-import { Box, Typography, alpha, useTheme } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
+import { aurora, auroraTint } from "@/shared/theme";
 import { SlideShell, SlideVisualFrame } from "./SlideShell";
 
 const OPTIONS = [
@@ -21,13 +22,8 @@ const OPTIONS = [
 ];
 
 function QuizVisual() {
-  const theme = useTheme();
-
   return (
-    <SlideVisualFrame
-      label="KNOWLEDGE CHECK"
-      accent={theme.palette.secondary.light}
-    >
+    <SlideVisualFrame label="KNOWLEDGE CHECK" accent={aurora.status.concept}>
       <Box
         sx={{
           width: "100%",
@@ -39,7 +35,8 @@ function QuizVisual() {
         <Typography
           variant="caption"
           sx={{
-            color: alpha(theme.palette.text.secondary, 0.76),
+            color: aurora.txMid,
+            fontFamily: aurora.font.mono,
             fontWeight: 700,
             letterSpacing: "0.1em",
             mb: 0.15,
@@ -63,7 +60,7 @@ function QuizVisual() {
                 alignItems: "start",
                 gap: 1.25,
                 pb: 1.15,
-                borderBottom: `1px solid ${alpha(isCorrect ? theme.palette.success.light : theme.palette.common.white, isCorrect ? 0.26 : 0.1)}`,
+                borderBottom: `1px solid ${isCorrect ? auroraTint(aurora.status.ready, 0.26) : auroraTint(aurora.txHi, 0.1)}`,
               }}
             >
               <Box
@@ -75,12 +72,11 @@ function QuizVisual() {
                   alignItems: "center",
                   justifyContent: "center",
                   background: isCorrect
-                    ? alpha(theme.palette.success.light, 0.22)
-                    : alpha(theme.palette.primary.light, 0.08),
-                  border: `1px solid ${alpha(isCorrect ? theme.palette.success.light : theme.palette.primary.light, isCorrect ? 0.4 : 0.22)}`,
-                  color: isCorrect
-                    ? theme.palette.success.light
-                    : theme.palette.primary.light,
+                    ? auroraTint(aurora.status.ready, 0.22)
+                    : auroraTint(aurora.teal, 0.08),
+                  border: `1px solid ${isCorrect ? auroraTint(aurora.status.ready, 0.4) : auroraTint(aurora.teal, 0.22)}`,
+                  color: isCorrect ? aurora.status.ready : aurora.teal,
+                  fontFamily: aurora.font.mono,
                   fontSize: 11,
                   fontWeight: 700,
                 }}
@@ -91,7 +87,8 @@ function QuizVisual() {
                 <Typography
                   variant="body2"
                   sx={{
-                    color: theme.palette.text.primary,
+                    color: aurora.txHi,
+                    fontFamily: aurora.font.ui,
                     fontWeight: isCorrect ? 600 : 500,
                     fontSize: 13,
                     lineHeight: 1.4,
@@ -106,12 +103,9 @@ function QuizVisual() {
                     height: 1.5,
                     width: isCorrect ? "100%" : "72%",
                     borderRadius: 999,
-                    background: alpha(
-                      isCorrect
-                        ? theme.palette.success.light
-                        : theme.palette.common.white,
-                      isCorrect ? 0.44 : 0.12,
-                    ),
+                    background: isCorrect
+                      ? auroraTint(aurora.status.ready, 0.44)
+                      : auroraTint(aurora.txHi, 0.12),
                   }}
                 />
               </Box>
@@ -124,11 +118,12 @@ function QuizVisual() {
                     pt: 0.15,
                   }}
                 >
-                  <Sparkles size={13} color={theme.palette.success.light} />
+                  <Sparkles size={13} color={aurora.status.ready} />
                   <Typography
                     variant="caption"
                     sx={{
-                      color: theme.palette.success.light,
+                      color: aurora.status.ready,
+                      fontFamily: aurora.font.mono,
                       fontWeight: 700,
                     }}
                   >
@@ -145,14 +140,13 @@ function QuizVisual() {
 }
 
 export function QuizSlide({ reversed }: { reversed?: boolean }) {
-  const theme = useTheme();
   return (
     <SlideShell
       eyebrow="Quick checks"
       title="Check the idea fast"
       body="Short quizzes confirm the idea while it is fresh."
       visual={<QuizVisual />}
-      accent={theme.palette.secondary.light}
+      accent={aurora.status.concept}
       reversed={reversed}
     />
   );

@@ -3,18 +3,15 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  Box,
-  Container,
-  Stack,
-  Toolbar,
-  Typography,
-  alpha,
-} from "@mui/material";
+import { Box, Container, Stack, Toolbar } from "@mui/material";
 import { CheckCircle2, CircleAlert, Loader2, MailQuestion } from "lucide-react";
 import { Card, Button } from "@/shared/components";
 import { ButtonVariants } from "@/shared/types";
-import { palette } from "@/shared/theme";
+import { aurora, auroraTint } from "@/shared/theme";
+import {
+  resolveAccent,
+  type AuroraTone,
+} from "@/shared/components/ui/Aurora/tones";
 
 type Status = "idle" | "loading" | "success" | "error";
 
@@ -85,8 +82,9 @@ export function VerifyEmailPage() {
           }}
         >
           <Card
-            variant="glass"
+            variant="aurora"
             hoverable={false}
+            withAura={false}
             sx={{ p: { xs: 3, md: 5 }, width: "100%" }}
           >
             {status === "loading" && <LoadingState />}
@@ -102,17 +100,23 @@ export function VerifyEmailPage() {
 
 function StateLayout({
   icon,
-  iconColor,
+  tone,
   title,
   children,
 }: {
   icon: React.ReactNode;
-  iconColor: string;
+  tone: AuroraTone;
   title: string;
   children: React.ReactNode;
 }) {
+  const color = resolveAccent(tone, undefined);
   return (
-    <Stack alignItems="center" spacing={2.5} textAlign="center">
+    <Stack
+      alignItems="center"
+      spacing={2.5}
+      textAlign="center"
+      sx={{ position: "relative", zIndex: 1 }}
+    >
       <Box
         sx={{
           width: 72,
@@ -121,22 +125,48 @@ function StateLayout({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          bgcolor: alpha(iconColor, 0.12),
-          border: `1px solid ${alpha(iconColor, 0.25)}`,
-          boxShadow: `0 0 40px ${alpha(iconColor, 0.25)}`,
-          color: iconColor,
+          background: `color-mix(in oklch, ${color} 16%, ${aurora.surface2})`,
+          border: `1px solid ${auroraTint(color, 0.28)}`,
+          boxShadow: `0 0 44px -6px ${auroraTint(color, 0.45)}`,
+          color,
         }}
       >
         {icon}
       </Box>
-      <Typography
-        variant="h5"
-        sx={{ fontWeight: 700, letterSpacing: "-0.02em" }}
+      <Box
+        component="h1"
+        sx={{
+          fontFamily: aurora.font.display,
+          fontWeight: 700,
+          fontSize: { xs: "22px", md: "26px" },
+          lineHeight: 1.2,
+          letterSpacing: "-0.012em",
+          color: aurora.txHi,
+          margin: 0,
+        }}
       >
         {title}
-      </Typography>
+      </Box>
       {children}
     </Stack>
+  );
+}
+
+function StateBody({ children }: { children: React.ReactNode }) {
+  return (
+    <Box
+      component="p"
+      sx={{
+        fontFamily: aurora.font.ui,
+        fontSize: { xs: "14px", md: "15.5px" },
+        lineHeight: 1.55,
+        color: aurora.txMid,
+        maxWidth: 360,
+        margin: 0,
+      }}
+    >
+      {children}
+    </Box>
   );
 }
 
@@ -146,12 +176,10 @@ function LoadingState() {
       icon={
         <Loader2 size={32} style={{ animation: "spin 1.2s linear infinite" }} />
       }
-      iconColor={palette.primary.light}
+      tone="teal"
       title="Verifying your email"
     >
-      <Typography variant="body2" sx={{ color: alpha("#ffffff", 0.7) }}>
-        Hang tight — this only takes a moment.
-      </Typography>
+      <StateBody>Hang tight — this only takes a moment.</StateBody>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </StateLayout>
   );
@@ -161,19 +189,14 @@ function SuccessState() {
   return (
     <StateLayout
       icon={<CheckCircle2 size={36} strokeWidth={2.2} />}
-      iconColor={palette.success.light}
+      tone="ready"
       title="Email verified"
     >
-      <Typography
-        variant="body2"
-        sx={{ color: alpha("#ffffff", 0.7), maxWidth: 360 }}
-      >
-        Your account is ready. Redirecting to sign in…
-      </Typography>
+      <StateBody>Your account is ready. Redirecting to sign in…</StateBody>
       <Link href="/login" style={{ width: "100%", textDecoration: "none" }}>
         <Button
           label="Continue to sign in"
-          variant={ButtonVariants.DEFAULT}
+          variant={ButtonVariants.AURORA}
           fullWidth
         />
       </Link>
@@ -185,20 +208,17 @@ function ErrorState({ message }: { message: string }) {
   return (
     <StateLayout
       icon={<CircleAlert size={36} strokeWidth={2.2} />}
-      iconColor={palette.error.light}
+      tone="fail"
       title="We couldn't verify that link"
     >
-      <Typography
-        variant="body2"
-        sx={{ color: alpha("#ffffff", 0.7), maxWidth: 360 }}
-      >
+      <StateBody>
         {message ||
           "The link may have expired or already been used. Try signing in, or request a new verification email."}
-      </Typography>
+      </StateBody>
       <Link href="/login" style={{ width: "100%", textDecoration: "none" }}>
         <Button
           label="Back to sign in"
-          variant={ButtonVariants.OUTLINED}
+          variant={ButtonVariants.AURORA_OUTLINE}
           fullWidth
         />
       </Link>
@@ -210,20 +230,17 @@ function IdleState() {
   return (
     <StateLayout
       icon={<MailQuestion size={36} strokeWidth={2.2} />}
-      iconColor={palette.info.light}
+      tone="concept"
       title="No verification token"
     >
-      <Typography
-        variant="body2"
-        sx={{ color: alpha("#ffffff", 0.7), maxWidth: 360 }}
-      >
+      <StateBody>
         Open the verification link from the email we sent you to finish creating
         your account.
-      </Typography>
+      </StateBody>
       <Link href="/login" style={{ width: "100%", textDecoration: "none" }}>
         <Button
           label="Back to sign in"
-          variant={ButtonVariants.OUTLINED}
+          variant={ButtonVariants.AURORA_OUTLINE}
           fullWidth
         />
       </Link>

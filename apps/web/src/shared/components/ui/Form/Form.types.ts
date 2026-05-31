@@ -19,6 +19,7 @@ export interface FormFieldProps {
   label: string;
   type?: string;
   required?: boolean;
+  disabled?: boolean;
   autoFocus?: boolean;
   autoComplete?: string;
   defaultValue?: string;

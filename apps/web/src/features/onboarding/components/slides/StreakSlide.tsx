@@ -1,15 +1,15 @@
 "use client";
 
-import { Box, Typography, alpha, useTheme } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { motion } from "framer-motion";
 import { Zap } from "lucide-react";
+import { aurora, auroraTint } from "@/shared/theme";
 import { SlideShell, SlideVisualFrame } from "./SlideShell";
 
 const DAYS = [1, 2, 3, 4, 5, 6, 7];
 
 function StreakVisual() {
-  const theme = useTheme();
-  const accent = theme.palette.warning.light;
+  const accent = aurora.status.proc;
 
   return (
     <SlideVisualFrame label="RHYTHM SIGNAL" accent={accent}>
@@ -33,10 +33,12 @@ function StreakVisual() {
             <Typography
               variant="h4"
               sx={{
+                fontFamily: aurora.font.display,
                 fontSize: "2.3rem",
                 lineHeight: 0.9,
                 letterSpacing: "-0.06em",
                 fontWeight: 700,
+                color: aurora.txHi,
               }}
             >
               4
@@ -44,7 +46,8 @@ function StreakVisual() {
             <Typography
               variant="caption"
               sx={{
-                color: alpha(theme.palette.text.secondary, 0.72),
+                color: aurora.txMid,
+                fontFamily: aurora.font.mono,
                 fontWeight: 700,
                 letterSpacing: "0.12em",
               }}
@@ -55,12 +58,16 @@ function StreakVisual() {
           <Box
             sx={{
               pb: 0.75,
-              borderBottom: `1px solid ${alpha(theme.palette.common.white, 0.12)}`,
+              borderBottom: `1px solid ${auroraTint(aurora.txHi, 0.12)}`,
             }}
           >
             <Typography
               variant="body2"
-              sx={{ color: theme.palette.text.primary, fontWeight: 600 }}
+              sx={{
+                color: aurora.txHi,
+                fontFamily: aurora.font.ui,
+                fontWeight: 600,
+              }}
             >
               Practice clusters are forming at the same hour.
             </Typography>
@@ -108,10 +115,10 @@ function StreakVisual() {
                       height,
                       borderRadius: 999,
                       background: active
-                        ? `linear-gradient(180deg, ${alpha(theme.palette.success.light, 0.94)}, ${alpha(accent, 0.84)})`
-                        : alpha(theme.palette.common.white, 0.12),
+                        ? `linear-gradient(180deg, ${auroraTint(aurora.status.ready, 0.94)}, ${auroraTint(accent, 0.84)})`
+                        : auroraTint(aurora.txHi, 0.12),
                       boxShadow: active
-                        ? `0 0 18px ${alpha(accent, 0.24)}`
+                        ? `0 0 18px ${auroraTint(accent, 0.24)}`
                         : "none",
                       position: "relative",
                     }}
@@ -126,7 +133,7 @@ function StreakVisual() {
                           width: 6,
                           height: 6,
                           borderRadius: "50%",
-                          background: theme.palette.common.white,
+                          background: aurora.txHi,
                         }}
                       />
                     )}
@@ -135,9 +142,8 @@ function StreakVisual() {
                 <Typography
                   variant="caption"
                   sx={{
-                    color: active
-                      ? theme.palette.text.primary
-                      : theme.palette.text.secondary,
+                    color: active ? aurora.txHi : aurora.txMid,
+                    fontFamily: aurora.font.mono,
                     fontWeight: active ? 700 : 600,
                   }}
                 >
@@ -155,7 +161,7 @@ function StreakVisual() {
             justifyContent: "space-between",
             gap: 1.5,
             pt: 1.15,
-            borderTop: `1px solid ${alpha(theme.palette.common.white, 0.12)}`,
+            borderTop: `1px solid ${auroraTint(aurora.txHi, 0.12)}`,
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -167,8 +173,8 @@ function StreakVisual() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                background: alpha(theme.palette.primary.light, 0.14),
-                color: theme.palette.primary.light,
+                background: auroraTint(aurora.teal, 0.14),
+                color: aurora.teal,
               }}
             >
               <Zap size={15} />
@@ -176,13 +182,20 @@ function StreakVisual() {
             <Box>
               <Typography
                 variant="body2"
-                sx={{ color: theme.palette.text.primary, fontWeight: 700 }}
+                sx={{
+                  color: aurora.txHi,
+                  fontFamily: aurora.font.mono,
+                  fontWeight: 700,
+                }}
               >
                 19:00 - 20:00
               </Typography>
               <Typography
                 variant="caption"
-                sx={{ color: theme.palette.text.secondary }}
+                sx={{
+                  color: aurora.txMid,
+                  fontFamily: aurora.font.ui,
+                }}
               >
                 Best learning window
               </Typography>
@@ -191,7 +204,8 @@ function StreakVisual() {
           <Typography
             variant="caption"
             sx={{
-              color: alpha(theme.palette.text.secondary, 0.78),
+              color: aurora.txMid,
+              fontFamily: aurora.font.mono,
               fontWeight: 700,
               letterSpacing: "0.08em",
             }}
@@ -205,14 +219,13 @@ function StreakVisual() {
 }
 
 export function StreakSlide({ reversed }: { reversed?: boolean }) {
-  const theme = useTheme();
   return (
     <SlideShell
       eyebrow="Keep momentum"
       title="See your rhythm form"
       body="Streaks and time cues keep the plan moving."
       visual={<StreakVisual />}
-      accent={theme.palette.warning.light}
+      accent={aurora.status.proc}
       reversed={reversed}
     />
   );

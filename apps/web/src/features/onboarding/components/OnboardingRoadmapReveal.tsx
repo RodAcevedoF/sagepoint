@@ -1,10 +1,11 @@
 "use client";
 
-import { Box, Typography, useTheme } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { motion } from "framer-motion";
 import type { RoadmapEventStage } from "@/shared/hooks/useRoadmapEvents";
 import { makeStyles } from "./OnboardingRoadmapReveal.styles";
 import { STAGES, stageToIndex } from "../utils/onboarding.utils";
+import { resolveAccent } from "@/shared/components/ui/Aurora/tones";
 import { Check } from "lucide-react";
 import { FeatureReel } from "./animations/FeatureReel";
 import { GraphSlide } from "./slides/GraphSlide";
@@ -30,8 +31,7 @@ interface Props {
 }
 
 export function OnboardingRoadmapReveal({ topic, sseStage }: Props) {
-  const theme = useTheme();
-  const styles = makeStyles(theme);
+  const styles = makeStyles();
   const activeStage = sseStage ? stageToIndex(sseStage) : 0;
   useHideDashboardAppBar(true);
 
@@ -75,9 +75,11 @@ export function OnboardingRoadmapReveal({ topic, sseStage }: Props) {
       <Box sx={styles.bodyLayout}>
         <Box sx={styles.timelineWrapper}>
           {STAGES.map((stage, index) => {
-            const stageColor = stage.color(theme);
+            const stageColor = resolveAccent(stage.tone, undefined);
             const prevColor =
-              index > 0 ? STAGES[index - 1].color(theme) : stageColor;
+              index > 0
+                ? resolveAccent(STAGES[index - 1].tone, undefined)
+                : stageColor;
             const state =
               index < activeStage
                 ? "completed"

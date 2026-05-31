@@ -1,7 +1,8 @@
 "use client";
 
-import { Box, alpha, useTheme } from "@mui/material";
+import { Box } from "@mui/material";
 import { motion } from "framer-motion";
+import { aurora, auroraTint } from "@/shared/theme";
 import { SlideShell, SlideVisualFrame } from "./SlideShell";
 
 type GraphTone =
@@ -75,18 +76,18 @@ const EDGES: Array<[number, number]> = [
   [4, 5],
 ];
 
+const TONES: Record<GraphTone, string> = {
+  primary: aurora.teal,
+  purple: aurora.status.enrich,
+  accent: aurora.status.concept,
+  secondary: aurora.tealDeep,
+  warning: aurora.status.proc,
+  success: aurora.status.ready,
+};
+
 function GraphVisual() {
-  const theme = useTheme();
-  const tones: Record<GraphTone, string> = {
-    primary: theme.palette.primary.light,
-    purple: theme.palette.purple.light,
-    accent: theme.palette.accent as string,
-    secondary: theme.palette.secondary.light,
-    warning: theme.palette.warning.light,
-    success: theme.palette.success.light,
-  };
-  const accent = theme.palette.purple.light;
-  const labelColor = alpha(theme.palette.text.primary, 0.92);
+  const accent = aurora.status.enrich;
+  const labelColor = auroraTint(aurora.txHi, 0.92);
 
   return (
     <SlideVisualFrame label="LEARNING MAP" accent={accent} maxWidth={460}>
@@ -105,7 +106,7 @@ function GraphVisual() {
           <filter id="soft-blur">
             <feGaussianBlur stdDeviation="20" />
           </filter>
-          {Object.entries(tones).map(([tone, color]) => (
+          {Object.entries(TONES).map(([tone, color]) => (
             <radialGradient
               key={tone}
               id={`nodeGlow-${tone}`}
@@ -122,7 +123,7 @@ function GraphVisual() {
         <path
           d="M 32 206 C 118 238 196 230 286 176 C 348 138 416 110 502 104"
           fill="none"
-          stroke={alpha(theme.palette.primary.light, 0.18)}
+          stroke={auroraTint(aurora.teal, 0.18)}
           strokeWidth="54"
           strokeLinecap="round"
           filter="url(#soft-blur)"
@@ -131,22 +132,22 @@ function GraphVisual() {
         <path
           d="M 42 78 C 126 22 248 28 348 88 C 412 126 456 170 500 226"
           fill="none"
-          stroke={alpha(theme.palette.common.white, 0.08)}
+          stroke={auroraTint(aurora.txHi, 0.08)}
           strokeWidth="1.25"
           strokeDasharray="2 12"
         />
         <path
           d="M 44 226 C 158 214 210 132 288 120 C 380 106 434 164 504 154"
           fill="none"
-          stroke={alpha(theme.palette.common.white, 0.07)}
+          stroke={auroraTint(aurora.txHi, 0.07)}
           strokeWidth="1"
           strokeDasharray="6 10"
         />
         {EDGES.map(([a, b], i) => {
           const A = NODES[a];
           const B = NODES[b];
-          const startColor = tones[A.tone];
-          const endColor = tones[B.tone];
+          const startColor = TONES[A.tone];
+          const endColor = TONES[B.tone];
           const mx = (A.x + B.x) / 2;
           const my = (A.y + B.y) / 2 - 18;
           return (
@@ -173,15 +174,15 @@ function GraphVisual() {
                 y2={B.y}
                 gradientUnits="userSpaceOnUse"
               >
-                <stop offset="0%" stopColor={alpha(startColor, 0.5)} />
-                <stop offset="100%" stopColor={alpha(endColor, 0.72)} />
+                <stop offset="0%" stopColor={auroraTint(startColor, 0.5)} />
+                <stop offset="100%" stopColor={auroraTint(endColor, 0.72)} />
               </linearGradient>
             </motion.path>
           );
         })}
 
         {NODES.map((n, i) => {
-          const color = tones[n.tone];
+          const color = TONES[n.tone];
           return (
             <motion.g
               key={i}
@@ -198,7 +199,7 @@ function GraphVisual() {
                 cx={n.x}
                 cy={n.y}
                 r={n.size + 18}
-                fill={alpha(color, 0.08)}
+                fill={auroraTint(color, 0.08)}
                 filter="url(#soft-blur)"
               />
               <circle
@@ -212,14 +213,14 @@ function GraphVisual() {
                 cy={n.y}
                 r={n.size + 4}
                 fill="none"
-                stroke={alpha(color, 0.28)}
+                stroke={auroraTint(color, 0.28)}
                 strokeWidth={1.5}
               />
               <circle
                 cx={n.x}
                 cy={n.y}
                 r={n.size}
-                fill={alpha(color, 0.16)}
+                fill={auroraTint(color, 0.16)}
                 stroke={color}
                 strokeWidth={1.75}
               />
@@ -240,7 +241,7 @@ function GraphVisual() {
                 y1={n.y + n.size + 26}
                 x2={n.x + n.labelWidth / 2 - 8}
                 y2={n.y + n.size + 26}
-                stroke={alpha(color, 0.42)}
+                stroke={auroraTint(color, 0.42)}
                 strokeWidth="1.5"
                 strokeLinecap="round"
               />
@@ -254,7 +255,7 @@ function GraphVisual() {
             cx={n.x}
             cy={n.y}
             r="1.8"
-            fill={alpha(theme.palette.common.white, 0.95)}
+            fill={auroraTint(aurora.txHi, 0.95)}
             opacity="0.8"
           />
         ))}

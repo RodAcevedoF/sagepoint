@@ -1,7 +1,8 @@
 "use client";
 
-import { Box, Typography, alpha, useTheme } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import type { ReactNode } from "react";
+import { aurora, auroraTint } from "@/shared/theme";
 
 const COPY_BLOCK_MIN_HEIGHT = {
   xs: 92,
@@ -39,8 +40,7 @@ export function SlideVisualFrame({
   maxWidth = 460,
   minHeight = 280,
 }: SlideVisualFrameProps) {
-  const theme = useTheme();
-  const accentColor = accent ?? theme.palette.primary.light;
+  const accentColor = accent ?? aurora.teal;
 
   return (
     <Box
@@ -61,7 +61,7 @@ export function SlideVisualFrame({
           position: "absolute",
           inset: 0,
           borderRadius: "28px",
-          background: `radial-gradient(circle at 18% 20%, ${alpha(accentColor, 0.18)} 0%, transparent 34%), radial-gradient(circle at 86% 78%, ${alpha(theme.palette.common.white, 0.08)} 0%, transparent 28%)`,
+          background: `radial-gradient(circle at 18% 20%, ${auroraTint(accentColor, 0.18)} 0%, transparent 34%), radial-gradient(circle at 86% 78%, ${auroraTint(aurora.txHi, 0.08)} 0%, transparent 28%)`,
           opacity: 0.95,
         }}
       />
@@ -81,27 +81,27 @@ export function SlideVisualFrame({
         <path
           d="M 30 244 C 124 286 210 272 304 208 C 372 162 430 134 496 128"
           fill="none"
-          stroke={alpha(accentColor, 0.16)}
+          stroke={auroraTint(accentColor, 0.16)}
           strokeWidth="48"
           strokeLinecap="round"
         />
         <path
           d="M 70 44 L 70 262 L 492 262"
           fill="none"
-          stroke={alpha(theme.palette.common.white, 0.12)}
+          stroke={auroraTint(aurora.txHi, 0.12)}
           strokeWidth="1"
         />
         <path
           d="M 90 80 C 166 22 278 26 366 92 C 432 142 462 176 494 228"
           fill="none"
-          stroke={alpha(theme.palette.common.white, 0.1)}
+          stroke={auroraTint(aurora.txHi, 0.1)}
           strokeWidth="1.2"
           strokeDasharray="3 12"
         />
         <path
           d="M 52 220 C 150 218 212 148 292 138 C 386 126 434 172 500 162"
           fill="none"
-          stroke={alpha(theme.palette.common.white, 0.08)}
+          stroke={auroraTint(aurora.txHi, 0.08)}
           strokeWidth="1"
           strokeDasharray="8 10"
         />
@@ -123,13 +123,14 @@ export function SlideVisualFrame({
             width: 30,
             height: 1,
             borderRadius: 999,
-            backgroundColor: alpha(accentColor, 0.8),
+            backgroundColor: auroraTint(accentColor, 0.8),
           }}
         />
         <Typography
           variant="caption"
           sx={{
-            color: alpha(theme.palette.text.secondary, 0.76),
+            color: aurora.txMid,
+            fontFamily: aurora.font.mono,
             letterSpacing: "0.22em",
             fontWeight: 700,
             fontSize: { xs: "0.62rem", md: "0.72rem" },
@@ -164,8 +165,7 @@ export function SlideShell({
   accent,
   reversed = false,
 }: Props) {
-  const theme = useTheme();
-  const accentColor = accent ?? theme.palette.primary.light;
+  const accentColor = accent ?? aurora.teal;
 
   return (
     <Box
@@ -207,7 +207,7 @@ export function SlideShell({
               width: 40,
               height: 1,
               borderRadius: 999,
-              backgroundColor: alpha(accentColor, 0.8),
+              backgroundColor: auroraTint(accentColor, 0.8),
             }}
           />
           <Typography
@@ -217,6 +217,7 @@ export function SlideShell({
               letterSpacing: "0.24em",
               fontWeight: 700,
               color: accentColor,
+              fontFamily: aurora.font.mono,
               fontSize: { xs: "0.62rem", md: "0.72rem" },
             }}
           >
@@ -226,11 +227,12 @@ export function SlideShell({
         <Typography
           variant="h5"
           sx={{
+            fontFamily: aurora.font.display,
             fontWeight: 700,
             lineHeight: 1.1,
             letterSpacing: "-0.03em",
             fontSize: { xs: "1.16rem", sm: "1.52rem", md: "1.82rem" },
-            color: theme.palette.text.primary,
+            color: aurora.txHi,
             maxWidth: 460,
           }}
         >
@@ -239,7 +241,8 @@ export function SlideShell({
         <Typography
           variant="body2"
           sx={{
-            color: theme.palette.text.secondary,
+            color: aurora.txMid,
+            fontFamily: aurora.font.ui,
             lineHeight: 1.65,
             maxWidth: 440,
             fontSize: { xs: "0.84rem", md: "0.98rem" },

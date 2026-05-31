@@ -24,6 +24,7 @@ import { aurora, auroraTint } from "@/shared/theme";
 import { useCurrentUser } from "@/features/auth/context/UserContext";
 import { logout } from "@/application/auth/commands/logout.command";
 import { TokenBadge } from "./TokenBadge";
+import { NavbarPrimaryLinks } from "./NavbarPrimaryLinks";
 
 interface IconBtnProps {
   title: string;
@@ -179,7 +180,7 @@ export function NavbarActions({ mode = "default" }: NavbarActionsProps) {
   const router = useRouter();
   const user = useCurrentUser();
   const isAuthenticated = user !== null;
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "ADMIN";
 
   if (mode === "dashboard") {
     return (
@@ -188,12 +189,15 @@ export function NavbarActions({ mode = "default" }: NavbarActionsProps) {
         spacing={{ xs: 0.75, sm: 1.25 }}
         alignItems="center"
       >
+        <NavbarPrimaryLinks />
+
         {isAdmin && (
           <IconBtn
             title="Admin Panel"
             ariaLabel="Admin Panel"
             tint={aurora.status.proc}
             onClick={() => router.push("/admin")}
+            sx={{ display: { xs: "grid", md: "none" } }}
           >
             <ShieldCheck size={18} />
           </IconBtn>
