@@ -1,24 +1,22 @@
-import { alpha } from "@mui/material";
 import { Flame, Trophy, Activity } from "lucide-react";
-import { palette } from "@/shared/theme";
+import { aurora } from "@/shared/theme";
 
 export const DAYS = 365;
-export const GAP = 3;
-export const DAY_LABEL_W_MOBILE = 26;
-export const DAY_LABEL_W_DESKTOP = 38;
+export const GAP = 4;
+export const DAY_LABEL_W = 30;
 export const MONTH_ROW_H = 22;
-export const MOBILE_CELL_W = 12;
+export const CELL_SIZE = 13;
 
-export const OUT_OF_RANGE = alpha(palette.text.secondary, 0.04);
+export const OUT_OF_RANGE = "oklch(0.24 0.02 262 / 0.4)";
 
-// Multi-hue ramp: dim → green → teal → blue → purple → amber.
+// Multi-hue ramp matching the dashboard mock: dim → ready → teal → concept → enrich → proc.
 export const BUCKETS = [
-  alpha(palette.primary.main, 0.08),
-  palette.success.main,
-  palette.primary.main,
-  palette.info.main,
-  palette.purple.main,
-  palette.warning.light,
+  "oklch(0.24 0.02 262 / 0.7)",
+  aurora.status.ready,
+  aurora.teal,
+  aurora.status.concept,
+  aurora.status.enrich,
+  aurora.status.proc,
 ] as const;
 
 export const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -28,20 +26,20 @@ export const STATS = [
   {
     key: "current",
     icon: Flame,
-    label: "day streak",
-    color: palette.warning.light,
+    label: "Day streak",
+    color: aurora.status.proc,
   },
   {
     key: "longest",
     icon: Trophy,
-    label: "longest",
-    color: palette.purple.light,
+    label: "Longest",
+    color: aurora.status.enrich,
   },
   {
     key: "total30",
     icon: Activity,
-    label: "steps · 30d",
-    color: palette.primary.light,
+    label: "Steps · 30d",
+    color: aurora.teal,
   },
 ] as const;
 

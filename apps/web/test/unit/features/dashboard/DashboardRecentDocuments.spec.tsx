@@ -72,12 +72,12 @@ describe("DashboardRecentDocuments", () => {
     expect(screen.getByText("Recent Documents")).toBeInTheDocument();
   });
 
-  it("shows only the 4 most recent documents", () => {
+  it("shows only the 3 most recent documents", () => {
     render(<DashboardRecentDocuments documents={docs} />);
     expect(screen.getByText("react-guide.pdf")).toBeInTheDocument();
     expect(screen.getByText("node-tutorial.docx")).toBeInTheDocument();
     expect(screen.getByText("data-analysis.xlsx")).toBeInTheDocument();
-    expect(screen.getByText("old-doc.pdf")).toBeInTheDocument();
+    expect(screen.queryByText("old-doc.pdf")).not.toBeInTheDocument();
     expect(screen.queryByText("ancient-notes.pdf")).not.toBeInTheDocument();
   });
 

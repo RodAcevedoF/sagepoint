@@ -7,12 +7,11 @@ import {
   LinearProgress,
   Stack,
   CircularProgress,
-  alpha,
 } from "@mui/material";
 import { Map, AlertCircle, Trophy, Sparkles } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Card } from "@/shared/components";
-import { palette } from "@/shared/theme";
+import { aurora, auroraTint } from "@/shared/theme";
 import { useRoadmapEvents } from "@/shared/hooks";
 import type { RoadmapItem } from "../types/dashboard.types";
 import { formatRelativeDate } from "../utils/dashboard.utils";
@@ -52,44 +51,62 @@ export interface RoadmapCardProps {
 const iconChip = (color: string) => ({
   width: 48,
   height: 48,
-  borderRadius: "12px",
+  borderRadius: aurora.radii.md,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  bgcolor: alpha(color, 0.16),
+  background: `color-mix(in oklch, ${color} 18%, ${aurora.surface2})`,
   color,
   flexShrink: 0,
-  border: `1px solid ${alpha(color, 0.32)}`,
-  boxShadow: `0 0 14px ${alpha(color, 0.25)}`,
+  border: `1px solid ${auroraTint(color, 0.3)}`,
+  boxShadow: `0 0 18px -4px ${auroraTint(color, 0.6)}`,
 });
 
 const stepCountSx = {
-  color: palette.text.secondary,
+  color: aurora.txMid,
   fontSize: "0.75rem",
   fontWeight: 500,
 };
 
-const donePillSx = {
+const donePillSx = (color: string) => ({
   display: "inline-flex",
   alignItems: "center",
   gap: 0.5,
   px: 1,
   py: 0.25,
-  borderRadius: "999px",
+  borderRadius: aurora.radii.pill,
   fontSize: "0.7rem",
   fontWeight: 700,
   textTransform: "uppercase" as const,
   letterSpacing: "0.04em",
-};
+  color,
+  background: auroraTint(color, 0.18),
+  border: `1px solid ${auroraTint(color, 0.3)}`,
+});
 
 const progressBarSx = (color: string) => ({
   height: 6,
   borderRadius: 3,
-  bgcolor: alpha(color, 0.12),
+  bgcolor: auroraTint(color, 0.12),
   "& .MuiLinearProgress-bar": {
     borderRadius: 3,
-    background: `linear-gradient(90deg, ${color}, ${alpha(color, 0.65)})`,
+    background: `linear-gradient(90deg, ${color}, ${auroraTint(color, 0.7)})`,
   },
+});
+
+const cardBaseSx = (color: string) => ({
+  p: 2,
+  height: "auto",
+  borderRadius: aurora.radii.md,
+  background: `color-mix(in oklch, ${color} 6%, oklch(0.235 0.026 262 / 0.65))`,
+  border: `1px solid ${auroraTint(color, 0.22)}`,
+  transition: "background-color .2s, transform .2s, border-color .2s",
+});
+
+const cardHoverSx = (color: string) => ({
+  background: `color-mix(in oklch, ${color} 12%, oklch(0.235 0.026 262 / 0.7))`,
+  transform: "translateY(-2px)",
+  borderColor: auroraTint(color, 0.4),
 });
 
 function GeneratingCard({
@@ -116,20 +133,10 @@ function GeneratingCard({
 
   const label = (stage && STAGE_LABELS[stage]) || "Starting...";
   const progress = stageProgress(stage);
-  const accent = isFailed ? palette.error.light : palette.warning.light;
+  const accent = isFailed ? aurora.status.fail : aurora.status.proc;
 
   return (
-    <Card
-      variant="outlined"
-      hoverable={false}
-      sx={{
-        p: 2,
-        height: "auto",
-        opacity: 0.92,
-        bgcolor: alpha(accent, 0.05),
-        borderColor: alpha(accent, 0.25),
-      }}
-    >
+    <Card variant="outlined" hoverable={false} sx={cardBaseSx(accent)}>
       <Stack direction="row" spacing={2.5} alignItems="center">
         <Box sx={iconChip(accent)}>
           {isFailed ? (
@@ -144,12 +151,12 @@ function GeneratingCard({
             variant="subtitle2"
             fontWeight={700}
             noWrap
-            sx={{ mb: 0.5, color: palette.text.primary }}
+            sx={{ mb: 0.5, color: aurora.txHi }}
           >
             {item.title}
           </Typography>
           {isFailed ? (
-            <Typography variant="caption" color="error.main">
+            <Typography variant="caption" sx={{ color: aurora.status.fail }}>
               Generation failed
             </Typography>
           ) : (
@@ -183,8 +190,7 @@ function CompletedCard({
     : item.progressPercentage > 0
       ? Map
       : Sparkles;
-  const accent = isDone ? palette.warning.light : color.light;
-  const accentMain = isDone ? palette.warning.main : color.main;
+  const accent = isDone ? aurora.status.proc : color.main;
 
   const activeAt = item.lastActivityAt ?? item.createdAt;
   const dateLabel = item.lastActivityAt ? "Last active" : "Created";
@@ -195,15 +201,8 @@ function CompletedCard({
       hoverable={true}
       onClick={() => onClick(item.id)}
       sx={{
-        p: 2,
-        height: "auto",
-        bgcolor: alpha(accentMain, 0.06),
-        borderColor: alpha(accentMain, 0.25),
-        transition: "background-color .2s, transform .2s",
-        "&:hover": {
-          bgcolor: alpha(accentMain, 0.12),
-          transform: "translateY(-2px)",
-        },
+        ...cardBaseSx(accent),
+        "&:hover": cardHoverSx(accent),
       }}
     >
       <Stack direction="row" spacing={2.5} alignItems="center">
@@ -222,26 +221,24 @@ function CompletedCard({
               variant="subtitle2"
               fontWeight={700}
               noWrap
-              sx={{ maxWidth: "65%", color: palette.text.primary }}
+              sx={{ maxWidth: "65%", color: aurora.txHi }}
             >
               {item.title}
             </Typography>
             <Stack alignItems="flex-end" spacing={0.4}>
               {isDone && (
-                <Box
-                  sx={{
-                    ...donePillSx,
-                    color: palette.warning.light,
-                    bgcolor: alpha(palette.warning.main, 0.18),
-                  }}
-                >
+                <Box sx={donePillSx(aurora.status.proc)}>
                   <Trophy size={11} strokeWidth={2.6} />
                   Done
                 </Box>
               )}
               <Typography
                 variant="caption"
-                sx={{ color: palette.text.secondary, fontWeight: 500 }}
+                sx={{
+                  color: aurora.txLow,
+                  fontFamily: aurora.font.mono,
+                  fontWeight: 500,
+                }}
               >
                 {dateLabel} · {formatRelativeDate(activeAt)}
               </Typography>
@@ -265,7 +262,7 @@ function CompletedCard({
               <Typography
                 variant="caption"
                 fontWeight={800}
-                sx={{ color: accent }}
+                sx={{ color: accent, fontFamily: aurora.font.mono }}
               >
                 {Math.round(item.progressPercentage)}%
               </Typography>

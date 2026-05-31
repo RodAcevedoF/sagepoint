@@ -1,12 +1,12 @@
 import { Layers, Hash, BookOpen, Zap, Compass } from "lucide-react";
-import { palette } from "@/shared/theme";
+import { aurora } from "@/shared/theme";
 import type { ItemColor } from "../../constants";
 
 export const ROADMAP_ITEM_COLORS: ItemColor[] = [
-  { main: palette.info.main, light: palette.info.light },
-  { main: palette.success.main, light: palette.success.light },
-  { main: palette.warning.main, light: palette.warning.light },
-  { main: palette.primary.main, light: palette.primary.light },
+  { main: aurora.status.concept, light: aurora.status.concept },
+  { main: aurora.status.ready, light: aurora.status.ready },
+  { main: aurora.status.proc, light: aurora.status.proc },
+  { main: aurora.teal, light: aurora.teal },
 ];
 
 export const pickRoadmapColor = (index: number): ItemColor =>

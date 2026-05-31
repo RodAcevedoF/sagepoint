@@ -20,11 +20,11 @@ export function HeatmapLegend({ totalSteps }: HeatmapLegendProps) {
         </Typography>
       )}
       <Box sx={styles.legendRow}>
-        <Typography sx={styles.legendLabel}>Less</Typography>
+        Less
         {BUCKETS.map((bg, i) => (
           <Box key={i} sx={{ ...styles.legendSwatch, background: bg }} />
         ))}
-        <Typography sx={styles.legendLabel}>More</Typography>
+        More
       </Box>
     </Box>
   );

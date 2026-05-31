@@ -25,7 +25,12 @@ export function DashboardActivityHeatmap() {
 
   if (isLoading || !data) {
     return (
-      <Card sx={styles.card}>
+      <Card
+        variant="aurora"
+        hoverable={false}
+        withAura={false}
+        sx={styles.card}
+      >
         <Box sx={styles.loading}>
           <Typography sx={styles.loadingText}>Loading activity…</Typography>
         </Box>
@@ -44,10 +49,12 @@ export function DashboardActivityHeatmap() {
   };
 
   return (
-    <Card sx={styles.card}>
+    <Card variant="aurora" hoverable={false} withAura={false} sx={styles.card}>
       <Box sx={styles.header}>
         <Box>
-          <Typography sx={styles.title}>Activity</Typography>
+          <Typography component="h2" sx={styles.title}>
+            Activity
+          </Typography>
           <Typography sx={styles.subtitle}>Last year</Typography>
         </Box>
         <HeatmapStats values={statValues} />

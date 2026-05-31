@@ -13,9 +13,12 @@ import {
   File,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { palette } from "@/shared/theme";
+import { aurora, palette } from "@/shared/theme";
 
-const DIFFICULTY_COLORS: Record<string, string> = palette.difficulty;
+const DIFFICULTY_COLORS: Record<string, string> = {
+  ...aurora.difficulty,
+  unknown: palette.difficulty.unknown,
+};
 
 export function getMimeIcon(mimeType?: string): LucideIcon {
   if (!mimeType) return File;
@@ -93,7 +96,7 @@ function smartSort(a: DashboardRoadmap, b: DashboardRoadmap): number {
 
 export function computeRoadmaps(
   roadmaps: DashboardRoadmap[],
-  limit = 4,
+  limit = 3,
 ): RoadmapItem[] {
   return [...roadmaps]
     .sort(smartSort)

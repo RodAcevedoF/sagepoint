@@ -1,19 +1,26 @@
-import { alpha } from "@mui/material";
-import { palette } from "@/shared/theme";
-import {
-  DAY_LABEL_W_MOBILE,
-  DAY_LABEL_W_DESKTOP,
-  MONTH_ROW_H,
-  MOBILE_CELL_W,
-  GAP,
-} from "./constants";
+import { aurora, auroraTint } from "@/shared/theme";
+import { CELL_SIZE, DAY_LABEL_W, GAP, MONTH_ROW_H } from "./constants";
+
+/**
+ * Cells are fixed-width on mobile (overflow + scroll) and fluid on desktop
+ * (fill the panel width). The `--cell-h` CSS variable, computed from the
+ * container's inline size (`cqi`), keeps the day-labels column heights in
+ * lockstep with the cells across both modes.
+ */
+export const heatmapRow = (cols: number) => ({
+  containerType: "inline-size" as const,
+  "--cell-h": `${CELL_SIZE}px`,
+  "@media (min-width: 900px)": {
+    "--cell-h": `calc((100cqi - ${DAY_LABEL_W}px - ${cols * GAP}px) / ${cols})`,
+  },
+  display: "flex",
+  alignItems: "stretch",
+  gap: `${GAP}px`,
+});
 
 export const styles = {
   card: {
-    px: { xs: 2, md: 4 },
-    py: { xs: 2.5, md: 3.5 },
-    width: "100%",
-    height: "100%",
+    p: { xs: "22px 18px", md: "28px 30px 26px" },
   },
   loading: {
     height: 220,
@@ -21,75 +28,129 @@ export const styles = {
     alignItems: "center",
     justifyContent: "center",
   },
-  loadingText: { fontSize: 13, color: palette.text.secondary },
+  loadingText: { fontSize: 13, color: aurora.txMid },
   header: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    mb: { xs: 2.5, md: 3.5 },
+    mb: { xs: 2.5, md: 3 },
     flexWrap: "wrap" as const,
     gap: 2,
   },
-  title: { fontSize: { xs: 16, md: 18 }, fontWeight: 700, lineHeight: 1.2 },
-  subtitle: { fontSize: 13, color: palette.text.secondary, mt: 0.5 },
-  cellBase: {
-    aspectRatio: "1 / 1",
-    borderRadius: "3px",
-    minWidth: 0,
+  title: {
+    fontFamily: aurora.font.display,
+    fontWeight: 700,
+    fontSize: { xs: 18, md: 22 },
+    color: aurora.txHi,
+    lineHeight: 1.2,
+    letterSpacing: "-0.015em",
+    m: 0,
   },
-  monthLabelCell: {
-    height: MONTH_ROW_H,
-    position: "relative" as const,
-    overflow: "visible" as const,
+  subtitle: {
+    fontSize: 13.5,
+    color: aurora.teal,
+    fontFamily: aurora.font.mono,
+    mt: 0.5,
   },
-  monthLabel: {
-    fontSize: 12,
-    fontWeight: 600,
-    color: palette.text.primary,
-    height: MONTH_ROW_H,
-    lineHeight: `${MONTH_ROW_H}px`,
-    userSelect: "none" as const,
-    whiteSpace: "nowrap" as const,
-    letterSpacing: "0.02em",
+  dayLabelsCol: {
+    flex: "none",
+    width: DAY_LABEL_W,
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: `${GAP}px`,
+    pt: `${MONTH_ROW_H + GAP}px`,
   },
   dayLabelCell: {
+    height: "var(--cell-h)",
     display: "flex",
     alignItems: "center",
-  },
-  dayLabel: {
-    fontSize: 12,
-    fontWeight: 500,
-    color: palette.text.primary,
+    fontFamily: aurora.font.mono,
+    fontSize: 10,
+    color: aurora.txLow,
     userSelect: "none" as const,
+    whiteSpace: "nowrap" as const,
+    lineHeight: 1,
+  },
+  scrollWrap: {
+    flex: 1,
+    minWidth: 0,
+    overflowX: { xs: "auto" as const, md: "visible" as const },
+    overflowY: "hidden" as const,
+    "&::-webkit-scrollbar": { height: 6 },
+    "&::-webkit-scrollbar-thumb": {
+      bgcolor: auroraTint(aurora.txLow, 0.3),
+      borderRadius: 3,
+    },
+  },
+  scrollInner: {
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: `${GAP}px`,
+    width: { xs: "max-content", md: "100%" },
+  },
+  monthsRow: (cols: number) => ({
+    display: "grid",
+    gridTemplateColumns: `repeat(${cols}, var(--cell-h))`,
+    columnGap: `${GAP}px`,
+    height: MONTH_ROW_H,
+  }),
+  monthLabel: {
+    fontFamily: aurora.font.mono,
+    fontSize: 11,
+    color: aurora.txLow,
+    lineHeight: `${MONTH_ROW_H}px`,
+    whiteSpace: "nowrap" as const,
+    userSelect: "none" as const,
+  },
+  cellsGrid: (cols: number) => ({
+    display: "grid",
+    gridAutoFlow: "column" as const,
+    gridTemplateRows: "repeat(7, var(--cell-h))",
+    gridTemplateColumns: `repeat(${cols}, var(--cell-h))`,
+    columnGap: `${GAP}px`,
+    rowGap: `${GAP}px`,
+  }),
+  cellBase: {
+    width: "var(--cell-h)",
+    height: "var(--cell-h)",
+    borderRadius: "3px",
+    border: "1px solid oklch(1 0 0 / 0.03)",
   },
   statBlock: {
     display: "flex",
     alignItems: "center",
-    gap: 1.25,
+    gap: "11px",
+    padding: "10px 15px",
+    borderRadius: aurora.radii.md,
+    border: `1px solid ${aurora.line}`,
+    background: "oklch(0.255 0.024 262 / 0.5)",
   },
   statIconWrap: (color: string) => ({
-    width: 36,
-    height: 36,
-    borderRadius: "10px",
+    width: 34,
+    height: 34,
+    borderRadius: "9px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: alpha(color, 0.15),
+    background: `color-mix(in oklch, ${color} 15%, ${aurora.surface2})`,
+    border: `1px solid ${auroraTint(color, 0.26)}`,
     color,
     flexShrink: 0,
   }),
   statValue: {
+    fontFamily: aurora.font.display,
     fontSize: 22,
-    fontWeight: 700,
+    fontWeight: 800,
     lineHeight: 1,
-    color: palette.text.primary,
+    color: aurora.txHi,
   },
   statLabel: {
-    fontSize: 11,
-    color: palette.text.secondary,
+    fontFamily: aurora.font.mono,
+    fontSize: 9.5,
+    color: aurora.txLow,
     textTransform: "uppercase" as const,
-    letterSpacing: "0.06em",
-    fontWeight: 500,
+    letterSpacing: "0.1em",
+    fontWeight: 600,
     mt: 0.4,
   },
   footer: {
@@ -103,46 +164,19 @@ export const styles = {
   legendRow: {
     display: "flex",
     alignItems: "center",
-    gap: 0.75,
+    gap: 0.9,
+    fontFamily: aurora.font.mono,
+    fontSize: 11,
+    color: aurora.txLow,
   },
-  legendLabel: { fontSize: 11, color: palette.text.secondary },
-  legendSwatch: { width: 12, height: 12, borderRadius: "3px" },
+  legendSwatch: {
+    width: `${CELL_SIZE}px`,
+    height: `${CELL_SIZE}px`,
+    borderRadius: "3px",
+  },
   caption: {
-    fontSize: 12,
-    color: palette.text.secondary,
+    fontSize: 13.5,
+    color: aurora.txMid,
     fontStyle: "italic" as const,
   },
-  scrollContainer: {
-    overflowX: { xs: "auto" as const, md: "visible" as const },
-    overflowY: "hidden" as const,
-    mx: { xs: -2, md: 0 },
-    px: { xs: 2, md: 0 },
-    "&::-webkit-scrollbar": { height: 6 },
-    "&::-webkit-scrollbar-thumb": {
-      bgcolor: alpha(palette.text.secondary, 0.25),
-      borderRadius: 3,
-    },
-  },
-  stickyLabel: {
-    position: { xs: "sticky" as const, md: "static" as const },
-    left: 0,
-    zIndex: 1,
-    bgcolor: palette.background.paper,
-    pr: { xs: 0.25, md: 1 },
-  },
 };
-
-export const buildGridSx = (cols: number) => ({
-  display: "grid",
-  gridTemplateColumns: {
-    xs: `${DAY_LABEL_W_MOBILE}px repeat(${cols}, ${MOBILE_CELL_W}px)`,
-    md: `${DAY_LABEL_W_DESKTOP}px repeat(${cols}, minmax(0, 1fr))`,
-  },
-  gridTemplateRows: {
-    xs: `${MONTH_ROW_H}px repeat(7, ${MOBILE_CELL_W}px)`,
-    md: `${MONTH_ROW_H}px repeat(7, 1fr)`,
-  },
-  columnGap: `${GAP}px`,
-  rowGap: `${GAP}px`,
-  width: { xs: "max-content", md: "100%" },
-});

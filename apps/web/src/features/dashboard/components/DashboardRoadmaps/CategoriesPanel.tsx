@@ -1,55 +1,61 @@
-import { Box, Typography, Stack, alpha } from "@mui/material";
+import { Box, Typography, Stack } from "@mui/material";
 import { Layers } from "lucide-react";
-import { palette } from "@/shared/theme";
+import { aurora, auroraTint } from "@/shared/theme";
 import { CategoryTile } from "./CategoryTile";
 import type { CategoryCount } from "../../utils/dashboard.utils";
 
+const accent = aurora.status.concept;
+
 const styles = {
-  panel: (accent: string) => ({
+  panel: {
     flex: { md: 1 },
     minWidth: { md: 300 },
     p: 2.25,
-    borderRadius: 6,
-    bgcolor: alpha(accent, 0.045),
-    border: `1px solid ${alpha(accent, 0.12)}`,
-    background: `linear-gradient(180deg, ${alpha(accent, 0.08)} 0%, ${alpha(accent, 0.025)} 100%)`,
-  }),
-  header: {
-    mb: 2,
+    borderRadius: aurora.radii.card,
+    border: `1px solid ${aurora.line}`,
+    background:
+      "linear-gradient(180deg, oklch(0.245 0.026 262 / 0.6) 0%, oklch(0.2 0.026 262 / 0.45) 100%)",
   },
-  headerIcon: (accent: string) => ({
+  header: { mb: 2 },
+  headerIcon: {
     width: 28,
     height: 28,
-    borderRadius: 3,
+    borderRadius: aurora.radii.sm,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    bgcolor: alpha(accent, 0.12),
+    background: `color-mix(in oklch, ${accent} 14%, ${aurora.surface2})`,
     color: accent,
-    border: `1px solid ${alpha(accent, 0.18)}`,
-  }),
-  title: (accent: string) => ({
-    color: accent,
+    border: `1px solid ${auroraTint(accent, 0.22)}`,
+  },
+  title: {
+    color: aurora.txMid,
     textTransform: "uppercase" as const,
-    letterSpacing: 0.8,
-    fontSize: "0.72rem",
-  }),
-  countBadge: (accent: string) => ({
+    letterSpacing: "0.1em",
+    fontFamily: aurora.font.mono,
+    fontSize: "0.7rem",
+    fontWeight: 700,
+  },
+  countBadge: {
     px: 1,
     py: 0.25,
-    borderRadius: "999px",
-    bgcolor: alpha(accent, 0.1),
+    borderRadius: aurora.radii.pill,
+    background: auroraTint(accent, 0.1),
     color: accent,
+    fontFamily: aurora.font.mono,
     fontWeight: 700,
     fontSize: "0.65rem",
-  }),
-  emptyState: (accent: string) => ({
+  },
+  emptyState: {
     p: 2,
-    borderRadius: 6,
-    bgcolor: alpha(accent, 0.03),
-    border: `1px dashed ${alpha(accent, 0.14)}`,
+    borderRadius: aurora.radii.md,
+    background: "oklch(0.255 0.024 262 / 0.4)",
+    border: `1px dashed ${aurora.line2}`,
     textAlign: "center",
-  }),
+  },
+  emptyLabel: {
+    color: aurora.txMid,
+  },
 };
 
 interface CategoriesPanelProps {
@@ -58,10 +64,9 @@ interface CategoriesPanelProps {
 
 export function CategoriesPanel({ categories }: CategoriesPanelProps) {
   const total = categories.reduce((sum, c) => sum + c.count, 0);
-  const accent = palette.info.main;
 
   return (
-    <Box sx={styles.panel(accent)}>
+    <Box sx={styles.panel}>
       <Stack
         direction="row"
         alignItems="center"
@@ -69,39 +74,35 @@ export function CategoriesPanel({ categories }: CategoriesPanelProps) {
         sx={styles.header}
       >
         <Stack direction="row" alignItems="center" spacing={1}>
-          <Box sx={styles.headerIcon(accent)}>
+          <Box sx={styles.headerIcon}>
             <Layers size={15} strokeWidth={2.4} />
           </Box>
-          <Typography
-            variant="subtitle2"
-            fontWeight={700}
-            sx={styles.title(accent)}
-          >
+          <Typography variant="subtitle2" sx={styles.title}>
             Topics
           </Typography>
         </Stack>
         {total > 0 && (
-          <Typography variant="caption" sx={styles.countBadge(accent)}>
+          <Typography variant="caption" sx={styles.countBadge}>
             {categories.length} {categories.length === 1 ? "topic" : "topics"}
           </Typography>
         )}
       </Stack>
 
       {categories.length === 0 ? (
-        <Box sx={styles.emptyState(accent)}>
+        <Box sx={styles.emptyState}>
           <Layers
             size={20}
-            color={palette.text.secondary}
+            color={aurora.txLow}
             strokeWidth={1.8}
-            style={{ opacity: 0.5, marginBottom: 4 }}
+            style={{ opacity: 0.6, marginBottom: 4 }}
           />
-          <Typography variant="caption" color="text.secondary" display="block">
+          <Typography variant="caption" sx={styles.emptyLabel} display="block">
             No categories yet
           </Typography>
         </Box>
       ) : (
         <Stack spacing={1.25}>
-          {categories.slice(0, 4).map(({ name, count }, i) => (
+          {categories.slice(0, 3).map(({ name, count }, i) => (
             <CategoryTile
               key={name}
               name={name}

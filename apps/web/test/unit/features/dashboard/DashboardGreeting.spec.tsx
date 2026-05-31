@@ -1,50 +1,46 @@
 import { render, screen } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import { DashboardGreeting } from "@/features/dashboard/components/DashboardGreeting";
 
+const baseMetrics = {
+  completedRoadmaps: 5,
+  activeRoadmaps: 3,
+  totalStepsCompleted: 12,
+};
+
 describe("DashboardGreeting", () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
+  it("renders welcome with the user's first name", () => {
+    render(
+      <DashboardGreeting userName="Maria Garcia Lopez" metrics={baseMetrics} />,
+    );
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      "Welcome back, Maria",
+    );
+    expect(screen.queryByText(/garcia/i)).not.toBeInTheDocument();
   });
 
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  it("shows morning greeting before noon", () => {
-    vi.setSystemTime(new Date("2026-03-16T09:00:00"));
-    render(<DashboardGreeting userName="John Doe" />);
-    expect(screen.getByText(/good morning, john!/i)).toBeInTheDocument();
-  });
-
-  it("shows afternoon greeting between noon and 6pm", () => {
-    vi.setSystemTime(new Date("2026-03-16T14:00:00"));
-    render(<DashboardGreeting userName="Jane Smith" />);
-    expect(screen.getByText(/good afternoon, jane!/i)).toBeInTheDocument();
-  });
-
-  it("shows evening greeting after 6pm", () => {
-    vi.setSystemTime(new Date("2026-03-16T20:00:00"));
-    render(<DashboardGreeting userName="Bob" />);
-    expect(screen.getByText(/good evening, bob!/i)).toBeInTheDocument();
-  });
-
-  it("shows steps completed message when stepsCompleted > 0", () => {
-    vi.setSystemTime(new Date("2026-03-16T10:00:00"));
-    render(<DashboardGreeting userName="Alice" stepsCompleted={12} />);
+  it("shows steps-completed lede when stepsCompleted > 0", () => {
+    render(<DashboardGreeting userName="Alice" metrics={baseMetrics} />);
     expect(screen.getByText(/completed 12 steps/i)).toBeInTheDocument();
   });
 
-  it("shows default message when no steps completed", () => {
-    vi.setSystemTime(new Date("2026-03-16T10:00:00"));
-    render(<DashboardGreeting userName="Alice" stepsCompleted={0} />);
+  it("shows default lede when no steps completed", () => {
+    render(
+      <DashboardGreeting
+        userName="Alice"
+        metrics={{ ...baseMetrics, totalStepsCompleted: 0 }}
+      />,
+    );
     expect(screen.getByText(/ready to continue/i)).toBeInTheDocument();
   });
 
-  it("uses first name only", () => {
-    vi.setSystemTime(new Date("2026-03-16T10:00:00"));
-    render(<DashboardGreeting userName="Maria Garcia Lopez" />);
-    expect(screen.getByText(/maria!/i)).toBeInTheDocument();
-    expect(screen.queryByText(/garcia/i)).not.toBeInTheDocument();
+  it("renders all three embedded stat values", () => {
+    render(<DashboardGreeting userName="Alice" metrics={baseMetrics} />);
+    expect(screen.getByText("5")).toBeInTheDocument();
+    expect(screen.getByText("3")).toBeInTheDocument();
+    expect(screen.getByText("12")).toBeInTheDocument();
+    expect(screen.getByText("Completed")).toBeInTheDocument();
+    expect(screen.getByText("Active paths")).toBeInTheDocument();
+    expect(screen.getByText("Steps")).toBeInTheDocument();
   });
 });

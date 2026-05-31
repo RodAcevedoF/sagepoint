@@ -1,259 +1,225 @@
 "use client";
 
-import { Box, Typography, Stack, alpha, Tooltip } from "@mui/material";
-import { motion } from "framer-motion";
-import { Sparkles, Clock, Timer, Flame, Layers } from "lucide-react";
-import { Card, EmptyState } from "@/shared/components";
-import { palette } from "@/shared/theme";
-import type { InsightsData } from "../types/dashboard.types";
+import { Box, Typography } from "@mui/material";
+import { Sparkles, CheckCircle, Target, Layers } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { Card, EmptyState, MixBar } from "@/shared/components";
+import { toneColor, type AuroraTone } from "@/shared/components";
+import { aurora, auroraTint } from "@/shared/theme";
+import type { InsightsData, UserMetrics } from "../types/dashboard.types";
 
-const styles = {
-  card: {
-    p: 3,
-    width: "100%",
-    height: "100%",
-    display: "flex",
-    flexDirection: "column",
-  },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    mb: 3,
-  },
-  masteryBlock: {
-    display: "flex",
-    alignItems: "baseline",
-    gap: 1,
-    mb: 3,
-  },
-  masteryValue: {
-    fontWeight: 800,
-    fontSize: "2.5rem",
-    lineHeight: 1,
-    background: `linear-gradient(135deg, ${palette.primary.light}, ${palette.info.light})`,
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-  },
-  barTrack: {
-    height: 14,
-    borderRadius: 7,
-    bgcolor: alpha(palette.primary.light, 0.08),
-    overflow: "hidden",
-    display: "flex",
-  },
-  legendDot: {
-    width: 8,
-    height: 8,
-    borderRadius: "50%",
-    flexShrink: 0,
-  },
-  statCard: {
-    p: 1.5,
-    borderRadius: 2,
-    bgcolor: alpha(palette.primary.light, 0.04),
-    border: `1px solid ${alpha(palette.primary.light, 0.08)}`,
-    display: "flex",
-    alignItems: "center",
-    gap: 1.5,
-  },
-  statValue: {
-    fontWeight: 700,
-    fontSize: "1.1rem",
-    lineHeight: 1.2,
-    color: "text.primary",
-  },
-  statLabel: {
-    fontSize: "0.7rem",
-    color: "text.secondary",
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.06em",
-    fontWeight: 600,
-  },
-};
+const cardSx = {
+  p: { xs: 2.5, md: "28px 30px 30px" },
+  height: "100%",
+} as const;
 
-const STAT_ICONS = [Clock, Flame, Timer, Layers] as const;
-const STAT_COLORS = [
-  palette.info.light,
-  palette.warning.light,
-  palette.success.light,
-  palette.primary.light,
-];
+const headerSx = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  mb: "8px",
+  gap: "14px",
+} as const;
+
+const titleSx = {
+  fontFamily: aurora.font.display,
+  fontWeight: 700,
+  fontSize: "22px",
+  color: aurora.txHi,
+  letterSpacing: "-0.015em",
+  m: 0,
+} as const;
+
+const subSx = {
+  fontSize: "13.5px",
+  color: aurora.txMid,
+  m: "0 0 22px",
+} as const;
+
+const pctRowSx = {
+  display: "flex",
+  alignItems: "baseline",
+  gap: "12px",
+  flexWrap: "wrap" as const,
+} as const;
+
+const pctValueSx = {
+  fontFamily: aurora.font.display,
+  fontWeight: 800,
+  fontSize: { xs: "44px", md: "56px" },
+  lineHeight: 1,
+  letterSpacing: "-0.03em",
+  background: `linear-gradient(120deg, ${aurora.status.concept}, ${aurora.teal})`,
+  WebkitBackgroundClip: "text",
+  backgroundClip: "text",
+  WebkitTextFillColor: "transparent",
+} as const;
+
+const pctTextSx = {
+  fontSize: "15px",
+  color: aurora.txMid,
+} as const;
+
+const mixLabelSx = {
+  fontFamily: aurora.font.mono,
+  fontSize: "11px",
+  fontWeight: 600,
+  letterSpacing: "0.14em",
+  textTransform: "uppercase",
+  color: aurora.txLow,
+  m: "26px 0 13px",
+} as const;
+
+const miniGridSx = {
+  display: "grid",
+  gridTemplateColumns: "repeat(3, 1fr)",
+  gap: "12px",
+  mt: "24px",
+} as const;
+
+const miniCardSx = (color: string) =>
+  ({
+    p: "15px 15px 16px",
+    borderRadius: aurora.radii.md,
+    border: `1px solid ${aurora.line}`,
+    background: "oklch(0.255 0.024 262 / 0.5)",
+    transition: "border-color .15s",
+    "&:hover": { borderColor: auroraTint(color, 0.35) },
+  }) as const;
+
+const miniIconSx = (color: string) =>
+  ({
+    width: 32,
+    height: 32,
+    borderRadius: "9px",
+    display: "grid",
+    placeItems: "center",
+    background: `color-mix(in oklch, ${color} 15%, ${aurora.surface2})`,
+    border: `1px solid ${auroraTint(color, 0.26)}`,
+    color,
+  }) as const;
+
+const miniNumSx = {
+  fontFamily: aurora.font.display,
+  fontWeight: 800,
+  fontSize: "24px",
+  color: aurora.txHi,
+  mt: "12px",
+  lineHeight: 1,
+  letterSpacing: "-0.02em",
+} as const;
+
+const miniLabelSx = {
+  fontFamily: aurora.font.mono,
+  fontSize: "9.5px",
+  letterSpacing: "0.1em",
+  textTransform: "uppercase",
+  color: aurora.txLow,
+  mt: "6px",
+} as const;
+
+interface InsightStat {
+  key: string;
+  label: string;
+  value: number;
+  icon: LucideIcon;
+  tone: AuroraTone;
+}
 
 interface DashboardInsightsProps {
   data: InsightsData;
   overallProgress: number;
+  metrics: Pick<UserMetrics, "completedRoadmaps" | "activeRoadmaps">;
 }
 
 export function DashboardInsights({
   data,
   overallProgress,
+  metrics,
 }: DashboardInsightsProps) {
-  const {
-    difficultyBreakdown,
-    avgMinutesPerStep,
-    hoursInvested,
-    hoursRemaining,
-    totalSteps,
-  } = data;
+  const { difficultyBreakdown, totalSteps } = data;
 
-  const stats = [
+  const mini: ReadonlyArray<InsightStat> = [
     {
-      label: "Hours invested",
-      value: `${hoursInvested}h`,
-      Icon: STAT_ICONS[0],
-      color: STAT_COLORS[0],
+      key: "mastered",
+      label: "Mastered",
+      value: metrics.completedRoadmaps,
+      icon: CheckCircle,
+      tone: "ready",
     },
     {
-      label: "Hours remaining",
-      value: `${hoursRemaining}h`,
-      Icon: STAT_ICONS[2],
-      color: STAT_COLORS[2],
+      key: "inProgress",
+      label: "In Progress",
+      value: metrics.activeRoadmaps,
+      icon: Target,
+      tone: "proc",
     },
     {
-      label: "Avg min / step",
-      value: `${avgMinutesPerStep}m`,
-      Icon: STAT_ICONS[1],
-      color: STAT_COLORS[1],
-    },
-    {
-      label: "Total steps",
-      value: totalSteps.toString(),
-      Icon: STAT_ICONS[3],
-      color: STAT_COLORS[3],
+      key: "totalSteps",
+      label: "Total Steps",
+      value: totalSteps,
+      icon: Layers,
+      tone: "concept",
     },
   ];
 
+  const segments = difficultyBreakdown.map((seg) => ({
+    key: seg.name,
+    count: seg.count,
+    color: seg.color,
+    label: seg.name,
+  }));
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45, delay: 0.4, ease: "easeOut" }}
-      style={{
-        height: "100%",
-        width: "100%",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <Card variant="glass" sx={styles.card}>
-        <Box sx={styles.header}>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              Learning Insights
+    <Card variant="aurora" hoverable={false} withAura={false} sx={cardSx}>
+      <Box sx={headerSx}>
+        <Typography component="h2" sx={titleSx}>
+          Learning Insights
+        </Typography>
+        <Box sx={{ color: aurora.teal, display: "flex" }}>
+          <Sparkles size={22} />
+        </Box>
+      </Box>
+      <Typography sx={subSx}>Your pace and mastery</Typography>
+
+      {totalSteps === 0 ? (
+        <EmptyState
+          inline
+          icon={Sparkles}
+          title="No insights yet"
+          description="Complete a few steps to unlock pace and mastery stats"
+        />
+      ) : (
+        <>
+          <Box sx={pctRowSx}>
+            <Typography component="b" sx={pctValueSx}>
+              {overallProgress}%
             </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Your pace and mastery
+            <Typography component="span" sx={pctTextSx}>
+              of all steps mastered
             </Typography>
           </Box>
-          <Sparkles size={18} color={palette.primary.light} />
-        </Box>
 
-        {totalSteps === 0 ? (
-          <EmptyState
-            inline
-            icon={Sparkles}
-            title="No insights yet"
-            description="Complete a few steps to unlock pace and mastery stats"
-          />
-        ) : (
-          <>
-            {/* Mastery */}
-            <Box sx={styles.masteryBlock}>
-              <Typography sx={styles.masteryValue}>
-                {overallProgress}%
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                of all steps mastered
-              </Typography>
-            </Box>
+          <Typography sx={mixLabelSx}>Difficulty Mix</Typography>
+          <MixBar segments={segments} />
 
-            {/* Difficulty stacked bar */}
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{
-                mb: 1,
-                fontWeight: 600,
-                textTransform: "uppercase",
-                letterSpacing: "0.06em",
-                fontSize: "0.65rem",
-              }}
-            >
-              Difficulty mix
-            </Typography>
-            <Box sx={styles.barTrack}>
-              {difficultyBreakdown.map((seg, i) => {
-                const pct = (seg.count / totalSteps) * 100;
-                return (
-                  <Tooltip
-                    key={seg.name}
-                    title={`${seg.name}: ${seg.count} steps (${Math.round(pct)}%)`}
-                    arrow
-                  >
-                    <motion.div
-                      initial={{ scaleX: 0 }}
-                      animate={{ scaleX: 1 }}
-                      transition={{
-                        duration: 0.6,
-                        delay: 0.5 + i * 0.07,
-                        ease: "easeOut",
-                      }}
-                      style={{
-                        width: `${pct}%`,
-                        height: "100%",
-                        backgroundColor: seg.color,
-                        transformOrigin: "left",
-                        cursor: "default",
-                      }}
-                    />
-                  </Tooltip>
-                );
-              })}
-            </Box>
-
-            {/* Legend */}
-            <Stack
-              direction="row"
-              flexWrap="wrap"
-              gap={1.5}
-              sx={{ mt: 1.5, mb: 3 }}
-            >
-              {difficultyBreakdown.map((seg) => (
-                <Box
-                  key={seg.name}
-                  sx={{ display: "flex", alignItems: "center", gap: 0.75 }}
-                >
-                  <Box sx={{ ...styles.legendDot, bgcolor: seg.color }} />
-                  <Typography variant="caption" color="text.secondary">
-                    {seg.name}
-                  </Typography>
-                </Box>
-              ))}
-            </Stack>
-
-            {/* Pace stats 2×2 */}
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 1.5,
-                mt: "auto",
-              }}
-            >
-              {stats.map(({ label, value, Icon, color }) => (
-                <Box key={label} sx={styles.statCard}>
-                  <Icon size={16} color={color} />
-                  <Box>
-                    <Typography sx={styles.statValue}>{value}</Typography>
-                    <Typography sx={styles.statLabel}>{label}</Typography>
+          <Box sx={miniGridSx}>
+            {mini.map((m) => {
+              const Icon = m.icon;
+              const color = toneColor(m.tone);
+              return (
+                <Box key={m.key} sx={miniCardSx(color)}>
+                  <Box sx={miniIconSx(color)}>
+                    <Icon size={17} />
                   </Box>
+                  <Box sx={miniNumSx}>{m.value}</Box>
+                  <Box sx={miniLabelSx}>{m.label}</Box>
                 </Box>
-              ))}
-            </Box>
-          </>
-        )}
-      </Card>
-    </motion.div>
+              );
+            })}
+          </Box>
+        </>
+      )}
+    </Card>
   );
 }

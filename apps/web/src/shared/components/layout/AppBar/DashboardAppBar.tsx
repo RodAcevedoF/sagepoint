@@ -38,7 +38,7 @@ export function DashboardAppBar() {
   };
 
   return (
-    <AppBar revealOnHover defaultActive={getActiveItem()}>
+    <AppBar defaultActive={getActiveItem()}>
       <AppBar.Group>
         <AppBar.Item
           id="home"

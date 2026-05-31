@@ -54,7 +54,7 @@ describe("Dashboard", () => {
     renderWithProviders(<Dashboard />);
 
     await waitFor(() => {
-      expect(screen.getByText(/test!/i)).toBeInTheDocument();
+      expect(screen.getByText(/welcome back, test/i)).toBeInTheDocument();
     });
   });
 
@@ -68,8 +68,9 @@ describe("Dashboard", () => {
     renderWithProviders(<Dashboard />);
 
     await waitFor(() => {
-      expect(screen.getByText("Learning Hours")).toBeInTheDocument();
-      expect(screen.getByText("Roadmaps Completed")).toBeInTheDocument();
+      expect(screen.getByText("Active paths")).toBeInTheDocument();
+      expect(screen.getByText("Completed")).toBeInTheDocument();
+      expect(screen.getByText("Steps")).toBeInTheDocument();
     });
   });
 

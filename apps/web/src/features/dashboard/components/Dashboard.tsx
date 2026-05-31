@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Box, Grid } from "@mui/material";
+import { Box } from "@mui/material";
 import { AnimatePresence } from "framer-motion";
 import { useCurrentUser } from "@/features/auth/context/UserContext";
 import { useRoadmapEvents } from "@/shared/hooks";
@@ -16,7 +16,6 @@ import { useUserDocumentsQuery } from "@/application/document";
 import { DashboardReviewChip } from "@/features/review";
 import { DashboardLayout } from "./DashboardLayout";
 import { DashboardGreeting } from "./DashboardGreeting";
-import { DashboardMetrics } from "./DashboardMetrics";
 import { DashboardRoadmaps } from "./DashboardRoadmaps/DashboardRoadmaps";
 import { DashboardRecentDocuments } from "./DashboardRecentDocuments";
 import { DashboardInsights } from "./DashboardInsights";
@@ -31,6 +30,19 @@ import {
   computeRoadmapsOverview,
   computeInsights,
 } from "../utils/dashboard.utils";
+
+const stackSx = {
+  display: "flex",
+  flexDirection: "column",
+  gap: { xs: "22px", md: "30px" },
+} as const;
+
+const splitRowSx = {
+  display: "grid",
+  gridTemplateColumns: { xs: "1fr", md: "1.25fr 1fr" },
+  gap: { xs: "22px", md: "22px" },
+  alignItems: "stretch",
+} as const;
 
 export function Dashboard() {
   const router = useRouter();
@@ -136,74 +148,45 @@ export function Dashboard() {
 
   return (
     <DashboardLayout>
-      <DashboardGreeting
-        userName={userName}
-        stepsCompleted={metrics.totalStepsCompleted}
-      />
+      <Box sx={stackSx}>
+        <DashboardGreeting userName={userName} metrics={metrics} />
 
-      <Box sx={{ mb: 3 }}>
         <DashboardReviewChip />
-      </Box>
 
-      {!hasRoadmaps && <DashboardHeroCTA />}
-
-      <DashboardMetrics metrics={metrics} />
-
-      {hasRoadmaps ? (
-        <Grid container spacing={3}>
-          {/* Row 1 — Unified roadmaps panel */}
-          <Grid size={{ xs: 12 }}>
+        {hasRoadmaps ? (
+          <>
+            <DashboardQuickActions />
             <DashboardRoadmaps
               roadmaps={roadmapItems}
               overview={roadmapsOverview}
               allRoadmaps={userRoadmaps}
               onRoadmapComplete={refetchRoadmaps}
             />
-          </Grid>
 
-          {/* Row 2 — Activity heatmap full-width */}
-          <Grid size={{ xs: 12 }}>
             <DashboardActivityHeatmap />
-          </Grid>
 
-          {/* Row 3 — Documents (7/12) & Insights (5/12) */}
-          <Grid size={{ xs: 12, md: 7 }} sx={{ display: "flex" }}>
-            <DashboardRecentDocuments documents={userDocuments} />
-          </Grid>
-          <Grid size={{ xs: 12, md: 5 }} sx={{ display: "flex" }}>
-            <DashboardInsights
-              data={insights}
-              overallProgress={metrics.overallProgress}
-            />
-          </Grid>
+            <Box sx={splitRowSx}>
+              <DashboardRecentDocuments documents={userDocuments} />
+              <DashboardInsights
+                data={insights}
+                overallProgress={metrics.overallProgress}
+                metrics={metrics}
+              />
+            </Box>
 
-          {/* Row 3 — News */}
-          <Grid size={{ xs: 12 }}>
             <DashboardNews />
-          </Grid>
 
-          {/* Row 4 — Quick Actions */}
-          <Grid size={{ xs: 12 }}>
-            <DashboardQuickActions />
-          </Grid>
-
-          <Grid size={{ xs: 12 }}>
             <DevTools />
-          </Grid>
-        </Grid>
-      ) : (
-        <Grid container spacing={3}>
-          <Grid size={{ xs: 12 }}>
+          </>
+        ) : (
+          <>
+            <DashboardHeroCTA />
+            <DashboardQuickActions />
             <DashboardNews />
-          </Grid>
-          <Grid size={{ xs: 12 }}>
-            <DashboardQuickActions />
-          </Grid>
-          <Grid size={{ xs: 12 }}>
             <DevTools />
-          </Grid>
-        </Grid>
-      )}
+          </>
+        )}
+      </Box>
     </DashboardLayout>
   );
 }

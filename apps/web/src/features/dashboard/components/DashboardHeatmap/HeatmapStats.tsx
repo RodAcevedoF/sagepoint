@@ -10,7 +10,7 @@ export function HeatmapStats({ values }: HeatmapStatsProps) {
   return (
     <Stack
       direction="row"
-      spacing={{ xs: 1.5, md: 3 }}
+      spacing={{ xs: 1.25, md: 1.75 }}
       alignItems="center"
       flexWrap="wrap"
       useFlexGap
@@ -18,7 +18,7 @@ export function HeatmapStats({ values }: HeatmapStatsProps) {
       {STATS.map(({ key, icon: Icon, label, color }) => (
         <Box key={key} sx={styles.statBlock}>
           <Box sx={styles.statIconWrap(color)}>
-            <Icon size={18} strokeWidth={2.2} />
+            <Icon size={17} strokeWidth={2.2} />
           </Box>
           <Box>
             <Typography sx={styles.statValue}>{values[key]}</Typography>

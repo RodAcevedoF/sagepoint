@@ -1,13 +1,14 @@
 "use client";
 
 import { lazy, Suspense } from "react";
-import { Box, Typography, Stack, alpha } from "@mui/material";
-import { motion } from "framer-motion";
+import { Box } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { Plus, Map, FileUp, ArrowUpRight } from "lucide-react";
-import { useModal, Loader, SectionTitle } from "@/shared/components";
+import { Plus, FileUp, Compass, ArrowUpRight } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { useModal, Loader } from "@/shared/components";
+import { toneColor, type AuroraTone } from "@/shared/components";
+import { aurora, auroraTint } from "@/shared/theme";
 import { CreateRoadmapModal } from "@/features/roadmap";
-import { palette } from "@/shared/theme";
 
 const LazyUploadDocumentModal = lazy(() =>
   import("@/features/document/components/UploadDocumentModal").then((m) => ({
@@ -15,128 +16,130 @@ const LazyUploadDocumentModal = lazy(() =>
   })),
 );
 
-const styles = {
-  card: {
-    p: 0,
-    background: "transparent",
-    border: "none",
-    backdropFilter: "none",
-    overflow: "visible",
-  },
-  title: {
-    fontWeight: 700,
-    mb: 3,
-    letterSpacing: "-0.02em",
-  },
-  action: {
-    p: 3,
-    borderRadius: 5,
-    bgcolor: alpha(palette.background.paper, 0.4),
-    backdropFilter: "blur(12px)",
-    border: `1px solid ${alpha(palette.primary.light, 0.1)}`,
-    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-    cursor: "pointer",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-start",
-    gap: 2,
-    flex: 1,
+interface QuickAction {
+  title: string;
+  desc: string;
+  icon: LucideIcon;
+  tone: AuroraTone;
+  onClick: () => void;
+}
+
+const secHeadSx = {
+  display: "flex",
+  alignItems: "center",
+  gap: "14px",
+  marginBottom: "22px",
+} as const;
+
+const secBarSx = {
+  width: "6px",
+  height: "36px",
+  borderRadius: "999px",
+  background: `linear-gradient(180deg, ${aurora.teal}, ${aurora.status.concept})`,
+  flex: "none",
+} as const;
+
+const secTitleSx = {
+  fontFamily: aurora.font.display,
+  fontWeight: 800,
+  fontSize: "26px",
+  letterSpacing: "-0.025em",
+  margin: 0,
+  background: `linear-gradient(115deg, ${aurora.txHi} 40%, ${aurora.teal} 110%)`,
+  WebkitBackgroundClip: "text",
+  backgroundClip: "text",
+  WebkitTextFillColor: "transparent",
+} as const;
+
+const secSubSx = {
+  margin: "4px 0 0",
+  fontSize: "14.5px",
+  color: aurora.txMid,
+} as const;
+
+const gridSx = {
+  display: "grid",
+  gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" },
+  gap: "20px",
+} as const;
+
+const cardSx = (color: string) =>
+  ({
     position: "relative",
     overflow: "hidden",
-    "&:hover": {
-      transform: "translateY(-4px)",
-      bgcolor: alpha(palette.background.paper, 0.6),
-      boxShadow: `0 12px 24px ${alpha(palette.primary.main, 0.1)}`,
-      "& .action-icon": {
-        transform: "scale(1.1) rotate(-5deg)",
-      },
-      "& .action-arrow": {
-        transform: "translateX(4px)",
-        opacity: 1,
-      },
-    },
-  },
-  createAction: {
-    borderColor: alpha(palette.primary.light, 0.15),
-    "&:hover": {
-      borderColor: alpha(palette.primary.light, 0.4),
-      boxShadow: `0 12px 24px ${alpha(palette.primary.main, 0.15)}`,
-      "& .action-icon": {
-        bgcolor: alpha(palette.primary.main, 0.25),
-      },
-    },
-  },
-  libraryAction: {
-    borderColor: alpha(palette.warning.light, 0.15),
-    "&:hover": {
-      borderColor: alpha(palette.warning.light, 0.4),
-      boxShadow: `0 12px 24px ${alpha(palette.warning.main, 0.15)}`,
-      "& .action-icon": {
-        bgcolor: alpha(palette.warning.main, 0.25),
-      },
-    },
-    "& .action-arrow": {
-      color: palette.warning.light,
-    },
-  },
-  uploadAction: {
-    borderColor: alpha(palette.info.light, 0.15),
-    "&:hover": {
-      borderColor: alpha(palette.info.light, 0.4),
-      boxShadow: `0 12px 24px ${alpha(palette.info.main, 0.15)}`,
-      "& .action-icon": {
-        bgcolor: alpha(palette.info.main, 0.25),
-      },
-    },
-    "& .action-arrow": {
-      color: palette.info.light,
-    },
-  },
-  actionIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 3,
+    borderRadius: aurora.radii.card,
+    border: `1px solid ${aurora.line}`,
+    padding: { xs: "22px 22px 24px", md: "26px 26px 28px" },
+    cursor: "pointer",
+    background:
+      "linear-gradient(168deg, oklch(0.225 0.026 262 / 0.85), oklch(0.16 0.026 262 / 0.78))",
+    boxShadow: aurora.shadow.card,
+    transition: "transform .2s, border-color .2s, box-shadow .2s",
     display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    bgcolor: alpha(palette.primary.main, 0.15),
-    color: palette.primary.light,
-    flexShrink: 0,
-    transition: "all 0.3s ease",
-  },
-  libraryActionIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 3,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    bgcolor: alpha(palette.warning.main, 0.15),
-    color: palette.warning.light,
-    flexShrink: 0,
-    transition: "all 0.3s ease",
-  },
-  uploadActionIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 3,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    bgcolor: alpha(palette.info.main, 0.15),
-    color: palette.info.light,
-    flexShrink: 0,
-    transition: "all 0.3s ease",
-  },
-  arrow: {
-    position: "absolute",
-    right: 24,
-    top: 24,
-    opacity: 0.3,
-    transition: "all 0.3s ease",
-    color: palette.primary.light,
-  },
-};
+    flexDirection: "column",
+    minHeight: 196,
+    "& .qa-aura": {
+      position: "absolute",
+      top: "-40%",
+      left: "-10%",
+      width: "55%",
+      height: "80%",
+      background: `radial-gradient(closest-side, ${auroraTint(color, 0.26)}, transparent)`,
+      filter: "blur(22px)",
+      opacity: 0,
+      transition: "opacity .25s",
+      pointerEvents: "none",
+    },
+    "&:hover": {
+      transform: "translateY(-5px)",
+      borderColor: auroraTint(color, 0.42),
+      boxShadow: aurora.shadow.pop,
+    },
+    "&:hover .qa-aura": { opacity: 0.6 },
+  }) as const;
+
+const iconSx = (color: string) =>
+  ({
+    width: 56,
+    height: 56,
+    borderRadius: "16px",
+    display: "grid",
+    placeItems: "center",
+    background: `color-mix(in oklch, ${color} 16%, ${aurora.surface2})`,
+    border: `1px solid ${auroraTint(color, 0.28)}`,
+    color,
+    boxShadow: `0 0 26px -8px ${auroraTint(color, 0.7)}`,
+    position: "relative",
+    zIndex: 1,
+  }) as const;
+
+const arrowSx = (color: string) =>
+  ({
+    color,
+    opacity: 0.7,
+    position: "relative",
+    zIndex: 1,
+  }) as const;
+
+const titleH3Sx = {
+  position: "relative",
+  zIndex: 1,
+  fontFamily: aurora.font.display,
+  fontWeight: 700,
+  fontSize: "20px",
+  color: aurora.txHi,
+  margin: "22px 0 0",
+  letterSpacing: "-0.015em",
+} as const;
+
+const descPSx = {
+  position: "relative",
+  zIndex: 1,
+  margin: "10px 0 0",
+  fontSize: "14px",
+  lineHeight: 1.55,
+  color: aurora.txMid,
+} as const;
 
 export function DashboardQuickActions() {
   const router = useRouter();
@@ -163,72 +166,79 @@ export function DashboardQuickActions() {
     );
   };
 
+  const actions: ReadonlyArray<QuickAction> = [
+    {
+      title: "Create Roadmap",
+      desc: "Generate a personalized learning path from any topic using AI.",
+      icon: Plus,
+      tone: "teal",
+      onClick: handleCreate,
+    },
+    {
+      title: "Analyze Document",
+      desc: "Upload files to extract concepts and generate targeted roadmaps.",
+      icon: FileUp,
+      tone: "concept",
+      onClick: handleUpload,
+    },
+    {
+      title: "Explore",
+      desc: "Discover curated topics and trending paths from the community.",
+      icon: Compass,
+      tone: "proc",
+      onClick: () => router.push("/explore"),
+    },
+  ];
+
   return (
-    <Box sx={styles.card}>
-      <SectionTitle subtitle="Jump back in or start something new with AI.">
-        Quick Actions
-      </SectionTitle>
-      <Stack direction={{ xs: "column", md: "row" }} spacing={3}>
-        {[
-          {
-            sx: [styles.action, styles.createAction] as const,
-            onClick: handleCreate,
-            iconSx: styles.actionIcon,
-            Icon: Plus,
-            title: "Create Roadmap",
-            desc: "Generate a personalized learning path from any topic using AI",
-          },
-          {
-            sx: [styles.action, styles.libraryAction] as const,
-            onClick: () => router.push("/roadmaps"),
-            iconSx: styles.libraryActionIcon,
-            Icon: Map,
-            title: "View Library",
-            desc: "Access all your generated roadmaps and continue your progress",
-          },
-          {
-            sx: [styles.action, styles.uploadAction] as const,
-            onClick: handleUpload,
-            iconSx: styles.uploadActionIcon,
-            Icon: FileUp,
-            title: "Analyze Document",
-            desc: "Upload files to extract concepts and generate targeted roadmaps",
-          },
-        ].map((action, index) => (
-          <motion.div
-            key={action.title}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: index * 0.1, ease: "easeOut" }}
-            style={{ flex: 1 }}
-          >
-            <Box sx={action.sx} onClick={action.onClick}>
-              <Box className="action-icon" sx={action.iconSx}>
-                <action.Icon size={24} />
+    <Box component="section">
+      <Box sx={secHeadSx}>
+        <Box sx={secBarSx} />
+        <Box>
+          <Box component="h2" sx={secTitleSx}>
+            Quick Actions
+          </Box>
+          <Box component="p" sx={secSubSx}>
+            Jump back in or start something new with AI.
+          </Box>
+        </Box>
+      </Box>
+      <Box sx={gridSx}>
+        {actions.map((action) => {
+          const Icon = action.icon;
+          const color = toneColor(action.tone);
+          return (
+            <Box
+              key={action.title}
+              component="article"
+              onClick={action.onClick}
+              sx={cardSx(color)}
+            >
+              <Box className="qa-aura" />
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Box sx={iconSx(color)}>
+                  <Icon size={24} />
+                </Box>
+                <Box sx={arrowSx(color)}>
+                  <ArrowUpRight size={20} />
+                </Box>
               </Box>
-              <Box className="action-arrow" sx={styles.arrow}>
-                <ArrowUpRight size={20} />
+              <Box component="h3" sx={titleH3Sx}>
+                {action.title}
               </Box>
-              <Box>
-                <Typography
-                  variant="subtitle1"
-                  fontWeight={700}
-                  sx={{ mb: 0.5 }}
-                >
-                  {action.title}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ opacity: 0.8, lineHeight: 1.5 }}
-                >
-                  {action.desc}
-                </Typography>
+              <Box component="p" sx={descPSx}>
+                {action.desc}
               </Box>
             </Box>
-          </motion.div>
-        ))}
-      </Stack>
+          );
+        })}
+      </Box>
     </Box>
   );
 }

@@ -1,10 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Typography, Stack, Button, Box } from "@mui/material";
-import { Flame, Trophy, Sparkles } from "lucide-react";
+import { Box, Stack, Typography } from "@mui/material";
+import { Flame, Trophy, Sparkles, ArrowRight } from "lucide-react";
 import { Card } from "@/shared/components";
-import { palette } from "@/shared/theme";
+import { aurora, auroraTint } from "@/shared/theme";
 import { RoadmapCard } from "../RoadmapCard";
 import { OverviewChip } from "./OverviewChip";
 import { CategoriesPanel } from "./CategoriesPanel";
@@ -22,6 +22,39 @@ interface DashboardRoadmapsProps {
   onRoadmapComplete?: () => void;
 }
 
+const cardSx = {
+  p: { xs: 2.5, md: "28px 30px 30px" },
+} as const;
+
+const headerSx = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  mb: "20px",
+  gap: "14px",
+} as const;
+
+const titleSx = {
+  fontFamily: aurora.font.display,
+  fontWeight: 700,
+  fontSize: "22px",
+  color: aurora.txHi,
+  letterSpacing: "-0.015em",
+  m: 0,
+} as const;
+
+const viewAllSx = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "7px",
+  fontSize: "14px",
+  fontWeight: 600,
+  color: aurora.status.concept,
+  cursor: "pointer",
+  whiteSpace: "nowrap",
+  "&:hover": { color: auroraTint(aurora.status.concept, 0.85) },
+} as const;
+
 export function DashboardRoadmaps({
   roadmaps,
   overview,
@@ -32,44 +65,34 @@ export function DashboardRoadmaps({
   const categories = computeCategoriesOverview(allRoadmaps);
 
   return (
-    <Card variant="outlined" sx={{ p: 3, height: "100%" }}>
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        sx={{ mb: 2 }}
-      >
-        <Typography variant="h6" fontWeight={700}>
+    <Card variant="aurora" hoverable={false} withAura={false} sx={cardSx}>
+      <Box sx={headerSx}>
+        <Typography component="h2" sx={titleSx}>
           Your Roadmaps
         </Typography>
-        <Button
-          size="small"
-          variant="text"
-          onClick={() => router.push("/roadmaps")}
-          sx={{ color: palette.text.secondary, textTransform: "none" }}
-        >
-          View all
-        </Button>
-      </Stack>
+        <Box sx={viewAllSx} onClick={() => router.push("/roadmaps")}>
+          View all <ArrowRight size={15} />
+        </Box>
+      </Box>
 
       <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mb: 2.5 }}>
         <OverviewChip
           count={overview.inProgress}
           label="in progress"
           icon={<Flame size={13} strokeWidth={2.4} />}
-          color={palette.warning.main}
+          tone="proc"
         />
         <OverviewChip
           count={overview.completed}
           label="completed"
           icon={<Trophy size={13} strokeWidth={2.4} />}
-          color={palette.success.main}
+          tone="ready"
         />
         <OverviewChip
           count={overview.justCreated}
           label="just created"
           icon={<Sparkles size={13} strokeWidth={2.4} />}
-          color={palette.info.main}
+          tone="concept"
         />
       </Stack>
 

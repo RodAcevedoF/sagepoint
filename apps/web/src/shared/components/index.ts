@@ -41,13 +41,7 @@ export {
 } from "./ui/Aurora";
 
 // layout
-export {
-  AppBar,
-  DashboardAppBar,
-  useAppBar,
-  useScrollBehavior,
-  useHoverReveal,
-} from "./layout/AppBar";
+export { AppBar, DashboardAppBar, useAppBar } from "./layout/AppBar";
 export { Navbar, NavbarBrand, NavbarActions } from "./layout/Navbar";
 export { Footer, FooterBrand, FooterLinks } from "./layout/Footer";
 export { SmartHomeButton, GoBackButton } from "./layout/Navigation";
