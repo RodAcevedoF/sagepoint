@@ -85,7 +85,7 @@ describe("DashboardRecentDocuments", () => {
     render(<DashboardRecentDocuments documents={docs} />);
     const readyBadges = screen.getAllByText("Ready");
     expect(readyBadges.length).toBeGreaterThanOrEqual(2);
-    expect(screen.getByText("Analyzing")).toBeInTheDocument();
+    expect(screen.getByText("Processing")).toBeInTheDocument();
   });
 
   it("navigates to document detail on click", async () => {

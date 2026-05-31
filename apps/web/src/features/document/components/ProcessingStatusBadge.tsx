@@ -1,36 +1,17 @@
 "use client";
 
-import { Chip } from "@mui/material";
 import type { ProcessingStage } from "@sagepoint/domain";
-
-const stageConfig: Record<
-  ProcessingStage,
-  { label: string; color: "default" | "info" | "warning" | "success" }
-> = {
-  UPLOADED: { label: "Uploaded", color: "default" },
-  PARSING: { label: "Parsing", color: "info" },
-  ANALYZING: { label: "Analyzing", color: "warning" },
-  SUMMARIZED: { label: "Summarized", color: "info" },
-  ENRICHING: { label: "Enriching", color: "warning" },
-  READY: { label: "Ready", color: "success" },
-};
+import { StatusPill } from "@/shared/components";
+import { mapToAuroraStatus, STATUS_META } from "../utils";
 
 interface ProcessingStatusBadgeProps {
   stage: ProcessingStage;
 }
 
 export function ProcessingStatusBadge({ stage }: ProcessingStatusBadgeProps) {
-  const config = stageConfig[stage] ?? {
-    label: stage,
-    color: "default" as const,
-  };
+  const status = mapToAuroraStatus("PROCESSING", stage);
+  const meta = STATUS_META[status];
+  const pulse = status === "processing" || status === "enriching";
 
-  return (
-    <Chip
-      label={config.label}
-      color={config.color}
-      size="small"
-      variant="outlined"
-    />
-  );
+  return <StatusPill tone={meta.tone} label={meta.label} pulse={pulse} />;
 }

@@ -1,11 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { Box, Typography, TextField, useTheme, alpha } from "@mui/material";
+import { Box, TextField } from "@mui/material";
 import { Pencil } from "lucide-react";
 import { useUpdateFilenameCommand } from "@/application/document";
 import { useSnackbar } from "@/shared/components";
-import { makeStyles } from "../DocumentDetailHero.styles";
+import { aurora as auroraPalette } from "@/shared/theme";
+
+const titleSx = {
+  position: "relative",
+  zIndex: 1,
+  margin: 0,
+  fontFamily: auroraPalette.font.display,
+  fontWeight: 800,
+  fontSize: "clamp(32px, 4vw, 52px)",
+  lineHeight: 1.02,
+  letterSpacing: "-0.025em",
+  background: `linear-gradient(120deg, ${auroraPalette.txHi} 30%, ${auroraPalette.teal} 95%)`,
+  WebkitBackgroundClip: "text",
+  backgroundClip: "text",
+  WebkitTextFillColor: "transparent",
+  wordBreak: "break-word",
+} as const;
 
 interface DocumentFilenameEditorProps {
   documentId: string;
@@ -18,8 +34,6 @@ export function DocumentFilenameEditor({
   filename,
   editable,
 }: DocumentFilenameEditorProps) {
-  const theme = useTheme();
-  const styles = makeStyles(theme);
   const { execute: updateFilename, isLoading } = useUpdateFilenameCommand();
   const { showSnackbar } = useSnackbar();
   const [editing, setEditing] = useState(false);
@@ -67,19 +81,16 @@ export function DocumentFilenameEditor({
         inputProps={{ maxLength: 200 }}
         sx={{
           "& .MuiInput-input": {
-            ...styles.title,
+            ...titleSx,
             WebkitTextFillColor: "unset",
-            color: theme.palette.info.light,
-            fontSize: styles.title.fontSize,
-            fontWeight: styles.title.fontWeight,
-            lineHeight: styles.title.lineHeight,
+            color: auroraPalette.teal,
             p: 0,
           },
           "& .MuiInput-underline:before": {
-            borderBottomColor: alpha(theme.palette.info.light, 0.4),
+            borderBottomColor: auroraPalette.line2,
           },
           "& .MuiInput-underline:after": {
-            borderBottomColor: theme.palette.info.light,
+            borderBottomColor: auroraPalette.teal,
           },
         }}
       />
@@ -98,15 +109,11 @@ export function DocumentFilenameEditor({
         "&:hover .edit-icon": editable ? { opacity: 1 } : undefined,
       }}
     >
-      <Typography variant="h3" sx={styles.title}>
+      <Box component="h1" sx={titleSx}>
         {filename}
-      </Typography>
+      </Box>
       {editable && (
-        <Pencil
-          className="edit-icon"
-          size={16}
-          color={theme.palette.info.light}
-        />
+        <Pencil className="edit-icon" size={16} color={auroraPalette.teal} />
       )}
     </Box>
   );

@@ -5,10 +5,11 @@ import { ProcessingStage } from "@sagepoint/domain";
 
 describe("ProcessingStatusBadge", () => {
   it.each([
-    [ProcessingStage.UPLOADED, "Uploaded"],
-    [ProcessingStage.PARSING, "Parsing"],
-    [ProcessingStage.ANALYZING, "Analyzing"],
-    [ProcessingStage.SUMMARIZED, "Summarized"],
+    [ProcessingStage.UPLOADED, "Inferring"],
+    [ProcessingStage.PARSING, "Processing"],
+    [ProcessingStage.ANALYZING, "Processing"],
+    [ProcessingStage.SUMMARIZED, "Processing"],
+    [ProcessingStage.ENRICHING, "Enriching"],
     [ProcessingStage.READY, "Ready"],
   ] as const)('renders "%s" stage as "%s"', (stage, expectedLabel) => {
     render(<ProcessingStatusBadge stage={stage} />);

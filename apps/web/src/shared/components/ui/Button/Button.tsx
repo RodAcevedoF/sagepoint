@@ -7,6 +7,7 @@ import {
   SxProps,
   Theme,
 } from "@mui/material";
+import NextLink from "next/link";
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -15,7 +16,7 @@ import {
   ButtonIconPositions,
   ButtonSizes,
 } from "@/shared/types";
-import { palette } from "@/shared/theme";
+import { palette, aurora, auroraTint } from "@/shared/theme";
 
 const styles = {
   base: {
@@ -83,6 +84,60 @@ const styles = {
       borderColor: palette.primary.light,
     },
   },
+  aurora: {
+    background: `linear-gradient(150deg, ${aurora.teal}, ${aurora.tealDeep})`,
+    color: aurora.tealInk,
+    border: "none",
+    borderRadius: "14px",
+    fontFamily: aurora.font.ui,
+    fontWeight: 700,
+    boxShadow: `0 14px 34px -14px ${auroraTint(aurora.teal, 0.7)}`,
+    transition:
+      "transform .35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow .35s cubic-bezier(0.22, 1, 0.36, 1), filter .35s ease",
+    "&:hover": {
+      background: `linear-gradient(150deg, ${aurora.teal}, ${aurora.tealDeep})`,
+      filter: "brightness(1.08)",
+      transform: "translateY(-2px)",
+      boxShadow: `0 20px 44px -14px ${auroraTint(aurora.teal, 0.85)}`,
+    },
+    "&:active": {
+      transform: "translateY(0)",
+      boxShadow: `0 10px 26px -14px ${auroraTint(aurora.teal, 0.7)}`,
+    },
+  },
+  "aurora-ghost": {
+    background: auroraTint(aurora.teal, 0.12),
+    border: `1px solid ${auroraTint(aurora.teal, 0.35)}`,
+    color: aurora.teal,
+    borderRadius: "13px",
+    fontFamily: aurora.font.ui,
+    fontWeight: 700,
+    transition:
+      "transform .35s cubic-bezier(0.22, 1, 0.36, 1), background-color .35s ease, border-color .35s ease, box-shadow .35s ease",
+    "&:hover": {
+      background: auroraTint(aurora.teal, 0.2),
+      borderColor: auroraTint(aurora.teal, 0.55),
+      transform: "translateY(-2px)",
+      boxShadow: `0 12px 28px -16px ${auroraTint(aurora.teal, 0.6)}`,
+    },
+    "&:active": {
+      transform: "translateY(0)",
+    },
+  },
+  "aurora-outline": {
+    background: aurora.surface2,
+    border: `1px solid ${aurora.line}`,
+    color: aurora.txHi,
+    borderRadius: "13px",
+    fontFamily: aurora.font.ui,
+    fontWeight: 600,
+    transition:
+      "background-color .15s ease, border-color .15s ease, color .15s ease",
+    "&:hover": {
+      background: aurora.surface3,
+      borderColor: aurora.line2,
+    },
+  },
   small: {
     px: 2,
     py: 0.75,
@@ -112,12 +167,16 @@ interface ButtonProps {
   onClick?: () => void;
   disabled?: boolean;
   icon?: LucideIcon;
+  trailingIcon?: LucideIcon;
   type?: ButtonTypes;
   variant?: ButtonVariants;
   size?: ButtonSizes;
   iconPos?: ButtonIconPositions;
   loading?: boolean;
   fullWidth?: boolean;
+  href?: string;
+  target?: string;
+  rel?: string;
   sx?: SxProps<Theme>;
   iconSx?: React.CSSProperties;
   testId?: string;
@@ -128,12 +187,16 @@ export function Button({
   onClick,
   disabled = false,
   icon: Icon,
+  trailingIcon: TrailingIcon,
   type = ButtonTypes.BUTTON,
   variant = ButtonVariants.DEFAULT,
   size = ButtonSizes.MEDIUM,
   iconPos = ButtonIconPositions.END,
   loading = false,
   fullWidth = false,
+  href,
+  target,
+  rel,
   sx = {},
   iconSx = {},
   testId = "button",
@@ -152,6 +215,12 @@ export function Button({
         return styles.glass;
       case ButtonVariants.DANGER:
         return styles.danger;
+      case ButtonVariants.AURORA:
+        return styles.aurora;
+      case ButtonVariants.AURORA_GHOST:
+        return styles["aurora-ghost"];
+      case ButtonVariants.AURORA_OUTLINE:
+        return styles["aurora-outline"];
       default:
         return styles.default;
     }
@@ -177,15 +246,26 @@ export function Button({
     ...(Array.isArray(sx) ? sx : [sx]),
   ];
 
+  const linkProps = href
+    ? {
+        component: NextLink,
+        href,
+        target,
+        rel,
+      }
+    : {};
+  const effectiveIconPos = TrailingIcon ? ButtonIconPositions.START : iconPos;
+
   return (
     <MuiButton
       data-testid={testId}
       onClick={onClick}
       disabled={isDisabled}
-      type={type}
+      type={href ? undefined : type}
       sx={buttonStyles}
+      {...linkProps}
     >
-      {iconPos === ButtonIconPositions.START && Icon && (
+      {effectiveIconPos === ButtonIconPositions.START && Icon && (
         <Icon className="button-icon" size={18} style={iconSx} />
       )}
       {loading && <CircularProgress size={18} sx={{ color: "inherit" }} />}
@@ -196,8 +276,11 @@ export function Button({
       ) : (
         label
       )}
-      {iconPos === ButtonIconPositions.END && Icon && (
+      {effectiveIconPos === ButtonIconPositions.END && Icon && (
         <Icon className="button-icon" size={18} style={iconSx} />
+      )}
+      {TrailingIcon && (
+        <TrailingIcon className="button-icon" size={18} style={iconSx} />
       )}
     </MuiButton>
   );

@@ -2,33 +2,49 @@
 
 import { useState } from "react";
 import {
-  Box,
-  Typography,
-  Chip,
-  alpha,
-  CircularProgress,
-  IconButton,
-  Tooltip,
-  useTheme,
-} from "@mui/material";
-import { Clock, BookOpen, ArrowRight, Globe, Lock, Trash2 } from "lucide-react";
+  Clock,
+  BookOpen,
+  ArrowRight,
+  Globe,
+  Lock,
+  Trash2,
+  Map,
+  Calendar,
+} from "lucide-react";
 import { RoadmapVisibility } from "@sagepoint/domain";
 import {
   useUpdateVisibilityCommand,
   useDeleteRoadmapCommand,
 } from "@/application/roadmap";
 import { useRouter } from "next/navigation";
-import { Card, ConfirmDialog, useSnackbar } from "@/shared/components";
-import { makeStyles } from "./RoadmapCard.styles";
+import {
+  Card,
+  AuroraIconButton,
+  ConfirmDialog,
+  difficultySegments,
+  MixBar,
+  Pill,
+  ProgressRing,
+  StatusPill,
+  toneColor,
+  useSnackbar,
+  type AuroraTone,
+} from "@/shared/components";
 
 import type { UserRoadmapDto } from "@/infrastructure/api/roadmapApi";
 import {
-  DIFFICULTY_COLORS,
   formatDuration,
+  formatPace,
   formatRelativeTime,
   getDifficultyDistribution,
   getStatus,
 } from "../../utils/roadmap.utils";
+
+const STATUS_TONE: Record<string, AuroraTone> = {
+  Completed: "ready",
+  "In Progress": "proc",
+  New: "teal",
+};
 
 interface RoadmapCardProps {
   data: UserRoadmapDto;
@@ -36,15 +52,18 @@ interface RoadmapCardProps {
 
 export function RoadmapCard({ data }: RoadmapCardProps) {
   const router = useRouter();
-  const theme = useTheme();
   const { roadmap, progress } = data;
   const status = getStatus(progress);
+  const tone = STATUS_TONE[status.label] ?? "teal";
   const difficultyDist = getDifficultyDistribution(roadmap.steps);
   const { execute: updateVisibility } = useUpdateVisibilityCommand();
   const { execute: deleteRoadmap } = useDeleteRoadmapCommand();
   const { showSnackbar } = useSnackbar();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const isPublic = roadmap.visibility === RoadmapVisibility.PUBLIC;
+  const category = roadmap.categoryName ?? "Roadmap";
+
+  const open = () => router.push(`/roadmaps/${roadmap.id}`);
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -66,150 +85,79 @@ export function RoadmapCard({ data }: RoadmapCardProps) {
     );
   };
 
-  const styles = makeStyles(status.color, theme);
-
   return (
     <>
-      <Card
-        onClick={() => router.push(`/roadmaps/${roadmap.id}`)}
-        sx={styles.card}
-        variant="glass"
-      >
-        <Card.Content>
-          {/* Top row: Title + Progress ring */}
-          <Box sx={styles.header}>
-            <Box sx={styles.headerContent}>
-              <Box sx={styles.titleContainer}>
-                <Typography variant="h6" sx={styles.title}>
-                  {roadmap.title}
-                </Typography>
-              </Box>
-              {roadmap.description && (
-                <Typography variant="body2" sx={styles.description}>
-                  {roadmap.description}
-                </Typography>
-              )}
-            </Box>
+      <Card variant="aurora" accent={toneColor(tone)} onClick={open}>
+        <Card.Zone>
+          <Card.ZoneCat icon={<Map size={13} />}>{category}</Card.ZoneCat>
+          <StatusPill tone={tone} label={status.label} />
+        </Card.Zone>
 
-            {/* Circular progress ring */}
-            <Box sx={styles.progressContainer}>
-              {/* Track */}
-              <CircularProgress
-                variant="determinate"
-                value={100}
-                size={64}
-                thickness={4}
-                sx={styles.progressTrack}
-              />
-              {/* Value */}
-              <CircularProgress
-                variant="determinate"
-                value={progress.progressPercentage}
-                size={64}
-                thickness={4}
-                sx={styles.progressValue}
-              />
-              <Box sx={styles.progressCenter}>
-                <Typography variant="caption" sx={styles.progressText}>
-                  {progress.progressPercentage}%
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
+        <Card.Body>
+          <Card.Head>
+            <Card.HeadText>
+              <Card.Title>{roadmap.title}</Card.Title>
+            </Card.HeadText>
+            <ProgressRing value={progress.progressPercentage} />
+          </Card.Head>
 
-          {/* Status badge */}
-          <Box sx={styles.statusBadge}>
-            <Chip size="small" label={status.label} sx={styles.statusChip} />
-          </Box>
+          {roadmap.description && <Card.Desc>{roadmap.description}</Card.Desc>}
 
-          {/* Stats row */}
-          <Box sx={styles.statsRow}>
-            <Box sx={styles.statItem}>
-              <BookOpen size={18} color={theme.palette.text.secondary} />
-              <Typography variant="caption" sx={styles.statText}>
-                {progress.completedSteps}/{progress.totalSteps} steps
-              </Typography>
-            </Box>
-            <Box sx={styles.statItem}>
-              <Clock size={18} color={theme.palette.text.secondary} />
-              <Typography variant="caption" sx={styles.statText}>
-                {formatDuration(roadmap.totalEstimatedDuration)}
-              </Typography>
-            </Box>
-          </Box>
+          <Card.DataRow>
+            <Card.DataCell label="Steps" icon={<BookOpen size={15} />}>
+              {progress.completedSteps}/{progress.totalSteps} steps
+            </Card.DataCell>
+            <Card.DataCell label="Duration" icon={<Clock size={15} />}>
+              {formatDuration(roadmap.totalEstimatedDuration)}
+            </Card.DataCell>
+          </Card.DataRow>
 
-          {/* Difficulty chips */}
-          {Object.keys(difficultyDist).length > 0 && (
-            <Box sx={styles.difficultyRow}>
-              {Object.entries(difficultyDist).map(([difficulty, count]) => (
-                <Chip
-                  key={difficulty}
-                  size="small"
-                  label={`${count} ${difficulty}`}
-                  sx={{
-                    ...styles.difficultyChip,
-                    bgcolor: alpha(
-                      DIFFICULTY_COLORS[difficulty] ||
-                        theme.palette.text.secondary,
-                      0.1,
-                    ),
-                    color:
-                      DIFFICULTY_COLORS[difficulty] ||
-                      theme.palette.text.secondary,
-                  }}
-                />
-              ))}
-            </Box>
-          )}
-        </Card.Content>
+          <MixBar segments={difficultySegments(difficultyDist)} />
+        </Card.Body>
 
-        <Card.Footer>
-          <Box sx={styles.footerContent}>
-            <Box sx={styles.footerInfo}>
-              <Tooltip
-                title={
-                  isPublic
-                    ? "Public — click to make private"
-                    : "Private — click to share publicly"
-                }
-              >
-                <IconButton
-                  size="small"
-                  onClick={handleToggleVisibility}
-                  sx={{ p: 0.5 }}
-                >
-                  {isPublic ? (
-                    <Globe size={16} color={theme.palette.success.main} />
-                  ) : (
-                    <Lock size={16} color={theme.palette.text.secondary} />
-                  )}
-                </IconButton>
-              </Tooltip>
-              {roadmap.recommendedPace && (
-                <Chip
-                  size="small"
-                  label={roadmap.recommendedPace}
-                  sx={styles.paceChip}
-                />
-              )}
-              <Typography variant="caption" sx={styles.relativeTime}>
-                {formatRelativeTime(roadmap.createdAt)}
-              </Typography>
-            </Box>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-              <Tooltip title="Delete roadmap">
-                <IconButton
-                  size="small"
-                  onClick={handleDeleteClick}
-                  sx={styles.deleteButton}
-                >
-                  <Trash2 size={16} />
-                </IconButton>
-              </Tooltip>
-              <ArrowRight size={20} className="arrow-icon" />
-            </Box>
-          </Box>
-        </Card.Footer>
+        <Card.Foot>
+          <Card.FootLeft>
+            {roadmap.recommendedPace && (
+              <Pill tone="concept" icon={<Calendar size={13} />}>
+                {formatPace(roadmap.recommendedPace)}
+              </Pill>
+            )}
+            <Card.FootDate>
+              {formatRelativeTime(roadmap.createdAt)}
+            </Card.FootDate>
+          </Card.FootLeft>
+          <Card.Actions>
+            <AuroraIconButton
+              ariaLabel={isPublic ? "Public" : "Private"}
+              title={
+                isPublic
+                  ? "Public — click to make private"
+                  : "Private — click to share publicly"
+              }
+              onClick={handleToggleVisibility}
+            >
+              {isPublic ? <Globe size={16} /> : <Lock size={16} />}
+            </AuroraIconButton>
+            <AuroraIconButton
+              ariaLabel="Delete"
+              title="Delete roadmap"
+              onClick={handleDeleteClick}
+            >
+              <Trash2 size={16} />
+            </AuroraIconButton>
+            <AuroraIconButton
+              ariaLabel="Open"
+              title="Open"
+              go
+              onClick={(e) => {
+                e.stopPropagation();
+                open();
+              }}
+            >
+              <ArrowRight size={18} />
+            </AuroraIconButton>
+          </Card.Actions>
+        </Card.Foot>
       </Card>
 
       <ConfirmDialog

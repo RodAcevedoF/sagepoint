@@ -72,7 +72,11 @@ describe("RoadmapCard", () => {
     const data = makeUserRoadmap({ total: 3 });
     renderWithProviders(<RoadmapCard data={data} />);
 
-    expect(screen.getByText("3 beginner")).toBeInTheDocument();
+    // MixBar legend renders <b>3</b> beginner — text spans nodes
+    const legendItem = screen
+      .getAllByText("beginner")
+      .find((el) => el.textContent?.trim() === "3 beginner");
+    expect(legendItem).toBeDefined();
   });
 
   it("shows recommended pace chip", () => {

@@ -1,14 +1,15 @@
 "use client";
 
 import { lazy, Suspense, useState } from "react";
-import { Box, Typography, useTheme, Chip } from "@mui/material";
-import { Map, Trash2, Layers, HardDrive, Calendar } from "lucide-react";
+import { Box } from "@mui/material";
+import { Map, Trash2, Layers, FileText, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import {
   Button,
   ConfirmDialog,
   Loader,
+  Pill,
   useSnackbar,
   useModal,
 } from "@/shared/components";
@@ -17,10 +18,10 @@ import {
   ButtonSizes,
   ButtonIconPositions,
 } from "@/shared/types";
+import { aurora as auroraPalette, auroraTint } from "@/shared/theme";
 import { useDeleteDocumentCommand } from "@/application/document";
 import { ProcessingStatusBadge } from "./ProcessingStatusBadge";
 import { DocumentFilenameEditor } from "./DocumentFilenameEditor/DocumentFilenameEditor";
-import { makeStyles } from "./DocumentDetailHero.styles";
 import type {
   DocumentDetailDto,
   DocumentSummaryDto,
@@ -55,6 +56,12 @@ function formatRelativeDate(dateStr: string): string {
   return date.toLocaleDateString();
 }
 
+function fileExtension(filename: string): string | undefined {
+  const dot = filename.lastIndexOf(".");
+  if (dot < 1 || dot === filename.length - 1) return undefined;
+  return filename.slice(dot + 1).toUpperCase();
+}
+
 interface DocumentDetailHeroProps {
   document: DocumentDetailDto;
   summary?: DocumentSummaryDto | null;
@@ -66,15 +73,14 @@ export function DocumentDetailHero({
   summary,
   editable = false,
 }: DocumentDetailHeroProps) {
-  const theme = useTheme();
   const router = useRouter();
   const { openModal } = useModal();
   const { execute: deleteDocument } = useDeleteDocumentCommand();
   const { showSnackbar } = useSnackbar();
-  const styles = makeStyles(theme);
 
   const isReady = document.processingStage === "READY";
   const fileSize = formatFileSize(document.fileSize);
+  const ext = fileExtension(document.filename);
 
   const [confirmOpen, setConfirmOpen] = useState(false);
 
@@ -101,99 +107,165 @@ export function DocumentDetailHero({
     );
   };
 
+  const kickerParts = ["Document", ext, fileSize].filter(Boolean) as string[];
+
   return (
     <MotionBox
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      sx={styles.wrapper}
+      sx={{
+        position: "relative",
+        overflow: "hidden",
+        borderRadius: "24px",
+        border: `1px solid ${auroraPalette.line}`,
+        background:
+          "linear-gradient(168deg, oklch(0.235 0.026 262 / 0.92), oklch(0.165 0.026 262 / 0.85))",
+        boxShadow: auroraPalette.shadow.card,
+        padding: { xs: "28px 22px 26px", md: "38px 40px 34px" },
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          inset: "0 0 auto 0",
+          height: "4px",
+          background: `linear-gradient(90deg, ${auroraPalette.teal}, ${auroraPalette.status.concept} 70%, ${auroraPalette.status.enrich})`,
+        },
+      }}
     >
-      <Box sx={styles.card}>
-        {/* Gradient accent bar */}
-        <Box sx={styles.accentBar} />
+      <Box
+        aria-hidden
+        sx={{
+          position: "absolute",
+          top: "-30%",
+          right: "-6%",
+          width: "46%",
+          height: "90%",
+          background: `radial-gradient(closest-side, ${auroraTint(auroraPalette.status.ready, 0.24)}, transparent)`,
+          filter: "blur(26px)",
+          opacity: 0.55,
+          pointerEvents: "none",
+        }}
+      />
 
-        {/* Decorative gradient orbs */}
-        <Box sx={styles.orbTopRight} />
-        <Box sx={styles.orbBottomLeft} />
-
-        <DocumentFilenameEditor
-          documentId={document.id}
-          filename={document.filename}
-          editable={editable}
-        />
-
-        <Box sx={styles.chipRow}>
-          <ProcessingStatusBadge stage={document.processingStage} />
-          {summary?.topicArea && (
-            <Chip
-              label={summary.topicArea}
-              size="small"
-              sx={styles.topicChip}
-            />
-          )}
-          {summary?.difficulty && (
-            <Chip
-              label={summary.difficulty}
-              size="small"
-              variant="outlined"
-              sx={styles.difficultyChip}
-            />
-          )}
-          {isReady &&
-            document.conceptCount != null &&
-            document.conceptCount > 0 && (
-              <Chip
-                icon={<Layers size={12} />}
-                label={`${document.conceptCount} concepts`}
-                size="small"
-                sx={styles.conceptChip}
-              />
-            )}
+      <Box
+        sx={{
+          position: "relative",
+          zIndex: 1,
+          display: "flex",
+          width: "fit-content",
+          alignItems: "center",
+          gap: "9px",
+          whiteSpace: "nowrap",
+          marginBottom: "16px",
+          fontFamily: auroraPalette.font.mono,
+          fontSize: "11.5px",
+          fontWeight: 600,
+          letterSpacing: "0.12em",
+          textTransform: "uppercase",
+          color: auroraPalette.txLow,
+        }}
+      >
+        <Box
+          component="span"
+          sx={{
+            width: "30px",
+            height: "30px",
+            borderRadius: "9px",
+            display: "grid",
+            placeItems: "center",
+            background: `color-mix(in oklch, ${auroraPalette.teal} 14%, ${auroraPalette.surface2})`,
+            border: `1px solid ${auroraTint(auroraPalette.teal, 0.24)}`,
+            color: auroraPalette.teal,
+          }}
+        >
+          <FileText size={16} />
         </Box>
+        {kickerParts.join(" · ")}
+      </Box>
 
-        {/* Metadata row */}
-        <Box sx={styles.metaRow}>
-          {fileSize && (
-            <Box sx={styles.metaItem}>
-              <HardDrive size={16} color={theme.palette.text.secondary} />
-              <Typography
-                variant="body2"
-                sx={{ color: theme.palette.text.secondary }}
-              >
-                {fileSize}
-              </Typography>
-            </Box>
-          )}
-          <Box sx={styles.metaItem}>
-            <Calendar size={16} color={theme.palette.text.secondary} />
-            <Typography
-              variant="body2"
-              sx={{ color: theme.palette.text.secondary }}
-            >
-              Uploaded {formatRelativeDate(document.createdAt)}
-            </Typography>
-          </Box>
-        </Box>
+      <DocumentFilenameEditor
+        documentId={document.id}
+        filename={document.filename}
+        editable={editable}
+      />
 
-        <Box sx={styles.actionRow}>
-          {summary && (
-            <Button
-              label="Generate Roadmap"
-              icon={Map}
-              iconPos={ButtonIconPositions.START}
-              size={ButtonSizes.MEDIUM}
-              onClick={handleGenerateRoadmap}
-            />
+      <Box
+        sx={{
+          position: "relative",
+          zIndex: 1,
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          gap: "10px",
+          marginTop: "20px",
+        }}
+      >
+        <ProcessingStatusBadge stage={document.processingStage} />
+        {summary?.topicArea && <Pill tone="teal">{summary.topicArea}</Pill>}
+        {summary?.difficulty && <Pill tone="proc">{summary.difficulty}</Pill>}
+        {isReady &&
+          document.conceptCount != null &&
+          document.conceptCount > 0 && (
+            <Pill tone="concept" icon={<Layers size={14} />}>
+              {document.conceptCount} concepts
+            </Pill>
           )}
+      </Box>
+
+      <Box
+        sx={{
+          position: "relative",
+          zIndex: 1,
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "8px",
+          marginTop: "16px",
+          fontFamily: auroraPalette.font.mono,
+          fontSize: "13px",
+          color: auroraPalette.txLow,
+          whiteSpace: "nowrap",
+        }}
+      >
+        <Calendar size={14} />
+        Uploaded {formatRelativeDate(document.createdAt)}
+      </Box>
+
+      <Box
+        sx={{
+          position: "relative",
+          zIndex: 1,
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "12px",
+          marginTop: "28px",
+        }}
+      >
+        {summary && (
           <Button
-            label="Delete"
-            icon={Trash2}
+            label="Generate Roadmap"
+            icon={Map}
             iconPos={ButtonIconPositions.START}
             size={ButtonSizes.MEDIUM}
-            variant={ButtonVariants.OUTLINED}
-            onClick={() => setConfirmOpen(true)}
+            variant={ButtonVariants.AURORA}
+            onClick={handleGenerateRoadmap}
           />
-        </Box>
+        )}
+        <Button
+          label="Delete"
+          icon={Trash2}
+          iconPos={ButtonIconPositions.START}
+          size={ButtonSizes.MEDIUM}
+          variant={ButtonVariants.AURORA_OUTLINE}
+          onClick={() => setConfirmOpen(true)}
+          sx={{
+            color: auroraPalette.status.fail,
+            borderColor: auroraTint(auroraPalette.status.fail, 0.3),
+            "&:hover": {
+              background: auroraTint(auroraPalette.status.fail, 0.12),
+              borderColor: auroraTint(auroraPalette.status.fail, 0.5),
+            },
+          }}
+        />
       </Box>
 
       <ConfirmDialog

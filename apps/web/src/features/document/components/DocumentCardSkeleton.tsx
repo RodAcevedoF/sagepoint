@@ -1,55 +1,36 @@
-import { Box, Skeleton } from "@mui/material";
-import { Card } from "@/shared/components";
+import { AuroraSkeleton, Card, toneColor } from "@/shared/components";
 
 export function DocumentCardSkeleton() {
   return (
-    <Card variant="glass" hoverable={false}>
-      <Card.Content>
-        {/* Header: icon + title + badge */}
-        <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
-          <Skeleton
-            variant="rounded"
-            width={44}
-            height={44}
-            animation="wave"
-            sx={{ borderRadius: 2, flexShrink: 0 }}
-          />
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Skeleton variant="text" width="70%" height={24} animation="wave" />
-            <Skeleton
-              variant="rounded"
-              width={80}
-              height={20}
-              animation="wave"
-              sx={{ borderRadius: 10, mt: 0.5 }}
-            />
-          </Box>
-        </Box>
+    <Card variant="aurora" accent={toneColor("proc")}>
+      <Card.Zone>
+        <AuroraSkeleton height={22} width={70} radius={999} />
+        <AuroraSkeleton height={22} width={88} radius={999} />
+      </Card.Zone>
 
-        {/* Stats row */}
-        <Box sx={{ display: "flex", gap: 2, mt: 1.5 }}>
-          <Skeleton variant="text" width={60} height={18} animation="wave" />
-          <Skeleton variant="text" width={60} height={18} animation="wave" />
-        </Box>
-      </Card.Content>
+      <Card.Body>
+        <Card.Head>
+          <AuroraSkeleton height={44} width={44} radius={13} />
+          <Card.HeadText
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 9,
+              paddingTop: 4,
+            }}
+          >
+            <AuroraSkeleton height={18} width="82%" />
+            <AuroraSkeleton height={11} width="44%" />
+          </Card.HeadText>
+        </Card.Head>
+        <AuroraSkeleton height={11} width="92%" />
+        <AuroraSkeleton height={11} width="70%" />
+      </Card.Body>
 
-      <Card.Footer>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Skeleton variant="text" width={70} height={18} animation="wave" />
-          <Skeleton
-            variant="rectangular"
-            width={16}
-            height={16}
-            animation="wave"
-          />
-        </Box>
-      </Card.Footer>
+      <Card.Foot>
+        <AuroraSkeleton height={12} width={80} />
+        <AuroraSkeleton height={20} width={60} />
+      </Card.Foot>
     </Card>
   );
 }

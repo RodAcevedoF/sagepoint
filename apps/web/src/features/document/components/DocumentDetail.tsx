@@ -1,13 +1,11 @@
 "use client";
 
 import { lazy, Suspense, useEffect, useRef } from "react";
-import { Box, Typography, Grid } from "@mui/material";
-import { Brain, ArrowLeft } from "lucide-react";
+import { Box, Grid } from "@mui/material";
+import { Brain } from "lucide-react";
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
-import { Loader, EmptyState, Button } from "@/shared/components";
+import { BackLink, Card, EmptyState, Loader } from "@/shared/components";
 import { useCurrentUser } from "@/features/auth/context/UserContext";
-import { ButtonVariants, ButtonIconPositions } from "@/shared/types";
 import { useDocumentEvents, useAppDispatch } from "@/shared/hooks";
 import {
   useDocumentSummaryQuery,
@@ -37,7 +35,6 @@ interface DocumentDetailProps {
 
 export function DocumentDetail({ documentId }: DocumentDetailProps) {
   const dispatch = useAppDispatch();
-  const router = useRouter();
   const currentUserId = useCurrentUser()?.id;
   const { data: document, isLoading: docLoading } =
     useGetDocumentByIdQuery(documentId);
@@ -96,17 +93,16 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
   }
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-      {/* Back Button */}
-      <Box>
-        <Button
-          label="Back to Documents"
-          icon={ArrowLeft}
-          iconPos={ButtonIconPositions.START}
-          variant={ButtonVariants.GHOST}
-          onClick={() => router.push("/documents")}
-        />
-      </Box>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "28px",
+        paddingTop: "4px",
+        paddingBottom: "64px",
+      }}
+    >
+      <BackLink label="Back to Documents" href="/documents" />
 
       <DocumentDetailHero
         document={document}
@@ -118,7 +114,6 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
         <DocumentProcessingView documentId={documentId} />
       ) : (
         <>
-          {/* Summary section */}
           <MotionBox
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -136,7 +131,6 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
             )}
           </MotionBox>
 
-          {/* Concept Map */}
           {summary && (summary.conceptCount ?? 0) > 0 && (
             <MotionBox
               initial={{ opacity: 0, y: 20 }}
@@ -149,58 +143,75 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
             </MotionBox>
           )}
 
-          {/* Quizzes section */}
           <MotionBox
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.35 }}
           >
-            <Box
-              sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}
+            <Card
+              variant="aurora"
+              tone="concept"
+              hoverable={false}
+              withAura={false}
             >
-              <Brain size={22} />
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                Quizzes
-              </Typography>
-            </Box>
-            <Box sx={{ mb: 15 }}>
-              {isEnriching && !quizzes?.length ? (
-                <Loader
-                  variant="circular"
-                  message={
-                    document?.processingStage === "ENRICHING"
-                      ? "Generating quiz questions..."
-                      : "Preparing quiz..."
-                  }
-                  sx={{ mt: 15 }}
-                />
-              ) : quizzesLoading ? (
-                <Loader variant="circular" />
-              ) : quizzes && quizzes.length > 0 ? (
-                <Grid container spacing={2}>
-                  {quizzes.map((quiz, index) => (
-                    <Grid key={quiz.id} size={{ xs: 12, sm: 6 }}>
-                      <MotionBox
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{
-                          duration: 0.4,
-                          delay: 0.2 + index * 0.08,
-                        }}
-                      >
-                        <QuizCard documentId={documentId} quiz={quiz} />
-                      </MotionBox>
-                    </Grid>
-                  ))}
-                </Grid>
-              ) : (
-                <EmptyState
-                  title="No quizzes yet"
-                  description="Quizzes will be generated once the document is fully analyzed."
-                  icon={Brain}
-                />
-              )}
-            </Box>
+              <Card.Body
+                sx={{
+                  padding: { xs: "22px 24px 26px", md: "30px 34px 32px" },
+                }}
+              >
+                <Card.Head sx={{ alignItems: "center", marginBottom: "22px" }}>
+                  <Card.Icon>
+                    <Brain size={22} />
+                  </Card.Icon>
+                  <Card.Title
+                    sx={{
+                      fontSize: "23px",
+                      WebkitLineClamp: "unset",
+                      display: "block",
+                      overflow: "visible",
+                    }}
+                  >
+                    Quizzes
+                  </Card.Title>
+                </Card.Head>
+
+                {isEnriching && !quizzes?.length ? (
+                  <Loader
+                    variant="circular"
+                    message={
+                      document?.processingStage === "ENRICHING"
+                        ? "Generating quiz questions..."
+                        : "Preparing quiz..."
+                    }
+                  />
+                ) : quizzesLoading ? (
+                  <Loader variant="circular" />
+                ) : quizzes && quizzes.length > 0 ? (
+                  <Grid container spacing={2}>
+                    {quizzes.map((quiz, index) => (
+                      <Grid key={quiz.id} size={{ xs: 12, sm: 6 }}>
+                        <MotionBox
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{
+                            duration: 0.4,
+                            delay: 0.2 + index * 0.08,
+                          }}
+                        >
+                          <QuizCard documentId={documentId} quiz={quiz} />
+                        </MotionBox>
+                      </Grid>
+                    ))}
+                  </Grid>
+                ) : (
+                  <EmptyState
+                    title="No quizzes yet"
+                    description="Quizzes will be generated once the document is fully analyzed."
+                    icon={Brain}
+                  />
+                )}
+              </Card.Body>
+            </Card>
           </MotionBox>
         </>
       )}

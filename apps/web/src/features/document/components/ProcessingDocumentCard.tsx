@@ -1,56 +1,31 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import {
-  Box,
-  Typography,
-  LinearProgress,
-  alpha,
-  useTheme,
-} from "@mui/material";
 import { FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Card } from "@/shared/components";
+import { Card, AuroraSkeleton, Pipeline, toneColor } from "@/shared/components";
 import { useDocumentEvents, useAppDispatch } from "@/shared/hooks";
 import { documentApi } from "@/infrastructure/api/documentApi";
 import type { DocumentDetailDto } from "@/infrastructure/api/documentApi";
-import type { DocumentEventStage } from "@/shared/hooks";
-
-const STAGE_LABELS: Record<string, string> = {
-  parsing: "Parsing document...",
-  analyzing: "Analyzing content...",
-  summarized: "Summary ready!",
-  enriching: "Generating quiz & concepts...",
-  ready: "Ready!",
-};
-
-function stageProgress(stage: DocumentEventStage | null): number {
-  switch (stage) {
-    case "parsing":
-      return 25;
-    case "analyzing":
-      return 50;
-    case "summarized":
-      return 65;
-    case "enriching":
-      return 80;
-    case "ready":
-      return 100;
-    default:
-      return 10;
-  }
-}
+import { mapToPipelineStage, PIPELINE_STAGES } from "../utils";
 
 interface ProcessingDocumentCardProps {
   document: DocumentDetailDto;
   onComplete?: () => void;
 }
 
+const SSE_STAGE_TO_PIPELINE: Record<string, 1 | 2 | 3> = {
+  parsing: 1,
+  analyzing: 2,
+  summarized: 2,
+  enriching: 3,
+  ready: 3,
+};
+
 export function ProcessingDocumentCard({
   document,
   onComplete,
 }: ProcessingDocumentCardProps) {
-  const theme = useTheme();
   const router = useRouter();
   const dispatch = useAppDispatch();
   const hasNotified = useRef(false);
@@ -73,90 +48,48 @@ export function ProcessingDocumentCard({
     }
   }, [stage, dispatch]);
 
-  const progress = stageProgress(stage);
-  const label = (stage && STAGE_LABELS[stage]) || "Starting...";
+  const pipelineStage: 1 | 2 | 3 =
+    (stage && SSE_STAGE_TO_PIPELINE[stage]) ??
+    mapToPipelineStage(document.processingStage);
 
   return (
-    <Box
+    <Card
+      variant="aurora"
+      accent={toneColor("proc")}
       onClick={() => router.push(`/documents/${document.id}`)}
-      sx={{
-        cursor: "pointer",
-        transition: "transform 0.2s",
-        "&:hover": { transform: "translateY(-3px)" },
-      }}
     >
-      <Card
-        variant="glass"
-        sx={{
-          position: "relative",
-          overflow: "hidden",
-          "&::before": {
-            content: '""',
-            position: "absolute",
-            inset: 0,
-            borderRadius: "inherit",
-            border: `1.5px solid transparent`,
-            background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.3)}, ${alpha(theme.palette.info.main, 0.3)}) border-box`,
-            WebkitMask:
-              "linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)",
-            WebkitMaskComposite: "xor",
-            maskComposite: "exclude",
-            animation: "pulse 2s ease-in-out infinite",
-          },
-          "@keyframes pulse": {
-            "0%, 100%": { opacity: 0.5 },
-            "50%": { opacity: 1 },
-          },
-        }}
-      >
-        <Card.Content>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
-            <Box
-              sx={{
-                width: 40,
-                height: 40,
-                borderRadius: 2,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                bgcolor: alpha(theme.palette.primary.main, 0.12),
-                color: theme.palette.primary.light,
-              }}
-            >
-              <FileText size={20} />
-            </Box>
-            <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography
-                variant="subtitle2"
-                sx={{
-                  fontWeight: 600,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {document.filename}
-              </Typography>
-              <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                {label}
-              </Typography>
-            </Box>
-          </Box>
-          <LinearProgress
-            variant="determinate"
-            value={progress}
-            sx={{
-              height: 4,
-              borderRadius: 2,
-              bgcolor: alpha(theme.palette.primary.main, 0.1),
-              "& .MuiLinearProgress-bar": {
-                borderRadius: 2,
-                background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.info.main})`,
-              },
+      <Pipeline
+        stages={PIPELINE_STAGES}
+        currentIndex={pipelineStage - 1}
+        eta="~processing"
+      />
+
+      <Card.Body style={{ paddingTop: 6 }}>
+        <Card.Head>
+          <Card.Icon>
+            <FileText size={22} />
+          </Card.Icon>
+          <Card.HeadText
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 9,
+              paddingTop: 4,
             }}
-          />
-        </Card.Content>
-      </Card>
-    </Box>
+          >
+            <Card.Title title={document.filename}>
+              {document.filename}
+            </Card.Title>
+            <AuroraSkeleton height={11} width="44%" />
+          </Card.HeadText>
+        </Card.Head>
+        <AuroraSkeleton height={11} width="92%" />
+        <AuroraSkeleton height={11} width="70%" />
+      </Card.Body>
+
+      <Card.Foot>
+        <Card.FootDate>extracting concepts…</Card.FootDate>
+      </Card.Foot>
+    </Card>
   );
 }

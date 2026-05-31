@@ -1,9 +1,25 @@
 "use client";
 
-import { Box, Typography, Chip, alpha, useTheme } from "@mui/material";
+import { Box } from "@mui/material";
 import { CheckCircle2, Circle, Lightbulb } from "lucide-react";
 import { Card } from "@/shared/components";
+import { aurora as auroraPalette, auroraTint } from "@/shared/theme";
 import type { QuestionDto } from "@/infrastructure/api/documentApi";
+
+type OptionState = "idle" | "selected" | "correct" | "wrong";
+
+function optionColor(state: OptionState): string {
+  switch (state) {
+    case "correct":
+      return auroraPalette.status.ready;
+    case "wrong":
+      return auroraPalette.status.fail;
+    case "selected":
+      return auroraPalette.status.concept;
+    case "idle":
+      return auroraPalette.txMid;
+  }
+}
 
 interface QuestionCardProps {
   question: QuestionDto;
@@ -18,34 +34,37 @@ export function QuestionCard({
   onAnswer,
   showResult,
 }: QuestionCardProps) {
-  const theme = useTheme();
-
   return (
-    <Card variant="outlined">
-      <Card.Content sx={{ p: { xs: 2.5, md: 3 } }}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2.5 }}>
+    <Card variant="aurora" tone="concept" hoverable={false} withAura={false}>
+      <Card.Body
+        sx={{ padding: { xs: "22px 22px 24px", md: "26px 30px 28px" } }}
+      >
+        <Box
+          component="p"
+          sx={{
+            fontFamily: auroraPalette.font.display,
+            fontWeight: 700,
+            fontSize: "18px",
+            color: auroraPalette.txHi,
+            lineHeight: 1.4,
+            margin: "0 0 6px",
+            letterSpacing: "-0.01em",
+          }}
+        >
           {question.order + 1}. {question.text}
-        </Typography>
+        </Box>
 
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: "10px" }}>
           {question.options.map((option) => {
             const isSelected = selectedAnswer === option.label;
-            const isCorrect = showResult && option.isCorrect;
-            const isWrong = showResult && isSelected && !option.isCorrect;
+            let state: OptionState = "idle";
+            if (showResult && option.isCorrect) state = "correct";
+            else if (showResult && isSelected && !option.isCorrect)
+              state = "wrong";
+            else if (isSelected) state = "selected";
 
-            let borderColor = alpha(theme.palette.divider, 0.2);
-            let bgColor = alpha(theme.palette.background.paper, 0.3);
-
-            if (isCorrect) {
-              borderColor = alpha(theme.palette.success.main, 0.4);
-              bgColor = alpha(theme.palette.success.main, 0.06);
-            } else if (isWrong) {
-              borderColor = alpha(theme.palette.error.main, 0.4);
-              bgColor = alpha(theme.palette.error.main, 0.06);
-            } else if (isSelected) {
-              borderColor = alpha(theme.palette.primary.main, 0.5);
-              bgColor = alpha(theme.palette.primary.main, 0.1);
-            }
+            const accent = optionColor(state);
+            const isActive = state !== "idle";
 
             return (
               <Box
@@ -54,83 +73,65 @@ export function QuestionCard({
                   !showResult && onAnswer(question.id, option.label)
                 }
                 sx={{
-                  p: 1.5,
-                  borderRadius: 2,
-                  cursor: showResult ? "default" : "pointer",
                   display: "flex",
                   alignItems: "center",
-                  gap: 1.5,
-                  border: `1px solid ${borderColor}`,
-                  bgcolor: bgColor,
-                  transition: "all 0.15s ease",
+                  gap: "12px",
+                  padding: "12px 14px",
+                  borderRadius: auroraPalette.radii.md,
+                  cursor: showResult ? "default" : "pointer",
+                  background: isActive
+                    ? auroraTint(accent, 0.1)
+                    : "oklch(0.27 0.022 262 / 0.4)",
+                  border: `1px solid ${
+                    isActive ? auroraTint(accent, 0.4) : auroraPalette.line
+                  }`,
+                  color: auroraPalette.tx,
+                  fontSize: "15px",
+                  lineHeight: 1.5,
+                  transition: "background .15s, border-color .15s",
                   ...(!showResult && {
                     "&:hover": {
-                      bgcolor: alpha(theme.palette.primary.main, 0.08),
-                      borderColor: alpha(theme.palette.primary.main, 0.3),
+                      background: auroraTint(
+                        auroraPalette.status.concept,
+                        0.08,
+                      ),
+                      borderColor: auroraTint(
+                        auroraPalette.status.concept,
+                        0.3,
+                      ),
                     },
                   }),
                 }}
               >
-                {showResult ? (
-                  isCorrect ? (
-                    <CheckCircle2
-                      size={18}
-                      color={theme.palette.success.light}
-                      style={{ flexShrink: 0 }}
-                    />
-                  ) : isWrong ? (
-                    <CheckCircle2
-                      size={18}
-                      color={theme.palette.error.light}
-                      style={{ flexShrink: 0 }}
-                    />
-                  ) : (
-                    <Circle
-                      size={18}
-                      color={alpha(theme.palette.text.secondary, 0.3)}
-                      style={{ flexShrink: 0 }}
-                    />
-                  )
-                ) : isSelected ? (
-                  <CheckCircle2
-                    size={18}
-                    color={theme.palette.primary.light}
-                    style={{ flexShrink: 0 }}
-                  />
-                ) : (
-                  <Circle
-                    size={18}
-                    color={alpha(theme.palette.text.secondary, 0.4)}
-                    style={{ flexShrink: 0 }}
-                  />
-                )}
-                <Chip
-                  label={option.label}
-                  size="small"
+                <Box
+                  component="span"
+                  sx={{ flexShrink: 0, display: "inline-flex", color: accent }}
+                >
+                  {isActive ? <CheckCircle2 size={18} /> : <Circle size={18} />}
+                </Box>
+                <Box
+                  component="span"
                   sx={{
+                    flexShrink: 0,
                     minWidth: 28,
                     height: 24,
+                    px: "8px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: auroraPalette.radii.pill,
+                    fontFamily: auroraPalette.font.mono,
+                    fontSize: "11px",
                     fontWeight: 700,
-                    fontSize: "0.7rem",
-                    bgcolor: isCorrect
-                      ? alpha(theme.palette.success.main, 0.2)
-                      : isWrong
-                        ? alpha(theme.palette.error.main, 0.2)
-                        : isSelected
-                          ? alpha(theme.palette.primary.main, 0.2)
-                          : alpha(theme.palette.text.secondary, 0.1),
-                    color: isCorrect
-                      ? theme.palette.success.light
-                      : isWrong
-                        ? theme.palette.error.light
-                        : isSelected
-                          ? theme.palette.primary.light
-                          : theme.palette.text.secondary,
+                    background: auroraTint(accent, 0.18),
+                    color: accent,
                   }}
-                />
-                <Typography variant="body2" sx={{ flex: 1 }}>
+                >
+                  {option.label}
+                </Box>
+                <Box component="span" sx={{ flex: 1 }}>
                   {option.text}
-                </Typography>
+                </Box>
               </Box>
             );
           })}
@@ -140,28 +141,33 @@ export function QuestionCard({
           <Box
             sx={{
               display: "flex",
-              gap: 1,
-              mt: 2,
-              p: 1.5,
-              borderRadius: 1.5,
-              bgcolor: alpha(theme.palette.info.main, 0.06),
-              border: `1px solid ${alpha(theme.palette.info.main, 0.15)}`,
+              alignItems: "flex-start",
+              gap: "12px",
+              marginTop: "4px",
+              padding: "14px 16px",
+              borderRadius: auroraPalette.radii.md,
+              background: auroraTint(auroraPalette.status.proc, 0.08),
+              border: `1px solid ${auroraTint(auroraPalette.status.proc, 0.2)}`,
+              color: auroraPalette.txMid,
+              fontSize: "14px",
+              lineHeight: 1.55,
             }}
           >
-            <Lightbulb
-              size={16}
-              color={theme.palette.info.light}
-              style={{ flexShrink: 0, marginTop: 2 }}
-            />
-            <Typography
-              variant="body2"
-              sx={{ color: theme.palette.text.secondary }}
+            <Box
+              component="span"
+              sx={{
+                flexShrink: 0,
+                display: "inline-flex",
+                color: auroraPalette.status.proc,
+                marginTop: "2px",
+              }}
             >
-              {question.explanation}
-            </Typography>
+              <Lightbulb size={16} />
+            </Box>
+            {question.explanation}
           </Box>
         )}
-      </Card.Content>
+      </Card.Body>
     </Card>
   );
 }

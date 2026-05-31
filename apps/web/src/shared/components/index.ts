@@ -9,6 +9,35 @@ export { FilterChips, type FilterChipOption } from "./ui/FilterChips";
 export { SectionTitle } from "./ui/SectionTitle/SectionTitle";
 export { SearchInput } from "./ui/SearchInput";
 
+// Aurora design system
+export {
+  AuroraGrid,
+  AuroraHero,
+  AuroraIconButton,
+  AuroraSkeleton,
+  AuroraTabs,
+  type AuroraTabItem,
+  BackLink,
+  FooterCTA,
+  MixBar,
+  difficultySegments,
+  type MixSegment,
+  Pill,
+  Pipeline,
+  ProgressRing,
+  RootWrapper,
+  SearchRow,
+  SecTitle,
+  StatCard,
+  StatGrid,
+  StatusPill,
+  toneColor,
+  difficultyColor,
+  resolveAccent,
+  type AuroraTone,
+  type AuroraDifficulty,
+} from "./ui/Aurora";
+
 // layout
 export {
   AppBar,

@@ -5,6 +5,9 @@ export enum ButtonVariants {
   GHOST = "ghost",
   GLASS = "glass",
   DANGER = "danger",
+  AURORA = "aurora",
+  AURORA_GHOST = "aurora-ghost",
+  AURORA_OUTLINE = "aurora-outline",
 }
 
 export enum ButtonTypes {

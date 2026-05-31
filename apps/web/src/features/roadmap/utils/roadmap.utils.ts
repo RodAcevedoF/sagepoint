@@ -72,6 +72,16 @@ export function formatRelativeTime(dateStr: string): string {
   return `${months}mo ago`;
 }
 
+export function formatPace(pace?: string): string | undefined {
+  if (!pace) return undefined;
+  return pace
+    .replace(/\s*concepts?\s+per\s+week\b/i, "/week")
+    .replace(/\s*hours?\s+per\s+week\b/i, "h/week")
+    .replace(/\s*hours?\s+per\s+day\b/i, "h/day")
+    .replace(/\s*minutes?\s+per\s+day\b/i, "m/day")
+    .trim();
+}
+
 export function getDifficultyDistribution(
   steps: UserRoadmapDto["roadmap"]["steps"],
 ) {

@@ -1,8 +1,9 @@
 "use client";
 
-import { Box, Typography, Chip, alpha, useTheme } from "@mui/material";
+import { Box } from "@mui/material";
 import { BookOpen, Lightbulb } from "lucide-react";
-import { Card } from "@/shared/components";
+import { Card, Pill } from "@/shared/components";
+import { aurora as auroraPalette, auroraTint } from "@/shared/theme";
 import type { DocumentSummaryDto } from "@/infrastructure/api/documentApi";
 
 interface DocumentSummaryViewProps {
@@ -10,85 +11,107 @@ interface DocumentSummaryViewProps {
 }
 
 export function DocumentSummaryView({ summary }: DocumentSummaryViewProps) {
-  const theme = useTheme();
-
   return (
-    <Card variant="glass">
-      <Card.Header>
-        <Card.IconBox>
-          <BookOpen size={20} />
-        </Card.IconBox>
-        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-          Summary
-        </Typography>
-      </Card.Header>
-      <Card.Content>
-        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 2.5 }}>
-          <Chip
-            label={summary.topicArea}
-            size="small"
+    <Card variant="aurora" tone="teal" hoverable={false} withAura={false}>
+      <Card.Body
+        sx={{ padding: { xs: "22px 24px 26px", md: "30px 34px 32px" } }}
+      >
+        <Card.Head sx={{ alignItems: "center", marginBottom: "22px" }}>
+          <Card.Icon>
+            <BookOpen size={22} />
+          </Card.Icon>
+          <Card.Title
             sx={{
-              bgcolor: alpha(theme.palette.primary.main, 0.1),
-              color: theme.palette.primary.light,
-              fontWeight: 600,
+              fontSize: "23px",
+              WebkitLineClamp: "unset",
+              display: "block",
+              overflow: "visible",
             }}
-          />
-          <Chip
-            label={summary.difficulty}
-            size="small"
-            sx={{
-              bgcolor: alpha(theme.palette.warning.main, 0.1),
-              color: theme.palette.warning.light,
-              fontWeight: 500,
-            }}
-          />
+          >
+            Summary
+          </Card.Title>
+        </Card.Head>
+
+        <Box sx={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          <Pill tone="teal">{summary.topicArea}</Pill>
+          {summary.difficulty && <Pill tone="proc">{summary.difficulty}</Pill>}
           {summary.estimatedReadTime && (
-            <Chip
-              label={`${summary.estimatedReadTime} min read`}
-              size="small"
-              variant="outlined"
-              sx={{ color: alpha(theme.palette.text.secondary, 0.8) }}
-            />
+            <Pill tone="concept">{summary.estimatedReadTime} min read</Pill>
           )}
         </Box>
 
-        <Typography variant="body1" sx={{ mb: 3 }}>
+        <Box
+          component="p"
+          sx={{
+            fontSize: "16px",
+            lineHeight: 1.68,
+            color: auroraPalette.tx,
+            maxWidth: "78ch",
+            textWrap: "pretty",
+            margin: 0,
+          }}
+        >
           {summary.overview}
-        </Typography>
+        </Box>
 
-        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5 }}>
+        <Box
+          component="p"
+          sx={{
+            fontFamily: auroraPalette.font.mono,
+            fontSize: "11.5px",
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            color: auroraPalette.txLow,
+            fontWeight: 600,
+            margin: 0,
+          }}
+        >
           Key Points
-        </Typography>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+        </Box>
+
+        <Box sx={{ display: "flex", flexDirection: "column", gap: "11px" }}>
           {summary.keyPoints.map((point, i) => (
             <Box
               key={i}
               sx={{
                 display: "flex",
-                gap: 1.5,
                 alignItems: "flex-start",
-                p: 1.5,
-                borderRadius: 2.5,
-                background: alpha(theme.palette.info.main, 0.04),
-                border: `1px solid ${alpha(theme.palette.info.main, 0.12)}`,
+                gap: "13px",
+                padding: "15px 18px",
+                borderRadius: auroraPalette.radii.md,
+                background: "oklch(0.27 0.022 262 / 0.4)",
+                border: `1px solid ${auroraPalette.line}`,
+                fontSize: "15px",
+                lineHeight: 1.5,
+                color: auroraPalette.tx,
+                transition: "border-color .15s, background .15s",
+                "&:hover": {
+                  borderColor: auroraTint(auroraPalette.status.proc, 0.35),
+                  background: "oklch(0.27 0.022 262 / 0.6)",
+                },
               }}
             >
               <Box
+                component="span"
                 sx={{
-                  mt: 0.25,
-                  color: theme.palette.info.light,
-                  flexShrink: 0,
+                  flex: "none",
+                  width: "30px",
+                  height: "30px",
+                  borderRadius: "9px",
+                  display: "grid",
+                  placeItems: "center",
+                  background: auroraTint(auroraPalette.status.proc, 0.13),
+                  border: `1px solid ${auroraTint(auroraPalette.status.proc, 0.3)}`,
+                  color: auroraPalette.status.proc,
                 }}
               >
                 <Lightbulb size={16} />
               </Box>
-              <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                {point}
-              </Typography>
+              {point}
             </Box>
           ))}
         </Box>
-      </Card.Content>
+      </Card.Body>
     </Card>
   );
 }

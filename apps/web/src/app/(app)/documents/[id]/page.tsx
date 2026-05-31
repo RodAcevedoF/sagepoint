@@ -1,17 +1,19 @@
-'use client';
+"use client";
 
-import { use } from 'react';
-import { Box, Container } from '@mui/material';
-import { DocumentDetail } from '@/features/document';
+import { use } from "react";
+import { RootWrapper } from "@/shared/components";
+import { DocumentDetail } from "@/features/document";
 
-export default function DocumentDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default function DocumentDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = use(params);
 
   return (
-    <Box sx={{ minHeight: '100vh', py: 4 }}>
-      <Container maxWidth='lg'>
-        <DocumentDetail documentId={id} />
-      </Container>
-    </Box>
+    <RootWrapper>
+      <DocumentDetail documentId={id} />
+    </RootWrapper>
   );
 }

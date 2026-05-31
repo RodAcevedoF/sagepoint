@@ -1,16 +1,25 @@
 "use client";
 
-import { Box, Container } from "@mui/material";
+import { Map, ArrowRight } from "lucide-react";
 import { DocumentList } from "@/features/document";
-import { LearningCTA } from "@/shared/components";
+import { FooterCTA, RootWrapper } from "@/shared/components";
 
 export default function DocumentsPage() {
   return (
-    <Box sx={{ pt: 2, pb: 12 }}>
-      <Container maxWidth="lg">
-        <DocumentList />
-      </Container>
-      <LearningCTA {...LearningCTA.presets.roadmaps} />
-    </Box>
+    <RootWrapper>
+      <DocumentList />
+
+      <FooterCTA
+        style={{ marginTop: 48 }}
+        title="Ready to keep learning?"
+        body="Pick up where you left off or start a new roadmap."
+        action={{
+          label: "View Roadmaps",
+          icon: Map,
+          trailingIcon: ArrowRight,
+          href: "/roadmaps",
+        }}
+      />
+    </RootWrapper>
   );
 }

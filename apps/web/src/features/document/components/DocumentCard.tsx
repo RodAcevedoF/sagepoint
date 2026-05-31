@@ -1,18 +1,28 @@
 "use client";
 
 import { createElement, useEffect, useState } from "react";
-import { Box, Typography, IconButton, alpha, useTheme } from "@mui/material";
-import { Trash2, ArrowRight, Layers, HardDrive } from "lucide-react";
+import { Trash2, ArrowRight, Layers, FileType2, Brain } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Card, ConfirmDialog, useSnackbar } from "@/shared/components";
+import {
+  Card,
+  AuroraIconButton,
+  ConfirmDialog,
+  toneColor,
+  useSnackbar,
+} from "@/shared/components";
 import { useDocumentEvents, useAppDispatch } from "@/shared/hooks";
 import { useDeleteDocumentCommand } from "@/application/document";
 import { documentApi } from "@/infrastructure/api/documentApi";
 import { ProcessingStatusBadge } from "./ProcessingStatusBadge";
-import { makeStyles } from "./DocumentCard.styles";
 import type { DocumentDetailDto } from "@/infrastructure/api/documentApi";
 import { ProcessingStage } from "@sagepoint/domain";
-import { getDocumentIcon, formatFileSize, formatRelativeDate } from "../utils";
+import {
+  getDocumentIcon,
+  formatFileSize,
+  formatRelativeDate,
+  mapToAuroraStatus,
+  STATUS_META,
+} from "../utils";
 
 function DocumentIcon({
   mimeType,
@@ -26,15 +36,6 @@ function DocumentIcon({
   return createElement(getDocumentIcon(mimeType), { size, strokeWidth });
 }
 
-const stageColorMap: Record<string, string> = {
-  UPLOADED: "text.disabled",
-  PARSING: "info",
-  ANALYZING: "warning",
-  SUMMARIZED: "warning",
-  ENRICHING: "warning",
-  READY: "success",
-};
-
 interface DocumentCardProps {
   document: DocumentDetailDto;
 }
@@ -47,8 +48,17 @@ const sseStageMap: Record<string, ProcessingStage> = {
   ready: ProcessingStage.READY,
 };
 
+function fileTypeLabel(mimeType?: string): string {
+  if (!mimeType) return "FILE";
+  if (mimeType.includes("pdf")) return "PDF";
+  if (mimeType.includes("markdown")) return "MD";
+  if (mimeType.includes("text/plain")) return "TXT";
+  if (mimeType.includes("word")) return "DOCX";
+  const sub = mimeType.split("/")[1];
+  return (sub ?? "FILE").toUpperCase().slice(0, 6);
+}
+
 export function DocumentCard({ document }: DocumentCardProps) {
-  const theme = useTheme();
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { execute: deleteDocument } = useDeleteDocumentCommand();
@@ -68,19 +78,9 @@ export function DocumentCard({ document }: DocumentCardProps) {
 
   const stage: ProcessingStage =
     (sseStage && sseStageMap[sseStage]) || document.processingStage;
-  const colorKey = stageColorMap[stage] ?? "primary";
-  const paletteColors: Record<string, string> = {
-    info: theme.palette.info.main,
-    warning: theme.palette.warning.main,
-    success: theme.palette.success.main,
-    primary: theme.palette.primary.main,
-  };
-  const stageColor =
-    colorKey === "text.disabled"
-      ? alpha(theme.palette.text.secondary, 0.4)
-      : (paletteColors[colorKey] ?? theme.palette.primary.main);
-
-  const styles = makeStyles(stageColor, theme);
+  const auroraStatus = mapToAuroraStatus(document.status, stage);
+  const tone = STATUS_META[auroraStatus].tone;
+  const ftype = fileTypeLabel(document.mimeType);
 
   const [confirmOpen, setConfirmOpen] = useState(false);
 
@@ -96,84 +96,79 @@ export function DocumentCard({ document }: DocumentCardProps) {
     else showSnackbar("Failed to delete document", { severity: "error" });
   };
 
+  const open = () => router.push(`/documents/${document.id}`);
+
   return (
     <>
-      <Box
-        onClick={() => router.push(`/documents/${document.id}`)}
-        sx={styles.card}
-      >
-        <Card
-          variant="glass"
-          hoverable={false}
-          sx={{ borderRadius: "9px", height: "100%", cursor: "pointer" }}
-        >
-          <Card.Content>
-            <Box sx={styles.header}>
-              <Box sx={styles.iconBox}>
-                <DocumentIcon
-                  mimeType={document.mimeType}
-                  size={22}
-                  strokeWidth={2}
-                />
-              </Box>
-              <Box sx={styles.titleContainer}>
-                <Typography
-                  variant="subtitle1"
-                  sx={styles.title}
-                  title={document.filename}
-                >
-                  {document.filename}
-                </Typography>
-                <ProcessingStatusBadge stage={stage} />
-              </Box>
-              <IconButton
-                size="small"
-                onClick={handleDeleteClick}
-                className="delete-btn"
-                sx={styles.deleteButton}
-              >
-                <Trash2 size={18} />
-              </IconButton>
-            </Box>
+      <Card variant="aurora" accent={toneColor(tone)} onClick={open}>
+        <Card.Zone>
+          <Card.ZoneCat icon={<FileType2 size={13} />}>{ftype}</Card.ZoneCat>
+          <ProcessingStatusBadge stage={stage} />
+        </Card.Zone>
 
-            <Box sx={styles.statsRow}>
+        <Card.Body>
+          <Card.Head>
+            <Card.Icon>
+              <DocumentIcon
+                mimeType={document.mimeType}
+                size={22}
+                strokeWidth={2}
+              />
+            </Card.Icon>
+            <Card.HeadText>
+              <Card.Title title={document.filename}>
+                {document.filename}
+              </Card.Title>
               {document.fileSize && (
-                <Box sx={styles.statItem}>
-                  <HardDrive size={16} />
-                  <Typography variant="caption" sx={styles.statText}>
-                    {formatFileSize(document.fileSize)}
-                  </Typography>
-                </Box>
+                <Card.Sub>{formatFileSize(document.fileSize)}</Card.Sub>
               )}
-              {stage === "READY" &&
-                document.conceptCount &&
-                document.conceptCount > 0 && (
-                  <Box sx={styles.statItem}>
-                    <Layers size={16} />
-                    <Typography variant="caption" sx={styles.statText}>
-                      {document.conceptCount} concepts
-                    </Typography>
-                  </Box>
-                )}
-            </Box>
-          </Card.Content>
+            </Card.HeadText>
+          </Card.Head>
 
-          <Card.Footer sx={styles.footer}>
-            <Box sx={styles.footerContent}>
-              <Typography variant="caption" sx={styles.dateText}>
-                {formatRelativeDate(document.createdAt)}
-              </Typography>
-              <Box
-                component="span"
-                className="arrow-icon"
-                sx={styles.arrowIcon}
-              >
-                <ArrowRight size={20} />
-              </Box>
-            </Box>
-          </Card.Footer>
-        </Card>
-      </Box>
+          <Card.DataRow>
+            <Card.DataCell label="Concepts" icon={<Layers size={15} />}>
+              {stage === "READY" ? (document.conceptCount ?? 0) : "—"}
+            </Card.DataCell>
+            <Card.DataCell label="Type" icon={<FileType2 size={14} />}>
+              {ftype}
+            </Card.DataCell>
+          </Card.DataRow>
+
+          {auroraStatus === "failed" && (
+            <Card.FailNote icon={<Brain size={14} />}>
+              Analysis failed — re-upload to retry
+            </Card.FailNote>
+          )}
+        </Card.Body>
+
+        <Card.Foot>
+          <Card.FootLeft>
+            <Card.FootDate>
+              {formatRelativeDate(document.createdAt)}
+            </Card.FootDate>
+          </Card.FootLeft>
+          <Card.Actions>
+            <AuroraIconButton
+              ariaLabel="Delete"
+              title="Delete"
+              onClick={handleDeleteClick}
+            >
+              <Trash2 size={16} />
+            </AuroraIconButton>
+            <AuroraIconButton
+              ariaLabel="Open"
+              title="Open"
+              go
+              onClick={(e) => {
+                e.stopPropagation();
+                open();
+              }}
+            >
+              <ArrowRight size={18} />
+            </AuroraIconButton>
+          </Card.Actions>
+        </Card.Foot>
+      </Card>
 
       <ConfirmDialog
         open={confirmOpen}

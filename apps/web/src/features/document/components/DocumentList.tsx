@@ -1,16 +1,19 @@
 "use client";
 
 import { lazy, Suspense, useState, useMemo } from "react";
-import { Box, Grid, Typography, CircularProgress } from "@mui/material";
 import { FileText, Upload } from "lucide-react";
 import { motion } from "framer-motion";
 import {
+  AuroraGrid,
+  AuroraTabs,
   EmptyState,
   ErrorState,
-  FilterChips,
   Loader,
-  useModal,
   SearchInput,
+  SearchRow,
+  SecTitle,
+  useModal,
+  type AuroraTabItem,
 } from "@/shared/components";
 import { useInfiniteScroll } from "@/shared/hooks";
 import { useUserDocumentsQuery } from "@/application/document";
@@ -27,9 +30,13 @@ const LazyUploadDocumentModal = lazy(() =>
   })),
 );
 
-const MotionBox = motion.create(Box);
-
 const PAGE_SIZE = 12;
+
+const TAB_OPTIONS: ReadonlyArray<AuroraTabItem<StageFilter>> = [
+  { id: "all", label: "All" },
+  { id: "processing", label: "Processing" },
+  { id: "ready", label: "Ready" },
+];
 
 export function DocumentList() {
   const [cursor, setCursor] = useState<string | undefined>();
@@ -44,7 +51,6 @@ export function DocumentList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [stageFilter, setStageFilter] = useState<StageFilter>("all");
 
-  // RTK Query `merge` accumulates pages in the cache — data comes pre-merged
   const documents = useMemo(() => response?.data ?? [], [response]);
   const hasMore = response?.hasMore ?? false;
 
@@ -74,13 +80,11 @@ export function DocumentList() {
     return (
       <>
         <DocumentHero onUpload={handleUpload} />
-        <Grid container spacing={3} sx={{ mt: 2 }}>
+        <AuroraGrid style={{ marginTop: 16 }}>
           {Array.from({ length: 6 }).map((_, i) => (
-            <Grid key={i} size={{ xs: 12, sm: 6, md: 4 }}>
-              <DocumentCardSkeleton />
-            </Grid>
+            <DocumentCardSkeleton key={i} />
           ))}
-        </Grid>
+        </AuroraGrid>
       </>
     );
   }
@@ -94,12 +98,6 @@ export function DocumentList() {
       />
     );
   }
-
-  const stageOptions = [
-    { label: "All", value: "all" as StageFilter },
-    { label: "Processing", value: "processing" as StageFilter },
-    { label: "Ready", value: "ready" as StageFilter },
-  ];
 
   return (
     <>
@@ -118,87 +116,66 @@ export function DocumentList() {
         <>
           <DocumentStats documents={documents} />
 
-          {/* Filter bar */}
-          <Box
-            sx={{
-              display: "flex",
-              gap: 2,
-              mb: 3,
-              flexWrap: "wrap",
-              alignItems: "center",
-            }}
-          >
-            <Box sx={{ minWidth: 220, flex: 1, maxWidth: 320 }}>
+          <SearchRow style={{ marginBottom: 24 }}>
+            <div style={{ flex: 1, minWidth: 260, maxWidth: 360 }}>
               <SearchInput
                 placeholder="Search documents..."
                 onSearch={setSearchQuery}
                 debounceMs={300}
               />
-            </Box>
-            <FilterChips
-              options={stageOptions}
-              value={stageFilter}
+            </div>
+            <AuroraTabs
+              items={TAB_OPTIONS}
+              activeId={stageFilter}
               onChange={setStageFilter}
             />
-          </Box>
+          </SearchRow>
 
-          {/* Processing section */}
           {processingDocs.length > 0 && (
-            <Box sx={{ mb: 4 }}>
-              <Typography
-                variant="subtitle2"
-                sx={{ color: "text.secondary", mb: 2, fontWeight: 600 }}
-              >
-                Processing ({processingDocs.length})
-              </Typography>
-              <Grid container spacing={3}>
+            <section style={{ marginBottom: 36 }}>
+              <SecTitle>Processing ({processingDocs.length})</SecTitle>
+              <AuroraGrid style={{ marginTop: 16 }}>
                 {processingDocs.map((doc, index) => (
-                  <Grid key={doc.id} size={{ xs: 12, sm: 6, md: 4 }}>
-                    <MotionBox
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4, delay: index * 0.08 }}
-                    >
-                      <ProcessingDocumentCard
-                        document={doc}
-                        onComplete={refetch}
-                      />
-                    </MotionBox>
-                  </Grid>
+                  <motion.div
+                    key={doc.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: index * 0.08 }}
+                  >
+                    <ProcessingDocumentCard
+                      document={doc}
+                      onComplete={refetch}
+                    />
+                  </motion.div>
                 ))}
-              </Grid>
-            </Box>
+              </AuroraGrid>
+            </section>
           )}
 
-          {/* Completed section */}
           {completedDocs.length > 0 ? (
-            <>
+            <section>
               {processingDocs.length > 0 && (
-                <Typography
-                  variant="subtitle2"
-                  sx={{ color: "text.secondary", mb: 2, fontWeight: 600 }}
-                >
-                  Completed ({completedDocs.length})
-                </Typography>
+                <SecTitle>Completed ({completedDocs.length})</SecTitle>
               )}
-              <Grid container spacing={3}>
+              <AuroraGrid
+                style={{ marginTop: processingDocs.length > 0 ? 16 : 0 }}
+              >
                 {completedDocs.map((doc, index) => (
-                  <Grid key={doc.id} size={{ xs: 12, sm: 6, md: 4 }}>
-                    <MotionBox
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{
-                        duration: 0.4,
-                        delay: 0.3 + index * 0.08,
-                        ease: [0.25, 0.1, 0.25, 1],
-                      }}
-                    >
-                      <DocumentCard document={doc} />
-                    </MotionBox>
-                  </Grid>
+                  <motion.div
+                    key={doc.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: 0.4,
+                      delay: 0.3 + index * 0.08,
+                      ease: [0.25, 0.1, 0.25, 1],
+                    }}
+                  >
+                    <DocumentCard document={doc} />
+                  </motion.div>
                 ))}
-              </Grid>
-            </>
+              </AuroraGrid>
+            </section>
           ) : (
             processingDocs.length === 0 && (
               <EmptyState
@@ -208,14 +185,17 @@ export function DocumentList() {
             )
           )}
 
-          {/* Infinite scroll sentinel */}
           {hasMore && (
-            <Box
+            <div
               ref={sentinelRef}
-              sx={{ display: "flex", justifyContent: "center", py: 4 }}
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                padding: "32px 0",
+              }}
             >
-              {isFetching && <CircularProgress size={28} />}
-            </Box>
+              {isFetching && <Loader />}
+            </div>
           )}
         </>
       )}

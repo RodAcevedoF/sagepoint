@@ -1,16 +1,25 @@
 "use client";
 
-import { Box, Container } from "@mui/material";
+import { FileText, ArrowRight } from "lucide-react";
 import { RoadmapList } from "@/features/roadmap";
-import { LearningCTA } from "@/shared/components";
+import { FooterCTA, RootWrapper } from "@/shared/components";
 
 export default function RoadmapsPage() {
   return (
-    <Box sx={{ pt: 2, pb: 12 }}>
-      <Container maxWidth="lg">
-        <RoadmapList />
-      </Container>
-      <LearningCTA />
-    </Box>
+    <RootWrapper>
+      <RoadmapList />
+
+      <FooterCTA
+        style={{ marginTop: 48 }}
+        title="Want to study your own materials?"
+        body="Upload a document and turn it into a personalized roadmap."
+        action={{
+          label: "Browse Documents",
+          icon: FileText,
+          trailingIcon: ArrowRight,
+          href: "/documents",
+        }}
+      />
+    </RootWrapper>
   );
 }

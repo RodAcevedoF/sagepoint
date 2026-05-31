@@ -1,43 +1,33 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import {
-  Box,
-  Typography,
-  CircularProgress,
-  Chip,
-  LinearProgress,
-  alpha,
-  useTheme,
-} from "@mui/material";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Sparkles } from "lucide-react";
+import { Card, Pipeline, StatusPill, toneColor } from "@/shared/components";
 import { useRoadmapEvents } from "@/shared/hooks";
-import { makeStyles } from "./GeneratingCard.styles";
 
 import type { UserRoadmapDto } from "@/infrastructure/api/roadmapApi";
 import type { RoadmapEventStage } from "@/shared/hooks";
 
-const STAGE_LABELS: Record<string, string> = {
-  concepts: "Generating concepts...",
-  "learning-path": "Building learning path...",
-  resources: "Discovering resources...",
-  done: "Finishing up...",
+const GENERATION_STAGES = [
+  "Concepts",
+  "Learning path",
+  "Resources",
+  "Done",
+] as const;
+
+const STAGE_INDEX: Record<RoadmapEventStage & string, number> = {
+  concepts: 0,
+  "learning-path": 1,
+  resources: 2,
+  done: 3,
 };
 
-function stageProgress(stage: RoadmapEventStage | null): number {
-  switch (stage) {
-    case "concepts":
-      return 25;
-    case "learning-path":
-      return 50;
-    case "resources":
-      return 75;
-    case "done":
-      return 100;
-    default:
-      return 10;
-  }
-}
+const STAGE_LABEL: Record<RoadmapEventStage & string, string> = {
+  concepts: "Generating concepts",
+  "learning-path": "Building learning path",
+  resources: "Discovering resources",
+  done: "Finishing up",
+};
 
 interface GeneratingCardProps {
   data: UserRoadmapDto;
@@ -45,7 +35,6 @@ interface GeneratingCardProps {
 }
 
 export function GeneratingCard({ data, onComplete }: GeneratingCardProps) {
-  const theme = useTheme();
   const { roadmap } = data;
   const isFailed = roadmap.generationStatus === "failed";
   const hasNotified = useRef(false);
@@ -60,48 +49,47 @@ export function GeneratingCard({ data, onComplete }: GeneratingCardProps) {
       hasNotified.current = true;
       onComplete?.();
     } else if (!isDone) {
-      // Reset so final "completed" can still fire onComplete if the initial
-      // partial-complete refetch returned stale data and the card stayed mounted.
       hasNotified.current = false;
     }
   }, [status, stage, onComplete]);
 
-  const styles = makeStyles(isFailed, theme);
-  const progress = stageProgress(stage);
-  const label = (stage && STAGE_LABELS[stage]) || "Starting...";
+  const tone = isFailed ? "fail" : "proc";
+  const label = isFailed
+    ? "Failed"
+    : (stage && STAGE_LABEL[stage]) || "Starting";
+  const currentIndex = stage ? (STAGE_INDEX[stage] ?? 0) : 0;
 
   return (
-    <Box sx={styles.container}>
-      {isFailed ? (
-        <AlertCircle size={28} color={theme.palette.error.main} />
-      ) : (
-        <CircularProgress size={28} thickness={3} />
-      )}
-      <Typography variant="subtitle2" sx={styles.title}>
-        {roadmap.title}
-      </Typography>
-      <Chip size="small" label={isFailed ? "Failed" : label} sx={styles.chip} />
-      {!isFailed && (
-        <LinearProgress
-          variant="determinate"
-          value={progress}
-          sx={{
-            width: "100%",
-            height: 4,
-            borderRadius: 2,
-            bgcolor: alpha(theme.palette.primary.main, 0.1),
-            "& .MuiLinearProgress-bar": {
-              borderRadius: 2,
-              background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.info.main})`,
-            },
-          }}
-        />
-      )}
-      {isFailed && roadmap.errorMessage && (
-        <Typography variant="caption" color="text.secondary">
-          {roadmap.errorMessage}
-        </Typography>
-      )}
-    </Box>
+    <Card variant="aurora" accent={toneColor(tone)}>
+      <Card.Zone>
+        <Card.ZoneCat icon={<Sparkles size={13} />}>Generating</Card.ZoneCat>
+        <StatusPill tone={tone} label={label} pulse={!isFailed} />
+      </Card.Zone>
+
+      <Card.Body>
+        <Card.Head>
+          <Card.Icon>
+            {isFailed ? <AlertCircle size={22} /> : <Sparkles size={22} />}
+          </Card.Icon>
+          <Card.HeadText>
+            <Card.Title>{roadmap.title}</Card.Title>
+          </Card.HeadText>
+        </Card.Head>
+
+        {!isFailed && (
+          <Pipeline
+            stages={GENERATION_STAGES}
+            currentIndex={currentIndex}
+            tone="proc"
+          />
+        )}
+
+        {isFailed && roadmap.errorMessage && (
+          <Card.FailNote icon={<AlertCircle size={14} />}>
+            {roadmap.errorMessage}
+          </Card.FailNote>
+        )}
+      </Card.Body>
+    </Card>
   );
 }

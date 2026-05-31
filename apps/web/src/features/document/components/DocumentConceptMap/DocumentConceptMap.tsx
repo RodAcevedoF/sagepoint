@@ -1,13 +1,14 @@
 "use client";
 
-import { Box, Typography, useTheme, alpha } from "@mui/material";
+import { Box } from "@mui/material";
 import { GitFork } from "lucide-react";
 import { useLazyGetGraphQuery } from "@/infrastructure/api/roadmapApi";
 import {
   BlueprintGraph,
   type BlueprintNodeData,
 } from "@/shared/components/data-display/BlueprintGraph";
-import { EmptyState, Loader } from "@/shared/components";
+import { Card, EmptyState, Loader } from "@/shared/components";
+import { aurora as auroraPalette } from "@/shared/theme";
 import { useDocumentGraphData } from "./useDocumentGraphData";
 import { useEffect } from "react";
 
@@ -22,7 +23,6 @@ export function DocumentConceptMap({
   onConceptClick,
   height = 500,
 }: DocumentConceptMapProps) {
-  const theme = useTheme();
   const [fetchGraph, { data: graphData, isLoading, isError }] =
     useLazyGetGraphQuery();
 
@@ -51,34 +51,48 @@ export function DocumentConceptMap({
   }
 
   return (
-    <Box>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-        <GitFork size={20} color={theme.palette.accent} />
-        <Typography
-          variant="h6"
-          sx={{
-            fontWeight: 600,
-            color: theme.palette.text.primary,
-            fontSize: "1.1rem",
-          }}
-        >
-          Concept Map
-        </Typography>
-        <Typography
-          variant="caption"
-          sx={{ color: alpha(theme.palette.text.secondary, 0.6) }}
-        >
-          {nodes.length} concept{nodes.length !== 1 ? "s" : ""}
-        </Typography>
-      </Box>
-      <BlueprintGraph
-        nodes={nodes}
-        edges={edges}
-        direction="LR"
-        onNodeClick={handleNodeClick}
-        height={height}
-        showMinimap={nodes.length > 8}
-      />
-    </Box>
+    <Card variant="aurora" tone="teal" hoverable={false} withAura={false}>
+      <Card.Body
+        sx={{ padding: { xs: "22px 24px 26px", md: "30px 34px 32px" } }}
+      >
+        <Card.Head sx={{ alignItems: "center", marginBottom: "22px" }}>
+          <Card.Icon>
+            <GitFork size={22} />
+          </Card.Icon>
+          <Card.Title
+            sx={{
+              fontSize: "23px",
+              WebkitLineClamp: "unset",
+              display: "block",
+              overflow: "visible",
+              flex: 1,
+            }}
+          >
+            Concept Map
+          </Card.Title>
+          <Box
+            component="span"
+            sx={{
+              fontFamily: auroraPalette.font.mono,
+              fontSize: "13px",
+              color: auroraPalette.txLow,
+              fontWeight: 500,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {nodes.length} concept{nodes.length !== 1 ? "s" : ""}
+          </Box>
+        </Card.Head>
+
+        <BlueprintGraph
+          nodes={nodes}
+          edges={edges}
+          direction="LR"
+          onNodeClick={handleNodeClick}
+          height={height}
+          showMinimap={nodes.length > 8}
+        />
+      </Card.Body>
+    </Card>
   );
 }

@@ -1,13 +1,11 @@
 "use client";
 
-import { Box, Typography, Chip, alpha, useTheme } from "@mui/material";
-import { Brain, ArrowRight } from "lucide-react";
-import { motion } from "framer-motion";
+import { Box } from "@mui/material";
+import { Brain, ArrowRight, CheckSquare } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Card } from "@/shared/components";
+import { Card, Pill } from "@/shared/components";
+import { aurora as auroraPalette, auroraTint } from "@/shared/theme";
 import type { QuizDto } from "@/infrastructure/api/documentApi";
-
-const MotionBox = motion.create(Box);
 
 interface QuizCardProps {
   documentId: string;
@@ -15,58 +13,70 @@ interface QuizCardProps {
 }
 
 export function QuizCard({ documentId, quiz }: QuizCardProps) {
-  const theme = useTheme();
   const router = useRouter();
 
   return (
-    <MotionBox
-      whileHover={{ y: -2 }}
-      transition={{ duration: 0.2 }}
+    <Card
+      variant="aurora"
+      tone="concept"
+      withAura={false}
       onClick={() => router.push(`/documents/${documentId}/quiz/${quiz.id}`)}
-      sx={{ cursor: "pointer" }}
+      sx={{ maxWidth: 560 }}
     >
-      <Card variant="outlined">
-        <Card.Content sx={{ p: 2.5 }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <Box
-              sx={{
-                width: 44,
-                height: 44,
-                borderRadius: 2.5,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                bgcolor: alpha(theme.palette.info.main, 0.1),
-                color: theme.palette.info.light,
-                flexShrink: 0,
-              }}
-            >
-              <Brain size={22} />
-            </Box>
-            <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                {quiz.title}
-              </Typography>
-              <Chip
-                label={`${quiz.questionCount} questions`}
-                size="small"
-                sx={{
-                  mt: 0.5,
-                  height: 22,
-                  fontSize: "0.7rem",
-                  fontWeight: 600,
-                  bgcolor: alpha(theme.palette.info.main, 0.08),
-                  color: theme.palette.info.light,
-                }}
-              />
-            </Box>
-            <ArrowRight
-              size={20}
-              color={alpha(theme.palette.text.secondary, 0.5)}
-            />
+      <Card.Body
+        sx={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: "18px",
+          padding: "22px 24px",
+        }}
+      >
+        <Card.Icon
+          sx={{
+            width: 52,
+            height: 52,
+            borderRadius: "14px",
+          }}
+        >
+          <Brain size={26} />
+        </Card.Icon>
+
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Box
+            component="p"
+            sx={{
+              fontFamily: auroraPalette.font.display,
+              fontWeight: 700,
+              fontSize: "18px",
+              color: auroraPalette.txHi,
+              letterSpacing: "-0.01em",
+              margin: "0 0 8px",
+            }}
+          >
+            {quiz.title}
           </Box>
-        </Card.Content>
-      </Card>
-    </MotionBox>
+          <Pill tone="concept" icon={<CheckSquare size={13} />}>
+            {quiz.questionCount} questions
+          </Pill>
+        </Box>
+
+        <Box
+          component="span"
+          sx={{
+            flex: "none",
+            width: 40,
+            height: 40,
+            borderRadius: "11px",
+            display: "grid",
+            placeItems: "center",
+            background: auroraTint(auroraPalette.status.concept, 0.12),
+            border: `1px solid ${auroraTint(auroraPalette.status.concept, 0.28)}`,
+            color: auroraPalette.status.concept,
+          }}
+        >
+          <ArrowRight size={18} />
+        </Box>
+      </Card.Body>
+    </Card>
   );
 }

@@ -89,7 +89,9 @@ export class OpenAiRoadmapGeneratorAdapter implements IRoadmapGenerationService 
         recommendedPace: z
           .string()
           .nullable()
-          .describe('Suggested learning pace (e.g., "2-3 concepts per week")'),
+          .describe(
+            'Suggested learning pace as a short phrase such as "<N> concepts per week", "<N>h per week", or "<N>m per day". Derive N from the user\'s available time, total concept count, and difficulty mix — do not return a fixed default.',
+          ),
       });
 
       const structuredModel =
@@ -139,7 +141,8 @@ Guidelines:
 5. Provide clear learning objectives for each step.
 6. Estimate realistic learning durations (typically 15-60 minutes per concept).
 7. Assign appropriate difficulty levels based on prerequisites and complexity.
-8. Consider the user's context if provided to personalize the path.`,
+8. Consider the user's context if provided to personalize the path.
+9. Set recommendedPace by computing concepts-per-week (or hours-per-week) from the user's "Time Available" and the total concept count + difficulty mix. If Time Available is unknown, scale by total duration. Do not repeat a generic default across roadmaps.`,
             },
             {
               role: "user",

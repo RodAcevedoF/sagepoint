@@ -1,86 +1,35 @@
-import { Box, Skeleton } from "@mui/material";
-import { Card } from "@/shared/components";
+import { AuroraSkeleton, Card } from "@/shared/components";
 
 export function RoadmapCardSkeleton() {
   return (
-    <Card variant="glass" hoverable={false}>
-      <Card.Content>
-        {/* Header: title + progress ring */}
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            gap: 2,
-            mb: 2,
-          }}
-        >
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Skeleton variant="text" width="60%" height={28} animation="wave" />
-            <Skeleton variant="text" width="90%" height={18} animation="wave" />
-            <Skeleton variant="text" width="60%" height={18} animation="wave" />
-          </Box>
-          <Skeleton
-            variant="circular"
-            width={52}
-            height={52}
-            animation="wave"
-            sx={{ flexShrink: 0 }}
-          />
-        </Box>
+    <Card variant="aurora">
+      <Card.Zone>
+        <AuroraSkeleton height={22} width={110} radius={999} />
+        <AuroraSkeleton height={22} width={80} radius={999} />
+      </Card.Zone>
 
-        {/* Status chip */}
-        <Box sx={{ mb: 2 }}>
-          <Skeleton
-            variant="rounded"
-            width={60}
-            height={22}
-            animation="wave"
-            sx={{ borderRadius: 11 }}
-          />
-        </Box>
+      <Card.Body>
+        <Card.Head>
+          <Card.HeadText
+            style={{ display: "flex", flexDirection: "column", gap: 9 }}
+          >
+            <AuroraSkeleton height={18} width="70%" />
+            <AuroraSkeleton height={12} width="40%" />
+          </Card.HeadText>
+          <AuroraSkeleton height={50} width={50} radius="50%" />
+        </Card.Head>
+        <AuroraSkeleton height={12} width="90%" />
+        <AuroraSkeleton height={12} width="65%" />
+        <Card.DataRow>
+          <AuroraSkeleton height={56} style={{ flex: 1 }} />
+          <AuroraSkeleton height={56} style={{ flex: 1 }} />
+        </Card.DataRow>
+      </Card.Body>
 
-        {/* Stats row */}
-        <Box sx={{ display: "flex", gap: 2, mb: 1.5 }}>
-          <Skeleton variant="text" width={80} height={18} animation="wave" />
-          <Skeleton variant="text" width={80} height={18} animation="wave" />
-        </Box>
-
-        {/* Difficulty chips */}
-        <Box sx={{ display: "flex", gap: 0.75 }}>
-          <Skeleton
-            variant="rounded"
-            width={50}
-            height={20}
-            animation="wave"
-            sx={{ borderRadius: 10 }}
-          />
-          <Skeleton
-            variant="rounded"
-            width={50}
-            height={20}
-            animation="wave"
-            sx={{ borderRadius: 10 }}
-          />
-        </Box>
-      </Card.Content>
-
-      <Card.Footer>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Skeleton variant="text" width={80} height={18} animation="wave" />
-          <Skeleton
-            variant="rectangular"
-            width={16}
-            height={16}
-            animation="wave"
-          />
-        </Box>
-      </Card.Footer>
+      <Card.Foot>
+        <AuroraSkeleton height={14} width={120} />
+        <AuroraSkeleton height={24} width={80} />
+      </Card.Foot>
     </Card>
   );
 }

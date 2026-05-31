@@ -1,10 +1,15 @@
 "use client";
 
-import { Box, Typography, alpha, useTheme } from "@mui/material";
+import { Box } from "@mui/material";
 import { Trophy, RotateCcw } from "lucide-react";
 import { ReviewSource } from "@sagepoint/domain";
-import { Card, Button } from "@/shared/components";
-import { ButtonIconPositions, ButtonSizes } from "@/shared/types";
+import { Button, Card } from "@/shared/components";
+import {
+  ButtonIconPositions,
+  ButtonSizes,
+  ButtonVariants,
+} from "@/shared/types";
+import { aurora as auroraPalette, auroraTint } from "@/shared/theme";
 import { ReviewCallToAction } from "@/features/review";
 import type { QuizAttemptDto } from "@/infrastructure/api/documentApi";
 
@@ -14,46 +19,74 @@ interface QuizResultsProps {
 }
 
 export function QuizResults({ attempt, onRetry }: QuizResultsProps) {
-  const theme = useTheme();
   const isPassing = attempt.score >= 70;
+  const tone = isPassing ? "ready" : "proc";
+  const accent = isPassing
+    ? auroraPalette.status.ready
+    : auroraPalette.status.proc;
 
   return (
-    <Card variant="glass">
-      <Card.Content>
-        <Box sx={{ textAlign: "center", py: 3 }}>
+    <Card variant="aurora" tone={tone} hoverable={false} withAura={false}>
+      <Card.Body
+        sx={{
+          padding: { xs: "28px 24px 24px", md: "36px 36px 32px" },
+          alignItems: "stretch",
+        }}
+      >
+        <Box sx={{ textAlign: "center" }}>
           <Box
             sx={{
-              width: 80,
-              height: 80,
+              width: 88,
+              height: 88,
               borderRadius: "50%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              bgcolor: alpha(
-                isPassing
-                  ? theme.palette.success.main
-                  : theme.palette.warning.main,
-                0.1,
-              ),
-              color: isPassing
-                ? theme.palette.success.light
-                : theme.palette.warning.light,
-              mx: "auto",
-              mb: 2,
+              display: "grid",
+              placeItems: "center",
+              background: auroraTint(accent, 0.14),
+              border: `1px solid ${auroraTint(accent, 0.32)}`,
+              color: accent,
+              margin: "0 auto 18px",
             }}
           >
             <Trophy size={40} />
           </Box>
 
-          <Typography variant="h3" sx={{ fontWeight: 800, mb: 0.5 }}>
+          <Box
+            component="p"
+            sx={{
+              fontFamily: auroraPalette.font.display,
+              fontWeight: 800,
+              fontSize: "clamp(40px, 6vw, 56px)",
+              lineHeight: 1,
+              letterSpacing: "-0.02em",
+              color: accent,
+              margin: "0 0 6px",
+            }}
+          >
             {Math.round(attempt.score)}%
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
+          </Box>
+          <Box
+            component="p"
+            sx={{
+              fontSize: "15px",
+              color: auroraPalette.tx,
+              margin: "0 0 4px",
+            }}
+          >
             {attempt.correctAnswers} of {attempt.totalQuestions} correct
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          </Box>
+          <Box
+            component="p"
+            sx={{
+              fontFamily: auroraPalette.font.mono,
+              fontSize: "12px",
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: auroraPalette.txLow,
+              margin: "0 0 22px",
+            }}
+          >
             {isPassing ? "Great job!" : "Keep practicing!"}
-          </Typography>
+          </Box>
 
           {onRetry && (
             <Button
@@ -61,18 +94,19 @@ export function QuizResults({ attempt, onRetry }: QuizResultsProps) {
               icon={RotateCcw}
               iconPos={ButtonIconPositions.START}
               size={ButtonSizes.MEDIUM}
+              variant={ButtonVariants.AURORA}
               onClick={onRetry}
             />
           )}
         </Box>
 
-        <Box sx={{ mt: 2 }}>
+        <Box sx={{ marginTop: "10px" }}>
           <ReviewCallToAction
             source={ReviewSource.DOCUMENT}
             sourceId={attempt.quizId}
           />
         </Box>
-      </Card.Content>
+      </Card.Body>
     </Card>
   );
 }
