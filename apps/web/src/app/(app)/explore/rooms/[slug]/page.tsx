@@ -1,8 +1,8 @@
 "use client";
 
 import { use } from "react";
-import { Box, Container } from "@mui/material";
 import { RoomDetail } from "@/features/category";
+import { DashboardLayout } from "@/features/dashboard/components/DashboardLayout";
 
 export default function RoomDetailPage({
   params,
@@ -12,10 +12,8 @@ export default function RoomDetailPage({
   const { slug } = use(params);
 
   return (
-    <Box sx={{ pt: 2, pb: 12 }}>
-      <Container maxWidth="lg">
-        <RoomDetail slug={slug} />
-      </Container>
-    </Box>
+    <DashboardLayout width="lg">
+      <RoomDetail slug={slug} />
+    </DashboardLayout>
   );
 }

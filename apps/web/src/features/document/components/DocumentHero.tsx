@@ -10,7 +10,6 @@ interface DocumentHeroProps {
 export function DocumentHero({ onUpload }: DocumentHeroProps) {
   return (
     <AuroraHero
-      style={{ marginBottom: 28 }}
       eyebrow="Deep Document Analysis"
       eyebrowIcon={<FileText size={13} />}
       title="Your Knowledge Base"
@@ -20,7 +19,7 @@ export function DocumentHero({ onUpload }: DocumentHeroProps) {
         icon: Upload,
         onClick: onUpload,
       }}
-      glyph={<FileText size={180} strokeWidth={1.2} />}
+      glyph={<FileText size={140} strokeWidth={1.2} />}
     />
   );
 }

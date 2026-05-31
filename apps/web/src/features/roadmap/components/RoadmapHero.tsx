@@ -17,7 +17,6 @@ export function RoadmapHero() {
 
   return (
     <AuroraHero
-      style={{ marginBottom: 28 }}
       eyebrow="AI Personalized Paths"
       eyebrowIcon={<Sparkles size={13} />}
       title="Your Learning Journey"
@@ -27,7 +26,7 @@ export function RoadmapHero() {
         icon: Sparkles,
         onClick: handleCreate,
       }}
-      glyph={<Route size={180} strokeWidth={1.2} />}
+      glyph={<Route size={140} strokeWidth={1.2} />}
     />
   );
 }

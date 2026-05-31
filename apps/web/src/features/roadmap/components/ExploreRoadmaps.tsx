@@ -1,95 +1,165 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  alpha,
-  Box,
-  Grid,
-  Typography,
-  Pagination,
-  type Theme,
-  type SxProps,
-} from "@mui/material";
+import { Box, Pagination, type SxProps, type Theme } from "@mui/material";
 import { Globe, LayoutGrid, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { usePublicRoadmapsQuery } from "@/application/roadmap";
 import { useCategoriesQuery } from "@/application/onboarding/queries/get-categories.query";
-import { ErrorState, SearchInput } from "@/shared/components";
-import { palette } from "@/shared/theme";
-import { RoadmapCardSkeleton } from "./RoadmapCardSkeleton";
-import { CategoryFilter } from "./Category/CategoryFilter";
+import {
+  AuroraGrid,
+  ErrorState,
+  SearchInput,
+  type AuroraTone,
+} from "@/shared/components";
+import { aurora as auroraPalette, auroraTint } from "@/shared/theme";
+import { categoryTone } from "@/features/blog/constants/categoryAssets";
 import { ExploreCard } from "./ExploreCard";
 import { ExploreHero } from "./ExploreHero";
-
-const MotionGrid = motion.create(Grid);
+import { RoadmapCardSkeleton } from "./RoadmapCardSkeleton";
 
 const PAGE_SIZE = 9;
-
-const staggerContainer = {
-  hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.08, delayChildren: 0.15 },
-  },
-};
-
-const staggerItem = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.35 } },
-};
+const ALL = "__all__" as const;
+type CategoryFilter = string | typeof ALL;
 
 const styles: Record<string, SxProps<Theme>> = {
   browseLink: {
-    display: "flex",
+    display: "inline-flex",
     alignItems: "center",
-    gap: 1.5,
+    gap: 1.25,
     mb: 3,
-    px: 2.5,
-    py: 1.5,
-    borderRadius: 3,
-    bgcolor: alpha(palette.warning.main, 0.06),
-    border: `1px solid ${alpha(palette.warning.main, 0.12)}`,
+    px: "16px",
+    py: "10px",
+    borderRadius: auroraPalette.radii.pill,
+    background: auroraTint(auroraPalette.teal, 0.1),
+    border: `1px solid ${auroraTint(auroraPalette.teal, 0.3)}`,
     textDecoration: "none",
-    color: palette.warning.light,
+    color: auroraPalette.teal,
+    fontFamily: auroraPalette.font.mono,
+    fontSize: "12px",
     fontWeight: 600,
-    fontSize: "0.875rem",
-    transition: "all 0.2s ease",
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
     width: "fit-content",
+    transition: "background-color .2s, transform .2s",
     "&:hover": {
-      bgcolor: alpha(palette.warning.main, 0.1),
-      borderColor: alpha(palette.warning.main, 0.25),
-      transform: "translateX(4px)",
+      background: auroraTint(auroraPalette.teal, 0.16),
+      transform: "translateX(3px)",
     },
   },
-  emptyState: {
-    textAlign: "center",
-    py: 10,
+  searchRow: { mb: 3, maxWidth: 480 },
+  tabs: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 1.4,
+    mb: 4,
   },
   pagination: {
     mt: 5,
     display: "flex",
     justifyContent: "center",
     "& .MuiPaginationItem-root": {
-      color: palette.text.secondary,
+      color: auroraPalette.txMid,
+      fontFamily: auroraPalette.font.ui,
       fontWeight: 600,
+      borderColor: auroraPalette.line,
+      "&:hover": {
+        backgroundColor: "oklch(0.22 0.025 262 / 0.5)",
+        borderColor: auroraPalette.line2,
+      },
       "&.Mui-selected": {
-        bgcolor: alpha(palette.primary.main, 0.15),
-        color: palette.primary.light,
-        "&:hover": { bgcolor: alpha(palette.primary.main, 0.25) },
+        backgroundColor: auroraTint(auroraPalette.teal, 0.13),
+        borderColor: auroraTint(auroraPalette.teal, 0.45),
+        color: auroraPalette.teal,
+        "&:hover": {
+          backgroundColor: auroraTint(auroraPalette.teal, 0.18),
+        },
       },
     },
   },
+  emptyCard: {
+    py: 8,
+    px: 3,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    textAlign: "center",
+    borderRadius: auroraPalette.radii.card,
+    border: `1px dashed ${auroraPalette.line2}`,
+    background: "oklch(0.22 0.025 262 / 0.4)",
+  },
+  emptyTitle: {
+    fontFamily: auroraPalette.font.display,
+    fontSize: 22,
+    color: auroraPalette.txHi,
+    margin: 0,
+    mt: 2,
+    mb: 1,
+  },
+  emptyDesc: {
+    color: auroraPalette.txMid,
+    maxWidth: 360,
+    margin: "0 auto",
+  },
 };
+
+function tabSx(on: boolean): SxProps<Theme> {
+  return {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 1.25,
+    px: "18px",
+    py: "11px",
+    borderRadius: auroraPalette.radii.pill,
+    cursor: "pointer",
+    border: `1px solid ${on ? auroraTint(auroraPalette.teal, 0.45) : auroraPalette.line}`,
+    background: on
+      ? auroraTint(auroraPalette.teal, 0.13)
+      : "oklch(0.22 0.025 262 / 0.5)",
+    color: on ? auroraPalette.teal : auroraPalette.txMid,
+    fontWeight: 600,
+    fontSize: "14.5px",
+    transition: "all .15s",
+    whiteSpace: "nowrap",
+    "&:hover": on
+      ? {}
+      : {
+          color: auroraPalette.txHi,
+          borderColor: auroraPalette.line2,
+        },
+  };
+}
+
+function tabCountSx(on: boolean): SxProps<Theme> {
+  return {
+    fontFamily: auroraPalette.font.mono,
+    fontSize: "11.5px",
+    fontWeight: 700,
+    px: 1,
+    py: 0.25,
+    borderRadius: auroraPalette.radii.pill,
+    background: on
+      ? auroraTint(auroraPalette.teal, 0.2)
+      : "oklch(0.30 0.02 262 / 0.7)",
+    color: on ? auroraPalette.teal : auroraPalette.txMid,
+  };
+}
 
 export function ExploreRoadmaps() {
   const { data: roadmaps, isLoading, error } = usePublicRoadmapsQuery();
   const { data: categories } = useCategoriesQuery();
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>(ALL);
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
 
-  const handleCategoryChange = (categoryId: string | null) => {
-    setSelectedCategory(categoryId);
+  const slugById = useMemo(() => {
+    const map = new Map<string, string>();
+    categories?.forEach((c) => map.set(c.id, c.slug));
+    return map;
+  }, [categories]);
+
+  const handleCategoryChange = (id: CategoryFilter) => {
+    setSelectedCategory(id);
     setPage(1);
   };
 
@@ -101,7 +171,7 @@ export function ExploreRoadmaps() {
   const filteredRoadmaps = useMemo(() => {
     if (!roadmaps) return undefined;
     let result = roadmaps;
-    if (selectedCategory) {
+    if (selectedCategory !== ALL) {
       result = result.filter((r) => r.categoryId === selectedCategory);
     }
     if (searchQuery) {
@@ -140,20 +210,35 @@ export function ExploreRoadmaps() {
     return filteredRoadmaps.slice(start, start + PAGE_SIZE);
   }, [filteredRoadmaps, page]);
 
+  const tabs: Array<{ id: CategoryFilter; label: string; count: number }> = [
+    { id: ALL, label: "All", count: roadmaps?.length ?? 0 },
+    ...usedCategories.map((c) => ({
+      id: c.id,
+      label: c.name,
+      count: categoryCounts[c.id] ?? 0,
+    })),
+  ];
+
+  const toneForRoadmap = (categoryId?: string): AuroraTone => {
+    if (!categoryId) return "teal";
+    const slug = slugById.get(categoryId);
+    return slug ? categoryTone(slug) : "teal";
+  };
+
   return (
     <Box>
       <ExploreHero />
 
       {!isLoading && (
         <Box component={Link} href="/explore/rooms" sx={styles.browseLink}>
-          <LayoutGrid size={16} />
+          <LayoutGrid size={14} />
           Browse by Category
-          <ArrowRight size={16} />
+          <ArrowRight size={14} />
         </Box>
       )}
 
       {!isLoading && (
-        <Box sx={{ mb: 3, maxWidth: 480 }}>
+        <Box sx={styles.searchRow}>
           <SearchInput
             placeholder="Search roadmaps by title or topic..."
             onSearch={handleSearch}
@@ -163,25 +248,32 @@ export function ExploreRoadmaps() {
       )}
 
       {usedCategories.length > 0 && !isLoading && (
-        <Box sx={{ mb: 4 }}>
-          <CategoryFilter
-            categories={usedCategories}
-            selectedCategory={selectedCategory}
-            onSelect={handleCategoryChange}
-            counts={categoryCounts}
-            totalCount={roadmaps?.length}
-          />
+        <Box sx={styles.tabs}>
+          {tabs.map((t) => {
+            const on = selectedCategory === t.id;
+            return (
+              <Box
+                key={t.id}
+                component="span"
+                sx={tabSx(on)}
+                onClick={() => handleCategoryChange(t.id)}
+              >
+                {t.label}
+                <Box component="span" sx={tabCountSx(on)}>
+                  {t.count}
+                </Box>
+              </Box>
+            );
+          })}
         </Box>
       )}
 
       {isLoading && (
-        <Grid container spacing={3}>
+        <AuroraGrid>
           {Array.from({ length: 6 }).map((_, i) => (
-            <Grid key={i} size={{ xs: 12, sm: 6, lg: 4 }}>
-              <RoadmapCardSkeleton />
-            </Grid>
+            <RoadmapCardSkeleton key={i} />
           ))}
-        </Grid>
+        </AuroraGrid>
       )}
 
       {!isLoading && error && (
@@ -193,24 +285,18 @@ export function ExploreRoadmaps() {
       )}
 
       {!isLoading && !error && filteredRoadmaps?.length === 0 && (
-        <Box sx={styles.emptyState}>
+        <Box sx={styles.emptyCard}>
           <Globe
-            size={48}
-            color={palette.text.secondary}
-            style={{ opacity: 0.3, marginBottom: 16 }}
+            size={40}
+            color={auroraPalette.txLow}
+            style={{ opacity: 0.6 }}
           />
-          <Typography
-            variant="h6"
-            sx={{ color: palette.text.secondary, mb: 1 }}
-          >
+          <Box component="h3" sx={styles.emptyTitle}>
             No public roadmaps yet
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{ color: palette.text.secondary, opacity: 0.7 }}
-          >
+          </Box>
+          <Box component="p" sx={styles.emptyDesc}>
             Be the first to share a roadmap with the community!
-          </Typography>
+          </Box>
         </Box>
       )}
 
@@ -219,25 +305,15 @@ export function ExploreRoadmaps() {
         paginatedRoadmaps &&
         paginatedRoadmaps.length > 0 && (
           <>
-            <MotionGrid
-              key={`${selectedCategory}-${searchQuery}-${page}`}
-              container
-              spacing={3}
-              variants={staggerContainer}
-              initial="hidden"
-              animate="visible"
-            >
+            <AuroraGrid>
               {paginatedRoadmaps.map((roadmap) => (
-                <Grid
+                <ExploreCard
                   key={roadmap.id}
-                  size={{ xs: 12, sm: 6, lg: 4 }}
-                  component={motion.div}
-                  variants={staggerItem}
-                >
-                  <ExploreCard roadmap={roadmap} />
-                </Grid>
+                  roadmap={roadmap}
+                  tone={toneForRoadmap(roadmap.categoryId)}
+                />
               ))}
-            </MotionGrid>
+            </AuroraGrid>
 
             {totalPages > 1 && (
               <Box sx={styles.pagination}>
@@ -247,6 +323,7 @@ export function ExploreRoadmaps() {
                   onChange={(_e, value) => setPage(value)}
                   shape="rounded"
                   size="large"
+                  variant="outlined"
                 />
               </Box>
             )}

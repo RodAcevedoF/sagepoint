@@ -1,21 +1,19 @@
 "use client";
 
-import { Box, Grid, Typography, useTheme } from "@mui/material";
+import { Grid, Typography } from "@mui/material";
+import { UserCircle2 } from "lucide-react";
 import { DashboardLayout } from "@/features/dashboard/components/DashboardLayout";
 import { useGetProfileQuery } from "@/application/profile/queries/get-profile.query";
-import { Loader } from "@/shared/components";
+import { AuroraHero, Loader } from "@/shared/components";
 import { aurora as auroraPalette } from "@/shared/theme";
 import { ProfileHeader } from "./ProfileHeader";
 import { ProfileDetails } from "./ProfileDetails";
 import { ProfileLearning } from "./ProfileLearning";
 import { ProfileInterests } from "./ProfileInterests";
 import { ProfileActions } from "./ProfileActions";
-import { makeStyles } from "./Profile.styles";
 
 export function ProfilePage() {
   const { user, isLoading } = useGetProfileQuery();
-  const theme = useTheme();
-  const styles = makeStyles(theme);
 
   if (isLoading) {
     return (
@@ -37,14 +35,13 @@ export function ProfilePage() {
 
   return (
     <DashboardLayout width="lg">
-      <Box sx={styles.pageHeader}>
-        <Typography component="h1" sx={styles.headerTitle}>
-          Profile
-        </Typography>
-        <Typography component="p" sx={styles.headerSubtitle}>
-          Manage your account settings, preferences and learning journey
-        </Typography>
-      </Box>
+      <AuroraHero
+        eyebrow="Account"
+        eyebrowIcon={<UserCircle2 size={13} />}
+        title="Your Profile"
+        lede="Manage your account settings, preferences and learning journey."
+        glyph={<UserCircle2 size={140} strokeWidth={1.2} />}
+      />
 
       <Grid container spacing="22px" sx={{ pb: 8 }}>
         {/* Row 1 — Identity (380px) | Account Details (1fr) */}

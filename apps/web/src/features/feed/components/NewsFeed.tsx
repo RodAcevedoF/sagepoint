@@ -1,10 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Box, Grid, Typography } from "@mui/material";
-import { Rss, ArrowLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { EmptyState } from "@/shared/components";
+import { Box, Grid } from "@mui/material";
+import { Rss } from "lucide-react";
+import { AuroraHero, EmptyState } from "@/shared/components";
 import { aurora as auroraPalette, auroraTint } from "@/shared/theme";
 import { useInsightsQuery } from "@/application/insights/queries/get-insights.query";
 import { NewsArticleCard } from "@/features/dashboard/components/DashboardNews/NewsArticleCard";
@@ -12,112 +11,6 @@ import { NewsCardSkeleton } from "@/features/dashboard/components/DashboardNews/
 import { formatSlug } from "@/features/dashboard/components/DashboardNews/news.utils";
 
 const styles = {
-  hero: {
-    position: "relative",
-    overflow: "hidden",
-    borderRadius: "26px",
-    border: `1px solid ${auroraPalette.line}`,
-    background:
-      "radial-gradient(560px 320px at 90% 10%, oklch(0.42 0.10 195 / 0.12), transparent 70%), linear-gradient(160deg, oklch(0.235 0.03 250 / 0.7), oklch(0.165 0.03 264 / 0.6))",
-    boxShadow: auroraPalette.shadow.card,
-    mt: "30px",
-    p: { xs: "26px 24px 28px", md: "34px 38px 36px" },
-    mb: 4,
-  },
-  spBack: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "9px",
-    px: "13px",
-    py: "10px",
-    borderRadius: auroraPalette.radii.md,
-    cursor: "pointer",
-    background: auroraTint(auroraPalette.teal, 0.08),
-    border: `1px solid ${auroraTint(auroraPalette.teal, 0.3)}`,
-    color: auroraPalette.teal,
-    fontWeight: 600,
-    fontSize: "14px",
-    transition: "all .15s",
-    whiteSpace: "nowrap",
-    "&:hover": {
-      background: auroraTint(auroraPalette.teal, 0.15),
-      transform: "translateX(-2px)",
-    },
-  },
-  feedBadge: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "9px",
-    mt: 2.5,
-    px: "15px",
-    py: "7px",
-    borderRadius: "999px",
-    fontFamily: auroraPalette.font.mono,
-    fontSize: "11px",
-    fontWeight: 600,
-    letterSpacing: "0.16em",
-    textTransform: "uppercase",
-    color: auroraPalette.status.concept,
-    background: auroraTint(auroraPalette.status.concept, 0.1),
-    border: `1px solid ${auroraTint(auroraPalette.status.concept, 0.3)}`,
-    whiteSpace: "nowrap",
-  },
-  feedTitleRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: 2,
-    mt: "18px",
-  },
-  feedTitleBar: {
-    width: 6,
-    alignSelf: "stretch",
-    minHeight: 52,
-    borderRadius: "999px",
-    background: `linear-gradient(180deg, ${auroraPalette.teal}, ${auroraPalette.status.concept})`,
-  },
-  feedTitle: {
-    fontFamily: auroraPalette.font.display,
-    fontWeight: 800,
-    fontSize: "clamp(40px, 5vw, 64px)",
-    letterSpacing: "-0.03em",
-    lineHeight: 1,
-    m: 0,
-    background: `linear-gradient(115deg, ${auroraPalette.txHi} 30%, ${auroraPalette.teal} 100%)`,
-    WebkitBackgroundClip: "text",
-    backgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-  },
-  lede: {
-    mt: 2,
-    mb: 0,
-    fontSize: "16.5px",
-    color: auroraPalette.txMid,
-  },
-  stats: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "24px",
-    mt: "22px",
-  },
-  stat: (dotColor: string) => ({
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "9px",
-    fontSize: "14px",
-    color: auroraPalette.tx,
-    "&::before": {
-      content: '""',
-      width: 9,
-      height: 9,
-      borderRadius: "50%",
-      background: dotColor,
-    },
-    "& b": {
-      fontFamily: auroraPalette.font.mono,
-      color: auroraPalette.txHi,
-      fontWeight: 600,
-    },
-  }),
   tabs: {
     display: "flex",
     flexWrap: "wrap",
@@ -174,7 +67,6 @@ const styles = {
 } as const;
 
 export function NewsFeed() {
-  const router = useRouter();
   const { data: articles, isLoading } = useInsightsQuery();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
@@ -203,47 +95,38 @@ export function NewsFeed() {
     })),
   ];
 
+  const heroStats =
+    !isLoading && articles && articles.length > 0
+      ? [
+          {
+            value: articles.length,
+            label: "articles",
+            dotColor: auroraPalette.status.concept,
+          },
+          {
+            value: categories.length,
+            label: "topics",
+            dotColor: auroraPalette.status.ready,
+          },
+          {
+            value: sourceCount,
+            label: "sources",
+            dotColor: auroraPalette.status.proc,
+          },
+        ]
+      : undefined;
+
   return (
     <Box sx={{ mb: 10 }}>
-      <Box component="section" sx={styles.hero}>
-        <Box
-          component="span"
-          sx={styles.spBack}
-          onClick={() => router.push("/dashboard")}
-        >
-          <ArrowLeft size={17} /> Dashboard
-        </Box>
-        <Box>
-          <Box component="span" sx={styles.feedBadge}>
-            <Rss size={13} /> Personalized Feed
-          </Box>
-        </Box>
-        <Box sx={styles.feedTitleRow}>
-          <Box sx={styles.feedTitleBar} />
-          <Box component="h1" sx={styles.feedTitle}>
-            News Feed
-          </Box>
-        </Box>
-        <Typography component="p" sx={styles.lede}>
-          Curated articles based on your interests and roadmap topics.
-        </Typography>
-        {!isLoading && articles && articles.length > 0 && (
-          <Box sx={styles.stats}>
-            <Box
-              component="span"
-              sx={styles.stat(auroraPalette.status.concept)}
-            >
-              <b>{articles.length}</b> articles
-            </Box>
-            <Box component="span" sx={styles.stat(auroraPalette.status.ready)}>
-              <b>{categories.length}</b> topics
-            </Box>
-            <Box component="span" sx={styles.stat(auroraPalette.status.proc)}>
-              <b>{sourceCount}</b> sources
-            </Box>
-          </Box>
-        )}
-      </Box>
+      <AuroraHero
+        eyebrow="Personalized Feed"
+        eyebrowIcon={<Rss size={13} />}
+        title="News Feed"
+        lede="Curated articles based on your interests and roadmap topics."
+        backLink={{ label: "Dashboard", href: "/dashboard" }}
+        stats={heroStats}
+        glyph={<Rss size={140} strokeWidth={1.2} />}
+      />
 
       {!isLoading && categories.length > 0 && (
         <Box sx={styles.tabs}>

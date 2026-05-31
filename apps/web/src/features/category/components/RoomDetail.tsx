@@ -1,97 +1,54 @@
 "use client";
 
 import { useState } from "react";
+import { Box, Pagination, type SxProps, type Theme } from "@mui/material";
+import { BookOpen, Users, LayoutGrid } from "lucide-react";
 import {
-  Box,
-  Grid,
-  Typography,
-  Pagination,
-  Skeleton,
-  alpha,
-} from "@mui/material";
-import { BookOpen, Users } from "lucide-react";
-import { motion } from "framer-motion";
-import {
+  AuroraGrid,
+  AuroraHero,
+  AuroraSkeleton,
+  BackLink,
   EmptyState,
   ErrorState,
+  Pill,
   SearchInput,
-  GoBackButton,
 } from "@/shared/components";
+import { aurora as auroraPalette, auroraTint } from "@/shared/theme";
 import { useGetCategoryRoomDetailQuery } from "@/infrastructure/api/categoryRoomApi";
 import { ExploreCard } from "@/features/roadmap/components/ExploreCard";
 import { RoadmapCardSkeleton } from "@/features/roadmap/components/RoadmapCardSkeleton";
-import { palette } from "@/shared/theme";
+import { categoryTone } from "@/features/blog/constants/categoryAssets";
 
 const PAGE_SIZE = 12;
 
-const MotionBox = motion.create(Box);
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.15 } },
-};
-const item = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-};
-
-const styles = {
-  hero: {
-    position: "relative",
-    overflow: "hidden",
-    borderRadius: 8,
-    p: { xs: 5, md: 8 },
-    mb: 5,
-    background: `linear-gradient(135deg, ${alpha(palette.background.paper, 0.8)} 0%, ${alpha(palette.background.paper, 0.4)} 100%)`,
-    backdropFilter: "blur(16px)",
-    border: `1px solid ${alpha(palette.warning.light, 0.1)}`,
-    boxShadow: `0 24px 48px ${alpha(palette.background.default, 0.4)}`,
-  },
-  gradientOrb: {
-    position: "absolute",
-    top: -120,
-    right: -120,
-    width: 400,
-    height: 400,
-    borderRadius: "50%",
-    background: `radial-gradient(circle, ${alpha(palette.warning.main, 0.12)} 0%, transparent 70%)`,
-    filter: "blur(60px)",
-    pointerEvents: "none",
-  },
-  title: {
-    fontWeight: 900,
-    mb: 1.5,
-    background: `linear-gradient(135deg, ${palette.text.primary} 0%, ${palette.warning.light} 100%)`,
-    backgroundClip: "text",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    fontSize: { xs: "2rem", md: "2.75rem" },
-    letterSpacing: "-1px",
-    lineHeight: 1.1,
-  },
-  statsRow: {
+const styles: Record<string, SxProps<Theme>> = {
+  stats: {
     display: "flex",
-    gap: 3,
-    mt: 2,
+    flexWrap: "wrap",
+    gap: 1.5,
+    mt: 3,
   },
-  stat: {
-    display: "flex",
-    alignItems: "center",
-    gap: 0.75,
-    fontWeight: 600,
-    fontSize: "0.9rem",
-  },
+  searchRow: { mb: 4, maxWidth: 480 },
   pagination: {
     mt: 5,
     display: "flex",
     justifyContent: "center",
     "& .MuiPaginationItem-root": {
-      color: palette.text.secondary,
+      color: auroraPalette.txMid,
+      fontFamily: auroraPalette.font.ui,
       fontWeight: 600,
+      borderColor: auroraPalette.line,
+      "&:hover": {
+        backgroundColor: "oklch(0.22 0.025 262 / 0.5)",
+        borderColor: auroraPalette.line2,
+      },
       "&.Mui-selected": {
-        bgcolor: alpha(palette.primary.main, 0.15),
-        color: palette.primary.light,
-        "&:hover": { bgcolor: alpha(palette.primary.main, 0.25) },
+        backgroundColor: auroraTint(auroraPalette.teal, 0.13),
+        borderColor: auroraTint(auroraPalette.teal, 0.45),
+        color: auroraPalette.teal,
+        "&:hover": {
+          backgroundColor: auroraTint(auroraPalette.teal, 0.18),
+        },
       },
     },
   },
@@ -126,69 +83,41 @@ export function RoomDetail({ slug }: RoomDetailProps) {
     );
   }
 
+  const tone = categoryTone(slug);
   const totalPages = data ? Math.ceil(data.roadmaps.total / PAGE_SIZE) : 0;
 
   return (
-    <Box sx={{ pb: 10 }}>
-      {/* Hero */}
-      <MotionBox
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: "easeOut" }}
-      >
-        <Box sx={styles.hero}>
-          <Box sx={styles.gradientOrb} />
-          <Box sx={{ position: "relative", zIndex: 1 }}>
-            <Box sx={{ mb: 2 }}>
-              <GoBackButton label="Category Rooms" size="small" />
-            </Box>
+    <Box>
+      <Box sx={{ mb: 2 }}>
+        <BackLink label="Category Rooms" href="/explore/rooms" />
+      </Box>
 
-            {isLoading ? (
-              <>
-                <Skeleton width={300} height={48} animation="wave" />
-                <Skeleton
-                  width={450}
-                  height={24}
-                  sx={{ mt: 1 }}
-                  animation="wave"
-                />
-              </>
-            ) : data ? (
-              <>
-                <Typography variant="h3" sx={styles.title}>
-                  {data.category.name}
-                </Typography>
-                {data.category.description && (
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      color: "text.secondary",
-                      opacity: 0.9,
-                      maxWidth: 540,
-                    }}
-                  >
-                    {data.category.description}
-                  </Typography>
-                )}
-                <Box sx={styles.statsRow}>
-                  <Box sx={{ ...styles.stat, color: palette.info.light }}>
-                    <BookOpen size={16} />
-                    {data.roadmapCount} roadmap
-                    {data.roadmapCount !== 1 ? "s" : ""}
-                  </Box>
-                  <Box sx={{ ...styles.stat, color: palette.success.light }}>
-                    <Users size={16} />
-                    {data.memberCount} member{data.memberCount !== 1 ? "s" : ""}
-                  </Box>
-                </Box>
-              </>
-            ) : null}
-          </Box>
+      {isLoading || !data ? (
+        <Box sx={{ mb: "28px" }}>
+          <AuroraSkeleton height={220} radius={26} />
         </Box>
-      </MotionBox>
+      ) : (
+        <>
+          <AuroraHero
+            style={{ marginBottom: 20 }}
+            eyebrow="Category Room"
+            eyebrowIcon={<LayoutGrid size={13} />}
+            title={data.category.name}
+            lede={data.category.description ?? ""}
+            glyph={<LayoutGrid size={140} strokeWidth={1.2} />}
+          />
+          <Box sx={styles.stats}>
+            <Pill tone={tone} icon={<BookOpen size={13} />}>
+              {data.roadmapCount} roadmap{data.roadmapCount !== 1 ? "s" : ""}
+            </Pill>
+            <Pill tone="concept" icon={<Users size={13} />}>
+              {data.memberCount} member{data.memberCount !== 1 ? "s" : ""}
+            </Pill>
+          </Box>
+        </>
+      )}
 
-      {/* Search */}
-      <Box sx={{ mb: 4, maxWidth: 480 }}>
+      <Box sx={styles.searchRow}>
         <SearchInput
           placeholder={`Search in ${data?.category.name ?? "this room"}...`}
           onSearch={handleSearch}
@@ -196,37 +125,21 @@ export function RoomDetail({ slug }: RoomDetailProps) {
         />
       </Box>
 
-      {/* Content */}
-      {isLoading ? (
-        <Grid container spacing={3}>
+      {isLoading && (
+        <AuroraGrid>
           {Array.from({ length: 6 }).map((_, i) => (
-            <Grid key={i} size={{ xs: 12, sm: 6, lg: 4 }}>
-              <RoadmapCardSkeleton />
-            </Grid>
+            <RoadmapCardSkeleton key={i} />
           ))}
-        </Grid>
-      ) : data && data.roadmaps.items.length > 0 ? (
+        </AuroraGrid>
+      )}
+
+      {!isLoading && data && data.roadmaps.items.length > 0 && (
         <>
-          <Grid
-            container
-            spacing={3}
-            component={motion.div}
-            key={`${search}-${page}`}
-            variants={stagger}
-            initial="hidden"
-            animate="visible"
-          >
+          <AuroraGrid>
             {data.roadmaps.items.map((roadmap) => (
-              <Grid
-                key={roadmap.id}
-                size={{ xs: 12, sm: 6, lg: 4 }}
-                component={motion.div}
-                variants={item}
-              >
-                <ExploreCard roadmap={roadmap} />
-              </Grid>
+              <ExploreCard key={roadmap.id} roadmap={roadmap} tone={tone} />
             ))}
-          </Grid>
+          </AuroraGrid>
 
           {totalPages > 1 && (
             <Box sx={styles.pagination}>
@@ -236,11 +149,14 @@ export function RoomDetail({ slug }: RoomDetailProps) {
                 onChange={(_e, value) => setPage(value)}
                 shape="rounded"
                 size="large"
+                variant="outlined"
               />
             </Box>
           )}
         </>
-      ) : (
+      )}
+
+      {!isLoading && data && data.roadmaps.items.length === 0 && (
         <EmptyState
           title="No roadmaps found"
           description={

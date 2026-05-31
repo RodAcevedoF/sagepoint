@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { TextField, InputAdornment, IconButton, alpha } from "@mui/material";
+import { TextField, InputAdornment, IconButton } from "@mui/material";
 import { Search, X } from "lucide-react";
 import { useDebouncedCallback } from "use-debounce";
-import { palette } from "@/shared/theme";
+import { aurora as auroraPalette, auroraTint } from "@/shared/theme";
 
 interface SearchInputProps {
   placeholder?: string;
@@ -47,7 +47,7 @@ export function SearchInput({
         input: {
           startAdornment: (
             <InputAdornment position="start">
-              <Search size={18} color={palette.text.secondary} />
+              <Search size={18} color={auroraPalette.txLow} />
             </InputAdornment>
           ),
           endAdornment: value ? (
@@ -58,7 +58,7 @@ export function SearchInput({
                 aria-label="Clear search"
                 sx={{ p: 0.5 }}
               >
-                <X size={16} color={palette.text.secondary} />
+                <X size={16} color={auroraPalette.txLow} />
               </IconButton>
             </InputAdornment>
           ) : null,
@@ -66,18 +66,22 @@ export function SearchInput({
       }}
       sx={{
         "& .MuiOutlinedInput-root": {
-          borderRadius: 3,
-          bgcolor: alpha(palette.background.paper, 0.4),
-          backdropFilter: "blur(8px)",
+          borderRadius: auroraPalette.radii.pill,
+          bgcolor: "oklch(0.22 0.025 262 / 0.5)",
+          color: auroraPalette.txHi,
           "& fieldset": {
-            borderColor: alpha(palette.primary.light, 0.1),
+            borderColor: auroraPalette.line,
           },
           "&:hover fieldset": {
-            borderColor: alpha(palette.primary.light, 0.25),
+            borderColor: auroraPalette.line2,
           },
           "&.Mui-focused fieldset": {
-            borderColor: alpha(palette.primary.main, 0.4),
+            borderColor: auroraTint(auroraPalette.teal, 0.5),
           },
+        },
+        "& .MuiOutlinedInput-input::placeholder": {
+          color: auroraPalette.txLow,
+          opacity: 1,
         },
       }}
     />

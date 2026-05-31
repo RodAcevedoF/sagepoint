@@ -2,25 +2,6 @@ import { type Theme, type SxProps } from "@mui/material";
 import { aurora as auroraPalette, auroraTint } from "@/shared/theme";
 
 export const makeStyles = (_theme: Theme) => ({
-  pageHeader: {
-    pt: { xs: 4, md: 6 },
-    pb: { xs: 3, md: 4 },
-  } satisfies SxProps<Theme>,
-  headerTitle: {
-    fontFamily: auroraPalette.font.display,
-    fontWeight: 800,
-    fontSize: { xs: "2.25rem", md: "3rem" },
-    letterSpacing: "-0.03em",
-    color: auroraPalette.txHi,
-    m: 0,
-  } satisfies SxProps<Theme>,
-  headerSubtitle: {
-    color: auroraPalette.txMid,
-    fontSize: { xs: "1rem", md: "1.05rem" },
-    maxWidth: "600px",
-    mt: 1.5,
-  } satisfies SxProps<Theme>,
-
   // ── Panel (mock .panel) ─────────────────────────────────────────────────
   panel: {
     position: "relative",

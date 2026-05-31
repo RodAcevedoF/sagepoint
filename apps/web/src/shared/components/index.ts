@@ -13,6 +13,7 @@ export { SearchInput } from "./ui/SearchInput";
 export {
   AuroraGrid,
   AuroraHero,
+  type AuroraHeroStat,
   AuroraIconButton,
   AuroraSkeleton,
   AuroraTabs,

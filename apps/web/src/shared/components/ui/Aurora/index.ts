@@ -1,7 +1,7 @@
 export { BackLink } from "./BackLink";
 export { FooterCTA } from "./FooterCTA";
 export { Grid as AuroraGrid } from "./Grid";
-export { Hero as AuroraHero } from "./Hero";
+export { Hero as AuroraHero, type HeroStat as AuroraHeroStat } from "./Hero";
 export { IconButton as AuroraIconButton } from "./IconButton";
 export { MixBar, difficultySegments, type MixSegment } from "./MixBar";
 export { ModalTitle } from "./ModalTitle";
