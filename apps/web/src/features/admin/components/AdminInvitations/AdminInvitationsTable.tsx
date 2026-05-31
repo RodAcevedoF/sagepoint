@@ -8,14 +8,14 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
-import { palette } from "@/shared/theme";
-import { menuPaperSx } from "./AdminInvitations.styles";
+import { Trash2 } from "lucide-react";
+import { aurora } from "@/shared/theme";
+import { menuPaperSx, snackbarAlertSx } from "./AdminInvitations.styles";
 import {
   useSnackbar,
   useInvitationForm,
   useRevokeMenu,
 } from "../../hooks/useInvitation";
-import { Trash2 } from "lucide-react";
 import { useGetAdminInvitationsQuery } from "@/application/admin";
 import { Loader, ErrorState } from "@/shared/components";
 import { AdminInvitationForm } from "./AdminInvitationForm";
@@ -52,11 +52,12 @@ export function AdminInvitationsTable() {
         anchorEl={menu.anchorEl}
         open={Boolean(menu.anchorEl)}
         onClose={menu.closeMenu}
+        disableScrollLock
         slotProps={{ paper: { sx: menuPaperSx } }}
       >
         <MenuItem onClick={menu.handleRevoke}>
           <ListItemIcon>
-            <Trash2 size={16} color={palette.error.main} />
+            <Trash2 size={16} color={aurora.status.fail} />
           </ListItemIcon>
           <ListItemText>Revoke Invitation</ListItemText>
         </MenuItem>
@@ -66,8 +67,13 @@ export function AdminInvitationsTable() {
         open={snackbar.open}
         autoHideDuration={3000}
         onClose={closeSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       >
-        <Alert severity={snackbar.severity} variant="filled">
+        <Alert
+          severity={snackbar.severity}
+          variant="filled"
+          sx={snackbarAlertSx}
+        >
           {snackbar.message}
         </Alert>
       </Snackbar>

@@ -1,15 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Box,
-  Typography,
-  Grid,
-  alpha,
-  Chip,
-  Collapse,
-  CircularProgress,
-} from "@mui/material";
+import { Box, Collapse, CircularProgress } from "@mui/material";
 import {
   FileText,
   Map,
@@ -21,246 +13,251 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-import { Card } from "@/shared/components";
-import { palette } from "@/shared/theme";
-import { motion } from "framer-motion";
+import type { LucideIcon } from "lucide-react";
+import {
+  Card,
+  SecTitle,
+  toneColor,
+  type AuroraTone,
+} from "@/shared/components";
+import { aurora, auroraTint } from "@/shared/theme";
 import type {
   QueueStatsResponse,
   QueueInfo,
 } from "@/infrastructure/api/adminApi";
 
-const styles = {
-  card: {
-    p: 3,
-    height: "100%",
-  },
-  sectionTitle: {
-    fontWeight: 800,
-    fontSize: "1.25rem",
-    mb: 2.5,
-    color: palette.text.primary,
-  },
-  queueName: {
-    fontWeight: 700,
-    fontSize: "1.05rem",
-    mb: 1.5,
-  },
-  countRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: 1,
-    mb: 0.75,
-  },
-  countLabel: {
-    fontSize: "0.9rem",
-    color: palette.text.secondary,
-    flex: 1,
-  },
-  failureItem: {
-    p: 1.5,
-    borderRadius: 1,
-    bgcolor: alpha(palette.error.main, 0.08),
-    border: `1px solid ${alpha(palette.error.main, 0.15)}`,
-    mb: 1,
-  },
-  failureReason: {
-    fontSize: "0.85rem",
-    color: palette.error.light,
-    wordBreak: "break-word",
-  },
-};
+interface CountConfig {
+  key: keyof QueueInfo["counts"];
+  label: string;
+  icon: LucideIcon;
+  tone: AuroraTone;
+}
 
-const countConfigs = [
-  {
-    key: "waiting" as const,
-    label: "Waiting",
-    icon: Clock,
-    color: palette.warning.main,
-  },
-  {
-    key: "active" as const,
-    label: "Active",
-    icon: Play,
-    color: palette.info.main,
-  },
-  {
-    key: "completed" as const,
-    label: "Completed",
-    icon: CheckCircle2,
-    color: palette.success.main,
-  },
-  {
-    key: "failed" as const,
-    label: "Failed",
-    icon: XCircle,
-    color: palette.error.main,
-  },
-  {
-    key: "delayed" as const,
-    label: "Delayed",
-    icon: Timer,
-    color: palette.text.secondary,
-  },
+const countConfigs: ReadonlyArray<CountConfig> = [
+  { key: "waiting", label: "Waiting", icon: Clock, tone: "proc" },
+  { key: "active", label: "Active", icon: Play, tone: "concept" },
+  { key: "completed", label: "Completed", icon: CheckCircle2, tone: "ready" },
+  { key: "failed", label: "Failed", icon: XCircle, tone: "fail" },
+  { key: "delayed", label: "Delayed", icon: Timer, tone: "teal" },
 ];
 
-const queues = [
+interface QueueConfig {
+  key: "documentQueue" | "roadmapQueue";
+  label: string;
+  icon: LucideIcon;
+  tone: AuroraTone;
+}
+
+const queues: ReadonlyArray<QueueConfig> = [
   {
-    key: "documentQueue" as const,
+    key: "documentQueue",
     label: "Document Processing",
     icon: FileText,
-    color: palette.secondary.light,
+    tone: "ready",
   },
   {
-    key: "roadmapQueue" as const,
+    key: "roadmapQueue",
     label: "Roadmap Generation",
     icon: Map,
-    color: palette.primary.main,
+    tone: "teal",
   },
 ];
+
+const queueGridSx = {
+  display: "grid",
+  gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)" },
+  gap: "18px",
+} as const;
+
+const queueCardSx = {
+  padding: "26px 28px",
+} as const;
+
+const queueHeadSx = {
+  display: "flex",
+  alignItems: "center",
+  gap: "13px",
+  marginBottom: "20px",
+} as const;
+
+const queueIconSx = {
+  width: 46,
+  height: 46,
+  borderRadius: aurora.radii.md,
+  display: "grid",
+  placeItems: "center",
+  background: `color-mix(in oklch, var(--accent) 15%, ${aurora.surface2})`,
+  border: "1px solid color-mix(in oklch, var(--accent) 26%, transparent)",
+  color: "var(--accent)",
+} as const;
+
+const queueNameSx = {
+  fontFamily: aurora.font.display,
+  fontWeight: 700,
+  fontSize: "20px",
+  color: aurora.txHi,
+  letterSpacing: "-0.01em",
+} as const;
+
+const countRowSx = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  padding: "10px 0",
+  "& + &": {
+    borderTop: `1px solid ${aurora.line}`,
+  },
+} as const;
+
+function CountRow({ config, value }: { config: CountConfig; value: number }) {
+  const Icon = config.icon;
+  const color = toneColor(config.tone);
+  return (
+    <Box sx={countRowSx}>
+      <Box
+        component="span"
+        sx={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "11px",
+          fontSize: "14.5px",
+          color: aurora.tx,
+          "& svg": { color },
+        }}
+      >
+        <Icon size={17} />
+        {config.label}
+      </Box>
+      <Box
+        component="span"
+        sx={{
+          fontFamily: aurora.font.mono,
+          fontSize: "13px",
+          fontWeight: 700,
+          minWidth: "38px",
+          textAlign: "center",
+          padding: "4px 11px",
+          borderRadius: aurora.radii.pill,
+          background: auroraTint(color, 0.14),
+          border: `1px solid ${auroraTint(color, 0.3)}`,
+          color,
+        }}
+      >
+        {value}
+      </Box>
+    </Box>
+  );
+}
+
+interface QueueCardProps {
+  queue: QueueInfo | undefined;
+  config: QueueConfig;
+}
+
+function QueueCard({ queue, config }: QueueCardProps) {
+  const [expanded, setExpanded] = useState(false);
+  const Icon = config.icon;
+  const failures = queue?.recentFailures ?? [];
+  const failCount = failures.length;
+  const hasFailures = failCount > 0;
+
+  return (
+    <Card
+      variant="aurora"
+      tone={config.tone}
+      hoverable={false}
+      withAura={false}
+      sx={queueCardSx}
+    >
+      <Box sx={queueHeadSx}>
+        <Box sx={queueIconSx}>
+          <Icon size={22} />
+        </Box>
+        <Box sx={queueNameSx}>{config.label}</Box>
+      </Box>
+
+      {!queue ? (
+        <Box sx={{ fontSize: "14px", color: aurora.txMid }}>
+          No data available
+        </Box>
+      ) : (
+        <>
+          {countConfigs.map((c) => (
+            <CountRow key={c.key} config={c} value={queue.counts[c.key] ?? 0} />
+          ))}
+
+          {hasFailures && (
+            <Box sx={{ marginTop: "16px", paddingTop: "6px" }}>
+              <Box
+                component="button"
+                onClick={() => setExpanded((v) => !v)}
+                sx={{
+                  appearance: "none",
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "9px",
+                  fontWeight: 700,
+                  fontSize: "14px",
+                  color: aurora.status.fail,
+                  whiteSpace: "nowrap",
+                  transition: "opacity .15s ease",
+                  "&:hover": { opacity: 0.85 },
+                }}
+              >
+                Recent Failures ({failCount})
+                {expanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+              </Box>
+              <Collapse in={expanded}>
+                <Box sx={{ marginTop: "10px", display: "grid", gap: "8px" }}>
+                  {failures.map((failure, i) => (
+                    <Box
+                      key={failure.id ?? i}
+                      sx={{
+                        padding: "11px 13px",
+                        borderRadius: aurora.radii.sm,
+                        background: auroraTint(aurora.status.fail, 0.08),
+                        border: `1px solid ${auroraTint(aurora.status.fail, 0.22)}`,
+                        fontSize: "13.5px",
+                        color: aurora.status.fail,
+                        wordBreak: "break-word",
+                      }}
+                    >
+                      {failure.failedReason || "Unknown error"}
+                    </Box>
+                  ))}
+                </Box>
+              </Collapse>
+            </Box>
+          )}
+        </>
+      )}
+    </Card>
+  );
+}
 
 interface AdminQueueStatsProps {
   data: QueueStatsResponse | undefined;
   isLoading: boolean;
 }
 
-function QueueCard({
-  queue,
-  icon: Icon,
-  label,
-  color,
-  index,
-}: {
-  queue: QueueInfo | undefined;
-  icon: typeof FileText;
-  label: string;
-  color: string;
-  index: number;
-}) {
-  const [expanded, setExpanded] = useState(false);
-  const failures = queue?.recentFailures ?? [];
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-      style={{ height: "100%" }}
-    >
-      <Card variant="glass" hoverable={true} sx={styles.card}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
-          <Box
-            sx={{
-              width: 48,
-              height: 48,
-              borderRadius: 3,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              bgcolor: alpha(color, 0.12),
-              color: color,
-              border: `1px solid ${alpha(color, 0.2)}`,
-            }}
-          >
-            <Icon size={24} />
-          </Box>
-          <Typography sx={styles.queueName}>{label}</Typography>
-        </Box>
-
-        {!queue ? (
-          <Typography
-            sx={{ fontSize: "0.9rem", color: palette.text.secondary }}
-          >
-            No data available
-          </Typography>
-        ) : (
-          <>
-            {countConfigs.map((config) => {
-              const CountIcon = config.icon;
-              const value = queue.counts[config.key] ?? 0;
-              return (
-                <Box key={config.key} sx={styles.countRow}>
-                  <CountIcon size={14} color={config.color} />
-                  <Typography sx={styles.countLabel}>{config.label}</Typography>
-                  <Chip
-                    label={value}
-                    size="small"
-                    sx={{
-                      height: 22,
-                      fontSize: "0.85rem",
-                      fontWeight: 700,
-                      bgcolor: alpha(config.color, 0.12),
-                      color: config.color,
-                      border: `1px solid ${alpha(config.color, 0.2)}`,
-                    }}
-                  />
-                </Box>
-              );
-            })}
-
-            {failures.length > 0 && (
-              <Box sx={{ mt: 1.5 }}>
-                <Box
-                  onClick={() => setExpanded(!expanded)}
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 0.5,
-                    cursor: "pointer",
-                    color: palette.error.light,
-                    fontSize: "0.9rem",
-                    fontWeight: 600,
-                    "&:hover": { opacity: 0.8 },
-                  }}
-                >
-                  Recent Failures ({failures.length})
-                  {expanded ? (
-                    <ChevronUp size={14} />
-                  ) : (
-                    <ChevronDown size={14} />
-                  )}
-                </Box>
-                <Collapse in={expanded}>
-                  <Box sx={{ mt: 1 }}>
-                    {failures.map((failure, i) => (
-                      <Box key={failure.id ?? i} sx={styles.failureItem}>
-                        <Typography sx={styles.failureReason}>
-                          {failure.failedReason || "Unknown error"}
-                        </Typography>
-                      </Box>
-                    ))}
-                  </Box>
-                </Collapse>
-              </Box>
-            )}
-          </>
-        )}
-      </Card>
-    </motion.div>
-  );
-}
-
 export function AdminQueueStats({ data, isLoading }: AdminQueueStatsProps) {
   return (
-    <Box sx={{ mb: 5 }}>
-      <Typography sx={styles.sectionTitle}>Queue Monitor</Typography>
+    <Box>
+      <SecTitle style={{ marginBottom: "14px" }}>Queue Monitor</SecTitle>
       {isLoading && !data ? (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-          <CircularProgress size={24} />
+        <Box sx={{ display: "flex", justifyContent: "center", py: "28px" }}>
+          <CircularProgress size={24} sx={{ color: aurora.teal }} />
         </Box>
       ) : (
-        <Grid container spacing={2.5}>
-          {queues.map((q, index) => (
-            <Grid key={q.key} size={{ xs: 12, sm: 6 }}>
-              <QueueCard
-                queue={data?.[q.key]}
-                icon={q.icon}
-                label={q.label}
-                color={q.color}
-                index={index}
-              />
-            </Grid>
+        <Box sx={queueGridSx}>
+          {queues.map((q) => (
+            <QueueCard key={q.key} queue={data?.[q.key]} config={q} />
           ))}
-        </Grid>
+        </Box>
       )}
     </Box>
   );

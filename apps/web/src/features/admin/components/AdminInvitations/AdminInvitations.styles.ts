@@ -1,92 +1,92 @@
-import { alpha } from "@mui/material";
-import { palette } from "@/shared/theme";
-
-export const styles = {
-  headerCell: {
-    color: palette.text.secondary,
-    fontWeight: 700,
-    fontSize: "0.75rem",
-    textTransform: "uppercase",
-    letterSpacing: "0.08em",
-    py: 2,
-    borderBottom: `1px solid rgba(255,255,255,0.06)`,
-  },
-  row: {
-    "&:hover": { bgcolor: "rgba(255,255,255,0.025)" },
-    transition: "background-color 0.15s ease",
-    "& td": { borderBottom: `1px solid rgba(255,255,255,0.04)` },
-  },
-};
-
-export const tabSx = {
-  textTransform: "none" as const,
-  fontWeight: 600,
-  fontSize: "0.875rem",
-  p: "12px 16px",
-};
-
-export const fieldSx = {
-  "& .MuiOutlinedInput-root": {
-    borderRadius: 2,
-  },
-};
+import { aurora, auroraTint } from "@/shared/theme";
 
 export const inviteLinkBoxSx = {
-  mt: 2,
-  p: 2,
-  borderRadius: 2,
-  bgcolor: alpha(palette.success.main, 0.08),
-  border: `1px solid ${alpha(palette.success.main, 0.2)}`,
+  marginTop: "16px",
+  padding: "12px 14px",
+  borderRadius: aurora.radii.md,
+  background: auroraTint(aurora.status.ready, 0.08),
+  border: `1px solid ${auroraTint(aurora.status.ready, 0.28)}`,
   display: "flex",
   alignItems: "center",
-  gap: 1.5,
-};
+  gap: "12px",
+} as const;
 
 export const inviteLinkTextSx = {
   flex: 1,
+  minWidth: 0,
   wordBreak: "break-all" as const,
-  color: palette.success.light,
-  fontFamily: "monospace",
-  fontSize: "0.8rem",
-};
+  color: aurora.status.ready,
+  fontFamily: aurora.font.mono,
+  fontSize: "12.5px",
+} as const;
 
-export const countChipSx = {
-  ml: 1,
-  height: 20,
-  fontSize: "0.75rem",
-  fontWeight: 700,
-  bgcolor: "rgba(255,255,255,0.06)",
-  color: palette.text.secondary,
-  border: "none",
-};
-
-export function getRoleChipSx(role: string) {
-  return {
-    fontWeight: 700,
-    fontSize: "0.75rem",
-    borderRadius: "6px",
-    bgcolor:
-      role === "ADMIN"
-        ? alpha(palette.error.main, 0.12)
-        : alpha(palette.text.secondary, 0.08),
-    color: role === "ADMIN" ? palette.error.light : palette.text.secondary,
-    border: "none",
-  };
-}
-
-export function getStatusChipSx(statusStyle: { bg: string; text: string }) {
-  return {
-    fontWeight: 700,
-    fontSize: "0.75rem",
-    borderRadius: "6px",
-    bgcolor: statusStyle.bg,
-    color: statusStyle.text,
-    border: "none",
-  };
-}
+export const copyButtonSx = {
+  width: 32,
+  height: 32,
+  borderRadius: aurora.radii.sm,
+  color: aurora.status.ready,
+  border: `1px solid ${auroraTint(aurora.status.ready, 0.3)}`,
+  background: auroraTint(aurora.status.ready, 0.1),
+  "&:hover": { background: auroraTint(aurora.status.ready, 0.18) },
+} as const;
 
 export const menuPaperSx = {
-  bgcolor: palette.background.paper,
-  border: `1px solid rgba(255,255,255,0.08)`,
-  borderRadius: 2,
-};
+  background: aurora.surface,
+  border: `1px solid ${aurora.line2}`,
+  borderRadius: aurora.radii.md,
+  boxShadow: aurora.shadow.card,
+  marginTop: "6px",
+  fontFamily: aurora.font.ui,
+  minWidth: "200px",
+  "& .MuiMenuItem-root": {
+    fontFamily: aurora.font.ui,
+    fontSize: "14px",
+    color: aurora.status.fail,
+    paddingY: "10px",
+    "&:hover": {
+      background: auroraTint(aurora.status.fail, 0.1),
+      color: aurora.status.fail,
+    },
+  },
+  "& .MuiListItemIcon-root": { minWidth: "30px" },
+} as const;
+
+export const formCardSx = {
+  marginBottom: "18px",
+  padding: { xs: "22px", md: "28px 30px" },
+} as const;
+
+export const formHeadingSx = {
+  fontFamily: aurora.font.display,
+  fontWeight: 700,
+  fontSize: "20px",
+  color: aurora.txHi,
+  letterSpacing: "-0.015em",
+  margin: 0,
+} as const;
+
+export const formSubheadingSx = {
+  fontSize: "13.5px",
+  color: aurora.txMid,
+  marginTop: "5px",
+} as const;
+
+export const snackbarAlertSx = {
+  background: aurora.surface,
+  color: aurora.txHi,
+  border: `1px solid ${aurora.line2}`,
+  borderRadius: aurora.radii.md,
+  fontFamily: aurora.font.ui,
+  fontWeight: 600,
+  "&.MuiAlert-filledSuccess": {
+    border: `1px solid ${auroraTint(aurora.status.ready, 0.35)}`,
+    background: auroraTint(aurora.status.ready, 0.18),
+    color: aurora.status.ready,
+  },
+  "&.MuiAlert-filledError": {
+    border: `1px solid ${auroraTint(aurora.status.fail, 0.35)}`,
+    background: auroraTint(aurora.status.fail, 0.18),
+    color: aurora.status.fail,
+  },
+  "& .MuiAlert-icon": { color: "inherit" },
+} as const;

@@ -1,7 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Box, Container } from "@mui/material";
+import { Box } from "@mui/material";
+import { DashboardLayout } from "@/features/dashboard/components/DashboardLayout";
 import {
   AdminSidebar,
   AdminMobileNav,
@@ -9,12 +10,18 @@ import {
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <Container maxWidth="lg" sx={{ pt: 4, pb: { xs: 12, md: 6 } }}>
+    <DashboardLayout width="xl">
       <AdminMobileNav />
-      <Box sx={{ display: "flex", gap: 3 }}>
+      <Box
+        sx={{
+          display: "flex",
+          gap: "24px",
+          alignItems: "flex-start",
+        }}
+      >
         <AdminSidebar />
         <Box sx={{ flex: 1, minWidth: 0 }}>{children}</Box>
       </Box>
-    </Container>
+    </DashboardLayout>
   );
 }

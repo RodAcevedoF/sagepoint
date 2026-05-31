@@ -1,137 +1,132 @@
 "use client";
 
-import { Box, Typography, alpha } from "@mui/material";
+import { Box } from "@mui/material";
 import { Shield, Activity } from "lucide-react";
-import { palette } from "@/shared/theme";
 import { motion } from "framer-motion";
-import { CSSProperties } from "react";
+import type { CSSProperties } from "react";
+import { aurora } from "@/shared/theme";
+import { Card } from "@/shared/components";
 
-const styles = {
-  footer: {
-    mt: 12,
-    pb: 6,
-    borderTop: `1px solid ${alpha(palette.divider, 0.08)}`,
-    display: "flex",
-    flexDirection: { xs: "column", md: "row" },
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 3,
-    pt: 4,
-  },
-  statusGroup: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: { xs: "center", md: "flex-start" },
-    gap: { xs: 2, md: 3 },
-    flexWrap: "wrap",
-  },
-  statusItem: {
-    display: "flex",
-    alignItems: "center",
-    gap: 1,
-    color: alpha(palette.text.secondary, 0.5),
-  },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: "50%",
-    bgcolor: palette.success.main,
-    position: "relative",
-  },
-  pulse: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    borderRadius: "50%",
-    bgcolor: palette.success.main,
-  } as CSSProperties,
-  infoGroup: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: { xs: "center", md: "flex-end" },
-  },
+const pulseStyle: CSSProperties = {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  width: "100%",
+  height: "100%",
+  borderRadius: "50%",
+  background: aurora.status.ready,
 };
+
+function IntegrityDot({ label, delay }: { label: string; delay: number }) {
+  return (
+    <Box
+      sx={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "8px",
+        fontSize: "13px",
+        color: aurora.txMid,
+      }}
+    >
+      <Box
+        sx={{
+          position: "relative",
+          width: "8px",
+          height: "8px",
+          borderRadius: "50%",
+          background: aurora.status.ready,
+          boxShadow: `0 0 8px -1px ${aurora.status.ready}`,
+        }}
+      >
+        <motion.span
+          animate={{ scale: [1, 2.5, 1], opacity: [0.6, 0, 0.6] }}
+          transition={{ duration: 2 + delay, repeat: Infinity, delay }}
+          style={pulseStyle}
+        />
+      </Box>
+      {label}
+    </Box>
+  );
+}
 
 export function AdminFooter() {
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 1, delay: 0.8 }}
-    >
-      <Box component="footer" sx={styles.footer}>
-        <Box sx={styles.statusGroup}>
-          <Box sx={styles.statusItem}>
-            <Activity size={12} color={palette.text.secondary} />
-            <Typography
-              variant="caption"
-              sx={{
-                fontWeight: 800,
-                letterSpacing: "0.8px",
-                color: palette.text.secondary,
-              }}
-            >
-              SYSTEM INTEGRITY:
-            </Typography>
-          </Box>
-
-          <Box sx={styles.statusItem}>
-            <Box sx={styles.statusDot}>
-              <motion.div
-                animate={{ scale: [1, 2.5, 1], opacity: [0.6, 0, 0.6] }}
-                transition={{ duration: 2, repeat: Infinity }}
-                style={styles.pulse}
-              />
-            </Box>
-            <Typography variant="caption">Network</Typography>
-          </Box>
-
-          <Box sx={styles.statusItem}>
-            <Box sx={styles.statusDot}>
-              <motion.div
-                animate={{ scale: [1, 2.5, 1], opacity: [0.6, 0, 0.6] }}
-                transition={{ duration: 2.2, repeat: Infinity, delay: 0.4 }}
-                style={styles.pulse}
-              />
-            </Box>
-            <Typography variant="caption">GraphDB</Typography>
-          </Box>
-
-          <Box sx={styles.statusItem}>
-            <Box sx={styles.statusDot}>
-              <motion.div
-                animate={{ scale: [1, 2.5, 1], opacity: [0.6, 0, 0.6] }}
-                transition={{ duration: 2.4, repeat: Infinity, delay: 0.8 }}
-                style={styles.pulse}
-              />
-            </Box>
-            <Typography variant="caption">Compute</Typography>
-          </Box>
-        </Box>
-
-        <Box sx={styles.infoGroup}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
-            <Shield size={12} color={palette.info.main} />
-            <Typography
-              variant="caption"
-              sx={{ fontWeight: 700, color: palette.text.secondary }}
-            >
-              Sagepoint Management Console
-            </Typography>
-          </Box>
-          <Typography
-            variant="caption"
+    <Card variant="aurora" hoverable={false} withAura={false}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "20px",
+          flexWrap: "wrap",
+          padding: "22px 28px",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: "18px",
+            flexWrap: "wrap",
+          }}
+        >
+          <Box
+            component="span"
             sx={{
-              color: alpha(palette.text.secondary, 0.4),
-              fontSize: "0.8rem",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "9px",
+              fontFamily: aurora.font.mono,
+              fontSize: "11.5px",
+              fontWeight: 600,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: aurora.txMid,
+              whiteSpace: "nowrap",
+              "& svg": { color: aurora.teal },
             }}
           >
-            v1.0.4-stable • Build 2D3F4 • Secure SSL Session
-          </Typography>
+            <Activity size={16} />
+            System Integrity:
+          </Box>
+          <IntegrityDot label="Network" delay={0} />
+          <IntegrityDot label="GraphDB" delay={0.4} />
+          <IntegrityDot label="Compute" delay={0.8} />
+        </Box>
+
+        <Box
+          sx={{
+            textAlign: { xs: "left", md: "right" },
+          }}
+        >
+          <Box
+            component="span"
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "9px",
+              fontWeight: 700,
+              fontSize: "14px",
+              color: aurora.status.concept,
+              whiteSpace: "nowrap",
+            }}
+          >
+            <Shield size={16} />
+            SagePoint Management Console
+          </Box>
+          <Box
+            sx={{
+              fontFamily: aurora.font.mono,
+              fontSize: "11.5px",
+              color: aurora.txLow,
+              marginTop: "5px",
+              whiteSpace: "nowrap",
+            }}
+          >
+            v1.0.4-stable · Build 2D3F4 · Secure SSL Session
+          </Box>
         </Box>
       </Box>
-    </motion.div>
+    </Card>
   );
 }

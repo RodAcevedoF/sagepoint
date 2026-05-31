@@ -1,5 +1,4 @@
-import { palette } from "@/shared/theme";
-import { alpha } from "@mui/material";
+import { aurora, auroraTint } from "@/shared/theme";
 
 export function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString(undefined, {
@@ -19,10 +18,10 @@ export function buildInviteLink(token: string): string {
 }
 
 export const statusColors: Record<string, string> = {
-  PENDING: palette.warning.main,
-  PROCESSING: palette.info.main,
-  COMPLETED: palette.success.main,
-  FAILED: palette.error.main,
+  PENDING: aurora.status.proc,
+  PROCESSING: aurora.status.concept,
+  COMPLETED: aurora.status.ready,
+  FAILED: aurora.status.fail,
 };
 
 export function formatRelativeDate(dateStr: string): string {
@@ -42,12 +41,15 @@ export const invitationStatusColors: Record<
   { bg: string; text: string }
 > = {
   PENDING: {
-    bg: alpha(palette.warning.main, 0.1),
-    text: palette.warning.light,
+    bg: auroraTint(aurora.status.proc, 0.12),
+    text: aurora.status.proc,
   },
   ACCEPTED: {
-    bg: alpha(palette.success.main, 0.1),
-    text: palette.success.light,
+    bg: auroraTint(aurora.status.ready, 0.12),
+    text: aurora.status.ready,
   },
-  REVOKED: { bg: alpha(palette.error.main, 0.1), text: palette.error.light },
+  REVOKED: {
+    bg: auroraTint(aurora.status.fail, 0.12),
+    text: aurora.status.fail,
+  },
 };

@@ -1,9 +1,9 @@
 "use client";
 
-import { Box, IconButton, Typography, alpha, Button } from "@mui/material";
+import { Box, IconButton, ButtonBase } from "@mui/material";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, XCircle, AlertTriangle, Info, X } from "lucide-react";
-import { palette } from "@/shared/theme";
+import { aurora, auroraTint } from "@/shared/theme";
 import {
   type SnackbarItem,
   type SnackbarSeverity,
@@ -11,49 +11,23 @@ import {
 } from "./snackbar-context";
 import { useEffect } from "react";
 
-// ============================================================================
-// Config
-// ============================================================================
+interface SeverityConfig {
+  icon: typeof CheckCircle;
+  color: string;
+}
 
-const severityConfig: Record<
-  SnackbarSeverity,
-  { icon: typeof CheckCircle; color: string; bg: string }
-> = {
-  success: {
-    icon: CheckCircle,
-    color: palette.success.light,
-    bg: palette.success.main,
-  },
-  error: {
-    icon: XCircle,
-    color: palette.error.light,
-    bg: palette.error.main,
-  },
-  warning: {
-    icon: AlertTriangle,
-    color: palette.warning.light,
-    bg: palette.warning.main,
-  },
-  info: {
-    icon: Info,
-    color: palette.primary.light,
-    bg: palette.primary.main,
-  },
+const severityConfig: Record<SnackbarSeverity, SeverityConfig> = {
+  success: { icon: CheckCircle, color: aurora.status.ready },
+  error: { icon: XCircle, color: aurora.status.fail },
+  warning: { icon: AlertTriangle, color: aurora.status.proc },
+  info: { icon: Info, color: aurora.status.concept },
 };
-
-// ============================================================================
-// Animation Variants
-// ============================================================================
 
 const variants = {
-  initial: { opacity: 0, x: 100, scale: 0.9 },
+  initial: { opacity: 0, x: 100, scale: 0.92 },
   animate: { opacity: 1, x: 0, scale: 1 },
-  exit: { opacity: 0, x: 100, scale: 0.9 },
+  exit: { opacity: 0, x: 100, scale: 0.92 },
 };
-
-// ============================================================================
-// Snackbar Item
-// ============================================================================
 
 function SnackbarItemComponent({ item }: { item: SnackbarItem }) {
   const { hideSnackbar } = useSnackbar();
@@ -78,94 +52,97 @@ function SnackbarItemComponent({ item }: { item: SnackbarItem }) {
         sx={{
           display: "flex",
           alignItems: "center",
-          gap: 1.5,
-          py: 1.5,
-          px: 2,
+          gap: "12px",
+          padding: "12px 14px",
           minWidth: 320,
-          maxWidth: 420,
-          borderRadius: 3,
-          bgcolor: alpha(palette.background.paper, 0.85),
-          backdropFilter: "blur(12px)",
-          border: `1px solid ${alpha(config.color, 0.2)}`,
-          boxShadow: `0 8px 32px ${alpha(config.bg, 0.25)}, 0 0 0 1px ${alpha(config.color, 0.1)} inset`,
+          maxWidth: 440,
+          borderRadius: aurora.radii.md,
+          fontFamily: aurora.font.ui,
+          background: `linear-gradient(168deg, color-mix(in oklch, ${aurora.surface2} 92%, transparent), color-mix(in oklch, ${aurora.bg1} 86%, transparent))`,
+          backdropFilter: "blur(14px)",
+          WebkitBackdropFilter: "blur(14px)",
+          border: `1px solid ${auroraTint(config.color, 0.32)}`,
+          boxShadow: `0 1px 0 0 oklch(1 0 0 / 0.05) inset, 0 22px 44px -24px ${auroraTint(config.color, 0.45)}`,
+          color: aurora.txHi,
         }}
       >
-        {/* Icon */}
         <Box
           sx={{
-            width: 36,
-            height: 36,
-            borderRadius: 2,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            bgcolor: alpha(config.bg, 0.15),
+            flex: "none",
+            width: 38,
+            height: 38,
+            borderRadius: aurora.radii.md,
+            display: "grid",
+            placeItems: "center",
+            background: auroraTint(config.color, 0.16),
+            border: `1px solid ${auroraTint(config.color, 0.3)}`,
             color: config.color,
-            flexShrink: 0,
+            boxShadow: `0 0 18px -6px ${auroraTint(config.color, 0.55)}`,
           }}
         >
-          <Icon size={20} />
+          <Icon size={18} />
         </Box>
 
-        {/* Message */}
-        <Typography
-          variant="body2"
+        <Box
           sx={{
             flex: 1,
-            color: "text.primary",
+            minWidth: 0,
+            fontSize: "13.5px",
             fontWeight: 500,
-            lineHeight: 1.4,
+            lineHeight: 1.45,
+            color: aurora.txHi,
           }}
         >
           {item.message}
-        </Typography>
+        </Box>
 
-        {/* Action Button */}
         {item.action && (
-          <Button
-            size="small"
+          <ButtonBase
+            disableRipple
             onClick={() => {
               item.action?.onClick();
               hideSnackbar(item.id);
             }}
             sx={{
+              fontFamily: aurora.font.ui,
               color: config.color,
-              fontWeight: 600,
-              fontSize: "0.75rem",
-              minWidth: "auto",
-              px: 1.5,
+              fontWeight: 700,
+              fontSize: "12.5px",
+              padding: "6px 11px",
+              borderRadius: aurora.radii.sm,
+              border: `1px solid ${auroraTint(config.color, 0.32)}`,
+              background: auroraTint(config.color, 0.1),
+              transition: "background-color .15s ease, border-color .15s ease",
               "&:hover": {
-                bgcolor: alpha(config.color, 0.1),
+                background: auroraTint(config.color, 0.18),
+                borderColor: auroraTint(config.color, 0.42),
               },
             }}
           >
             {item.action.label}
-          </Button>
+          </ButtonBase>
         )}
 
-        {/* Close Button */}
         <IconButton
           size="small"
           onClick={() => hideSnackbar(item.id)}
           sx={{
-            color: "text.secondary",
-            p: 0.5,
+            width: 28,
+            height: 28,
+            color: aurora.txMid,
+            borderRadius: aurora.radii.sm,
             "&:hover": {
-              color: "text.primary",
-              bgcolor: alpha(palette.text.primary, 0.1),
+              color: aurora.txHi,
+              background: auroraTint(aurora.line2, 0.4),
             },
           }}
         >
-          <X size={16} />
+          <X size={15} />
         </IconButton>
       </Box>
     </motion.div>
   );
 }
-
-// ============================================================================
-// Snackbar Container
-// ============================================================================
 
 export function Snackbar() {
   const { snackbars } = useSnackbar();
@@ -174,12 +151,15 @@ export function Snackbar() {
     <Box
       sx={{
         position: "fixed",
-        bottom: 24,
-        right: 24,
+        bottom: { xs: 80, sm: 24 },
+        right: { xs: 12, sm: 24 },
+        left: { xs: 12, sm: "auto" },
         zIndex: 2000,
         display: "flex",
         flexDirection: "column",
-        gap: 1.5,
+        gap: "12px",
+        pointerEvents: "none",
+        "& > *": { pointerEvents: "auto" },
       }}
     >
       <AnimatePresence mode="popLayout">

@@ -1,11 +1,18 @@
 "use client";
 
-import { Button, type ButtonProps } from "@mui/material";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Button } from "../../ui/Button";
+import {
+  ButtonVariants,
+  ButtonIconPositions,
+  ButtonSizes,
+} from "@/shared/types";
 
-interface GoBackButtonProps extends Omit<ButtonProps, "onClick" | "href"> {
+interface GoBackButtonProps {
   label?: string;
+  variant?: ButtonVariants;
+  size?: ButtonSizes;
 }
 
 /**
@@ -13,21 +20,19 @@ interface GoBackButtonProps extends Omit<ButtonProps, "onClick" | "href"> {
  */
 export function GoBackButton({
   label = "Go Back",
-  variant = "outlined",
-  size = "large",
-  ...props
+  variant = ButtonVariants.AURORA_OUTLINE,
+  size = ButtonSizes.LARGE,
 }: GoBackButtonProps) {
   const router = useRouter();
 
   return (
     <Button
+      label={label}
+      icon={ArrowLeft}
+      iconPos={ButtonIconPositions.START}
       variant={variant}
       size={size}
-      startIcon={<ArrowLeft size={18} />}
       onClick={() => router.back()}
-      {...props}
-    >
-      {label}
-    </Button>
+    />
   );
 }

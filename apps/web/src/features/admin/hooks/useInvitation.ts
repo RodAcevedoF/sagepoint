@@ -1,4 +1,4 @@
-import { useState, type SyntheticEvent, type MouseEvent } from "react";
+import { useState, type MouseEvent } from "react";
 import {
   useCreateInvitationMutation,
   useCreateUserDirectMutation,
@@ -38,7 +38,7 @@ export function useInvitationForm(showSnackbar: ShowSnackbar) {
   const [inviteLink, setInviteLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const handleTabChange = (_: SyntheticEvent, v: number) => {
+  const handleTabChange = (v: number) => {
     setTab(v);
     setInviteLink(null);
   };

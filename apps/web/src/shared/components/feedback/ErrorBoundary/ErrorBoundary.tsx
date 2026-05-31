@@ -2,14 +2,16 @@
 
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import * as Sentry from "@sentry/nextjs";
-import { Box, Button, Container, Typography, alpha } from "@mui/material";
+import { Box, Container } from "@mui/material";
 import { RefreshCw, AlertTriangle } from "lucide-react";
-import { palette } from "@/shared/theme";
+import { aurora, auroraTint } from "@/shared/theme";
+import { Button } from "../../ui/Button";
+import {
+  ButtonVariants,
+  ButtonIconPositions,
+  ButtonSizes,
+} from "@/shared/types";
 import { SmartHomeButton } from "../../layout/Navigation";
-
-// ============================================================================
-// Types
-// ============================================================================
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -23,67 +25,75 @@ interface ErrorBoundaryState {
   error: Error | null;
 }
 
-// ============================================================================
-// Styles
-// ============================================================================
+const containerSx = {
+  minHeight: "100vh",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontFamily: aurora.font.ui,
+  color: aurora.tx,
+  background: `radial-gradient(1100px 620px at 18% -8%, oklch(0.40 0.10 200 / 0.30), transparent 60%), radial-gradient(900px 600px at 92% 4%, oklch(0.34 0.10 268 / 0.34), transparent 58%), linear-gradient(180deg, ${aurora.bg1}, ${aurora.bg0} 60%)`,
+} as const;
 
-const styles = {
-  container: {
-    minHeight: "100vh",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background: palette.background.gradient,
-  },
-  content: {
-    textAlign: "center",
-    maxWidth: 500,
-  },
-  iconBox: {
-    width: 80,
-    height: 80,
-    borderRadius: 4,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    bgcolor: alpha(palette.error.main, 0.1),
-    color: palette.error.light,
-    mx: "auto",
-    mb: 3,
-  },
-  title: {
-    color: "text.primary",
-    fontWeight: 700,
-    mb: 2,
-  },
-  message: {
-    color: "text.secondary",
-    mb: 4,
-  },
-  errorDetail: {
-    p: 2,
-    mb: 3,
-    borderRadius: 2,
-    bgcolor: alpha(palette.error.main, 0.05),
-    border: `1px solid ${alpha(palette.error.main, 0.2)}`,
-    fontFamily: "monospace",
-    fontSize: "0.875rem",
-    color: palette.error.light,
-    textAlign: "left",
-    overflow: "auto",
-    maxHeight: 150,
-  },
-  actions: {
-    display: "flex",
-    gap: 2,
-    justifyContent: "center",
-    flexWrap: "wrap",
-  },
-};
+const contentSx = {
+  textAlign: "center",
+  maxWidth: 520,
+} as const;
 
-// ============================================================================
-// Component
-// ============================================================================
+const iconBoxSx = {
+  width: 84,
+  height: 84,
+  borderRadius: "20px",
+  display: "grid",
+  placeItems: "center",
+  background: auroraTint(aurora.status.fail, 0.14),
+  border: `1px solid ${auroraTint(aurora.status.fail, 0.3)}`,
+  color: aurora.status.fail,
+  boxShadow: `0 0 32px -8px ${auroraTint(aurora.status.fail, 0.55)}`,
+  mx: "auto",
+  mb: "22px",
+} as const;
+
+const titleSx = {
+  fontFamily: aurora.font.display,
+  color: aurora.txHi,
+  fontWeight: 800,
+  fontSize: { xs: "28px", md: "34px" },
+  letterSpacing: "-0.02em",
+  margin: 0,
+  mb: "12px",
+} as const;
+
+const messageSx = {
+  color: aurora.txMid,
+  fontSize: "15.5px",
+  lineHeight: 1.55,
+  margin: 0,
+  mb: "26px",
+  textWrap: "pretty" as const,
+} as const;
+
+const errorDetailSx = {
+  padding: "12px 14px",
+  marginBottom: "22px",
+  borderRadius: aurora.radii.md,
+  background: auroraTint(aurora.status.fail, 0.08),
+  border: `1px solid ${auroraTint(aurora.status.fail, 0.25)}`,
+  fontFamily: aurora.font.mono,
+  fontSize: "12.5px",
+  color: aurora.status.fail,
+  textAlign: "left" as const,
+  overflow: "auto",
+  maxHeight: 160,
+  wordBreak: "break-word" as const,
+} as const;
+
+const actionsSx = {
+  display: "flex",
+  gap: "12px",
+  justifyContent: "center",
+  flexWrap: "wrap",
+} as const;
 
 export class ErrorBoundary extends Component<
   ErrorBoundaryProps,
@@ -118,37 +128,36 @@ export class ErrorBoundary extends Component<
       }
 
       return (
-        <Box sx={styles.container}>
+        <Box sx={containerSx}>
           <Container maxWidth="sm">
-            <Box sx={styles.content}>
-              <Box sx={styles.iconBox}>
-                <AlertTriangle size={40} />
+            <Box sx={contentSx}>
+              <Box sx={iconBoxSx}>
+                <AlertTriangle size={38} strokeWidth={1.5} />
               </Box>
 
-              <Typography variant="h4" sx={styles.title}>
+              <Box component="h1" sx={titleSx}>
                 Something went wrong
-              </Typography>
+              </Box>
 
-              <Typography variant="body1" sx={styles.message}>
+              <Box component="p" sx={messageSx}>
                 An unexpected error occurred. Please try refreshing the page or
                 contact support if the problem persists.
-              </Typography>
+              </Box>
 
               {process.env.NODE_ENV === "development" && this.state.error && (
-                <Box sx={styles.errorDetail}>{this.state.error.message}</Box>
+                <Box sx={errorDetailSx}>{this.state.error.message}</Box>
               )}
 
-              <Box sx={styles.actions}>
+              <Box sx={actionsSx}>
                 <Button
-                  variant="contained"
-                  startIcon={<RefreshCw size={18} />}
+                  label="Try Again"
+                  icon={RefreshCw}
+                  iconPos={ButtonIconPositions.START}
+                  variant={ButtonVariants.AURORA}
+                  size={ButtonSizes.LARGE}
                   onClick={this.handleReset}
-                  size="large"
-                >
-                  Try Again
-                </Button>
-
-                <SmartHomeButton variant="outlined" />
+                />
+                <SmartHomeButton variant={ButtonVariants.AURORA_OUTLINE} />
               </Box>
             </Box>
           </Container>

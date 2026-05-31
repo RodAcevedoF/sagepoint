@@ -47,9 +47,9 @@ const makeStyles = (
   disabled: boolean,
   accentColor: string,
 ): AppBarItemStyles => {
-  const horizontalPad = isMobile ? 12 : 20;
-  const collapsedPad = isMobile ? 10 : 15;
-  const verticalPad = isMobile ? 10 : 12;
+  const horizontalPad = isMobile ? 11 : 20;
+  const collapsedPad = isMobile ? 8 : 15;
+  const verticalPad = isMobile ? 7 : 12;
   return {
     button: {
       position: "relative",
@@ -68,7 +68,7 @@ const makeStyles = (
       color: isActive ? accentColor : aurora.txMid,
       fontFamily: aurora.font.ui,
       fontWeight: 600,
-      fontSize: isMobile ? "12.5px" : "14.5px",
+      fontSize: isMobile ? "12px" : "14.5px",
       letterSpacing: isMobile ? "-0.005em" : undefined,
       whiteSpace: "nowrap",
       WebkitTapHighlightColor: "transparent",
@@ -112,10 +112,10 @@ const makeStyles = (
     dot: {
       position: "absolute",
       left: "50%",
-      bottom: 4,
+      bottom: isMobile ? 2 : 4,
       transform: "translateX(-50%)",
-      height: 3,
-      width: isActive ? 22 : 0,
+      height: isMobile ? 2.5 : 3,
+      width: isActive ? (isMobile ? 18 : 22) : 0,
       borderRadius: 999,
       background: accentColor,
       boxShadow: `0 0 8px -1px ${accentColor}`,
@@ -215,7 +215,7 @@ export function AppBarItem({
       )}
 
       <Box sx={styles.iconContainer}>
-        <Icon size={isMobile ? 18 : 20} strokeWidth={isActive ? 2.2 : 1.8} />
+        <Icon size={isMobile ? 17 : 20} strokeWidth={isActive ? 2.2 : 1.8} />
         {badge && <Box sx={styles.badge} />}
       </Box>
 

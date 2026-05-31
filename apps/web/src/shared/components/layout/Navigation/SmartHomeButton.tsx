@@ -1,12 +1,19 @@
 "use client";
 
-import { Button, type ButtonProps } from "@mui/material";
 import { Home } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Button } from "../../ui/Button";
+import {
+  ButtonVariants,
+  ButtonIconPositions,
+  ButtonSizes,
+} from "@/shared/types";
 import { useIsAuthenticated } from "@/features/auth/context/UserContext";
 
-interface SmartHomeButtonProps extends Omit<ButtonProps, "onClick" | "href"> {
+interface SmartHomeButtonProps {
   label?: string;
+  variant?: ButtonVariants;
+  size?: ButtonSizes;
 }
 
 /**
@@ -16,9 +23,8 @@ interface SmartHomeButtonProps extends Omit<ButtonProps, "onClick" | "href"> {
  */
 export function SmartHomeButton({
   label = "Go Home",
-  variant = "contained",
-  size = "large",
-  ...props
+  variant = ButtonVariants.AURORA,
+  size = ButtonSizes.LARGE,
 }: SmartHomeButtonProps) {
   const router = useRouter();
   const isAuthenticated = useIsAuthenticated();
@@ -29,13 +35,12 @@ export function SmartHomeButton({
 
   return (
     <Button
+      label={label}
+      icon={Home}
+      iconPos={ButtonIconPositions.START}
       variant={variant}
       size={size}
-      startIcon={<Home size={18} />}
       onClick={handleClick}
-      {...props}
-    >
-      {label}
-    </Button>
+    />
   );
 }

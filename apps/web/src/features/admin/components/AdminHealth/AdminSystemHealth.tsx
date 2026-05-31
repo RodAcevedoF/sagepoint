@@ -1,148 +1,117 @@
 "use client";
 
-import { Box, Typography, Grid, alpha, CircularProgress } from "@mui/material";
+import { Box, CircularProgress } from "@mui/material";
+import { Database, Server, GitBranch } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import {
-  Database,
-  Server,
-  GitBranch,
-  CheckCircle2,
-  XCircle,
-} from "lucide-react";
-import { Card } from "@/shared/components";
-import { palette } from "@/shared/theme";
-import { motion } from "framer-motion";
+  Card,
+  SecTitle,
+  StatusPill,
+  type AuroraTone,
+} from "@/shared/components";
+import { aurora } from "@/shared/theme";
 import type { HealthCheckResult } from "@/infrastructure/api/adminApi";
 
-const styles = {
-  card: {
-    p: 3,
-    height: "100%",
-  },
-  sectionTitle: {
-    fontWeight: 800,
-    fontSize: "1.25rem",
-    mb: 2.5,
-    color: palette.text.primary,
-  },
-  serviceName: {
-    fontWeight: 700,
-    fontSize: "1.05rem",
-  },
-  statusText: {
-    fontSize: "0.85rem",
-    fontWeight: 600,
-    textTransform: "uppercase",
-    letterSpacing: "0.5px",
-  },
-};
+interface ServiceConfig {
+  key: string;
+  label: string;
+  icon: LucideIcon;
+  tone: AuroraTone;
+}
 
-const services = [
-  {
-    key: "database",
-    label: "PostgreSQL",
-    icon: Database,
-    color: palette.info.main,
-  },
-  { key: "redis", label: "Redis", icon: Server, color: palette.error.light },
-  {
-    key: "neo4j",
-    label: "Neo4j",
-    icon: GitBranch,
-    color: palette.success.main,
-  },
+const services: ReadonlyArray<ServiceConfig> = [
+  { key: "database", label: "PostgreSQL", icon: Database, tone: "concept" },
+  { key: "redis", label: "Redis", icon: Server, tone: "fail" },
+  { key: "neo4j", label: "Neo4j", icon: GitBranch, tone: "ready" },
 ];
+
+const gridSx = {
+  display: "grid",
+  gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" },
+  gap: "18px",
+} as const;
+
+const cardSx = {
+  padding: "22px 24px",
+  flexDirection: "row",
+  alignItems: "center",
+  gap: "16px",
+} as const;
+
+const iconBoxSx = {
+  flex: "none",
+  width: 54,
+  height: 54,
+  borderRadius: aurora.radii.md,
+  display: "grid",
+  placeItems: "center",
+  background: `color-mix(in oklch, var(--accent) 16%, ${aurora.surface2})`,
+  border: "1px solid color-mix(in oklch, var(--accent) 28%, transparent)",
+  color: "var(--accent)",
+  boxShadow:
+    "0 0 24px -8px color-mix(in oklch, var(--accent) 70%, transparent)",
+} as const;
+
+const nameSx = {
+  fontFamily: aurora.font.display,
+  fontWeight: 700,
+  fontSize: "20px",
+  color: aurora.txHi,
+  letterSpacing: "-0.01em",
+} as const;
 
 interface AdminSystemHealthProps {
   data: HealthCheckResult | undefined;
   isLoading: boolean;
 }
 
+function resolveStatus(
+  data: HealthCheckResult | undefined,
+  serviceKey: string,
+  isLoading: boolean,
+): { label: string; tone: AuroraTone } {
+  if (isLoading && !data) return { label: "Checking", tone: "teal" };
+  const detail = data?.details?.[serviceKey];
+  if (!detail) return { label: "Unknown", tone: "teal" };
+  return detail.status === "up"
+    ? { label: "Healthy", tone: "ready" }
+    : { label: "Down", tone: "fail" };
+}
+
 export function AdminSystemHealth({ data, isLoading }: AdminSystemHealthProps) {
   return (
-    <Box sx={{ mb: 5 }}>
-      <Typography sx={styles.sectionTitle}>System Health</Typography>
-      <Grid container spacing={2.5}>
-        {services.map((service, index) => {
+    <Box>
+      <SecTitle style={{ marginBottom: "14px" }}>System Health</SecTitle>
+      <Box sx={gridSx}>
+        {services.map((service) => {
           const Icon = service.icon;
-          const detail = data?.details?.[service.key];
-          const isUp = detail?.status === "up";
-          const statusColor = isUp ? palette.success.main : palette.error.main;
-
+          const status = resolveStatus(data, service.key, isLoading);
           return (
-            <Grid key={service.key} size={{ xs: 12, sm: 4 }}>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              >
-                <Card variant="glass" hoverable={true} sx={styles.card}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                    <Box
-                      sx={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: 3,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        bgcolor: alpha(service.color, 0.12),
-                        color: service.color,
-                        border: `1px solid ${alpha(service.color, 0.2)}`,
-                      }}
-                    >
-                      <Icon size={24} />
-                    </Box>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography sx={styles.serviceName}>
-                        {service.label}
-                      </Typography>
-                      {isLoading ? (
-                        <CircularProgress size={14} sx={{ mt: 0.5 }} />
-                      ) : (
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 0.5,
-                            mt: 0.25,
-                          }}
-                        >
-                          {data ? (
-                            <>
-                              {isUp ? (
-                                <CheckCircle2 size={14} color={statusColor} />
-                              ) : (
-                                <XCircle size={14} color={statusColor} />
-                              )}
-                              <Typography
-                                sx={{
-                                  ...styles.statusText,
-                                  color: statusColor,
-                                }}
-                              >
-                                {isUp ? "Healthy" : "Down"}
-                              </Typography>
-                            </>
-                          ) : (
-                            <Typography
-                              sx={{
-                                ...styles.statusText,
-                                color: palette.text.secondary,
-                              }}
-                            >
-                              Unknown
-                            </Typography>
-                          )}
-                        </Box>
-                      )}
-                    </Box>
-                  </Box>
-                </Card>
-              </motion.div>
-            </Grid>
+            <Card
+              key={service.key}
+              variant="aurora"
+              tone={service.tone}
+              hoverable={false}
+              withAura={false}
+              sx={cardSx}
+            >
+              <Box sx={iconBoxSx}>
+                <Icon size={26} />
+              </Box>
+              <Box>
+                <Box sx={nameSx}>{service.label}</Box>
+                <Box sx={{ marginTop: "6px" }}>
+                  {isLoading && !data ? (
+                    <CircularProgress size={14} sx={{ color: aurora.teal }} />
+                  ) : (
+                    <StatusPill label={status.label} tone={status.tone} />
+                  )}
+                </Box>
+              </Box>
+            </Card>
           );
         })}
-      </Grid>
+      </Box>
     </Box>
   );
 }

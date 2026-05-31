@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
-  alpha,
-} from "@mui/material";
+import { Menu, MenuItem, ListItemIcon, ListItemText } from "@mui/material";
 import {
   Ban,
   ShieldCheck,
@@ -15,7 +9,8 @@ import {
   Trash2,
   Settings2,
 } from "lucide-react";
-import { palette } from "@/shared/theme";
+import { aurora, auroraTint } from "@/shared/theme";
+import { toneColor } from "@/shared/components";
 import type { AdminUserDto } from "@/infrastructure/api/adminApi";
 
 interface UserActionsMenuProps {
@@ -29,6 +24,41 @@ interface UserActionsMenuProps {
   onDelete: () => void;
 }
 
+const paperSx = {
+  background: aurora.surface,
+  border: `1px solid ${aurora.line2}`,
+  borderRadius: aurora.radii.md,
+  boxShadow: aurora.shadow.card,
+  marginTop: "6px",
+  fontFamily: aurora.font.ui,
+  minWidth: "200px",
+} as const;
+
+const itemSx = {
+  fontFamily: aurora.font.ui,
+  fontSize: "14px",
+  fontWeight: 500,
+  color: aurora.tx,
+  paddingY: "10px",
+  "&:hover": {
+    background: auroraTint(aurora.teal, 0.08),
+    color: aurora.txHi,
+  },
+} as const;
+
+const dangerItemSx = {
+  ...itemSx,
+  color: aurora.status.fail,
+  "&:hover": {
+    background: auroraTint(aurora.status.fail, 0.1),
+    color: aurora.status.fail,
+  },
+} as const;
+
+const listItemIconSx = {
+  minWidth: "30px",
+} as const;
+
 export function UserActionsMenu({
   anchorEl,
   user,
@@ -39,6 +69,9 @@ export function UserActionsMenu({
   onEditLimits,
   onDelete,
 }: UserActionsMenuProps) {
+  const isActive = user?.isActive ?? true;
+  const isAdmin = user?.role === "ADMIN";
+
   return (
     <Menu
       anchorEl={anchorEl}
@@ -46,48 +79,37 @@ export function UserActionsMenu({
       onClose={onClose}
       disableScrollLock
       TransitionProps={{ onExited: onMenuExited }}
-      slotProps={{
-        paper: {
-          sx: {
-            bgcolor: palette.background.paper,
-            border: `1px solid ${alpha(palette.divider, 0.1)}`,
-          },
-        },
-      }}
+      slotProps={{ paper: { sx: paperSx } }}
     >
-      <MenuItem onClick={onBan}>
-        <ListItemIcon>
-          {user?.isActive ? (
-            <Ban size={16} color={palette.error.main} />
+      <MenuItem onClick={onBan} sx={itemSx}>
+        <ListItemIcon sx={listItemIconSx}>
+          {isActive ? (
+            <Ban size={16} color={aurora.status.fail} />
           ) : (
-            <UserCheck size={16} color={palette.success.main} />
+            <UserCheck size={16} color={aurora.status.ready} />
           )}
         </ListItemIcon>
-        <ListItemText>
-          {user?.isActive ? "Ban User" : "Unban User"}
-        </ListItemText>
+        <ListItemText>{isActive ? "Ban User" : "Unban User"}</ListItemText>
       </MenuItem>
-      <MenuItem onClick={onToggleRole}>
-        <ListItemIcon>
-          {user?.role === "ADMIN" ? (
-            <ShieldOff size={16} color={palette.warning.main} />
+      <MenuItem onClick={onToggleRole} sx={itemSx}>
+        <ListItemIcon sx={listItemIconSx}>
+          {isAdmin ? (
+            <ShieldOff size={16} color={aurora.status.proc} />
           ) : (
-            <ShieldCheck size={16} color={palette.info.main} />
+            <ShieldCheck size={16} color={aurora.status.concept} />
           )}
         </ListItemIcon>
-        <ListItemText>
-          {user?.role === "ADMIN" ? "Revoke Admin" : "Make Admin"}
-        </ListItemText>
+        <ListItemText>{isAdmin ? "Revoke Admin" : "Make Admin"}</ListItemText>
       </MenuItem>
-      <MenuItem onClick={onEditLimits}>
-        <ListItemIcon>
-          <Settings2 size={16} color={palette.info.main} />
+      <MenuItem onClick={onEditLimits} sx={itemSx}>
+        <ListItemIcon sx={listItemIconSx}>
+          <Settings2 size={16} color={toneColor("teal")} />
         </ListItemIcon>
         <ListItemText>Edit Limits</ListItemText>
       </MenuItem>
-      <MenuItem onClick={onDelete} sx={{ color: palette.error.light }}>
-        <ListItemIcon>
-          <Trash2 size={16} color={palette.error.main} />
+      <MenuItem onClick={onDelete} sx={dangerItemSx}>
+        <ListItemIcon sx={listItemIconSx}>
+          <Trash2 size={16} color={aurora.status.fail} />
         </ListItemIcon>
         <ListItemText>Delete User</ListItemText>
       </MenuItem>

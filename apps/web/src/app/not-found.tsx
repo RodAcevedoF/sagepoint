@@ -1,106 +1,113 @@
 "use client";
 
-import { Box, Container, Typography } from "@mui/material";
-import { palette } from "@/shared/theme";
+import { Box, Container } from "@mui/material";
+import { aurora, auroraTint } from "@/shared/theme";
 import { SmartHomeButton, GoBackButton } from "@/shared/components";
 
-// ============================================================================
-// Styles
-// ============================================================================
+const containerSx = {
+  minHeight: "100vh",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  position: "relative" as const,
+  overflow: "hidden",
+  fontFamily: aurora.font.ui,
+  color: aurora.tx,
+  background: `radial-gradient(1100px 620px at 18% -8%, oklch(0.40 0.10 200 / 0.30), transparent 60%), radial-gradient(900px 600px at 92% 4%, oklch(0.34 0.10 268 / 0.34), transparent 58%), linear-gradient(180deg, ${aurora.bg1}, ${aurora.bg0} 60%)`,
+} as const;
 
-const styles = {
-  container: {
-    minHeight: "100vh",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background: palette.background.gradient,
-    position: "relative",
-    overflow: "hidden",
-  },
-  content: {
-    textAlign: "center",
-    maxWidth: 500,
-  },
-  errorCode: {
-    fontSize: { xs: "8rem", md: "12rem" },
-    fontWeight: 800,
-    lineHeight: 1,
-    background: `linear-gradient(135deg, ${palette.primary.light} 0%, ${palette.primary.main} 100%)`,
-    backgroundClip: "text",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    mb: 2,
-  },
-  title: {
-    color: "text.primary",
-    fontWeight: 700,
-    mb: 2,
-  },
-  message: {
-    color: "text.secondary",
-    mb: 4,
-  },
-  actions: {
-    display: "flex",
-    gap: 2,
-    justifyContent: "center",
-    flexWrap: "wrap",
-  },
-  decorativeOrb: {
-    position: "absolute",
-    borderRadius: "50%",
-    filter: "blur(80px)",
-    opacity: 0.3,
-    pointerEvents: "none",
-  },
-};
+const contentSx = {
+  textAlign: "center",
+  maxWidth: 520,
+} as const;
 
-// ============================================================================
-// Component
-// ============================================================================
+const errorCodeSx = {
+  fontFamily: aurora.font.display,
+  fontSize: { xs: "8rem", md: "12rem" },
+  fontWeight: 800,
+  lineHeight: 1,
+  letterSpacing: "-0.04em",
+  background: `linear-gradient(135deg, ${aurora.txHi} 18%, ${aurora.teal} 92%)`,
+  backgroundClip: "text",
+  WebkitBackgroundClip: "text",
+  WebkitTextFillColor: "transparent",
+  marginBottom: "8px",
+} as const;
+
+const titleSx = {
+  fontFamily: aurora.font.display,
+  color: aurora.txHi,
+  fontWeight: 800,
+  fontSize: { xs: "26px", md: "32px" },
+  letterSpacing: "-0.02em",
+  margin: 0,
+  mb: "12px",
+} as const;
+
+const messageSx = {
+  color: aurora.txMid,
+  fontSize: "15.5px",
+  lineHeight: 1.55,
+  margin: 0,
+  mb: "28px",
+  textWrap: "pretty" as const,
+} as const;
+
+const actionsSx = {
+  display: "flex",
+  gap: "12px",
+  justifyContent: "center",
+  flexWrap: "wrap" as const,
+} as const;
+
+const orbSx = {
+  position: "absolute" as const,
+  borderRadius: "50%",
+  filter: "blur(80px)",
+  opacity: 0.35,
+  pointerEvents: "none" as const,
+} as const;
 
 export default function NotFound() {
   return (
-    <Box sx={styles.container}>
-      {/* Decorative background orbs */}
+    <Box sx={containerSx}>
       <Box
         sx={{
-          ...styles.decorativeOrb,
+          ...orbSx,
           width: 400,
           height: 400,
-          bgcolor: palette.primary.main,
+          background: auroraTint(aurora.teal, 0.6),
           top: "10%",
           left: "10%",
         }}
       />
       <Box
         sx={{
-          ...styles.decorativeOrb,
+          ...orbSx,
           width: 300,
           height: 300,
-          bgcolor: palette.secondary.main,
+          background: auroraTint(aurora.status.concept, 0.6),
           bottom: "10%",
           right: "15%",
         }}
       />
 
       <Container maxWidth="sm" sx={{ position: "relative", zIndex: 1 }}>
-        <Box sx={styles.content}>
-          <Typography component="h1" sx={styles.errorCode}>
+        <Box sx={contentSx}>
+          <Box component="h1" sx={errorCodeSx}>
             404
-          </Typography>
+          </Box>
 
-          <Typography variant="h4" sx={styles.title}>
+          <Box component="h2" sx={titleSx}>
             Page not found
-          </Typography>
+          </Box>
 
-          <Typography variant="body1" sx={styles.message}>
+          <Box component="p" sx={messageSx}>
             The page you&apos;re looking for doesn&apos;t exist or has been
             moved. Let&apos;s get you back on track.
-          </Typography>
+          </Box>
 
-          <Box sx={styles.actions}>
+          <Box sx={actionsSx}>
             <SmartHomeButton />
             <GoBackButton />
           </Box>

@@ -1,11 +1,11 @@
 "use client";
 
-import { Box, Typography, alpha } from "@mui/material";
+import { Box } from "@mui/material";
 import type { LucideIcon } from "lucide-react";
 import { Inbox } from "lucide-react";
 import { Button } from "../Button/Button";
 import { ButtonVariants, ButtonIconPositions } from "@/shared/types";
-import { palette } from "@/shared/theme";
+import { aurora, auroraTint } from "@/shared/theme";
 
 interface EmptyStateProps {
   title?: string;
@@ -37,46 +37,56 @@ export function EmptyState({
         py: inline ? 3 : 8,
         px: inline ? 2 : 4,
         flex: 1,
+        fontFamily: aurora.font.ui,
       }}
     >
       <Box
         sx={{
-          width: inline ? 48 : 80,
-          height: inline ? 48 : 80,
-          borderRadius: inline ? 3 : 4,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          bgcolor: alpha(palette.primary.main, 0.1),
-          color: palette.primary.light,
-          mb: inline ? 1.5 : 3,
+          width: inline ? 52 : 84,
+          height: inline ? 52 : 84,
+          borderRadius: inline ? aurora.radii.md : "20px",
+          display: "grid",
+          placeItems: "center",
+          background: auroraTint(aurora.teal, 0.14),
+          border: `1px solid ${auroraTint(aurora.teal, 0.28)}`,
+          color: aurora.teal,
+          boxShadow: `0 0 28px -8px ${auroraTint(aurora.teal, 0.55)}`,
+          mb: inline ? 1.75 : 3,
         }}
       >
-        <Icon size={inline ? 24 : 40} strokeWidth={1.5} />
+        <Icon size={inline ? 22 : 36} strokeWidth={1.5} />
       </Box>
 
-      <Typography
-        variant={inline ? "subtitle2" : "h5"}
+      <Box
+        component={inline ? "h4" : "h3"}
         sx={{
-          color: palette.text.primary,
-          fontWeight: 600,
-          mb: 0.5,
+          fontFamily: aurora.font.display,
+          color: aurora.txHi,
+          fontWeight: 700,
+          fontSize: inline ? "16px" : "22px",
+          letterSpacing: "-0.015em",
+          margin: 0,
+          mb: "6px",
         }}
       >
         {title}
-      </Typography>
+      </Box>
 
       {description && (
-        <Typography
-          variant={inline ? "caption" : "body1"}
+        <Box
+          component="p"
           sx={{
-            color: palette.text.secondary,
-            maxWidth: inline ? 240 : 320,
+            color: aurora.txMid,
+            fontSize: inline ? "13px" : "14.5px",
+            lineHeight: 1.55,
+            maxWidth: inline ? 260 : 360,
+            margin: 0,
             mb: actionLabel ? (inline ? 2 : 3) : 0,
+            textWrap: "pretty",
           }}
         >
           {description}
-        </Typography>
+        </Box>
       )}
 
       {actionLabel && onAction && (
@@ -85,7 +95,7 @@ export function EmptyState({
           onClick={onAction}
           icon={actionIcon}
           iconPos={ButtonIconPositions.START}
-          variant={ButtonVariants.DEFAULT}
+          variant={ButtonVariants.AURORA}
         />
       )}
     </Box>

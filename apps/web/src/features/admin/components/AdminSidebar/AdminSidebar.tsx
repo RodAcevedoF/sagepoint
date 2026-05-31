@@ -1,8 +1,9 @@
 "use client";
 
-import { Box, Typography, alpha } from "@mui/material";
+import { Box } from "@mui/material";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard,
   Users,
@@ -11,122 +12,37 @@ import {
   BarChart3,
   MailPlus,
 } from "lucide-react";
-import { Card } from "@/shared/components";
-import { palette } from "@/shared/theme";
+import { Card, toneColor, type AuroraTone } from "@/shared/components";
+import { aurora, auroraTint } from "@/shared/theme";
 
-const mobileNavContainerSx = {
-  display: { xs: "flex", md: "none" },
-  gap: 1,
-  mb: 2,
-  overflowX: "auto",
-  pb: 1,
-  "&::-webkit-scrollbar": { display: "none" },
-  scrollbarWidth: "none",
-} as const;
-
-function getMobileNavItemSx(active: boolean, color: string) {
-  return {
-    display: "flex",
-    alignItems: "center",
-    gap: 0.75,
-    px: 1.5,
-    py: 0.75,
-    borderRadius: 2,
-    textDecoration: "none",
-    fontSize: "0.8rem",
-    fontWeight: active ? 700 : 500,
-    whiteSpace: "nowrap",
-    color: active ? palette.common.white : palette.text.secondary,
-    bgcolor: active ? alpha(color, 0.12) : alpha(palette.background.paper, 0.4),
-    border: `1px solid ${alpha(active ? color : palette.divider, active ? 0.3 : 0.1)}`,
-    transition: "all 0.2s ease",
-    "& svg": { color },
-    "&:hover": {
-      bgcolor: alpha(color, 0.08),
-      color: palette.common.white,
-    },
-  };
+interface NavItem {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  tone: AuroraTone;
 }
 
-const sidebarCardSx = {
-  width: 220,
-  flexShrink: 0,
-  p: 1.5,
-  position: "sticky",
-  top: 24,
-  alignSelf: "flex-start",
-  display: { xs: "none", md: "block" },
-} as const;
-
-const sidebarTitleSx = {
-  fontSize: "0.7rem",
-  fontWeight: 800,
-  textTransform: "uppercase",
-  letterSpacing: "1.5px",
-  color: palette.text.secondary,
-  px: 1.5,
-  py: 1,
-  mb: 0.5,
-} as const;
-
-function getSidebarNavItemSx(active: boolean, color: string) {
-  return {
-    display: "flex",
-    alignItems: "center",
-    gap: 1.5,
-    px: 1.5,
-    py: 1,
-    borderRadius: 2,
-    textDecoration: "none",
-    fontSize: "0.85rem",
-    fontWeight: active ? 700 : 600,
-    color: active ? palette.common.white : alpha(palette.common.white, 0.7),
-    bgcolor: active ? alpha(color, 0.12) : "transparent",
-    transition: "all 0.2s ease",
-    "& svg": { color },
-    "&:hover": {
-      bgcolor: alpha(color, 0.08),
-      color: palette.common.white,
-    },
-  };
-}
-
-const navItems = [
-  {
-    href: "/admin",
-    label: "Overview",
-    icon: LayoutDashboard,
-    color: palette.primary.light,
-  },
-  {
-    href: "/admin/users",
-    label: "Users",
-    icon: Users,
-    color: palette.info.light,
-  },
+const navItems: ReadonlyArray<NavItem> = [
+  { href: "/admin", label: "Overview", icon: LayoutDashboard, tone: "concept" },
+  { href: "/admin/users", label: "Users", icon: Users, tone: "concept" },
   {
     href: "/admin/invitations",
     label: "Invitations",
     icon: MailPlus,
-    color: palette.success.light,
+    tone: "teal",
   },
-  {
-    href: "/admin/roadmaps",
-    label: "Roadmaps",
-    icon: Map,
-    color: palette.warning.light,
-  },
+  { href: "/admin/roadmaps", label: "Roadmaps", icon: Map, tone: "proc" },
   {
     href: "/admin/documents",
     label: "Documents",
     icon: FileText,
-    color: palette.secondary.light,
+    tone: "ready",
   },
   {
     href: "/admin/analytics",
     label: "Analytics",
     icon: BarChart3,
-    color: palette.error.light,
+    tone: "fail",
   },
 ];
 
@@ -136,22 +52,122 @@ function useActiveItem() {
     href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
 }
 
+const mobileNavSx = {
+  display: { xs: "flex", md: "none" },
+  gap: "8px",
+  mb: "16px",
+  overflowX: "auto",
+  pb: "6px",
+  "&::-webkit-scrollbar": { display: "none" },
+  scrollbarWidth: "none",
+} as const;
+
+function mobileItemSx(active: boolean, color: string) {
+  return {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "8px",
+    px: "12px",
+    py: "8px",
+    borderRadius: aurora.radii.md,
+    textDecoration: "none",
+    fontSize: "12.5px",
+    fontFamily: aurora.font.ui,
+    fontWeight: active ? 700 : 600,
+    whiteSpace: "nowrap",
+    color: active ? aurora.txHi : aurora.txMid,
+    background: active
+      ? auroraTint(color, 0.13)
+      : "oklch(0.22 0.025 262 / 0.55)",
+    border: `1px solid ${active ? auroraTint(color, 0.32) : aurora.line}`,
+    transition:
+      "background-color .2s ease, border-color .2s ease, color .2s ease",
+    "& svg": { color },
+    "&:hover": { color: aurora.txHi, borderColor: aurora.line2 },
+  } as const;
+}
+
+const sidebarSx = {
+  flex: "0 0 240px",
+  padding: "20px 12px",
+  position: "sticky",
+  top: "92px",
+  alignSelf: "flex-start",
+  display: { xs: "none", md: "flex" },
+} as const;
+
+const sidebarLabelSx = {
+  fontFamily: aurora.font.mono,
+  fontSize: "11px",
+  fontWeight: 600,
+  letterSpacing: "0.18em",
+  textTransform: "uppercase",
+  color: aurora.teal,
+  padding: "4px 14px 14px",
+} as const;
+
+function sidebarItemSx(active: boolean, color: string) {
+  return {
+    position: "relative" as const,
+    display: "flex",
+    alignItems: "center",
+    gap: "13px",
+    padding: "11px 14px",
+    borderRadius: aurora.radii.md,
+    textDecoration: "none",
+    fontSize: "14.5px",
+    fontFamily: aurora.font.ui,
+    fontWeight: 600,
+    color: active ? aurora.txHi : aurora.txMid,
+    background: active ? auroraTint(color, 0.13) : "transparent",
+    border: `1px solid ${active ? auroraTint(color, 0.32) : "transparent"}`,
+    transition:
+      "background-color .15s ease, border-color .15s ease, color .15s ease",
+    "& .sb-ico": {
+      display: "grid",
+      placeItems: "center",
+      color: active ? color : aurora.txLow,
+      transition: "color .15s ease",
+    },
+    "&:hover": {
+      background: active
+        ? auroraTint(color, 0.18)
+        : "oklch(0.27 0.022 262 / 0.5)",
+      color: aurora.txHi,
+      "& .sb-ico": { color },
+    },
+    ...(active && {
+      "&::before": {
+        content: '""',
+        position: "absolute" as const,
+        left: 0,
+        top: "9px",
+        bottom: "9px",
+        width: "3px",
+        borderRadius: "999px",
+        background: color,
+        boxShadow: `0 0 10px -1px ${color}`,
+      },
+    }),
+  } as const;
+}
+
 export function AdminMobileNav() {
   const isActive = useActiveItem();
-
   return (
-    <Box sx={mobileNavContainerSx}>
+    <Box sx={mobileNavSx}>
       {navItems.map((item) => {
         const Icon = item.icon;
         const active = isActive(item.href);
+        const color = toneColor(item.tone);
         return (
           <Box
             key={item.href}
             component={Link}
             href={item.href}
-            sx={getMobileNavItemSx(active, item.color)}
+            sx={mobileItemSx(active, color)}
           >
-            <Icon size={16} />
+            <Icon size={15} />
             {item.label}
           </Box>
         );
@@ -162,25 +178,35 @@ export function AdminMobileNav() {
 
 export function AdminSidebar() {
   const isActive = useActiveItem();
-
   return (
-    <Card variant="glass" sx={sidebarCardSx}>
-      <Typography sx={sidebarTitleSx}>Admin Panel</Typography>
-      {navItems.map((item) => {
-        const Icon = item.icon;
-        const active = isActive(item.href);
-        return (
-          <Box
-            key={item.href}
-            component={Link}
-            href={item.href}
-            sx={getSidebarNavItemSx(active, item.color)}
-          >
-            <Icon size={18} />
-            {item.label}
-          </Box>
-        );
-      })}
+    <Card variant="aurora" hoverable={false} withAura={false} sx={sidebarSx}>
+      <Box sx={sidebarLabelSx}>Admin Panel</Box>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "3px",
+        }}
+      >
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const active = isActive(item.href);
+          const color = toneColor(item.tone);
+          return (
+            <Box
+              key={item.href}
+              component={Link}
+              href={item.href}
+              sx={sidebarItemSx(active, color)}
+            >
+              <Box component="span" className="sb-ico">
+                <Icon size={20} />
+              </Box>
+              {item.label}
+            </Box>
+          );
+        })}
+      </Box>
     </Card>
   );
 }

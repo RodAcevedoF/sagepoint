@@ -2,26 +2,21 @@
 
 import { useState } from "react";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TablePagination,
-  Chip,
-  Typography,
   Box,
-  alpha,
   IconButton,
   Select,
   MenuItem,
   FormControl,
   InputLabel,
+  TablePagination,
 } from "@mui/material";
-import { Card, ConfirmDialog, Loader, ErrorState } from "@/shared/components";
-import { palette } from "@/shared/theme";
-import { motion } from "framer-motion";
+import {
+  Card,
+  ConfirmDialog,
+  ErrorState,
+  Loader,
+  Pill,
+} from "@/shared/components";
 import { Map, Trash2, Star, Globe, Lock } from "lucide-react";
 import { RoadmapVisibility } from "@sagepoint/domain";
 import {
@@ -29,10 +24,56 @@ import {
   useDeleteAdminRoadmapMutation,
   useToggleRoadmapFeaturedMutation,
 } from "@/application/admin";
-import { adminTableStyles } from "./adminTable.styles";
+import { aurora } from "@/shared/theme";
+import {
+  adminTableStyles,
+  filterMenuPaperSx,
+  filterSelectSx,
+  iconActionSx,
+  paginationSx,
+} from "./adminTable.styles";
 import { StatusChip } from "../Cards/StatusChip";
 import { useAdminSnackbar } from "../../hooks/useAdminSnackbar";
 import { formatDate, statusColors } from "../../utils/adminFeat.utils";
+
+const HEADERS = [
+  "Title",
+  "User",
+  "Category",
+  "Status",
+  "Visibility",
+  "Featured",
+  "Created",
+  "Actions",
+] as const;
+
+const titleCellSx = {
+  fontWeight: 600,
+  fontSize: "14.5px",
+  color: aurora.txHi,
+} as const;
+
+const mutedSx = {
+  fontSize: "13.5px",
+  color: aurora.txMid,
+} as const;
+
+const dateCellSx = {
+  fontFamily: aurora.font.mono,
+  fontSize: "13px",
+  color: aurora.txMid,
+  whiteSpace: "nowrap" as const,
+} as const;
+
+const starButtonSx = {
+  width: 36,
+  height: 36,
+  borderRadius: aurora.radii.md,
+  color: aurora.status.proc,
+  "&:hover": {
+    background: "color-mix(in oklch, var(--accent-warn) 12%, transparent)",
+  },
+} as const;
 
 export function AdminRoadmapsTable() {
   const [page, setPage] = useState(0);
@@ -87,205 +128,150 @@ export function AdminRoadmapsTable() {
 
   return (
     <>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Card
-          variant="glass"
-          sx={{
-            borderTop: `1px solid ${alpha(palette.primary.main, 0.2)}`,
-          }}
-        >
-          <Card.Header>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Map size={20} color={palette.primary.main} />
-              <Typography
-                variant="h6"
-                sx={{ fontWeight: 800, letterSpacing: "-0.5px" }}
-              >
-                Roadmap Management
-              </Typography>
-              <Chip
-                label={`${total} total`}
-                size="small"
-                sx={{
-                  ml: 1,
-                  height: 20,
-                  fontSize: "0.85rem",
-                  fontWeight: 700,
-                  bgcolor: alpha(palette.primary.main, 0.1),
-                  color: palette.primary.light,
-                  border: "none",
-                }}
-              />
+      <Card variant="aurora" hoverable={false} withAura={false}>
+        <Box sx={adminTableStyles.panelHead}>
+          <Box sx={adminTableStyles.panelTitle}>
+            <Box sx={adminTableStyles.panelTitleIcon}>
+              <Map size={20} />
             </Box>
-          </Card.Header>
-          <Card.Content>
-            <Box sx={adminTableStyles.filterBar}>
-              <FormControl size="small" sx={{ minWidth: 160 }}>
-                <InputLabel>Status</InputLabel>
-                <Select
-                  value={statusFilter}
-                  label="Status"
-                  onChange={(e) => {
-                    setStatusFilter(e.target.value);
-                    setPage(0);
-                  }}
-                >
-                  <MenuItem value="">All</MenuItem>
-                  <MenuItem value="PENDING">Pending</MenuItem>
-                  <MenuItem value="PROCESSING">Processing</MenuItem>
-                  <MenuItem value="COMPLETED">Completed</MenuItem>
-                  <MenuItem value="FAILED">Failed</MenuItem>
-                </Select>
-              </FormControl>
+            <Box component="h2" sx={adminTableStyles.panelHeading}>
+              Roadmap Management
             </Box>
+            <Pill tone="ready">{total} total</Pill>
+          </Box>
+        </Box>
 
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    {[
-                      "Title",
-                      "User",
-                      "Category",
-                      "Status",
-                      "Visibility",
-                      "Featured",
-                      "Created",
-                      "Actions",
-                    ].map((header) => (
-                      <TableCell key={header} sx={adminTableStyles.headerCell}>
-                        {header}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {roadmaps.map((roadmap) => (
-                    <TableRow key={roadmap.id} sx={adminTableStyles.row}>
-                      <TableCell>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                          {roadmap.title}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography
-                          variant="body2"
-                          sx={{ color: palette.text.secondary }}
-                        >
-                          {roadmap.user.name}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography
-                          variant="body2"
-                          sx={{ color: palette.text.secondary }}
-                        >
-                          {roadmap.category?.name ?? "—"}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <StatusChip
-                          label={roadmap.generationStatus}
-                          colorMap={statusColors}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          size="small"
-                          icon={
-                            roadmap.visibility.toLowerCase() ===
-                            RoadmapVisibility.PUBLIC ? (
-                              <Globe size={14} />
-                            ) : (
-                              <Lock size={14} />
-                            )
-                          }
-                          label={
-                            roadmap.visibility.toLowerCase() ===
-                            RoadmapVisibility.PUBLIC
-                              ? "Public"
-                              : "Private"
-                          }
-                          sx={{
-                            fontWeight: 600,
-                            fontSize: "0.8rem",
-                            bgcolor: alpha(
-                              roadmap.visibility.toLowerCase() ===
-                                RoadmapVisibility.PUBLIC
-                                ? palette.success.main
-                                : palette.text.secondary,
-                              0.1,
-                            ),
-                            color:
-                              roadmap.visibility.toLowerCase() ===
-                              RoadmapVisibility.PUBLIC
-                                ? palette.success.main
-                                : palette.text.secondary,
-                            border: "none",
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <IconButton
-                          size="small"
-                          onClick={() => handleToggleFeatured(roadmap.id)}
-                        >
-                          <Star
-                            size={18}
-                            fill={
-                              roadmap.isFeatured ? palette.warning.main : "none"
-                            }
-                            color={palette.warning.main}
-                          />
-                        </IconButton>
-                      </TableCell>
-                      <TableCell>
-                        <Typography
-                          variant="body2"
-                          sx={{ color: palette.text.secondary }}
-                        >
-                          {formatDate(roadmap.createdAt)}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <IconButton
-                          size="small"
-                          onClick={() =>
-                            setDeleteTarget({
-                              id: roadmap.id,
-                              title: roadmap.title,
-                            })
-                          }
-                        >
-                          <Trash2 size={16} color={palette.error.main} />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-
-            <TablePagination
-              component="div"
-              count={total}
-              page={page}
-              onPageChange={(_, newPage) => setPage(newPage)}
-              rowsPerPage={limit}
-              onRowsPerPageChange={(e) => {
-                setLimit(parseInt(e.target.value));
+        <Box sx={adminTableStyles.filterBar}>
+          <FormControl size="small" sx={filterSelectSx}>
+            <InputLabel>Status</InputLabel>
+            <Select
+              value={statusFilter}
+              label="Status"
+              MenuProps={{ slotProps: { paper: { sx: filterMenuPaperSx } } }}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
                 setPage(0);
               }}
-              rowsPerPageOptions={[5, 10, 25]}
-              sx={{ color: palette.text.secondary }}
-            />
-          </Card.Content>
-        </Card>
-      </motion.div>
+            >
+              <MenuItem value="">All</MenuItem>
+              <MenuItem value="PENDING">Pending</MenuItem>
+              <MenuItem value="PROCESSING">Processing</MenuItem>
+              <MenuItem value="COMPLETED">Completed</MenuItem>
+              <MenuItem value="FAILED">Failed</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
+
+        <Box sx={adminTableStyles.tableScroll}>
+          <Box component="table" sx={adminTableStyles.table}>
+            <Box component="thead">
+              <Box component="tr">
+                {HEADERS.map((h) => (
+                  <Box component="th" key={h} sx={adminTableStyles.headerCell}>
+                    {h}
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+            <Box component="tbody">
+              {roadmaps.map((roadmap) => {
+                const isPublic =
+                  roadmap.visibility.toLowerCase() === RoadmapVisibility.PUBLIC;
+                return (
+                  <Box
+                    component="tr"
+                    key={roadmap.id}
+                    sx={adminTableStyles.row}
+                  >
+                    <Box component="td" sx={adminTableStyles.bodyCell}>
+                      <Box sx={titleCellSx}>{roadmap.title}</Box>
+                    </Box>
+                    <Box component="td" sx={adminTableStyles.bodyCell}>
+                      <Box sx={mutedSx}>{roadmap.user.name}</Box>
+                    </Box>
+                    <Box component="td" sx={adminTableStyles.bodyCell}>
+                      <Box sx={mutedSx}>{roadmap.category?.name ?? "—"}</Box>
+                    </Box>
+                    <Box component="td" sx={adminTableStyles.bodyCell}>
+                      <StatusChip
+                        label={roadmap.generationStatus}
+                        colorMap={statusColors}
+                      />
+                    </Box>
+                    <Box component="td" sx={adminTableStyles.bodyCell}>
+                      <Pill
+                        tone={isPublic ? "ready" : "teal"}
+                        accent={isPublic ? undefined : aurora.txMid}
+                        icon={
+                          isPublic ? <Globe size={12} /> : <Lock size={12} />
+                        }
+                      >
+                        {isPublic ? "Public" : "Private"}
+                      </Pill>
+                    </Box>
+                    <Box component="td" sx={adminTableStyles.bodyCell}>
+                      <IconButton
+                        sx={starButtonSx}
+                        size="small"
+                        onClick={() => handleToggleFeatured(roadmap.id)}
+                        aria-label={
+                          roadmap.isFeatured
+                            ? "Unfeature roadmap"
+                            : "Feature roadmap"
+                        }
+                      >
+                        <Star
+                          size={18}
+                          fill={
+                            roadmap.isFeatured ? aurora.status.proc : "none"
+                          }
+                        />
+                      </IconButton>
+                    </Box>
+                    <Box component="td" sx={adminTableStyles.bodyCell}>
+                      <Box sx={dateCellSx}>{formatDate(roadmap.createdAt)}</Box>
+                    </Box>
+                    <Box component="td" sx={adminTableStyles.bodyCell}>
+                      <IconButton
+                        sx={iconActionSx}
+                        size="small"
+                        onClick={() =>
+                          setDeleteTarget({
+                            id: roadmap.id,
+                            title: roadmap.title,
+                          })
+                        }
+                        aria-label="Delete roadmap"
+                      >
+                        <Trash2 size={16} color={aurora.status.fail} />
+                      </IconButton>
+                    </Box>
+                  </Box>
+                );
+              })}
+            </Box>
+          </Box>
+        </Box>
+
+        <TablePagination
+          component="div"
+          count={total}
+          page={page}
+          onPageChange={(_, newPage) => setPage(newPage)}
+          rowsPerPage={limit}
+          onRowsPerPageChange={(e) => {
+            setLimit(parseInt(e.target.value));
+            setPage(0);
+          }}
+          rowsPerPageOptions={[5, 10, 25]}
+          sx={paginationSx}
+          slotProps={{
+            select: {
+              MenuProps: { slotProps: { paper: { sx: filterMenuPaperSx } } },
+            },
+          }}
+        />
+      </Card>
 
       <ConfirmDialog
         open={deleteTarget !== null}

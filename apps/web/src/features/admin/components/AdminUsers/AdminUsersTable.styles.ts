@@ -1,5 +1,4 @@
-import { alpha } from "@mui/material";
-import { palette } from "@/shared/theme";
+import { aurora, auroraTint } from "@/shared/theme";
 
 export const HEADERS = [
   "Identity",
@@ -8,43 +7,47 @@ export const HEADERS = [
   "Status",
   "Registration",
   "Actions",
-];
+] as const;
 
 export const roleColors: Record<string, string> = {
-  ADMIN: palette.error.light,
-  USER: palette.text.secondary,
+  ADMIN: aurora.status.fail,
+  USER: aurora.txMid,
 };
 
 export const activeColors: Record<string, string> = {
-  Active: palette.success.light,
-  Banned: palette.error.light,
+  Active: aurora.status.ready,
+  Banned: aurora.status.fail,
 };
 
-export function getAvatarSx(role: string) {
-  const isAdmin = role === "ADMIN";
-  const baseColor = isAdmin ? palette.error.main : palette.primary.main;
-  return {
-    width: 36,
-    height: 36,
-    fontSize: "0.875rem",
-    fontWeight: 700,
-    bgcolor: alpha(baseColor, 0.2),
-    color: isAdmin ? palette.error.light : palette.primary.light,
-    border: `1px solid ${alpha(baseColor, 0.2)}`,
-  };
+const AVATAR_TONES = [
+  aurora.status.concept,
+  aurora.teal,
+  aurora.status.ready,
+  aurora.status.proc,
+  aurora.status.enrich,
+] as const;
+
+export function avatarColorFor(role: string, seed: string): string {
+  if (role === "ADMIN") return aurora.status.fail;
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  }
+  return AVATAR_TONES[hash % AVATAR_TONES.length] ?? aurora.teal;
 }
 
-export const usersTableStyles = {
-  card: {
-    borderTop: `1px solid ${alpha(palette.primary.main, 0.2)}`,
-  },
-  countChip: {
-    ml: 1,
-    height: 20,
-    fontSize: "0.85rem",
+export function getAvatarSx(color: string) {
+  return {
+    flex: "none",
+    width: 44,
+    height: 44,
+    borderRadius: "50%",
+    display: "grid",
+    placeItems: "center",
     fontWeight: 700,
-    bgcolor: alpha(palette.success.main, 0.1),
-    color: palette.success.light,
-    border: "none",
-  },
-} as const;
+    fontSize: "17px",
+    background: auroraTint(color, 0.16),
+    color,
+    border: `1px solid ${auroraTint(color, 0.35)}`,
+  } as const;
+}
