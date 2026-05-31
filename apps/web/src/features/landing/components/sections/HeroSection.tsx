@@ -1,148 +1,158 @@
 "use client";
 
-import { Box, Container, Typography, Stack, alpha } from "@mui/material";
+import { Box, Container, Stack } from "@mui/material";
+import { aurora as auroraPalette, auroraTint } from "@/shared/theme";
 import { HeroActions } from "./HeroActions";
-import { palette } from "@/shared/theme";
-import { keyframes } from "@emotion/react";
-
-const float = keyframes`
-  0% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(30px, -50px) scale(1.1); }
-  66% { transform: translate(-20px, 20px) scale(0.9); }
-  100% { transform: translate(0, 0) scale(1); }
-`;
 
 const styles = {
   root: {
-    minHeight: "100vh",
-    display: "flex",
-    alignItems: "center",
     position: "relative",
     overflow: "hidden",
-  },
-  meshContainer: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 0,
-    pointerEvents: "none",
-  },
-  blob1: {
-    position: "absolute",
-    top: "-10%",
-    right: "10%",
-    width: "60vw",
-    height: "60vw",
-    background: `radial-gradient(circle, ${alpha(palette.primary.main, 0.12)} 0%, transparent 70%)`,
-    filter: "blur(80px)",
-    animation: `${float} 20s infinite ease-in-out`,
-  },
-  blob2: {
-    position: "absolute",
-    bottom: "10%",
-    left: "-5%",
-    width: "50vw",
-    height: "50vw",
-    background: `radial-gradient(circle, ${alpha(palette.secondary.main, 0.08)} 0%, transparent 70%)`,
-    filter: "blur(60px)",
-    animation: `${float} 25s infinite ease-in-out reverse`,
+    textAlign: "center",
+    pt: { xs: 12, md: 18 },
+    pb: { xs: 10, md: 16 },
   },
   container: {
     position: "relative",
     zIndex: 1,
-    pt: { xs: 12, md: 15 },
-    pb: { xs: 8, md: 12 },
-    textAlign: "center",
   },
   badge: {
-    mb: 4,
-    bgcolor: alpha(palette.primary.main, 0.08),
-    color: palette.primary.light,
-    border: `1px solid ${alpha(palette.primary.main, 0.2)}`,
-    backdropFilter: "blur(4px)",
-    px: 2,
-    py: 0.8,
-    borderRadius: "100px",
     display: "inline-flex",
     alignItems: "center",
-    gap: 1.5,
+    gap: "10px",
+    padding: "8px 17px",
+    borderRadius: auroraPalette.radii.pill,
+    whiteSpace: "nowrap",
+    fontFamily: auroraPalette.font.mono,
+    fontSize: "11.5px",
     fontWeight: 600,
-    fontSize: "0.75rem",
     letterSpacing: "0.1em",
     textTransform: "uppercase",
+    color: auroraPalette.tx,
+    background: auroraTint(auroraPalette.teal, 0.08),
+    border: `1px solid ${auroraTint(auroraPalette.teal, 0.28)}`,
+    backdropFilter: "blur(4px)",
+    marginTop: 5,
+    "@media (max-width: 640px)": {
+      fontSize: "10.5px",
+      padding: "7px 14px",
+      whiteSpace: "normal",
+      letterSpacing: "0.08em",
+    },
+  },
+  pulse: {
+    width: 8,
+    height: 8,
+    borderRadius: "50%",
+    background: auroraPalette.status.ready,
+    boxShadow: `0 0 0 3px ${auroraTint(auroraPalette.status.ready, 0.25)}`,
+    animation: "sp-hero-pulse 1.6s ease-in-out infinite",
+    "@keyframes sp-hero-pulse": {
+      "50%": { opacity: 0.4 },
+    },
   },
   title: {
-    fontSize: { xs: "2.75rem", sm: "4rem", md: "5.5rem" },
-    lineHeight: 1,
-    letterSpacing: "-0.04em",
+    fontFamily: auroraPalette.font.display,
     fontWeight: 800,
-    mb: 3,
-    background: `linear-gradient(180deg, ${palette.text.primary} 30%, ${alpha(palette.text.primary, 0.6)} 100%)`,
-    backgroundClip: "text",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
+    fontSize: "clamp(48px, 7vw, 92px)",
+    lineHeight: 0.98,
+    letterSpacing: "-0.035em",
+    margin: "28px 0 0",
+    color: auroraPalette.txHi,
   },
   highlight: {
-    background: `linear-gradient(135deg, ${palette.primary.light} 0%, ${palette.primary.main} 100%)`,
-    backgroundClip: "text",
+    background: `linear-gradient(115deg, ${auroraPalette.teal} 10%, oklch(0.86 0.10 170) 60%, ${auroraPalette.status.concept} 110%)`,
     WebkitBackgroundClip: "text",
+    backgroundClip: "text",
     WebkitTextFillColor: "transparent",
     display: "inline-block",
   },
-  subtitle: {
-    mb: 6,
-    color: "text.secondary",
-    maxWidth: 700,
-    mx: "auto",
-    fontSize: { xs: "1.1rem", md: "1.25rem" },
-    lineHeight: 1.6,
-    fontWeight: 400,
+  lede: {
+    margin: "28px auto 0",
+    maxWidth: "62ch",
+    fontSize: { xs: "16px", md: "18.5px" },
+    lineHeight: 1.65,
+    color: auroraPalette.txMid,
+    textWrap: "pretty",
   },
-};
+  actions: {
+    mt: 5,
+  },
+  stats: {
+    mt: { xs: 7, md: 8 },
+    display: "flex",
+    gap: { xs: "32px", md: "50px" },
+    justifyContent: "center",
+    flexWrap: "wrap",
+  },
+  statValue: {
+    fontFamily: auroraPalette.font.display,
+    fontWeight: 800,
+    fontSize: "34px",
+    color: auroraPalette.txHi,
+    letterSpacing: "-0.02em",
+    "& b": {
+      color: auroraPalette.teal,
+      fontWeight: "inherit",
+    },
+  },
+  statLabel: {
+    mt: 0.5,
+    fontFamily: auroraPalette.font.mono,
+    fontSize: "13px",
+    color: auroraPalette.txLow,
+    letterSpacing: "0.05em",
+    whiteSpace: "nowrap",
+    textTransform: "uppercase",
+  },
+} as const;
+
+const STATS = [
+  { value: "12k+", label: "Docs analyzed" },
+  { value: "3.4k", label: "Roadmaps built" },
+  { value: "98%", label: "Concept recall" },
+];
 
 export function HeroSection() {
   return (
-    <Box sx={styles.root}>
-      {/* Decorative Mesh Background */}
-      <Box sx={styles.meshContainer}>
-        <Box sx={styles.blob1} />
-        <Box sx={styles.blob2} />
-      </Box>
-
-      <Container maxWidth="lg" sx={styles.container}>
+    <Box component="header" sx={styles.root}>
+      <Container maxWidth="md" sx={styles.container}>
         <Stack alignItems="center">
-          {/* Badge */}
           <Box sx={styles.badge}>
-            <Box
-              sx={{
-                width: 6,
-                height: 6,
-                bgcolor: palette.primary.light,
-                borderRadius: "50%",
-                boxShadow: `0 0 12px ${palette.primary.light}`,
-              }}
-            />
-            Beta {process.env.NEXT_PUBLIC_APP_VERSION} • Powered by AI
-            Multi-agents System
+            <Box sx={styles.pulse} />
+            Beta {process.env.NEXT_PUBLIC_APP_VERSION} · Powered by AI
+            multi-agent system
           </Box>
 
-          <Typography variant="h1" sx={styles.title}>
-            Master any subject <br />
+          <Box component="h1" sx={styles.title}>
+            Master any subject
+            <br />
             with{" "}
             <Box component="span" sx={styles.highlight}>
               AI Roadmaps
             </Box>
-          </Typography>
+          </Box>
 
-          <Typography variant="body1" sx={styles.subtitle}>
+          <Box component="p" sx={styles.lede}>
             SagePoint transforms your documents into interactive knowledge
             graphs and personalized learning paths. Upload your PDFs, and let AI
             map your journey from beginner to expert.
-          </Typography>
+          </Box>
 
-          <HeroActions />
+          <Box sx={styles.actions}>
+            <HeroActions />
+          </Box>
+
+          <Box sx={styles.stats}>
+            {STATS.map((stat) => (
+              <Box key={stat.label} sx={{ textAlign: "center" }}>
+                <Box sx={styles.statValue}>
+                  <b>{stat.value}</b>
+                </Box>
+                <Box sx={styles.statLabel}>{stat.label}</Box>
+              </Box>
+            ))}
+          </Box>
         </Stack>
       </Container>
     </Box>

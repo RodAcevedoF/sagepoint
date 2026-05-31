@@ -1,19 +1,18 @@
 "use client";
 
-import { Box, alpha } from "@mui/material";
-import { palette } from "@/shared/theme";
+import { Box } from "@mui/material";
+import { aurora } from "@/shared/theme";
 
 export function AppBarDivider() {
   return (
     <Box
       sx={{
+        zIndex: 1,
         width: "1px",
-        height: { xs: 20, sm: 24 },
-        mx: { xs: 0.5, sm: 1 },
-        background: `linear-gradient(to bottom, transparent, ${alpha(
-          palette.text.secondary,
-          0.2,
-        )}, transparent)`,
+        alignSelf: "center",
+        height: 24,
+        mx: "4px",
+        background: aurora.line2,
       }}
     />
   );

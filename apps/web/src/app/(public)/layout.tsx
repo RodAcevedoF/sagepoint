@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import dynamic from "next/dynamic";
-import { Box } from "@mui/material";
+import { Box, useMediaQuery, useTheme } from "@mui/material";
 import { PublicLayout } from "@/shared/components";
 import { palette } from "@/shared/theme";
 
@@ -29,15 +29,18 @@ export default function PublicRoutesLayout({
 }: {
   children: ReactNode;
 }) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   return (
     <PublicLayout>
       <Antigravity
-        count={380}
+        count={isMobile ? 140 : 380}
         magnetRadius={10}
         lerpSpeed={0.08}
         color={palette.primary.light}
-        fieldStrength={12}
-        particleSize={1.5}
+        fieldStrength={isMobile ? 8 : 12}
+        particleSize={isMobile ? 1.2 : 1.5}
         containerStyle={{
           position: "fixed",
           inset: 0,

@@ -12,8 +12,9 @@ import {
   IconButton,
   useTheme,
 } from "@mui/material";
-import { Sparkles, Check, Plus } from "lucide-react";
-import { Card, useSnackbar } from "@/shared/components";
+import { Sparkles, Check, Plus, Wand2, Edit3 } from "lucide-react";
+import { useSnackbar } from "@/shared/components";
+import { aurora as auroraPalette, auroraTint } from "@/shared/theme";
 import { useCategoriesQuery } from "@/application/onboarding/queries/get-categories.query";
 import { useUpdateProfileCommand } from "@/application/profile/commands/update-profile.command";
 import type { UserDto } from "@/application/profile/queries/get-profile.query";
@@ -36,13 +37,11 @@ export function ProfileInterests({ user }: ProfileInterestsProps) {
     [user.interests],
   );
 
-  // IDs of seeded/predefined categories so we can tell custom ones apart
   const predefinedIds = useMemo(
     () => new Set(categories?.map((c) => c.id) ?? []),
     [categories],
   );
 
-  // Custom categories the user already has (saved previously, not in the seeded list)
   const savedCustomInterests = useMemo(
     () => (user.interests ?? []).filter((i) => !predefinedIds.has(i.id)),
     [user.interests, predefinedIds],
@@ -121,148 +120,172 @@ export function ProfileInterests({ user }: ProfileInterestsProps) {
     setCustomInput("");
   };
 
+  const hasAnyInterests = (user.interests ?? []).length > 0;
+
   return (
-    <Card variant="glass" sx={styles.profileCard} hoverable={false}>
-      <Card.Content sx={{ p: { xs: 2.5, md: 4 } }}>
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          justifyContent="space-between"
-          alignItems={{ xs: "flex-start", sm: "center" }}
-          sx={{ mb: 3 }}
-        >
-          <Typography variant="h6" sx={styles.sectionTitle}>
-            <Sparkles size={20} />
-            Interests
-          </Typography>
-          {!isEditing && (
-            <Button
-              variant="outlined"
-              onClick={() => setEditingIds(new Set(currentIds))}
-              disabled={categoriesLoading}
-              sx={styles.actionButton}
-            >
-              Edit
-            </Button>
-          )}
-        </Stack>
-
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
-          {isEditing
-            ? "Select topics you want to learn about. This drives your news feed."
-            : "Your selected interests drive the news feed and suggestions."}
-        </Typography>
-
-        {isEditing ? (
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5 }}>
-            {categories?.map((cat) => {
-              const isSelected = selectedIds.has(cat.id);
-              return (
-                <Chip
-                  key={cat.id}
-                  label={cat.name}
-                  icon={isSelected ? <Check size={14} /> : undefined}
-                  onClick={() => toggleCategory(cat.id)}
-                  variant={isSelected ? "filled" : "outlined"}
-                  sx={styles.interestChip(isSelected, true)}
-                />
-              );
-            })}
-            {savedCustomInterests.map((interest) => {
-              const isSelected = selectedIds.has(interest.id);
-              return (
-                <Chip
-                  key={interest.id}
-                  label={interest.name}
-                  icon={isSelected ? <Check size={14} /> : undefined}
-                  onClick={() => toggleCategory(interest.id)}
-                  variant={isSelected ? "filled" : "outlined"}
-                  sx={styles.interestChip(isSelected, true)}
-                />
-              );
-            })}
-            {customInterests.map((name) => (
-              <Chip
-                key={`new-${name}`}
-                label={name}
-                onDelete={() => removeCustomInterest(name)}
-                sx={styles.customInterestChip}
-              />
-            ))}
+    <Box sx={styles.panel}>
+      <Box sx={styles.panelHeadRow}>
+        <Box>
+          <Box sx={styles.panelHead}>
+            <Box sx={styles.panelIcon()}>
+              <Sparkles size={20} />
+            </Box>
+            <Typography component="h2" sx={styles.panelTitle}>
+              Interests
+            </Typography>
           </Box>
-        ) : (
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5 }}>
-            {(user.interests ?? []).map((interest) => (
+          <Box sx={styles.panelUnderline()} />
+        </Box>
+        {!isEditing && (
+          <Button
+            onClick={() => setEditingIds(new Set(currentIds))}
+            disabled={categoriesLoading}
+            startIcon={<Edit3 size={16} />}
+            sx={styles.btnTealOutline}
+          >
+            Edit
+          </Button>
+        )}
+      </Box>
+
+      <Typography component="p" sx={styles.interestsLede}>
+        {isEditing
+          ? "Select topics you want to learn about. This drives your news feed."
+          : "Your selected interests drive the news feed and suggestions."}
+      </Typography>
+
+      {isEditing ? (
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5 }}>
+          {categories?.map((cat) => {
+            const isSelected = selectedIds.has(cat.id);
+            return (
+              <Chip
+                key={cat.id}
+                label={cat.name}
+                icon={isSelected ? <Check size={14} /> : undefined}
+                onClick={() => toggleCategory(cat.id)}
+                variant={isSelected ? "filled" : "outlined"}
+                sx={styles.interestChip(isSelected, true)}
+              />
+            );
+          })}
+          {savedCustomInterests.map((interest) => {
+            const isSelected = selectedIds.has(interest.id);
+            return (
+              <Chip
+                key={interest.id}
+                label={interest.name}
+                icon={isSelected ? <Check size={14} /> : undefined}
+                onClick={() => toggleCategory(interest.id)}
+                variant={isSelected ? "filled" : "outlined"}
+                sx={styles.interestChip(isSelected, true)}
+              />
+            );
+          })}
+          {customInterests.map((name) => (
+            <Chip
+              key={`new-${name}`}
+              label={name}
+              onDelete={() => removeCustomInterest(name)}
+              sx={styles.customInterestChip}
+            />
+          ))}
+        </Box>
+      ) : hasAnyInterests ? (
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5 }}>
+          {(user.interests ?? []).map((interest) => {
+            const isCustom =
+              !categoriesLoading && !predefinedIds.has(interest.id);
+            return (
               <Chip
                 key={interest.id}
                 label={interest.name}
                 icon={<Check size={14} />}
                 variant="filled"
-                sx={{
-                  ...styles.interestChip(true, false),
-                  ...(!categoriesLoading &&
-                    !predefinedIds.has(interest.id) &&
-                    styles.customInterestChip),
-                }}
+                sx={
+                  isCustom
+                    ? styles.customInterestChip
+                    : styles.interestChip(true, false)
+                }
               />
-            ))}
-            {(user.interests ?? []).length === 0 && (
-              <Typography variant="body2" color="text.secondary">
-                No interests selected yet. Click Edit to add some.
-              </Typography>
-            )}
+            );
+          })}
+        </Box>
+      ) : (
+        <Box sx={styles.interestEmpty}>
+          <Box sx={styles.interestEmptyIcon}>
+            <Wand2 size={20} />
           </Box>
-        )}
+          <Typography component="p">
+            No interests selected yet. Click{" "}
+            <Box component="b" sx={{ color: auroraPalette.teal }}>
+              Edit
+            </Box>{" "}
+            to add some.
+          </Typography>
+        </Box>
+      )}
 
-        {isEditing && (
-          <TextField
-            size="small"
-            placeholder="Add a custom topic..."
-            value={customInput}
-            onChange={(e) => setCustomInput(e.target.value.slice(0, 50))}
-            onKeyDown={handleKeyDown}
-            sx={{ mt: 2 }}
-            fullWidth
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    size="small"
-                    onClick={addCustomInterest}
-                    disabled={!customInput.trim()}
-                    sx={{ color: theme.palette.primary.light }}
-                  >
-                    <Plus size={18} />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
-        )}
+      {isEditing && (
+        <TextField
+          size="small"
+          placeholder="Add a custom topic..."
+          value={customInput}
+          onChange={(e) => setCustomInput(e.target.value.slice(0, 50))}
+          onKeyDown={handleKeyDown}
+          sx={{
+            mt: 2,
+            "& .MuiOutlinedInput-root": {
+              color: auroraPalette.txHi,
+              background: auroraPalette.surface2,
+              borderRadius: auroraPalette.radii.sm,
+              "& fieldset": { borderColor: auroraPalette.line },
+              "&:hover fieldset": { borderColor: auroraPalette.line2 },
+              "&.Mui-focused fieldset": {
+                borderColor: auroraTint(auroraPalette.teal, 0.5),
+              },
+            },
+            "& input::placeholder": {
+              color: auroraPalette.txLow,
+              opacity: 1,
+            },
+          }}
+          fullWidth
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  size="small"
+                  onClick={addCustomInterest}
+                  disabled={!customInput.trim()}
+                  sx={{ color: auroraPalette.teal }}
+                >
+                  <Plus size={18} />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
+      )}
 
-        {isEditing && (
-          <Stack
-            direction="row"
-            spacing={1.5}
-            sx={{ mt: 3, justifyContent: "flex-end" }}
+      {isEditing && (
+        <Stack
+          direction="row"
+          spacing={1.5}
+          sx={{ mt: 3, justifyContent: "flex-end" }}
+        >
+          <Button onClick={handleCancel} sx={styles.btnGhost}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={isLoading || !hasChanges}
+            sx={styles.btnTealSolid}
           >
-            <Button
-              variant="contained"
-              onClick={handleSave}
-              disabled={isLoading || !hasChanges}
-              sx={styles.actionButton}
-            >
-              Save
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={handleCancel}
-              sx={styles.actionButton}
-            >
-              Cancel
-            </Button>
-          </Stack>
-        )}
-      </Card.Content>
-    </Card>
+            Save
+          </Button>
+        </Stack>
+      )}
+    </Box>
   );
 }

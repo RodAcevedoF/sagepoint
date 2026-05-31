@@ -1,9 +1,11 @@
-import { Typography, Button, Stack, useTheme, alpha, Box } from "@mui/material";
+"use client";
+
+import { Box, Typography, Button, Stack, useTheme } from "@mui/material";
 import { LogOut, Trash2, ShieldAlert, RotateCcw } from "lucide-react";
-import { Card } from "@/shared/components";
+import { useRouter } from "next/navigation";
 import { logout } from "@/application/auth/commands/logout.command";
 import { useResetOnboardingMutation } from "@/infrastructure/api/userApi";
-import { useRouter } from "next/navigation";
+import { aurora as auroraPalette } from "@/shared/theme";
 import { makeStyles } from "./Profile.styles";
 
 const isDev = process.env.NODE_ENV === "development";
@@ -20,139 +22,85 @@ export function ProfileActions() {
       await resetOnboarding().unwrap();
       router.push("/onboarding");
     } catch {
-      // mutation error is surfaced by RTK Query
+      // mutation error surfaced by RTK Query
     }
   };
 
   return (
-    <Card variant="glass" sx={styles.profileCard} hoverable={false}>
-      <Card.Content sx={{ p: { xs: 2.5, md: 4 } }}>
-        <Typography variant="h6" sx={styles.sectionTitle}>
+    <Box sx={styles.panel}>
+      <Box sx={styles.panelHead}>
+        <Box sx={styles.panelIcon(auroraPalette.status.fail)}>
           <ShieldAlert size={20} />
-          Account & Security
+        </Box>
+        <Typography component="h2" sx={styles.panelTitle}>
+          Account &amp; Security
         </Typography>
+      </Box>
+      <Box sx={styles.panelUnderline(auroraPalette.status.fail)} />
 
-        <Stack spacing={2}>
-          {isDev && (
-            <Stack
-              direction={{ xs: "column", sm: "row" }}
-              alignItems={{ xs: "flex-start", sm: "center" }}
-              justifyContent="space-between"
-              spacing={2}
-              sx={{
-                p: 2,
-                borderRadius: 3,
-                bgcolor: alpha(theme.palette.warning.main, 0.03),
-                border: `1px solid ${alpha(theme.palette.warning.main, 0.1)}`,
-              }}
-            >
-              <Box>
-                <Typography
-                  variant="subtitle2"
-                  sx={{ fontWeight: 700, color: "warning.main" }}
-                >
-                  Onboarding Status
-                </Typography>
-                <Typography
-                  variant="caption"
-                  color="warning.main"
-                  sx={{ opacity: 0.8 }}
-                >
-                  Reset your profile preferences and restart onboarding
-                </Typography>
-              </Box>
-              <Button
-                variant="outlined"
-                color="warning"
-                startIcon={<RotateCcw size={16} />}
-                onClick={handleResetOnboarding}
-                disabled={isResetting}
-                sx={styles.actionButton}
-              >
-                {isResetting ? "Resetting..." : "Reset Onboarding"}
-              </Button>
-            </Stack>
-          )}
-
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            alignItems={{ xs: "flex-start", sm: "center" }}
-            justifyContent="space-between"
-            spacing={2}
-            sx={{
-              p: 2,
-              borderRadius: 3,
-              bgcolor: alpha(theme.palette.info.main, 0.03),
-              border: `1px solid ${alpha(theme.palette.info.main, 0.1)}`,
-            }}
-          >
+      <Stack spacing={2}>
+        {isDev && (
+          <Box sx={styles.secRow(auroraPalette.status.proc)}>
             <Box>
               <Typography
-                variant="subtitle2"
-                sx={{ fontWeight: 700, color: "info.main" }}
+                component="h4"
+                sx={styles.secRowTitle(auroraPalette.status.proc)}
               >
-                Session Management
+                Onboarding Status
               </Typography>
-              <Typography
-                variant="caption"
-                color="info.main"
-                sx={{ opacity: 0.8 }}
-              >
-                Securely sign out from this device
+              <Typography component="p" sx={styles.secRowDesc}>
+                Reset your profile preferences and restart onboarding
               </Typography>
             </Box>
             <Button
-              variant="outlined"
-              color="info"
-              startIcon={<LogOut size={16} />}
-              onClick={() => logout()}
-              sx={styles.actionButton}
+              onClick={handleResetOnboarding}
+              disabled={isResetting}
+              startIcon={<RotateCcw size={17} />}
+              sx={styles.btnAccentOutline(auroraPalette.status.proc)}
             >
-              Sign Out
+              {isResetting ? "Resetting..." : "Reset Onboarding"}
             </Button>
-          </Stack>
+          </Box>
+        )}
 
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            alignItems={{ xs: "flex-start", sm: "center" }}
-            justifyContent="space-between"
-            spacing={2}
-            sx={{
-              p: 2.5,
-              borderRadius: 3,
-              bgcolor: alpha(theme.palette.error.main, 0.03),
-              border: `1px solid ${alpha(theme.palette.error.main, 0.1)}`,
-            }}
-          >
-            <Box>
-              <Typography
-                variant="subtitle2"
-                sx={{ fontWeight: 700, color: "error.main" }}
-              >
-                Danger Zone
-              </Typography>
-              <Typography
-                variant="caption"
-                color="error.main"
-                sx={{ opacity: 0.8 }}
-              >
-                Permanently delete your account and data
-              </Typography>
-            </Box>
-            <Button
-              variant="contained"
-              color="error"
-              startIcon={<Trash2 size={16} />}
-              sx={{
-                ...styles.actionButton,
-                boxShadow: `0 4px 12px ${alpha(theme.palette.error.main, 0.2)}`,
-              }}
+        <Box sx={styles.secRow(auroraPalette.status.concept)}>
+          <Box>
+            <Typography
+              component="h4"
+              sx={styles.secRowTitle(auroraPalette.status.concept)}
             >
-              Delete Account
-            </Button>
-          </Stack>
-        </Stack>
-      </Card.Content>
-    </Card>
+              Session Management
+            </Typography>
+            <Typography component="p" sx={styles.secRowDesc}>
+              Securely sign out from this device
+            </Typography>
+          </Box>
+          <Button
+            onClick={() => logout()}
+            startIcon={<LogOut size={17} />}
+            sx={styles.btnAccentOutline(auroraPalette.status.concept)}
+          >
+            Sign Out
+          </Button>
+        </Box>
+
+        <Box sx={styles.secRow(auroraPalette.status.fail, true)}>
+          <Box>
+            <Typography
+              component="h4"
+              sx={styles.secRowTitle(auroraPalette.status.fail)}
+            >
+              Danger Zone
+            </Typography>
+            <Typography component="p" sx={styles.secRowDesc}>
+              Permanently delete your account and data
+            </Typography>
+          </Box>
+          <Button startIcon={<Trash2 size={17} />} sx={styles.btnDanger}>
+            Delete Account
+          </Button>
+        </Box>
+      </Stack>
+    </Box>
   );
 }

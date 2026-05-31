@@ -3,7 +3,6 @@
 import { type ReactNode, type CSSProperties } from "react";
 import {
   Box,
-  alpha,
   useMediaQuery,
   useTheme,
   type SxProps,
@@ -15,14 +14,10 @@ import {
   LayoutGroup,
   type Variants,
 } from "framer-motion";
-import { palette } from "@/shared/theme";
+import { aurora } from "@/shared/theme";
 import { AppBarProvider } from "../AppBarContext";
 import { useHoverReveal } from "../useHoverReveal";
 import { useScrollReveal } from "../useScrollReveal";
-
-// ============================================================================
-// Types & Styles
-// ============================================================================
 
 export interface AppBarProps {
   children: ReactNode;
@@ -86,29 +81,17 @@ const makeStyles = (
     pointerEvents: shouldShow ? "none" : "auto",
   },
   barWrapper: {
+    position: "relative",
     display: "flex",
-    alignItems: "center",
-    gap: { xs: 0.25, sm: 0.5 },
-    px: { xs: 1, sm: 2 },
-    py: { xs: 0.75, sm: 1.25 },
-    borderRadius: { xs: 24, sm: 32 },
-    // Advanced Glassmorphism
-    background: `linear-gradient(135deg, ${alpha(
-      palette.background.paper,
-      0.82,
-    )} 0%, ${alpha(palette.background.paper, 0.75)} 100%)`,
-    backdropFilter: "blur(32px) saturate(200%)",
-    WebkitBackdropFilter: "blur(32px) saturate(200%)",
-    // Metallic/Glass Border
-    border: `1px solid ${alpha(palette.primary.light, 0.15)}`,
-    // Depth and Shine
-    boxShadow: `
-      inset 0 1px 1px ${alpha("#fff", 0.12)},
-      0 0 0 1px ${alpha(palette.background.default, 0.3)},
-      0 12px 32px -8px ${alpha("#000", 0.3)},
-      0 8px 16px -4px ${alpha(palette.primary.dark, 0.15)}
-    `,
-    transition: "none",
+    alignItems: "stretch",
+    gap: "4px",
+    padding: "9px",
+    borderRadius: 999,
+    background: `linear-gradient(168deg, color-mix(in oklch, ${aurora.surface2} 92%, transparent), color-mix(in oklch, ${aurora.bg1} 86%, transparent))`,
+    border: `1px solid ${aurora.line2}`,
+    boxShadow: `0 1px 0 0 oklch(1 0 0 / 0.05) inset, 0 24px 50px -28px oklch(0.04 0.05 264 / 0.95)`,
+    backdropFilter: "blur(14px)",
+    WebkitBackdropFilter: "blur(14px)",
   },
   nav: {
     position: "fixed",
@@ -118,10 +101,6 @@ const makeStyles = (
     maxWidth: isMobile ? "calc(100vw - 16px)" : undefined,
   },
 });
-
-// ============================================================================
-// Component
-// ============================================================================
 
 export function AppBarRoot({
   children,
@@ -145,7 +124,6 @@ export function AppBarRoot({
   return (
     <AppBarProvider defaultActive={defaultActive}>
       <LayoutGroup id="navbar-items">
-        {/* Invisible trigger zone at bottom (desktop only) */}
         {revealOnHover && !alwaysVisible && !isMobile && (
           <Box {...triggerProps} sx={styles.trigger} />
         )}

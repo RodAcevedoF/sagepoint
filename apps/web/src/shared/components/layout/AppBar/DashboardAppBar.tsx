@@ -45,42 +45,42 @@ export function DashboardAppBar() {
           icon={Home}
           label="Home"
           onClick={() => router.push("/dashboard")}
-          color="primary"
+          tone="teal"
         />
         <AppBar.Item
           id="roadmaps"
           icon={Map}
           label="Roadmaps"
           onClick={() => router.push("/roadmaps")}
-          color="warning"
+          tone="proc"
         />
         <AppBar.Item
           id="explore"
           icon={Compass}
           label="Explore"
           onClick={() => router.push("/explore")}
-          color="secondary"
+          tone="concept"
         />
         <AppBar.Item
           id="feed"
           icon={Newspaper}
           label="Feed"
           onClick={() => router.push("/feed")}
-          color="error"
+          tone="fail"
         />
         <AppBar.Item
           id="documents"
           icon={FileText}
           label="Docs"
           onClick={() => router.push("/documents")}
-          color="info"
+          tone="ready"
         />
         <AppBar.Item
           id="profile"
           icon={User}
           label="Profile"
           onClick={() => router.push("/profile")}
-          color="success"
+          tone="teal"
         />
         {isAdmin && (
           <AppBar.Item
@@ -88,7 +88,7 @@ export function DashboardAppBar() {
             icon={Shield}
             label="Admin"
             onClick={() => router.push("/admin")}
-            color="purple"
+            tone="enrich"
           />
         )}
       </AppBar.Group>

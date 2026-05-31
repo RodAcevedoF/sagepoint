@@ -1,162 +1,94 @@
 "use client";
 
-import {
-  Box,
-  Container,
-  Grid,
-  Typography,
-  Stack,
-  alpha,
-  Divider,
-} from "@mui/material";
+import { Box } from "@mui/material";
 import { FooterBrand } from "./FooterBrand";
 import { FooterLinks } from "./FooterLinks";
-import { palette } from "@/shared/theme";
+import { aurora as auroraPalette } from "@/shared/theme";
 
 const styles = {
-  footer: {
+  root: {
     position: "relative",
-    bgcolor: "background.default",
-    pt: { xs: 8, md: 10 },
-    pb: 4,
     mt: "auto",
-    overflow: "hidden",
-    borderTop: `1px solid ${alpha(palette.primary.light, 0.1)}`,
-    "&::before": {
-      content: '""',
-      position: "absolute",
-      top: 0,
-      left: "50%",
-      transform: "translateX(-50%)",
-      width: "100%",
-      height: "1px",
-      background: `linear-gradient(90deg, transparent, ${alpha(palette.primary.light, 0.3)}, transparent)`,
-    },
-  },
-  glow: {
-    position: "absolute",
-    bottom: "-150px",
-    left: "50%",
-    transform: "translateX(-50%)",
-    width: "600px",
-    height: "300px",
-    background: `radial-gradient(ellipse at center, ${alpha(palette.primary.main, 0.08)} 0%, transparent 70%)`,
-    filter: "blur(60px)",
-    pointerEvents: "none",
-    zIndex: 0,
+    pt: { xs: 8, md: 9 },
+    pb: 4.5,
+    borderTop: `1px solid ${auroraPalette.line}`,
+    background: `linear-gradient(180deg, transparent, oklch(0.16 0.026 262 / 0.5))`,
   },
   container: {
-    position: "relative",
-    zIndex: 1,
+    maxWidth: "1180px",
+    mx: "auto",
+    px: { xs: 2.5, md: 5 },
   },
-  bottomBar: {
-    mt: 4,
-    pt: 4,
-    pb: 2,
+  grid: {
+    display: "grid",
+    gridTemplateColumns: { xs: "1fr", md: "1.6fr 1fr 1fr" },
+    gap: { xs: "36px", md: "40px" },
+  },
+  rule: {
+    height: "1px",
+    background: auroraPalette.line,
+    mt: { xs: 5, md: 6 },
+    mb: 3,
+  },
+  bottom: {
     display: "flex",
-    flexDirection: { xs: "column-reverse", md: "row" },
-    justifyContent: "space-between",
     alignItems: "center",
-    gap: 3,
-    position: "relative",
+    justifyContent: "space-between",
+    gap: "20px",
+    flexWrap: "wrap",
   },
-  copyright: {
-    color: "rgba(255,255,255,0.85)",
-    fontSize: "0.75rem",
-    fontWeight: 700,
-    letterSpacing: "0.05em",
-    textTransform: "uppercase",
-    fontFamily: "monospace",
-    "& span": {
-      color: "primary.main",
-      fontWeight: 700,
+  copy: {
+    fontFamily: auroraPalette.font.mono,
+    fontSize: "12px",
+    letterSpacing: "0.06em",
+    color: auroraPalette.txLow,
+    whiteSpace: "nowrap",
+    "& b": {
+      color: auroraPalette.teal,
+      fontWeight: 600,
     },
   },
-  bottomLink: {
-    color: "rgba(255,255,255,0.75)",
-    cursor: "pointer",
-    fontSize: "0.75rem",
-    fontWeight: 600,
+  legal: {
+    display: "flex",
+    gap: "26px",
+  },
+  legalLink: {
+    fontFamily: auroraPalette.font.mono,
+    fontSize: "11.5px",
     letterSpacing: "0.1em",
     textTransform: "uppercase",
-    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-    position: "relative",
-    "&::after": {
-      content: '""',
-      position: "absolute",
-      bottom: -4,
-      left: "50%",
-      width: "0%",
-      height: "1px",
-      bgcolor: "primary.light",
-      transition: "inherit",
-      transform: "translateX(-50%)",
-    },
-    "&:hover": {
-      color: "#fff",
-      "&::after": {
-        width: "100%",
-      },
-    },
+    color: auroraPalette.txLow,
+    cursor: "pointer",
+    transition: "color .15s ease",
+    "&:hover": { color: auroraPalette.txHi },
   },
-};
+} as const;
 
 export function Footer() {
   return (
-    <Box component="footer" sx={styles.footer}>
-      {/* Decorative Glow */}
-      <Box sx={styles.glow} />
-
-      <Container maxWidth="lg" sx={styles.container}>
-        <Grid
-          container
-          spacing={{ xs: 6, md: 4 }}
-          justifyContent="space-between"
-          sx={{ mb: 6 }}
-        >
-          <Grid size={{ xs: 12, md: 5 }}>
-            <FooterBrand />
-          </Grid>
-
-          <Grid size={{ xs: 12, md: 6 }}>
-            <FooterLinks />
-          </Grid>
-        </Grid>
-
-        <Divider
-          sx={{ mt: 3, borderColor: alpha(palette.primary.light, 0.15) }}
-        />
-
-        <Box sx={styles.bottomBar}>
-          <Typography variant="body2" sx={styles.copyright}>
-            &copy; {new Date().getFullYear()} <span>SAGEPOINT</span> &middot;
-            FUTURE OF LEARNING
-          </Typography>
-
-          <Stack
-            direction="row"
-            spacing={4}
-            alignItems="center"
-            sx={{
-              position: "relative",
-              "& > *:not(:last-child)::after": {
-                content: '"/"',
-                position: "absolute",
-                right: -18,
-                color: "rgba(255,255,255,0.1)",
-                fontWeight: 300,
-              },
-            }}
-          >
-            <Typography variant="caption" sx={styles.bottomLink}>
-              Privacy
-            </Typography>
-            <Typography variant="caption" sx={styles.bottomLink}>
-              Terms
-            </Typography>
-          </Stack>
+    <Box component="footer" sx={styles.root}>
+      <Box sx={styles.container}>
+        <Box sx={styles.grid}>
+          <FooterBrand />
+          <FooterLinks />
         </Box>
-      </Container>
+
+        <Box sx={styles.rule} />
+
+        <Box sx={styles.bottom}>
+          <Box component="span" sx={styles.copy}>
+            © {new Date().getFullYear()} <b>SAGEPOINT</b> · FUTURE OF LEARNING
+          </Box>
+          <Box sx={styles.legal}>
+            <Box component="a" sx={styles.legalLink}>
+              Privacy
+            </Box>
+            <Box component="a" sx={styles.legalLink}>
+              Terms
+            </Box>
+          </Box>
+        </Box>
+      </Box>
     </Box>
   );
 }

@@ -7,11 +7,11 @@ import {
   TextField,
   Button,
   Stack,
-  alpha,
   useTheme,
 } from "@mui/material";
-import { Target, Rocket } from "lucide-react";
-import { Card, useSnackbar } from "@/shared/components";
+import { Target, Rocket, Edit3 } from "lucide-react";
+import { useSnackbar } from "@/shared/components";
+import { aurora as auroraPalette, auroraTint } from "@/shared/theme";
 import type { UserDto } from "@/application/profile/queries/get-profile.query";
 import { useUpdateProfileCommand } from "@/application/profile/commands/update-profile.command";
 import { makeStyles } from "./Profile.styles";
@@ -39,111 +39,98 @@ export function ProfileLearning({ user }: ProfileLearningProps) {
   };
 
   return (
-    <Card variant="glass" sx={styles.profileCard} hoverable={false}>
-      <Card.Content sx={{ p: { xs: 2.5, md: 4 } }}>
-        <Typography variant="h6" sx={styles.sectionTitle}>
+    <Box sx={styles.panel}>
+      <Box sx={styles.panelHead}>
+        <Box sx={styles.panelIcon()}>
           <Rocket size={20} />
+        </Box>
+        <Typography component="h2" sx={styles.panelTitle}>
           Learning Journey
         </Typography>
+      </Box>
+      <Box sx={styles.panelUnderline()} />
 
-        {/* Learning Goal */}
-        <Box sx={styles.goalBox}>
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            alignItems={{ xs: "flex-start", sm: "center" }}
-            spacing={2}
-            sx={{ mb: 3 }}
-          >
-            <Box sx={styles.iconBox(theme.palette.secondary.light)}>
-              <Target size={22} />
-            </Box>
-            <Box sx={{ flex: 1 }}>
-              <Typography
-                variant="subtitle1"
-                sx={{ fontWeight: 700, letterSpacing: "-0.01em" }}
-              >
-                Your Primary Goal
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                This helps our AI personalize your roadmaps
-              </Typography>
-            </Box>
-            {!isEditingGoal && (
-              <Button
-                variant="outlined"
-                onClick={() => setIsEditingGoal(true)}
-                sx={styles.actionButton}
-              >
-                Change
-              </Button>
-            )}
-          </Stack>
-
-          {isEditingGoal ? (
-            <Box sx={{ mt: 2 }}>
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                value={goalValue}
-                onChange={(e) => setGoalValue(e.target.value)}
-                placeholder="Ex: I want to become a Senior Frontend Engineer by mastering React and System Design..."
-                sx={{
-                  bgcolor: alpha(theme.palette.background.paper, 0.5),
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: 3,
-                  },
-                }}
-              />
-              <Stack
-                direction="row"
-                spacing={1.5}
-                sx={{ mt: 2, justifyContent: "flex-end" }}
-              >
-                <Button
-                  variant="contained"
-                  onClick={handleSaveGoal}
-                  disabled={isLoading}
-                  sx={styles.actionButton}
-                >
-                  Save Goal
-                </Button>
-                <Button
-                  variant="outlined"
-                  onClick={() => {
-                    setGoalValue(user.learningGoal || "");
-                    setIsEditingGoal(false);
-                  }}
-                  sx={styles.actionButton}
-                >
-                  Cancel
-                </Button>
-              </Stack>
-            </Box>
-          ) : (
-            <Box
-              sx={{
-                p: 2.5,
-                borderRadius: 3,
-                bgcolor: alpha(theme.palette.common.white, 0.03),
-                border: `1px solid ${alpha(theme.palette.common.white, 0.05)}`,
-              }}
-            >
-              <Typography
-                variant="body1"
-                sx={{
-                  fontStyle: goalValue ? "normal" : "italic",
-                  color: goalValue ? "text.primary" : "text.disabled",
-                  lineHeight: 1.6,
-                }}
-              >
-                {goalValue ||
-                  "No learning goal set yet. Add one to get better roadmap suggestions!"}
-              </Typography>
-            </Box>
-          )}
+      <Box sx={styles.goalBox}>
+        <Box sx={styles.goalIcon}>
+          <Target size={22} />
         </Box>
-      </Card.Content>
-    </Card>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography component="div" sx={styles.goalTitle}>
+            Your Primary Goal
+          </Typography>
+          <Typography component="div" sx={styles.goalSub}>
+            This helps our AI personalize your roadmaps
+          </Typography>
+        </Box>
+        {!isEditingGoal && (
+          <Button
+            onClick={() => setIsEditingGoal(true)}
+            startIcon={<Edit3 size={16} />}
+            sx={styles.btnTealOutline}
+          >
+            Change
+          </Button>
+        )}
+      </Box>
+
+      {isEditingGoal ? (
+        <Box sx={{ mt: 2 }}>
+          <TextField
+            fullWidth
+            multiline
+            rows={4}
+            value={goalValue}
+            onChange={(e) => setGoalValue(e.target.value)}
+            placeholder="Ex: I want to become a Senior Frontend Engineer by mastering React and System Design..."
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                color: auroraPalette.txHi,
+                background: "oklch(0.27 0.022 262 / 0.4)",
+                borderRadius: auroraPalette.radii.md,
+                "& fieldset": { borderColor: auroraPalette.line },
+                "&:hover fieldset": { borderColor: auroraPalette.line2 },
+                "&.Mui-focused fieldset": {
+                  borderColor: auroraTint(auroraPalette.teal, 0.5),
+                },
+              },
+              "& textarea::placeholder": {
+                color: auroraPalette.txLow,
+                opacity: 1,
+              },
+            }}
+          />
+          <Stack
+            direction="row"
+            spacing={1.5}
+            sx={{ mt: 2, justifyContent: "flex-end" }}
+          >
+            <Button
+              onClick={() => {
+                setGoalValue(user.learningGoal || "");
+                setIsEditingGoal(false);
+              }}
+              sx={styles.btnGhost}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveGoal}
+              disabled={isLoading}
+              sx={styles.btnTealSolid}
+            >
+              Save Goal
+            </Button>
+          </Stack>
+        </Box>
+      ) : goalValue ? (
+        <Typography component="div" sx={styles.goalDisplay}>
+          {goalValue}
+        </Typography>
+      ) : (
+        <Box sx={styles.emptyNote}>
+          No learning goal set yet. Add one to get better roadmap suggestions!
+        </Box>
+      )}
+    </Box>
   );
 }

@@ -5,13 +5,13 @@ import {
   Avatar,
   Box,
   Typography,
-  alpha,
   Chip,
   CircularProgress,
   useTheme,
 } from "@mui/material";
-import { Camera, X, Shield, CheckCircle, Verified } from "lucide-react";
-import { Card, useSnackbar } from "@/shared/components";
+import { Camera, X, Shield, CheckCircle, BadgeCheck } from "lucide-react";
+import { useSnackbar } from "@/shared/components";
+import { aurora as auroraPalette, auroraTint } from "@/shared/theme";
 import type { UserDto } from "@/application/profile/queries/get-profile.query";
 import { useUploadAvatarCommand } from "@/application/profile/commands/upload-avatar.command";
 import { useUpdateProfileCommand } from "@/application/profile/commands/update-profile.command";
@@ -37,7 +37,6 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Reset input so the same file can be re-selected
     e.target.value = "";
 
     if (!ACCEPTED_TYPES.includes(file.type)) {
@@ -52,7 +51,6 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
       return;
     }
 
-    // Show instant local preview
     const preview = URL.createObjectURL(file);
     setLocalPreview(preview);
 
@@ -86,123 +84,88 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
     .slice(0, 2);
 
   const isAdmin = user.role === "ADMIN";
+  const roleAccent = isAdmin
+    ? auroraPalette.status.proc
+    : auroraPalette.status.ready;
 
   return (
-    <Card variant="glass" sx={styles.profileCard} hoverable={false}>
-      <Card.Content sx={{ textAlign: "center", py: 5, px: 3 }}>
-        {/* Avatar with edit overlay */}
-        <Box sx={styles.avatarWrapper}>
-          <Avatar src={localPreview ?? user.avatarUrl} sx={styles.avatar}>
-            {initials}
-          </Avatar>
+    <Box sx={[styles.panel, styles.identityCard]}>
+      <Box sx={styles.avatarWrapper}>
+        <Avatar src={localPreview ?? user.avatarUrl} sx={styles.avatar}>
+          {initials}
+        </Avatar>
 
-          {/* Remove button — visible on hover */}
-          {hasAvatar && !uploading && (
-            <Box
-              className="avatar-remove"
-              onClick={handleAvatarRemove}
-              sx={{
-                position: "absolute",
-                top: 4,
-                right: 4,
-                width: 28,
-                height: 28,
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                bgcolor: alpha(theme.palette.error.main, 0.85),
-                cursor: "pointer",
-                zIndex: 2,
-                opacity: 0,
-                transform: "scale(0.8)",
-                transition: "all 0.2s ease",
-                "&:hover": {
-                  bgcolor: theme.palette.error.main,
-                  transform: "scale(1.1)",
-                },
-              }}
-            >
-              <X size={16} color="#fff" />
-            </Box>
-          )}
-
-          {/* Edit overlay */}
+        {hasAvatar && !uploading && (
           <Box
-            className="avatar-overlay"
+            className="avatar-remove"
+            onClick={handleAvatarRemove}
             sx={{
-              ...styles.avatarOverlay,
-              ...(uploading && { opacity: 1 }),
-            }}
-            component="label"
-          >
-            {uploading ? (
-              <CircularProgress size={32} sx={{ color: "primary.light" }} />
-            ) : (
-              <Camera size={32} color={theme.palette.primary.light} />
-            )}
-            <input
-              hidden
-              accept="image/jpeg,image/png,image/webp,image/gif"
-              type="file"
-              onChange={handleAvatarChange}
-              disabled={uploading}
-            />
-          </Box>
-        </Box>
-
-        {/* Name & Email */}
-        <Box sx={{ mb: 3 }}>
-          <Box
-            sx={{
+              position: "absolute",
+              top: 4,
+              right: 4,
+              width: 28,
+              height: 28,
+              borderRadius: "50%",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: 1,
-              mb: 0.5,
+              bgcolor: auroraTint(auroraPalette.status.fail, 0.85),
+              cursor: "pointer",
+              zIndex: 3,
+              opacity: 0,
+              transform: "scale(0.8)",
+              transition: "all 0.2s ease",
+              "&:hover": {
+                bgcolor: auroraPalette.status.fail,
+                transform: "scale(1.1)",
+              },
             }}
           >
-            <Typography variant="h5" sx={{ fontWeight: 700 }}>
-              {user.name}
-            </Typography>
-            <Verified size={18} color={theme.palette.primary.light} />
+            <X size={16} color="#fff" />
           </Box>
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ wordBreak: "break-word" }}
-          >
-            {user.email}
-          </Typography>
-        </Box>
+        )}
 
-        {/* Role Badge */}
-        <Chip
-          icon={isAdmin ? <Shield size={14} /> : <CheckCircle size={14} />}
-          label={isAdmin ? "Administrator" : "Member"}
-          size="small"
+        <Box
+          className="avatar-overlay"
           sx={{
-            py: 2,
-            px: 1,
-            borderRadius: 2,
-            bgcolor: alpha(
-              isAdmin ? theme.palette.warning.main : theme.palette.primary.main,
-              0.1,
-            ),
-            color: isAdmin
-              ? theme.palette.warning.light
-              : theme.palette.primary.light,
-            fontWeight: 700,
-            fontSize: "0.75rem",
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-            "& .MuiChip-icon": {
-              color: "inherit",
-            },
-            border: `1px solid ${alpha(isAdmin ? theme.palette.warning.main : theme.palette.primary.main, 0.2)}`,
+            ...styles.avatarOverlay,
+            ...(uploading && { opacity: 1 }),
           }}
+          component="label"
+        >
+          {uploading ? (
+            <CircularProgress size={32} sx={{ color: auroraPalette.teal }} />
+          ) : (
+            <Camera size={32} color={auroraPalette.teal} />
+          )}
+          <input
+            hidden
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            type="file"
+            onChange={handleAvatarChange}
+            disabled={uploading}
+          />
+        </Box>
+      </Box>
+
+      <Box component="span" sx={styles.identityName}>
+        {user.name}
+        <BadgeCheck
+          size={20}
+          color={auroraPalette.teal}
+          aria-label="verified"
         />
-      </Card.Content>
-    </Card>
+      </Box>
+      <Typography component="p" sx={styles.identityEmail}>
+        {user.email}
+      </Typography>
+
+      <Chip
+        icon={isAdmin ? <Shield size={13} /> : <CheckCircle size={13} />}
+        label={isAdmin ? "Administrator" : "Member"}
+        size="small"
+        sx={styles.roleChip(roleAccent)}
+      />
+    </Box>
   );
 }

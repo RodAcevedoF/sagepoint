@@ -1,118 +1,180 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Box, Typography, Grid, alpha, keyframes } from "@mui/material";
-import { Rss } from "lucide-react";
-import {
-  Card,
-  EmptyState,
-  FilterChips,
-  SectionTitle,
-  GoBackButton,
-} from "@/shared/components";
+import { Box, Grid, Typography } from "@mui/material";
+import { Rss, ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { EmptyState } from "@/shared/components";
+import { aurora as auroraPalette, auroraTint } from "@/shared/theme";
 import { useInsightsQuery } from "@/application/insights/queries/get-insights.query";
 import { NewsArticleCard } from "@/features/dashboard/components/DashboardNews/NewsArticleCard";
 import { NewsCardSkeleton } from "@/features/dashboard/components/DashboardNews/NewsCardSkeleton";
 import { formatSlug } from "@/features/dashboard/components/DashboardNews/news.utils";
-import { palette } from "@/shared/theme";
 
-const float = keyframes`
-  0% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(30px, -50px) scale(1.1); }
-  66% { transform: translate(-20px, 20px) scale(0.9); }
-  100% { transform: translate(0, 0) scale(1); }
-`;
-
-const makeStyles = () => ({
+const styles = {
   hero: {
     position: "relative",
     overflow: "hidden",
-    borderRadius: 6,
-    p: { xs: 4, md: 5 },
+    borderRadius: "26px",
+    border: `1px solid ${auroraPalette.line}`,
+    background:
+      "radial-gradient(560px 320px at 90% 10%, oklch(0.42 0.10 195 / 0.12), transparent 70%), linear-gradient(160deg, oklch(0.235 0.03 250 / 0.7), oklch(0.165 0.03 264 / 0.6))",
+    boxShadow: auroraPalette.shadow.card,
+    mt: "30px",
+    p: { xs: "26px 24px 28px", md: "34px 38px 36px" },
     mb: 4,
-    background: alpha(palette.background.paper, 0.4),
-    backdropFilter: "blur(12px)",
-    border: `1px solid ${alpha(palette.primary.light, 0.1)}`,
   },
-  heroOrb1: {
-    position: "absolute",
-    top: -80,
-    right: -80,
-    width: 300,
-    height: 300,
-    background: `radial-gradient(circle, ${alpha(palette.info.main, 0.15)} 0%, transparent 70%)`,
-    filter: "blur(60px)",
-    animation: `${float} 20s ease-in-out infinite`,
-    pointerEvents: "none",
-  },
-  heroOrb2: {
-    position: "absolute",
-    bottom: -100,
-    left: -60,
-    width: 250,
-    height: 250,
-    background: `radial-gradient(circle, ${alpha(palette.primary.main, 0.12)} 0%, transparent 70%)`,
-    filter: "blur(50px)",
-    animation: `${float} 25s ease-in-out infinite reverse`,
-    pointerEvents: "none",
-  },
-  heroContent: {
-    position: "relative",
-    zIndex: 1,
-  },
-  badge: {
+  spBack: {
     display: "inline-flex",
     alignItems: "center",
-    gap: 1,
-    px: 2,
-    py: 0.8,
-    borderRadius: 100,
-    bgcolor: alpha(palette.info.main, 0.08),
-    border: `1px solid ${alpha(palette.info.main, 0.2)}`,
-    backdropFilter: "blur(4px)",
-    color: palette.info.light,
-    fontSize: "0.75rem",
+    gap: "9px",
+    px: "13px",
+    py: "10px",
+    borderRadius: auroraPalette.radii.md,
+    cursor: "pointer",
+    background: auroraTint(auroraPalette.teal, 0.08),
+    border: `1px solid ${auroraTint(auroraPalette.teal, 0.3)}`,
+    color: auroraPalette.teal,
     fontWeight: 600,
-    letterSpacing: "0.1em",
+    fontSize: "14px",
+    transition: "all .15s",
+    whiteSpace: "nowrap",
+    "&:hover": {
+      background: auroraTint(auroraPalette.teal, 0.15),
+      transform: "translateX(-2px)",
+    },
+  },
+  feedBadge: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "9px",
+    mt: 2.5,
+    px: "15px",
+    py: "7px",
+    borderRadius: "999px",
+    fontFamily: auroraPalette.font.mono,
+    fontSize: "11px",
+    fontWeight: 600,
+    letterSpacing: "0.16em",
     textTransform: "uppercase",
-    mb: 2,
+    color: auroraPalette.status.concept,
+    background: auroraTint(auroraPalette.status.concept, 0.1),
+    border: `1px solid ${auroraTint(auroraPalette.status.concept, 0.3)}`,
+    whiteSpace: "nowrap",
   },
-  statsRow: {
-    display: "flex",
-    gap: 3,
-    mt: 2,
-  },
-  stat: {
+  feedTitleRow: {
     display: "flex",
     alignItems: "center",
-    gap: 0.75,
-    color: "text.secondary",
-    fontSize: "0.85rem",
+    gap: 2,
+    mt: "18px",
   },
-  statDot: (color: string) => ({
-    width: 8,
-    height: 8,
-    borderRadius: "50%",
-    bgcolor: color,
-    boxShadow: `0 0 8px ${alpha(color, 0.5)}`,
-  }),
-  gridItem: (index: number) => ({
-    animation: `feedFadeIn 0.4s ease-out ${index * 0.05}s both`,
-    "@keyframes feedFadeIn": {
-      from: { opacity: 0, transform: "translateY(16px)" },
-      to: { opacity: 1, transform: "translateY(0)" },
+  feedTitleBar: {
+    width: 6,
+    alignSelf: "stretch",
+    minHeight: 52,
+    borderRadius: "999px",
+    background: `linear-gradient(180deg, ${auroraPalette.teal}, ${auroraPalette.status.concept})`,
+  },
+  feedTitle: {
+    fontFamily: auroraPalette.font.display,
+    fontWeight: 800,
+    fontSize: "clamp(40px, 5vw, 64px)",
+    letterSpacing: "-0.03em",
+    lineHeight: 1,
+    m: 0,
+    background: `linear-gradient(115deg, ${auroraPalette.txHi} 30%, ${auroraPalette.teal} 100%)`,
+    WebkitBackgroundClip: "text",
+    backgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+  },
+  lede: {
+    mt: 2,
+    mb: 0,
+    fontSize: "16.5px",
+    color: auroraPalette.txMid,
+  },
+  stats: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "24px",
+    mt: "22px",
+  },
+  stat: (dotColor: string) => ({
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "9px",
+    fontSize: "14px",
+    color: auroraPalette.tx,
+    "&::before": {
+      content: '""',
+      width: 9,
+      height: 9,
+      borderRadius: "50%",
+      background: dotColor,
     },
+    "& b": {
+      fontFamily: auroraPalette.font.mono,
+      color: auroraPalette.txHi,
+      fontWeight: 600,
+    },
+  }),
+  tabs: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 1.4,
+    mt: 4,
+    mb: 3,
+  },
+  tab: (on: boolean) => ({
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 1.25,
+    px: "18px",
+    py: "11px",
+    borderRadius: "999px",
+    cursor: "pointer",
+    border: `1px solid ${on ? auroraTint(auroraPalette.teal, 0.45) : auroraPalette.line}`,
+    background: on
+      ? auroraTint(auroraPalette.teal, 0.13)
+      : "oklch(0.22 0.025 262 / 0.5)",
+    color: on ? auroraPalette.teal : auroraPalette.txMid,
+    fontWeight: 600,
+    fontSize: "14.5px",
+    transition: "all .15s",
+    whiteSpace: "nowrap",
+    "&:hover": on
+      ? {}
+      : {
+          color: auroraPalette.txHi,
+          borderColor: auroraPalette.line2,
+        },
+  }),
+  tabCount: (on: boolean) => ({
+    fontFamily: auroraPalette.font.mono,
+    fontSize: "11.5px",
+    fontWeight: 700,
+    px: 1,
+    py: 0.25,
+    borderRadius: "999px",
+    background: on
+      ? auroraTint(auroraPalette.teal, 0.2)
+      : "oklch(0.30 0.02 262 / 0.7)",
+    color: on ? auroraPalette.teal : auroraPalette.txMid,
   }),
   emptyCard: {
     p: { xs: 4, md: 6 },
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    borderRadius: auroraPalette.radii.card,
+    border: `1px solid ${auroraPalette.line}`,
+    background:
+      "linear-gradient(168deg, oklch(0.225 0.026 262 / 0.85), oklch(0.16 0.026 262 / 0.78))",
   },
-});
+} as const;
 
 export function NewsFeed() {
-  const styles = makeStyles();
+  const router = useRouter();
   const { data: articles, isLoading } = useInsightsQuery();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
@@ -132,78 +194,78 @@ export function NewsFeed() {
     return new Set(articles.map((a) => a.source)).size;
   }, [articles]);
 
+  const tabs: Array<{ value: string | null; label: string; count: number }> = [
+    { value: null, label: "All", count: articles?.length ?? 0 },
+    ...categories.map((slug) => ({
+      value: slug,
+      label: formatSlug(slug),
+      count: articles?.filter((a) => a.categorySlug === slug).length ?? 0,
+    })),
+  ];
+
   return (
     <Box sx={{ mb: 10 }}>
-      {/* Hero Section */}
-      <Box sx={styles.hero}>
-        <Box sx={styles.heroOrb1} />
-        <Box sx={styles.heroOrb2} />
-        <Box sx={styles.heroContent}>
-          <Box sx={{ mb: 2 }}>
-            <GoBackButton label="Dashboard" size="small" />
-          </Box>
-          <Box sx={styles.badge}>
-            <Rss size={14} />
-            Personalized Feed
-          </Box>
-          <SectionTitle
-            variant="h3"
-            subtitle="Curated articles based on your interests and roadmap topics."
-            sx={{ mb: 0 }}
-          >
-            News Feed
-          </SectionTitle>
-          {!isLoading && articles && (
-            <Box sx={styles.statsRow}>
-              <Box sx={styles.stat}>
-                <Box sx={styles.statDot(palette.info.main)} />
-                {articles.length} articles
-              </Box>
-              <Box sx={styles.stat}>
-                <Box sx={styles.statDot(palette.success.main)} />
-                {categories.length} topics
-              </Box>
-              <Box sx={styles.stat}>
-                <Box sx={styles.statDot(palette.warning.main)} />
-                {sourceCount} sources
-              </Box>
-            </Box>
-          )}
+      <Box component="section" sx={styles.hero}>
+        <Box
+          component="span"
+          sx={styles.spBack}
+          onClick={() => router.push("/dashboard")}
+        >
+          <ArrowLeft size={17} /> Dashboard
         </Box>
+        <Box>
+          <Box component="span" sx={styles.feedBadge}>
+            <Rss size={13} /> Personalized Feed
+          </Box>
+        </Box>
+        <Box sx={styles.feedTitleRow}>
+          <Box sx={styles.feedTitleBar} />
+          <Box component="h1" sx={styles.feedTitle}>
+            News Feed
+          </Box>
+        </Box>
+        <Typography component="p" sx={styles.lede}>
+          Curated articles based on your interests and roadmap topics.
+        </Typography>
+        {!isLoading && articles && articles.length > 0 && (
+          <Box sx={styles.stats}>
+            <Box
+              component="span"
+              sx={styles.stat(auroraPalette.status.concept)}
+            >
+              <b>{articles.length}</b> articles
+            </Box>
+            <Box component="span" sx={styles.stat(auroraPalette.status.ready)}>
+              <b>{categories.length}</b> topics
+            </Box>
+            <Box component="span" sx={styles.stat(auroraPalette.status.proc)}>
+              <b>{sourceCount}</b> sources
+            </Box>
+          </Box>
+        )}
       </Box>
 
-      {/* Category Filters */}
       {!isLoading && categories.length > 0 && (
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 2,
-            mb: 4,
-            flexWrap: "wrap",
-          }}
-        >
-          <FilterChips
-            options={[
-              { label: "All", value: "__all__", count: articles?.length },
-              ...categories.map((slug) => ({
-                label: formatSlug(slug),
-                value: slug,
-                count: articles?.filter((a) => a.categorySlug === slug).length,
-              })),
-            ]}
-            value={selectedCategory ?? "__all__"}
-            onChange={(v) => setSelectedCategory(v === "__all__" ? null : v)}
-          />
-          {selectedCategory && (
-            <Typography variant="body2" sx={{ color: "text.secondary" }}>
-              {filtered.length} result{filtered.length !== 1 ? "s" : ""}
-            </Typography>
-          )}
+        <Box sx={styles.tabs}>
+          {tabs.map((t) => {
+            const on = selectedCategory === t.value;
+            return (
+              <Box
+                key={t.value ?? "__all__"}
+                component="span"
+                sx={styles.tab(on)}
+                onClick={() => setSelectedCategory(t.value)}
+              >
+                {t.label}
+                <Box component="span" sx={styles.tabCount(on)}>
+                  {t.count}
+                </Box>
+              </Box>
+            );
+          })}
         </Box>
       )}
 
-      {/* Content */}
       {isLoading ? (
         <Grid container spacing={2.5}>
           {Array.from({ length: 6 }).map((_, i) => (
@@ -213,7 +275,7 @@ export function NewsFeed() {
           ))}
         </Grid>
       ) : filtered.length === 0 ? (
-        <Card variant="glass" hoverable={false} sx={styles.emptyCard}>
+        <Box sx={styles.emptyCard}>
           <EmptyState
             title="No articles found"
             description={
@@ -222,15 +284,11 @@ export function NewsFeed() {
                 : "Complete onboarding or create roadmaps to get personalized news."
             }
           />
-        </Card>
+        </Box>
       ) : (
         <Grid container spacing={2.5}>
-          {filtered.map((article, index) => (
-            <Grid
-              key={article.url}
-              size={{ xs: 12, sm: 6, md: 4 }}
-              sx={styles.gridItem(index)}
-            >
+          {filtered.map((article) => (
+            <Grid key={article.url} size={{ xs: 12, sm: 6, md: 4 }}>
               <NewsArticleCard article={article} />
             </Grid>
           ))}

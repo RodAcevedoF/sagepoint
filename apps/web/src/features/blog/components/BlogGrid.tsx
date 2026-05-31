@@ -1,82 +1,15 @@
 "use client";
 
-import React from "react";
-import {
-  Box,
-  Grid,
-  Typography,
-  CardMedia,
-  Stack,
-  SxProps,
-  Theme,
-} from "@mui/material";
+import { Box, Grid } from "@mui/material";
 import { Card } from "@/shared/components";
-import { palette } from "@/shared/theme";
+import { aurora as auroraPalette } from "@/shared/theme";
+import { toneColor } from "@/shared/components/ui/Aurora/tones";
 import type { BlogPostDto } from "@/infrastructure/api/blogApi";
-import { resolveImage, humanizeSlug } from "../constants/categoryAssets";
-
-const postCardStyles: SxProps<Theme> = {
-  height: "100%",
-  display: "flex",
-  flexDirection: "column",
-  textDecoration: "none",
-};
-
-const cardMediaStyles: SxProps<Theme> = {
-  objectFit: "cover",
-  transition: "transform 0.3s ease-in-out",
-  "&:hover": {
-    transform: "scale(1.05)",
-  },
-};
-
-const cardContentStyles: SxProps<Theme> = {
-  p: 4,
-  flexGrow: 1,
-  display: "flex",
-  flexDirection: "column",
-};
-
-const categoryTextStyles: SxProps<Theme> = {
-  color: "text.secondary",
-  fontWeight: 700,
-  letterSpacing: 1.2,
-  textTransform: "uppercase",
-  fontSize: "0.7rem",
-};
-
-const categoryDotStyles: SxProps<Theme> = {
-  width: 6,
-  height: 6,
-  borderRadius: "50%",
-  bgcolor: palette.primary.light,
-  display: "inline-block",
-};
-
-const dateTextStyles: SxProps<Theme> = {
-  color: "text.disabled",
-  fontWeight: 500,
-};
-
-const postTitleStyles: SxProps<Theme> = {
-  fontWeight: 700,
-  mb: 2,
-  lineHeight: 1.3,
-  display: "-webkit-box",
-  WebkitLineClamp: 2,
-  WebkitBoxOrient: "vertical",
-  overflow: "hidden",
-};
-
-const postExcerptStyles: SxProps<Theme> = {
-  mb: 3,
-  lineHeight: 1.6,
-  display: "-webkit-box",
-  WebkitLineClamp: 3,
-  WebkitBoxOrient: "vertical",
-  overflow: "hidden",
-  flexGrow: 1,
-};
+import {
+  resolveImage,
+  humanizeSlug,
+  categoryTone,
+} from "../constants/categoryAssets";
 
 interface PostCardProps {
   post: BlogPostDto;
@@ -89,62 +22,96 @@ interface BlogGridProps {
 const PostCard = ({ post }: PostCardProps) => {
   const image = resolveImage(post.heroImageUrl, post.categorySlug);
   const category = humanizeSlug(post.categorySlug);
+  const tone = categoryTone(post.categorySlug);
   const date = new Date(post.publishedAt).toLocaleDateString("en-US", {
     month: "long",
     year: "numeric",
   });
 
   return (
-    <Card href={`/blog/${post.slug}`} variant="glass" sx={postCardStyles}>
-      <CardMedia<"img">
+    <Card
+      href={`/blog/${post.slug}`}
+      variant="aurora"
+      tone={tone}
+      sx={{ textDecoration: "none", height: "100%" }}
+    >
+      <Box
         component="img"
-        height="220"
-        image={image}
+        src={image}
         alt={post.title}
-        sx={cardMediaStyles}
+        loading="lazy"
+        sx={{
+          position: "relative",
+          zIndex: 1,
+          width: "100%",
+          height: 200,
+          objectFit: "cover",
+          display: "block",
+          borderBottom: `1px solid ${auroraPalette.line}`,
+        }}
       />
-      <Card.Content sx={cardContentStyles}>
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
-          sx={{ mb: 2 }}
+      <Card.Body>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 1,
+          }}
         >
-          <Stack direction="row" spacing={1} alignItems="center">
-            <Box sx={categoryDotStyles} />
-            <Typography variant="caption" sx={categoryTextStyles}>
-              {category}
-            </Typography>
-          </Stack>
-          <Typography variant="caption" sx={dateTextStyles}>
-            {date}
-          </Typography>
-        </Stack>
+          <Box
+            component="span"
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "4px 10px",
+              borderRadius: auroraPalette.radii.pill,
+              fontFamily: auroraPalette.font.mono,
+              fontSize: "10.5px",
+              fontWeight: 600,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              background: "color-mix(in oklch, var(--accent) 13%, transparent)",
+              border:
+                "1px solid color-mix(in oklch, var(--accent) 28%, transparent)",
+              color: "var(--accent)",
+            }}
+          >
+            <Box
+              component="span"
+              sx={{
+                width: 5,
+                height: 5,
+                borderRadius: "50%",
+                background: toneColor(tone),
+              }}
+            />
+            {category}
+          </Box>
+          <Card.FootDate>{date}</Card.FootDate>
+        </Box>
 
-        <Typography variant="h5" sx={postTitleStyles}>
-          {post.title}
-        </Typography>
-
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          sx={postExcerptStyles}
+        <Card.Title>{post.title}</Card.Title>
+        <Card.Desc
+          sx={{
+            WebkitLineClamp: 3,
+            fontSize: "13.5px",
+          }}
         >
           {post.excerpt}
-        </Typography>
-      </Card.Content>
+        </Card.Desc>
+      </Card.Body>
     </Card>
   );
 };
 
-export const BlogGrid = ({ posts }: BlogGridProps) => {
-  return (
-    <Grid container spacing={4}>
-      {posts.map((post) => (
-        <Grid size={{ xs: 12, md: 6, lg: 4 }} key={post.id}>
-          <PostCard post={post} />
-        </Grid>
-      ))}
-    </Grid>
-  );
-};
+export const BlogGrid = ({ posts }: BlogGridProps) => (
+  <Grid container spacing={3}>
+    {posts.map((post) => (
+      <Grid size={{ xs: 12, md: 6, lg: 4 }} key={post.id}>
+        <PostCard post={post} />
+      </Grid>
+    ))}
+  </Grid>
+);

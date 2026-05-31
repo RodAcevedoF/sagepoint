@@ -1,20 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
-import {
-  Box,
-  Container,
-  Grid,
-  Pagination,
-  Skeleton,
-  alpha,
-} from "@mui/material";
-import { PublicLayout } from "@/shared/components";
+import { useState } from "react";
+import { Box, Grid, Pagination, Skeleton } from "@mui/material";
+import { Newspaper } from "lucide-react";
+import { PublicLayout, RootWrapper } from "@/shared/components";
 import { EmptyState } from "@/shared/components/ui/States/EmptyState";
 import { useGetBlogPostsQuery } from "@/infrastructure/api/blogApi";
-import { palette } from "@/shared/theme";
+import { aurora as auroraPalette, auroraTint } from "@/shared/theme";
 import { BlogHeader, FeaturedPost, BlogGrid } from "./index";
-import { Newspaper } from "lucide-react";
 
 const PAGE_SIZE = 12;
 
@@ -24,16 +17,24 @@ const styles = {
     display: "flex",
     justifyContent: "center",
     "& .MuiPaginationItem-root": {
-      color: palette.text.secondary,
+      color: auroraPalette.txMid,
+      fontFamily: auroraPalette.font.mono,
       fontWeight: 600,
+      border: `1px solid ${auroraPalette.line}`,
+      background: auroraPalette.surface2,
+      "&:hover": {
+        background: auroraPalette.surface3,
+        color: auroraPalette.txHi,
+      },
       "&.Mui-selected": {
-        bgcolor: alpha(palette.primary.main, 0.15),
-        color: palette.primary.light,
-        "&:hover": { bgcolor: alpha(palette.primary.main, 0.25) },
+        background: auroraTint(auroraPalette.teal, 0.15),
+        borderColor: auroraTint(auroraPalette.teal, 0.4),
+        color: auroraPalette.teal,
+        "&:hover": { background: auroraTint(auroraPalette.teal, 0.22) },
       },
     },
   },
-};
+} as const;
 
 function BlogSkeleton() {
   return (
@@ -41,17 +42,24 @@ function BlogSkeleton() {
       <Skeleton
         variant="rounded"
         height={420}
-        sx={{ mb: 8, borderRadius: 2 }}
+        sx={{
+          mb: 8,
+          borderRadius: auroraPalette.radii.card,
+          bgcolor: auroraPalette.surface2,
+        }}
         animation="wave"
       />
-      <Grid container spacing={4}>
+      <Grid container spacing={3}>
         {[0, 1, 2].map((i) => (
           <Grid key={i} size={{ xs: 12, md: 6, lg: 4 }}>
             <Skeleton
               variant="rounded"
               height={360}
               animation="wave"
-              sx={{ borderRadius: 2 }}
+              sx={{
+                borderRadius: auroraPalette.radii.card,
+                bgcolor: auroraPalette.surface2,
+              }}
             />
           </Grid>
         ))}
@@ -76,52 +84,43 @@ export const BlogPage = () => {
 
   return (
     <PublicLayout>
-      <Box
-        sx={{
-          pt: { xs: 12, md: 16 },
-          pb: 8,
-          minHeight: "100vh",
-          bgcolor: "background.default",
-        }}
-      >
-        <Container maxWidth="lg">
-          <BlogHeader
-            title="The Sagepoint Blog"
-            subtitle="Behind the scenes of building an AI-powered learning platform — architecture decisions, technical deep dives, and lessons learned."
-          />
+      <RootWrapper paddingTop={96} paddingBottom={64}>
+        <BlogHeader
+          title="The Sagepoint Blog"
+          subtitle="Behind the scenes of building an AI-powered learning platform — architecture decisions, technical deep dives, and lessons learned."
+        />
 
-          {showSkeleton ? (
-            <BlogSkeleton />
-          ) : posts.length > 0 ? (
-            <>
-              {featured && <FeaturedPost post={featured} />}
-              <BlogGrid posts={rest} />
-              {totalPages > 1 && (
-                <Box sx={styles.pagination}>
-                  <Pagination
-                    count={totalPages}
-                    page={page}
-                    onChange={(_e, value) => {
-                      setPage(value);
-                      if (typeof window !== "undefined") {
-                        window.scrollTo({ top: 0, behavior: "smooth" });
-                      }
-                    }}
-                    shape="rounded"
-                    size="large"
-                  />
-                </Box>
-              )}
-            </>
-          ) : (
-            <EmptyState
-              icon={Newspaper}
-              title="No posts yet"
-              description="Check back soon — new articles are on their way."
-            />
-          )}
-        </Container>
-      </Box>
+        {showSkeleton ? (
+          <BlogSkeleton />
+        ) : posts.length > 0 ? (
+          <>
+            {featured && <FeaturedPost post={featured} />}
+            <BlogGrid posts={rest} />
+            {totalPages > 1 && (
+              <Box sx={styles.pagination}>
+                <Pagination
+                  count={totalPages}
+                  page={page}
+                  onChange={(_e, value) => {
+                    setPage(value);
+                    if (typeof window !== "undefined") {
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }
+                  }}
+                  shape="rounded"
+                  size="large"
+                />
+              </Box>
+            )}
+          </>
+        ) : (
+          <EmptyState
+            icon={Newspaper}
+            title="No posts yet"
+            description="Check back soon — new articles are on their way."
+          />
+        )}
+      </RootWrapper>
     </PublicLayout>
   );
 };

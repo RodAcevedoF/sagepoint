@@ -8,11 +8,10 @@ import {
   List,
   ListItemButton,
   ListItemText,
-  alpha,
   type SxProps,
   type Theme,
 } from "@mui/material";
-import { palette } from "@/shared/theme";
+import { aurora as auroraPalette, auroraTint } from "@/shared/theme";
 
 export interface DocsSidebarItem {
   id: string;
@@ -38,31 +37,34 @@ const styles = {
     display: { xs: "none", md: "block" },
   } satisfies SxProps<Theme>,
   heading: {
-    fontSize: "0.7rem",
+    fontFamily: auroraPalette.font.mono,
+    fontSize: "11px",
     fontWeight: 700,
-    letterSpacing: 1.5,
-    color: alpha("#f5f5f5", 0.35),
-    mb: 1,
+    letterSpacing: "0.18em",
+    textTransform: "uppercase",
+    color: auroraPalette.txLow,
+    mb: 1.25,
     px: 1.5,
+    display: "block",
   } satisfies SxProps<Theme>,
   listItem: {
-    borderRadius: 1.5,
+    borderRadius: auroraPalette.radii.sm,
     py: 0.6,
     px: 1.5,
     mb: 0.25,
-    color: alpha("#f5f5f5", 0.5),
+    color: auroraPalette.txMid,
     transition: "all 0.15s ease",
     "&:hover": {
-      color: "#f5f5f5",
-      bgcolor: alpha(palette.primary.light, 0.05),
+      color: auroraPalette.txHi,
+      bgcolor: auroraTint(auroraPalette.teal, 0.06),
     },
   } satisfies SxProps<Theme>,
   activeListItem: {
-    color: palette.primary.light,
-    bgcolor: alpha(palette.primary.light, 0.08),
+    color: auroraPalette.teal,
+    bgcolor: auroraTint(auroraPalette.teal, 0.12),
     "&:hover": {
-      color: palette.primary.light,
-      bgcolor: alpha(palette.primary.light, 0.1),
+      color: auroraPalette.teal,
+      bgcolor: auroraTint(auroraPalette.teal, 0.16),
     },
   } satisfies SxProps<Theme>,
   itemText: {
@@ -80,7 +82,7 @@ export const DocsSidebar = ({
 }: DocsSidebarProps) => {
   return (
     <Box sx={styles.root}>
-      <Typography variant="overline" sx={styles.heading}>
+      <Typography component="span" sx={styles.heading}>
         ON THIS PAGE
       </Typography>
       <List disablePadding>
@@ -110,8 +112,8 @@ const mobileNavStyles = {
     position: "sticky",
     top: 56,
     zIndex: 10,
-    bgcolor: "background.default",
-    borderBottom: `1px solid ${alpha("#fff", 0.07)}`,
+    bgcolor: auroraPalette.bg0,
+    borderBottom: `1px solid ${auroraPalette.line}`,
     gap: 1,
     px: 2,
     pt: 2,
@@ -123,25 +125,30 @@ const mobileNavStyles = {
   } satisfies SxProps<Theme>,
   chip: {
     flexShrink: 0,
-    fontSize: "0.75rem",
-    fontWeight: 400,
-    color: alpha("#f5f5f5", 0.5),
-    bgcolor: "transparent",
-    border: `1px solid ${alpha("#fff", 0.08)}`,
+    fontFamily: auroraPalette.font.mono,
+    fontSize: "11.5px",
+    fontWeight: 600,
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    color: auroraPalette.txMid,
+    bgcolor: auroraPalette.surface2,
+    border: `1px solid ${auroraPalette.line}`,
+    borderRadius: auroraPalette.radii.pill,
     transition: "all 0.15s ease",
     "&:hover": {
-      bgcolor: alpha(palette.primary.light, 0.08),
-      color: "#f5f5f5",
+      bgcolor: auroraTint(auroraPalette.teal, 0.08),
+      color: auroraPalette.txHi,
+      borderColor: auroraTint(auroraPalette.teal, 0.25),
     },
   } satisfies SxProps<Theme>,
   chipActive: {
-    fontWeight: 600,
-    color: palette.primary.light,
-    bgcolor: alpha(palette.primary.light, 0.12),
-    border: `1px solid ${alpha(palette.primary.light, 0.3)}`,
+    color: auroraPalette.teal,
+    bgcolor: auroraTint(auroraPalette.teal, 0.15),
+    border: `1px solid ${auroraTint(auroraPalette.teal, 0.4)}`,
     "&:hover": {
-      bgcolor: alpha(palette.primary.light, 0.1),
-      color: palette.primary.light,
+      bgcolor: auroraTint(auroraPalette.teal, 0.22),
+      color: auroraPalette.teal,
+      borderColor: auroraTint(auroraPalette.teal, 0.5),
     },
   } satisfies SxProps<Theme>,
 };

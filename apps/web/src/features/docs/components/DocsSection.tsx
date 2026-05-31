@@ -1,14 +1,8 @@
 "use client";
 
 import { type ReactNode } from "react";
-import {
-  Box,
-  Typography,
-  alpha,
-  type SxProps,
-  type Theme,
-} from "@mui/material";
-import { palette } from "@/shared/theme";
+import { Box, Typography, type SxProps, type Theme } from "@mui/material";
+import { aurora as auroraPalette, auroraTint } from "@/shared/theme";
 
 const styles = {
   section: {
@@ -19,22 +13,24 @@ const styles = {
     display: "flex",
     alignItems: "center",
     gap: 1.5,
-    mb: 2,
+    mb: 2.5,
   } satisfies SxProps<Theme>,
   icon: {
-    color: palette.primary.light,
+    color: auroraPalette.teal,
     display: "flex",
     flexShrink: 0,
   } satisfies SxProps<Theme>,
   title: {
+    fontFamily: auroraPalette.font.display,
     fontWeight: 700,
-    fontSize: { xs: "1.35rem", md: "1.5rem" },
-    letterSpacing: "-0.01em",
+    fontSize: { xs: "1.4rem", md: "1.625rem" },
+    letterSpacing: "-0.015em",
+    color: auroraPalette.txHi,
   } satisfies SxProps<Theme>,
   prose: {
-    color: alpha("#f5f5f5", 0.7),
-    lineHeight: 1.8,
-    fontSize: "0.95rem",
+    color: auroraPalette.tx,
+    lineHeight: 1.75,
+    fontSize: "1rem",
     mb: 2.5,
     maxWidth: 680,
   } satisfies SxProps<Theme>,
@@ -44,11 +40,11 @@ const styles = {
     m: 0,
     display: "flex",
     flexDirection: "column",
-    gap: 1,
+    gap: 1.25,
   } satisfies SxProps<Theme>,
   listItem: {
-    color: alpha("#f5f5f5", 0.65),
-    fontSize: "0.9rem",
+    color: auroraPalette.tx,
+    fontSize: "0.95rem",
     lineHeight: 1.7,
     display: "flex",
     alignItems: "baseline",
@@ -58,14 +54,14 @@ const styles = {
       width: 5,
       height: 5,
       borderRadius: "50%",
-      bgcolor: alpha(palette.primary.light, 0.4),
+      bgcolor: auroraTint(auroraPalette.teal, 0.55),
       flexShrink: 0,
       mt: "8px",
     },
   } satisfies SxProps<Theme>,
   divider: {
     mt: 6,
-    borderBottom: `1px solid ${alpha(palette.primary.light, 0.06)}`,
+    borderBottom: `1px solid ${auroraPalette.line}`,
   } satisfies SxProps<Theme>,
 };
 
@@ -121,18 +117,19 @@ export const DocsCallout = ({
   children,
   variant = "info",
 }: DocsCalloutProps) => {
-  const color = variant === "tip" ? palette.success.main : palette.info.main;
+  const accent =
+    variant === "tip" ? auroraPalette.teal : auroraPalette.status.concept;
 
   return (
     <Box
       sx={{
         p: 2.5,
         my: 2.5,
-        borderRadius: 2,
-        borderLeft: `3px solid ${color}`,
-        bgcolor: alpha(color, 0.06),
-        color: alpha("#f5f5f5", 0.75),
-        fontSize: "0.9rem",
+        borderRadius: auroraPalette.radii.md,
+        borderLeft: `3px solid ${accent}`,
+        bgcolor: auroraTint(accent, 0.08),
+        color: auroraPalette.tx,
+        fontSize: "0.95rem",
         lineHeight: 1.7,
       }}
     >
@@ -154,12 +151,14 @@ export const DocsSteps = ({ steps }: DocsStepsProps) => (
             width: 28,
             height: 28,
             borderRadius: "50%",
-            bgcolor: alpha(palette.primary.light, 0.1),
-            color: palette.primary.light,
+            bgcolor: auroraTint(auroraPalette.teal, 0.14),
+            border: `1px solid ${auroraTint(auroraPalette.teal, 0.3)}`,
+            color: auroraPalette.teal,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: "0.8rem",
+            fontFamily: auroraPalette.font.mono,
+            fontSize: "0.78rem",
             fontWeight: 700,
             flexShrink: 0,
             mt: 0.25,
@@ -170,13 +169,22 @@ export const DocsSteps = ({ steps }: DocsStepsProps) => (
         <Box>
           <Typography
             variant="body2"
-            sx={{ fontWeight: 600, color: "#f5f5f5", mb: 0.25 }}
+            sx={{
+              fontWeight: 600,
+              color: auroraPalette.txHi,
+              mb: 0.35,
+              fontSize: "0.975rem",
+            }}
           >
             {step.label}
           </Typography>
           <Typography
             variant="body2"
-            sx={{ color: alpha("#f5f5f5", 0.6), lineHeight: 1.6 }}
+            sx={{
+              color: auroraPalette.txMid,
+              lineHeight: 1.65,
+              fontSize: "0.9rem",
+            }}
           >
             {step.detail}
           </Typography>

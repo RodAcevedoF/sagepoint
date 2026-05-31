@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Container, Typography, Grid, alpha } from "@mui/material";
+import { Box, Container } from "@mui/material";
 import {
   AutoStories as LearnIcon,
   AccountTree as GraphIcon,
@@ -10,107 +10,115 @@ import {
   Timeline as ProgressIcon,
 } from "@mui/icons-material";
 import { ReactNode } from "react";
-import { palette } from "@/shared/theme";
-import { Card } from "@/shared/components";
+import { aurora as auroraPalette } from "@/shared/theme";
+import {
+  resolveAccent,
+  type AuroraTone,
+} from "@/shared/components/ui/Aurora/tones";
 
 const styles = {
   root: {
-    py: { xs: 10, md: 15 },
+    py: { xs: 10, md: 14 },
     position: "relative",
-    bgcolor: "background.default",
   },
   sectionHeader: {
-    mb: 8,
     textAlign: "center",
+    maxWidth: 760,
+    mx: "auto",
+    mb: 8,
   },
-  tagline: {
-    color: palette.primary.light,
+  eyebrow: {
+    fontFamily: auroraPalette.font.mono,
+    fontSize: "12px",
     fontWeight: 600,
-    fontSize: "0.875rem",
+    letterSpacing: "0.22em",
     textTransform: "uppercase",
-    letterSpacing: "0.2em",
-    mb: 2,
-    display: "block",
+    color: auroraPalette.teal,
   },
   title: {
-    fontSize: { xs: "2.5rem", md: "3.5rem" },
+    fontFamily: auroraPalette.font.display,
     fontWeight: 800,
-    letterSpacing: "-0.02em",
-    mb: 3,
-    color: "text.primary",
-    background: `linear-gradient(180deg, ${palette.text.primary} 30%, ${alpha(palette.text.primary, 0.7)} 100%)`,
-    backgroundClip: "text",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
+    fontSize: { xs: "2.25rem", md: "3.5rem" },
+    lineHeight: 1.04,
+    letterSpacing: "-0.03em",
+    margin: "16px 0 0",
+    color: auroraPalette.txHi,
   },
   subtitle: {
-    color: "text.secondary",
-    maxWidth: 600,
-    mx: "auto",
-    fontSize: "1.125rem",
+    margin: "20px auto 0",
+    maxWidth: "54ch",
+    fontSize: "17px",
     lineHeight: 1.6,
+    color: auroraPalette.txMid,
   },
-  gridContainer: {
-    mt: 4,
+  grid: {
+    display: "grid",
+    gridTemplateColumns: {
+      xs: "1fr",
+      sm: "repeat(2, 1fr)",
+      md: "repeat(3, 1fr)",
+    },
+    gap: "20px",
   },
-};
+} as const;
 
 interface Feature {
   icon: ReactNode;
   title: string;
   description: string;
-  gridSpan: { xs: number; md: number };
-  color?: "primary" | "warning" | "info" | "success" | "error" | "secondary";
+  tag: string;
+  tone: AuroraTone;
+  featured?: boolean;
 }
 
-const features: Feature[] = [
+const FEATURES: Feature[] = [
   {
-    icon: <LearnIcon fontSize="large" />,
+    icon: <LearnIcon sx={{ fontSize: 26 }} />,
     title: "Document Normalization",
     description:
-      "Upload PDF, DOCX, or XLSX. Our engine extracts text and structure with high precision for AI analysis, ensuring no detail is lost.",
-    gridSpan: { xs: 12, md: 7 },
-    color: "primary",
+      "Upload PDF, DOCX, or XLSX. Our engine extracts text and structure with high precision for AI analysis — no detail is lost.",
+    tag: "Multi-format",
+    tone: "teal",
   },
   {
-    icon: <FastIcon fontSize="large" />,
+    icon: <FastIcon sx={{ fontSize: 26 }} />,
     title: "Instant Roadmaps",
     description:
-      "Go from raw documents to structured learning paths in seconds.",
-    gridSpan: { xs: 12, md: 5 },
-    color: "warning",
+      "Go from raw documents to structured, sequenced learning paths in seconds, not weeks.",
+    tag: "Sequenced",
+    tone: "proc",
   },
   {
-    icon: <GraphIcon fontSize="large" />,
+    icon: <GraphIcon sx={{ fontSize: 26 }} />,
     title: "Knowledge Graphs",
     description:
-      "Visualize relationships between concepts with interactive Neo4j-powered graphs that show how ideas connect.",
-    gridSpan: { xs: 12, md: 5 },
-    color: "info",
+      "Visualize relationships between concepts with interactive graphs that reveal how ideas connect.",
+    tag: "Interactive",
+    tone: "concept",
   },
   {
-    icon: <BrainIcon fontSize="large" />,
+    icon: <BrainIcon sx={{ fontSize: 26 }} />,
     title: "Personalized AI",
     description:
-      "The AI adapts to your current expertise and goals, pruning unnecessary topics and highlighting critical prerequisites.",
-    gridSpan: { xs: 12, md: 7 },
-    color: "secondary",
+      "The AI adapts to your current expertise and goals, pruning unnecessary topics and surfacing what matters.",
+    tag: "Adaptive",
+    tone: "enrich",
   },
   {
-    icon: <SearchIcon fontSize="large" />,
+    icon: <SearchIcon sx={{ fontSize: 26 }} />,
     title: "Smart Discovery",
     description:
       "Automatically find related topics and bridge knowledge gaps you didn't know you had.",
-    gridSpan: { xs: 12, md: 6 },
-    color: "success",
+    tag: "Gap-aware",
+    tone: "ready",
   },
   {
-    icon: <ProgressIcon fontSize="large" />,
+    icon: <ProgressIcon sx={{ fontSize: 26 }} />,
     title: "Progress Tracking",
     description:
       "Keep track of your learning milestones and master concepts one by one with visual feedback.",
-    gridSpan: { xs: 12, md: 6 },
-    color: "error",
+    tag: "Milestones",
+    tone: "fail",
   },
 ];
 
@@ -118,86 +126,161 @@ function FeatureCard({
   icon,
   title,
   description,
-  color = "primary",
-}: Omit<Feature, "gridSpan">) {
-  const effectiveColor = palette[color];
+  tag,
+  tone,
+  featured,
+}: Feature) {
+  const accent = resolveAccent(tone, undefined);
 
   return (
-    <Card
-      variant="glass"
+    <Box
+      component="article"
+      style={{ ["--ac" as string]: accent }}
       sx={{
-        "&:hover": {
-          borderColor: alpha(effectiveColor.light, 0.4),
-          boxShadow: `0 20px 40px ${alpha(effectiveColor.main, 0.15)}`,
+        position: "relative",
+        overflow: "hidden",
+        borderRadius: auroraPalette.radii.card,
+        border: `1px solid ${featured ? "color-mix(in oklch, var(--ac) 40%, transparent)" : auroraPalette.line}`,
+        padding: "30px 28px 32px",
+        background: featured
+          ? "linear-gradient(168deg, color-mix(in oklch, var(--ac) 10%, oklch(0.22 0.026 262 / 0.85)), oklch(0.16 0.026 262 / 0.8))"
+          : "linear-gradient(168deg, oklch(0.225 0.026 262 / 0.85), oklch(0.16 0.026 262 / 0.78))",
+        boxShadow: auroraPalette.shadow.card,
+        transition:
+          "transform .22s cubic-bezier(0.22, 1, 0.36, 1), border-color .22s ease, box-shadow .22s ease",
+        "& .feat-aura": {
+          opacity: featured ? 0.6 : 0,
         },
-        "&:hover .card-icon-box": {
-          background: `linear-gradient(135deg, ${effectiveColor.light} 0%, ${effectiveColor.main} 50%, ${effectiveColor.dark} 100%)`,
-          color: "#fff",
-          boxShadow: `0 8px 24px ${alpha(effectiveColor.main, 0.4)}, 0 0 40px ${alpha(effectiveColor.light, 0.2)}`,
-          transform: "scale(1.1) rotate(5deg)",
+        "&:hover": {
+          transform: "translateY(-5px)",
+          borderColor: "color-mix(in oklch, var(--ac) 55%, transparent)",
+          boxShadow: auroraPalette.shadow.pop,
+        },
+        "&:hover .feat-aura": {
+          opacity: 0.95,
+          filter: "blur(28px)",
         },
       }}
     >
-      <Card.Header>
-        <Card.IconBox
-          sx={{
-            transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-            bgcolor: alpha(effectiveColor.main, 0.1),
-            color: effectiveColor.light,
-          }}
-        >
-          {icon}
-        </Card.IconBox>
-      </Card.Header>
-      <Card.Content>
-        <Typography
-          variant="h5"
-          fontWeight="700"
-          gutterBottom
-          sx={{ color: "text.primary", letterSpacing: "-0.01em" }}
-        >
-          {title}
-        </Typography>
-        <Typography
-          variant="body1"
-          color="text.secondary"
-          sx={{ lineHeight: 1.7, fontSize: "0.95rem" }}
-        >
-          {description}
-        </Typography>
-      </Card.Content>
-    </Card>
+      <Box
+        className="feat-aura"
+        aria-hidden
+        sx={{
+          position: "absolute",
+          top: "-40%",
+          left: "-10%",
+          width: "55%",
+          height: "80%",
+          background:
+            "radial-gradient(closest-side, color-mix(in oklch, var(--ac) 28%, transparent), transparent)",
+          filter: "blur(22px)",
+          pointerEvents: "none",
+          transition: "opacity .25s ease, filter .25s ease",
+        }}
+      />
+
+      <Box
+        component="span"
+        sx={{
+          position: "relative",
+          zIndex: 1,
+          width: 58,
+          height: 58,
+          borderRadius: "16px",
+          display: "grid",
+          placeItems: "center",
+          background:
+            "color-mix(in oklch, var(--ac) 16%, " +
+            auroraPalette.surface2 +
+            ")",
+          border: "1px solid color-mix(in oklch, var(--ac) 28%, transparent)",
+          color: "var(--ac)",
+          boxShadow:
+            "0 0 26px -8px color-mix(in oklch, var(--ac) 70%, transparent)",
+        }}
+      >
+        {icon}
+      </Box>
+
+      <Box
+        component="h3"
+        sx={{
+          position: "relative",
+          zIndex: 1,
+          fontFamily: auroraPalette.font.display,
+          fontWeight: 700,
+          fontSize: "21px",
+          color: auroraPalette.txHi,
+          margin: "24px 0 0",
+          letterSpacing: "-0.015em",
+        }}
+      >
+        {title}
+      </Box>
+
+      <Box
+        component="p"
+        sx={{
+          position: "relative",
+          zIndex: 1,
+          margin: "11px 0 0",
+          fontSize: "14.5px",
+          lineHeight: 1.6,
+          color: auroraPalette.txMid,
+          textWrap: "pretty",
+        }}
+      >
+        {description}
+      </Box>
+
+      <Box
+        component="span"
+        sx={{
+          position: "relative",
+          zIndex: 1,
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "7px",
+          marginTop: "18px",
+          whiteSpace: "nowrap",
+          padding: "5px 11px",
+          borderRadius: auroraPalette.radii.pill,
+          fontFamily: auroraPalette.font.mono,
+          fontSize: "11px",
+          fontWeight: 600,
+          background: "color-mix(in oklch, var(--ac) 13%, transparent)",
+          border: "1px solid color-mix(in oklch, var(--ac) 28%, transparent)",
+          color: "var(--ac)",
+        }}
+      >
+        {tag}
+      </Box>
+    </Box>
   );
 }
 
 export function FeaturesSection() {
   return (
-    <Box sx={styles.root}>
+    <Box component="section" sx={styles.root}>
       <Container maxWidth="lg">
         <Box sx={styles.sectionHeader}>
-          <Typography component="span" sx={styles.tagline}>
+          <Box component="span" sx={styles.eyebrow}>
             Features
-          </Typography>
-          <Typography variant="h2" sx={styles.title}>
-            The engine behind <br />
-            your education.
-          </Typography>
-          <Typography variant="body1" sx={styles.subtitle}>
+          </Box>
+          <Box component="h2" sx={styles.title}>
+            The engine behind your education.
+          </Box>
+          <Box component="p" sx={styles.subtitle}>
             We combine large language models with graph databases to build a
             truly intelligent, personalized learning experience.
-          </Typography>
+          </Box>
         </Box>
 
-        <Grid container spacing={3} sx={styles.gridContainer}>
-          {features.map((feature, index) => (
-            <Grid
-              key={index}
-              size={{ xs: feature.gridSpan.xs, md: feature.gridSpan.md }}
-            >
-              <FeatureCard {...feature} />
-            </Grid>
+        <Box sx={styles.grid}>
+          {FEATURES.map((feature) => (
+            <FeatureCard key={feature.title} {...feature} />
           ))}
-        </Grid>
+        </Box>
       </Container>
     </Box>
   );

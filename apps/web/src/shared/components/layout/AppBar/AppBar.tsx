@@ -6,10 +6,6 @@ import { AppBarAction } from "./components/AppBarAction";
 import { AppBarGroup } from "./components/AppBarGroup";
 import { AppBarDivider } from "./components/AppBarDivider";
 
-// ============================================================================
-// Compound Component Export
-// ============================================================================
-
 export const AppBar = Object.assign(AppBarRoot, {
   Item: AppBarItem,
   Action: AppBarAction,

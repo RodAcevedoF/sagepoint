@@ -1,9 +1,10 @@
 "use client";
 
-import { Container, Grid, Typography, Box, useTheme } from "@mui/material";
+import { Box, Grid, Typography, useTheme } from "@mui/material";
 import { DashboardLayout } from "@/features/dashboard/components/DashboardLayout";
 import { useGetProfileQuery } from "@/application/profile/queries/get-profile.query";
 import { Loader } from "@/shared/components";
+import { aurora as auroraPalette } from "@/shared/theme";
 import { ProfileHeader } from "./ProfileHeader";
 import { ProfileDetails } from "./ProfileDetails";
 import { ProfileLearning } from "./ProfileLearning";
@@ -27,51 +28,46 @@ export function ProfilePage() {
   if (!user) {
     return (
       <DashboardLayout>
-        <Container maxWidth="lg">
-          <Typography variant="h5" color="error">
-            User not found
-          </Typography>
-        </Container>
+        <Typography variant="h5" sx={{ color: auroraPalette.status.fail }}>
+          User not found
+        </Typography>
       </DashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout>
-      <Container maxWidth="lg" sx={{ px: { xs: 0, md: 2 } }}>
-        <Box sx={styles.pageHeader}>
-          <Typography variant="h4" sx={styles.headerTitle}>
-            Profile
-          </Typography>
-          <Typography variant="body1" sx={styles.headerSubtitle}>
-            Manage your account settings, preferences and learning journey
-          </Typography>
-        </Box>
+    <DashboardLayout width="lg">
+      <Box sx={styles.pageHeader}>
+        <Typography component="h1" sx={styles.headerTitle}>
+          Profile
+        </Typography>
+        <Typography component="p" sx={styles.headerSubtitle}>
+          Manage your account settings, preferences and learning journey
+        </Typography>
+      </Box>
 
-        <Grid container spacing={4}>
-          {/* First Row - Admin Profile & Account Details */}
-          <Grid size={{ xs: 12, md: 4 }}>
-            <ProfileHeader user={user} />
-          </Grid>
-
-          <Grid size={{ xs: 12, md: 8 }}>
-            <ProfileDetails user={user} />
-          </Grid>
-
-          {/* Second Row - Learning Journey + Interests */}
-          <Grid size={{ xs: 12, md: 7 }}>
-            <ProfileLearning user={user} />
-          </Grid>
-          <Grid size={{ xs: 12, md: 5 }}>
-            <ProfileInterests user={user} />
-          </Grid>
-
-          {/* Third Row - Account & Security Full Width */}
-          <Grid size={{ xs: 12 }}>
-            <ProfileActions />
-          </Grid>
+      <Grid container spacing="22px" sx={{ pb: 8 }}>
+        {/* Row 1 — Identity (380px) | Account Details (1fr) */}
+        <Grid size={{ xs: 12, md: 4 }}>
+          <ProfileHeader user={user} />
         </Grid>
-      </Container>
+        <Grid size={{ xs: 12, md: 8 }}>
+          <ProfileDetails user={user} />
+        </Grid>
+
+        {/* Row 2 — Learning Journey | Interests (1fr 1fr) */}
+        <Grid size={{ xs: 12, md: 6 }}>
+          <ProfileLearning user={user} />
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <ProfileInterests user={user} />
+        </Grid>
+
+        {/* Row 3 — Account & Security (full width) */}
+        <Grid size={{ xs: 12 }}>
+          <ProfileActions />
+        </Grid>
+      </Grid>
     </DashboardLayout>
   );
 }

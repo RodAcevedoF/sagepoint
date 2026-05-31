@@ -1,53 +1,64 @@
 "use client";
 
-import {
-  Box,
-  Typography,
-  alpha,
-  type SxProps,
-  type Theme,
-} from "@mui/material";
-import { palette } from "@/shared/theme";
+import { Box } from "@mui/material";
+import { Sparkles } from "lucide-react";
+import { aurora as auroraPalette } from "@/shared/theme";
 
 const styles = {
-  container: {
+  root: {
     mb: 6,
     pb: 4,
-    borderBottom: `1px solid ${alpha(palette.primary.light, 0.08)}`,
-  } satisfies SxProps<Theme>,
-  overline: {
-    color: palette.primary.light,
+    borderBottom: `1px solid ${auroraPalette.line}`,
+  },
+  kicker: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "9px",
+    padding: "6px 13px",
+    borderRadius: auroraPalette.radii.pill,
+    background: `color-mix(in oklch, ${auroraPalette.teal} 10%, transparent)`,
+    border: `1px solid color-mix(in oklch, ${auroraPalette.teal} 30%, transparent)`,
+    color: auroraPalette.teal,
+    fontFamily: auroraPalette.font.mono,
+    fontSize: "11.5px",
     fontWeight: 600,
-    letterSpacing: 1.5,
-    fontSize: "0.75rem",
-    mb: 1,
-  } satisfies SxProps<Theme>,
+    letterSpacing: "0.18em",
+    textTransform: "uppercase",
+  },
   title: {
+    fontFamily: auroraPalette.font.display,
     fontWeight: 800,
-    fontSize: { xs: "2rem", md: "2.75rem" },
-    mb: 1.5,
-    letterSpacing: "-0.02em",
-  } satisfies SxProps<Theme>,
+    fontSize: { xs: "2.25rem", md: "3rem" },
+    lineHeight: 1.05,
+    letterSpacing: "-0.025em",
+    margin: "18px 0 0",
+    background: `linear-gradient(150deg, ${auroraPalette.txHi} 22%, ${auroraPalette.teal} 92%)`,
+    WebkitBackgroundClip: "text",
+    backgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+  },
   subtitle: {
-    color: alpha("#f5f5f5", 0.55),
-    maxWidth: 560,
-    fontWeight: 400,
-    lineHeight: 1.7,
-    fontSize: "1.05rem",
-  } satisfies SxProps<Theme>,
-};
+    margin: "18px 0 0",
+    maxWidth: "60ch",
+    fontSize: { xs: "1rem", md: "1.075rem" },
+    lineHeight: 1.65,
+    color: auroraPalette.txMid,
+    textWrap: "pretty",
+  },
+} as const;
 
 export const DocsHeader = () => (
-  <Box sx={styles.container}>
-    <Typography variant="overline" sx={styles.overline}>
+  <Box sx={styles.root}>
+    <Box component="span" sx={styles.kicker}>
+      <Sparkles size={13} />
       DOCUMENTATION
-    </Typography>
-    <Typography variant="h2" component="h1" sx={styles.title}>
+    </Box>
+    <Box component="h1" sx={styles.title}>
       Getting Started
-    </Typography>
-    <Typography variant="body1" sx={styles.subtitle}>
+    </Box>
+    <Box component="p" sx={styles.subtitle}>
       Learn how to use Sagepoint to turn your documents into structured learning
       paths powered by AI and knowledge graphs.
-    </Typography>
+    </Box>
   </Box>
 );

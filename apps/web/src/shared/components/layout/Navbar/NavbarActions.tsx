@@ -1,59 +1,175 @@
 "use client";
 
 import {
+  Box,
   Stack,
-  Avatar,
-  IconButton,
   Tooltip,
-  alpha,
-  useTheme,
+  IconButton as MuiIconButton,
+  type SxProps,
+  type Theme,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
+import { type ReactNode } from "react";
 import {
   LogOut,
   LogIn,
   Rocket,
   LayoutDashboard,
   ShieldCheck,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "../../ui/Button";
 import { ButtonVariants } from "@/shared/types";
+import { aurora, auroraTint } from "@/shared/theme";
 import { useCurrentUser } from "@/features/auth/context/UserContext";
 import { logout } from "@/application/auth/commands/logout.command";
 import { TokenBadge } from "./TokenBadge";
-import type { Theme } from "@mui/material";
 
-const makeStyles = (theme: Theme) => ({
-  iconButton: {
-    color: alpha(theme.palette.text.primary, 0.7),
-    transition: "all 0.2s",
-    "&:hover": {
-      color: theme.palette.primary.light,
-      bgcolor: alpha(theme.palette.primary.main, 0.1),
-    },
-  },
-  adminIcon: {
-    color: theme.palette.warning.main,
-  },
-  avatar: {
-    width: 42,
-    height: 42,
-    ml: 1,
-    cursor: "pointer",
-    border: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-    bgcolor: alpha(theme.palette.primary.main, 0.1),
-    color: theme.palette.primary.light,
-    fontWeight: 600,
-    fontSize: "1rem",
-    boxShadow: `0 0 10px ${alpha(theme.palette.primary.main, 0.1)}`,
-    "&:hover": {
-      transform: "scale(1.1)",
-      borderColor: theme.palette.primary.light,
-      boxShadow: `0 0 15px ${alpha(theme.palette.primary.main, 0.3)}`,
-    },
-  },
-});
+interface IconBtnProps {
+  title: string;
+  ariaLabel: string;
+  onClick?: () => void;
+  children: ReactNode;
+  tint?: string;
+  sx?: SxProps<Theme>;
+}
+
+function IconBtn({
+  title,
+  ariaLabel,
+  onClick,
+  children,
+  tint,
+  sx,
+}: IconBtnProps) {
+  return (
+    <Tooltip title={title}>
+      <MuiIconButton
+        onClick={onClick}
+        aria-label={ariaLabel}
+        disableRipple
+        sx={{
+          width: 40,
+          height: 40,
+          borderRadius: "11px",
+          display: "grid",
+          placeItems: "center",
+          background: aurora.surface2,
+          border: `1px solid ${aurora.line}`,
+          color: tint ?? aurora.txMid,
+          transition: "all .15s",
+          "&:hover": {
+            background: aurora.surface3,
+            color: tint ?? aurora.txHi,
+            borderColor: aurora.line2,
+          },
+          ...sx,
+        }}
+      >
+        {children}
+      </MuiIconButton>
+    </Tooltip>
+  );
+}
+
+function NavDivider() {
+  return (
+    <Box
+      sx={{
+        width: "1px",
+        height: 26,
+        background: aurora.line2,
+        mx: 0.25,
+        display: { xs: "none", sm: "block" },
+      }}
+    />
+  );
+}
+
+interface UserPillProps {
+  name?: string;
+  initial: string;
+  avatarUrl?: string;
+  onClick: () => void;
+}
+
+function UserPill({ name, initial, avatarUrl, onClick }: UserPillProps) {
+  return (
+    <Box
+      onClick={onClick}
+      role="button"
+      aria-label="My profile"
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        gap: "9px",
+        padding: "5px 8px 5px 5px",
+        borderRadius: 999,
+        cursor: "pointer",
+        background: aurora.surface2,
+        border: `1px solid ${aurora.line}`,
+        transition: "all .15s",
+        "&:hover": {
+          background: aurora.surface3,
+          borderColor: aurora.line2,
+        },
+      }}
+    >
+      <Box
+        sx={{
+          width: 32,
+          height: 32,
+          borderRadius: "50%",
+          display: "grid",
+          placeItems: "center",
+          fontWeight: 800,
+          fontSize: 14,
+          background: avatarUrl
+            ? `url(${avatarUrl}) center/cover`
+            : `linear-gradient(150deg, ${aurora.teal}, ${aurora.tealDeep})`,
+          color: aurora.tealInk,
+          boxShadow: `0 0 0 1px oklch(1 0 0 / 0.18), 0 0 14px -3px ${auroraTint(aurora.teal, 0.6)}`,
+          flexShrink: 0,
+        }}
+      >
+        {!avatarUrl && initial}
+      </Box>
+      <Box
+        sx={{
+          display: { xs: "none", md: "flex" },
+          flexDirection: "column",
+          lineHeight: 1.15,
+          pr: "2px",
+          whiteSpace: "nowrap",
+          maxWidth: 140,
+        }}
+      >
+        <Box
+          component="span"
+          sx={{
+            fontSize: "13.5px",
+            fontWeight: 600,
+            color: aurora.txHi,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {name ?? "Account"}
+        </Box>
+      </Box>
+      <Box
+        component="span"
+        sx={{
+          color: aurora.txLow,
+          display: { xs: "none", md: "grid" },
+          placeItems: "center",
+        }}
+      >
+        <ChevronDown size={15} />
+      </Box>
+    </Box>
+  );
+}
 
 interface NavbarActionsProps {
   mode?: "default" | "dashboard";
@@ -61,126 +177,111 @@ interface NavbarActionsProps {
 
 export function NavbarActions({ mode = "default" }: NavbarActionsProps) {
   const router = useRouter();
-  const theme = useTheme();
-  const styles = makeStyles(theme);
   const user = useCurrentUser();
   const isAuthenticated = user !== null;
   const isAdmin = user?.role === "admin";
 
-  // Dashboard Mode
   if (mode === "dashboard") {
     return (
-      <Stack direction="row" spacing={{ xs: 0.5, sm: 1 }} alignItems="center">
-        {/* Admin Button - Only visible for users with admin role */}
+      <Stack
+        direction="row"
+        spacing={{ xs: 0.75, sm: 1.25 }}
+        alignItems="center"
+      >
         {isAdmin && (
-          <Tooltip title="Admin Panel">
-            <IconButton
-              sx={{
-                ...styles.iconButton,
-                ...styles.adminIcon,
-              }}
-              onClick={() => router.push("/admin")}
-            >
-              <ShieldCheck size={20} />
-            </IconButton>
-          </Tooltip>
+          <IconBtn
+            title="Admin Panel"
+            ariaLabel="Admin Panel"
+            tint={aurora.status.proc}
+            onClick={() => router.push("/admin")}
+          >
+            <ShieldCheck size={18} />
+          </IconBtn>
         )}
 
-        {/* Token Balance */}
         <TokenBadge />
 
-        {/* Profile Button */}
-        <Tooltip title="My Profile">
-          <Avatar
-            src={user?.avatarUrl}
-            alt={user?.name}
-            sx={{ ...styles.avatar, ml: 0.5 }}
-            onClick={() => router.push("/profile")}
-          >
-            {user?.name?.charAt(0).toUpperCase()}
-          </Avatar>
-        </Tooltip>
+        <NavDivider />
 
-        {/* Sign Out Button - Desktop */}
-        <Button
-          label="Sign Out"
-          variant={ButtonVariants.GHOST}
-          icon={LogOut}
-          onClick={logout}
-          sx={{
-            ml: 1,
-            display: { xs: "none", sm: "flex" },
-          }}
+        <UserPill
+          name={user?.name}
+          initial={user?.name?.charAt(0).toUpperCase() ?? "?"}
+          avatarUrl={user?.avatarUrl}
+          onClick={() => router.push("/profile")}
         />
 
-        {/* Sign Out Icon - Mobile */}
-        <IconButton
-          sx={{ ...styles.iconButton, display: { xs: "flex", sm: "none" } }}
-          onClick={logout}
-        >
-          <LogOut size={20} />
-        </IconButton>
+        <IconBtn title="Sign Out" ariaLabel="Sign Out" onClick={logout}>
+          <LogOut size={17} />
+        </IconBtn>
       </Stack>
     );
   }
 
-  // Default / Public Mode
   if (isAuthenticated && user) {
     return (
-      <Stack direction="row" spacing={1} alignItems="center">
-        <Tooltip title="Dashboard">
-          <IconButton
-            sx={styles.iconButton}
-            onClick={() => router.push("/dashboard")}
-          >
-            <LayoutDashboard size={20} />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Logout">
-          <IconButton sx={styles.iconButton} onClick={logout}>
-            <LogOut size={20} />
-          </IconButton>
-        </Tooltip>
+      <Stack
+        direction="row"
+        spacing={{ xs: 0.75, sm: 1.25 }}
+        alignItems="center"
+      >
+        <IconBtn
+          title="Dashboard"
+          ariaLabel="Dashboard"
+          onClick={() => router.push("/dashboard")}
+        >
+          <LayoutDashboard size={18} />
+        </IconBtn>
+
         <TokenBadge />
-        <Tooltip title="Profile">
-          <Avatar
-            src={user?.avatarUrl}
-            alt={user?.name}
-            sx={styles.avatar}
-            onClick={() => router.push("/profile")}
-          >
-            {user?.name?.charAt(0).toUpperCase()}
-          </Avatar>
-        </Tooltip>
+
+        <NavDivider />
+
+        <UserPill
+          name={user.name}
+          initial={user.name?.charAt(0).toUpperCase() ?? "?"}
+          avatarUrl={user.avatarUrl}
+          onClick={() => router.push("/profile")}
+        />
+
+        <IconBtn title="Sign Out" ariaLabel="Sign Out" onClick={logout}>
+          <LogOut size={17} />
+        </IconBtn>
       </Stack>
     );
   }
 
+  const guestLabelSx: SxProps<Theme> = {
+    display: { xs: "none", sm: "inline" },
+  };
+  const guestBtnSx: SxProps<Theme> = {
+    px: { xs: 1.25, sm: 2 },
+    minWidth: { xs: 40, sm: "auto" },
+    gap: { xs: 0, sm: 1 },
+  };
+
   return (
-    <Stack direction="row" spacing={{ xs: 0.5, sm: 1 }} alignItems="center">
+    <Stack direction="row" spacing={{ xs: 0.75, sm: 1 }} alignItems="center">
       <Button
-        label="Sign In"
-        variant={ButtonVariants.GHOST}
+        label={
+          <Box component="span" sx={guestLabelSx}>
+            Sign In
+          </Box>
+        }
+        variant={ButtonVariants.AURORA_GHOST}
         icon={LogIn}
         onClick={() => router.push("/login")}
-        sx={{
-          fontSize: { xs: "0.65rem", sm: "0.875rem" },
-          px: { xs: 1, sm: 2 },
-          py: { xs: 0.4, sm: 0.75 },
-          minWidth: "auto",
-        }}
+        sx={guestBtnSx}
       />
       <Button
-        label="Get Started"
-        variant={ButtonVariants.DEFAULT}
+        label={
+          <Box component="span" sx={guestLabelSx}>
+            Get Started
+          </Box>
+        }
+        variant={ButtonVariants.AURORA}
         icon={Rocket}
         onClick={() => router.push("/register")}
-        sx={{
-          fontSize: { xs: "0.65rem", sm: "0.875rem" },
-          px: { xs: 1, sm: 2 },
-          py: { xs: 0.4, sm: 0.75 },
-          minWidth: "auto",
-        }}
+        sx={guestBtnSx}
       />
     </Stack>
   );

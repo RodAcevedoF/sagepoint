@@ -1,23 +1,19 @@
 "use client";
 
-import React from "react";
-import {
-  Box,
-  Container,
-  Typography,
-  Chip,
-  Stack,
-  alpha,
-  Divider,
-} from "@mui/material";
+import { Box, Stack } from "@mui/material";
 import { Clock } from "lucide-react";
-import { AuthorAvatar } from "./AuthorAvatar";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { PublicLayout } from "@/shared/components";
-import { palette } from "@/shared/theme";
+import { BackLink, Pill, PublicLayout, RootWrapper } from "@/shared/components";
+import { aurora as auroraPalette, auroraTint } from "@/shared/theme";
+import { toneColor } from "@/shared/components/ui/Aurora/tones";
 import type { BlogPostDto } from "@/infrastructure/api/blogApi";
-import { resolveImage, humanizeSlug } from "../constants/categoryAssets";
+import { AuthorAvatar } from "./AuthorAvatar";
+import {
+  resolveImage,
+  humanizeSlug,
+  categoryTone,
+} from "../constants/categoryAssets";
 import { readingTimeMinutes } from "../utils/readingTime";
 
 interface BlogPostDetailProps {
@@ -27,6 +23,8 @@ interface BlogPostDetailProps {
 export const BlogPostDetail = ({ post }: BlogPostDetailProps) => {
   const image = resolveImage(post.heroImageUrl, post.categorySlug);
   const category = humanizeSlug(post.categorySlug);
+  const tone = categoryTone(post.categorySlug);
+  const accent = toneColor(tone);
   const date = new Date(post.publishedAt).toLocaleDateString("en-US", {
     month: "long",
     day: "numeric",
@@ -36,91 +34,100 @@ export const BlogPostDetail = ({ post }: BlogPostDetailProps) => {
 
   return (
     <PublicLayout>
-      <Box
-        sx={{
-          pt: { xs: 10, md: 14 },
-          pb: 8,
-          bgcolor: "background.default",
-          minHeight: "100vh",
-        }}
-      >
-        <Container maxWidth="md" sx={{ maxWidth: { md: 760 } }}>
-          <Chip
-            label={category}
-            size="small"
+      <RootWrapper paddingTop={80} paddingBottom={64}>
+        <Box sx={{ maxWidth: 760, mx: "auto" }}>
+          <Box sx={{ mb: 4, mt: 4 }}>
+            <BackLink href="/blog" label="Back to blog" />
+          </Box>
+
+          <Box
+            component="span"
             sx={{
-              mb: 3,
-              bgcolor: "transparent",
-              color: "text.secondary",
-              border: `1px solid ${alpha(palette.primary.light, 0.4)}`,
-              fontWeight: 700,
-              letterSpacing: 0.5,
-              borderRadius: 1,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "7px",
+              padding: "5px 12px",
+              borderRadius: auroraPalette.radii.pill,
+              fontFamily: auroraPalette.font.mono,
+              fontSize: "11px",
+              fontWeight: 600,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              background: auroraTint(accent, 0.12),
+              border: `1px solid ${auroraTint(accent, 0.3)}`,
+              color: accent,
             }}
-          />
-          <Typography
-            variant="h2"
+          >
+            {category}
+          </Box>
+
+          <Box
+            component="h1"
             sx={{
+              fontFamily: auroraPalette.font.display,
               fontWeight: 800,
-              mb: 3,
-              lineHeight: 1.15,
-              letterSpacing: "-0.01em",
-              fontSize: { xs: "2rem", md: "2.75rem" },
+              fontSize: { xs: "2rem", md: "2.875rem" },
+              lineHeight: 1.1,
+              letterSpacing: "-0.028em",
+              margin: "16px 0 0",
+              background: `linear-gradient(150deg, ${auroraPalette.txHi} 22%, ${accent} 100%)`,
+              WebkitBackgroundClip: "text",
+              backgroundClip: "text",
+              WebkitTextFillColor: "transparent",
             }}
           >
             {post.title}
-          </Typography>
-          <Typography
-            variant="h6"
-            color="text.secondary"
+          </Box>
+
+          <Box
+            component="p"
             sx={{
-              mb: 4,
+              margin: "20px 0 0",
               lineHeight: 1.6,
-              fontWeight: 400,
               fontSize: { xs: "1.05rem", md: "1.2rem" },
+              color: auroraPalette.txMid,
+              textWrap: "pretty",
             }}
           >
             {post.excerpt}
-          </Typography>
+          </Box>
 
           <Stack
             direction="row"
             spacing={2}
             alignItems="center"
-            divider={
-              <Box
-                sx={{
-                  width: 4,
-                  height: 4,
-                  borderRadius: "50%",
-                  bgcolor: "text.disabled",
-                }}
-              />
-            }
-            sx={{ mb: 5, flexWrap: "wrap", rowGap: 1 }}
+            useFlexGap
+            sx={{ mt: 4, flexWrap: "wrap", rowGap: 1.25 }}
           >
             <Stack direction="row" spacing={1.5} alignItems="center">
               <AuthorAvatar author={post.author} size={40} />
               <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                <Box
+                  component="span"
+                  sx={{
+                    display: "block",
+                    fontWeight: 600,
+                    fontSize: "0.9rem",
+                    color: auroraPalette.txHi,
+                  }}
+                >
                   {post.author}
-                </Typography>
-                <Typography variant="caption" color="text.disabled">
+                </Box>
+                <Box
+                  component="span"
+                  sx={{
+                    fontFamily: auroraPalette.font.mono,
+                    fontSize: "11.5px",
+                    color: auroraPalette.txLow,
+                  }}
+                >
                   {date}
-                </Typography>
+                </Box>
               </Box>
             </Stack>
-            <Stack
-              direction="row"
-              spacing={0.75}
-              alignItems="center"
-              sx={{ color: "text.disabled" }}
-            >
-              <Clock size={14} />
-              <Typography variant="caption" sx={{ fontWeight: 500 }}>
-                {minutes} min read
-              </Typography>
-            </Stack>
+            <Pill tone={tone} icon={<Clock size={13} />}>
+              {minutes} min read
+            </Pill>
           </Stack>
 
           <Box
@@ -129,76 +136,127 @@ export const BlogPostDetail = ({ post }: BlogPostDetailProps) => {
             alt={post.title}
             sx={{
               width: "100%",
-              borderRadius: 2,
+              borderRadius: auroraPalette.radii.card,
+              border: `1px solid ${auroraPalette.line}`,
+              mt: 5,
               mb: 6,
               maxHeight: 480,
               objectFit: "cover",
+              display: "block",
             }}
           />
 
           <Box
             sx={{
+              fontFamily: auroraPalette.font.ui,
               "& h1,& h2,& h3,& h4": {
+                fontFamily: auroraPalette.font.display,
                 fontWeight: 700,
                 mt: 5,
                 mb: 2,
-                color: "text.primary",
-                letterSpacing: "-0.005em",
+                color: auroraPalette.txHi,
+                letterSpacing: "-0.018em",
+                lineHeight: 1.2,
               },
-              "& h2": { fontSize: "1.625rem" },
-              "& h3": { fontSize: "1.25rem" },
+              "& h2": { fontSize: "1.75rem" },
+              "& h3": { fontSize: "1.3rem" },
+              "& h4": { fontSize: "1.1rem" },
               "& p": {
                 mb: 2.5,
-                lineHeight: 1.85,
+                lineHeight: 1.8,
                 fontSize: "1.05rem",
-                color: "text.secondary",
+                color: auroraPalette.tx,
               },
-              "& ul,& ol": { pl: 3, mb: 2.5, color: "text.secondary" },
-              "& li": { mb: 0.75, lineHeight: 1.85, fontSize: "1.05rem" },
+              "& ul,& ol": {
+                pl: 3,
+                mb: 2.5,
+                color: auroraPalette.tx,
+              },
+              "& li": {
+                mb: 0.75,
+                lineHeight: 1.8,
+                fontSize: "1.05rem",
+              },
               "& blockquote": {
-                borderLeft: `3px solid ${alpha(palette.primary.main, 0.6)}`,
+                borderLeft: `3px solid ${auroraTint(accent, 0.6)}`,
                 pl: 2.5,
                 ml: 0,
                 my: 3,
                 fontStyle: "italic",
-                color: "text.secondary",
+                color: auroraPalette.txMid,
+                background: auroraTint(accent, 0.05),
+                py: 1.5,
+                borderRadius: auroraPalette.radii.sm,
               },
               "& code": {
-                bgcolor: "action.hover",
+                background: auroraPalette.surface2,
+                border: `1px solid ${auroraPalette.line}`,
                 px: 0.75,
                 py: 0.25,
-                borderRadius: 0.5,
-                fontFamily: "monospace",
+                borderRadius: auroraPalette.radii.sm,
+                fontFamily: auroraPalette.font.mono,
                 fontSize: "0.875em",
+                color: auroraPalette.txHi,
               },
               "& pre": {
-                bgcolor: "action.hover",
+                background: auroraPalette.surface2,
+                border: `1px solid ${auroraPalette.line}`,
                 p: 2,
-                borderRadius: 1,
+                borderRadius: auroraPalette.radii.md,
                 overflowX: "auto",
                 mb: 2.5,
-                "& code": { bgcolor: "transparent", p: 0 },
-              },
-              "& a": {
-                color: "text.primary",
-                textDecoration: "underline",
-                textDecorationColor: alpha(palette.primary.light, 0.5),
-                textUnderlineOffset: "3px",
-                transition: "text-decoration-color 0.2s",
-                "&:hover": {
-                  textDecorationColor: palette.primary.light,
+                "& code": {
+                  background: "transparent",
+                  border: 0,
+                  p: 0,
                 },
               },
-              "& strong": { color: "text.primary", fontWeight: 700 },
+              "& a": {
+                color: auroraPalette.txHi,
+                textDecoration: "underline",
+                textDecorationColor: auroraTint(accent, 0.55),
+                textUnderlineOffset: "3px",
+                transition:
+                  "text-decoration-color 0.15s ease, color 0.15s ease",
+                "&:hover": {
+                  color: accent,
+                  textDecorationColor: accent,
+                },
+              },
+              "& strong": {
+                color: auroraPalette.txHi,
+                fontWeight: 700,
+              },
               "& hr": {
                 border: 0,
-                borderTop: `1px solid ${alpha(palette.text.primary, 0.08)}`,
-                my: 4,
+                borderTop: `1px solid ${auroraPalette.line}`,
+                my: 5,
               },
               "& img": {
                 maxWidth: "100%",
-                borderRadius: 1,
+                borderRadius: auroraPalette.radii.md,
+                border: `1px solid ${auroraPalette.line}`,
                 my: 3,
+                display: "block",
+              },
+              "& table": {
+                width: "100%",
+                borderCollapse: "collapse",
+                mb: 2.5,
+                fontSize: "0.95rem",
+              },
+              "& th,& td": {
+                textAlign: "left",
+                padding: "10px 12px",
+                borderBottom: `1px solid ${auroraPalette.line}`,
+              },
+              "& th": {
+                color: auroraPalette.txHi,
+                fontWeight: 700,
+                fontFamily: auroraPalette.font.mono,
+                fontSize: "0.8rem",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
               },
             }}
           >
@@ -209,31 +267,45 @@ export const BlogPostDetail = ({ post }: BlogPostDetailProps) => {
 
           {post.sources.length > 0 && (
             <>
-              <Divider sx={{ my: 5 }} />
-              <Typography
-                variant="overline"
-                color="text.disabled"
-                sx={{ letterSpacing: 1.5 }}
+              <Box
+                sx={{
+                  height: "1px",
+                  background: auroraPalette.line,
+                  my: 5,
+                }}
+              />
+              <Box
+                component="span"
+                sx={{
+                  display: "block",
+                  fontFamily: auroraPalette.font.mono,
+                  fontSize: "11.5px",
+                  fontWeight: 600,
+                  letterSpacing: "0.16em",
+                  textTransform: "uppercase",
+                  color: auroraPalette.txLow,
+                  mb: 2,
+                }}
               >
                 Sources
-              </Typography>
-              <Stack spacing={1.25} sx={{ mt: 1.5 }}>
+              </Box>
+              <Stack spacing={1.25}>
                 {post.sources.map((s, i) => (
-                  <Typography
+                  <Box
                     key={i}
-                    variant="body2"
                     component="a"
                     href={s.url}
                     target="_blank"
                     rel="noopener noreferrer"
                     sx={{
-                      color: "text.secondary",
+                      fontSize: "0.9rem",
+                      color: auroraPalette.tx,
                       textDecoration: "none",
-                      transition: "color 0.2s",
+                      transition: "color 0.15s ease",
                       "&:hover": {
-                        color: "text.primary",
+                        color: accent,
                         textDecoration: "underline",
-                        textDecorationColor: palette.primary.light,
+                        textDecorationColor: accent,
                         textUnderlineOffset: "3px",
                       },
                     }}
@@ -241,17 +313,22 @@ export const BlogPostDetail = ({ post }: BlogPostDetailProps) => {
                     {s.title}{" "}
                     <Box
                       component="span"
-                      sx={{ color: "text.disabled", ml: 0.5 }}
+                      sx={{
+                        color: auroraPalette.txLow,
+                        ml: 0.5,
+                        fontFamily: auroraPalette.font.mono,
+                        fontSize: "0.85em",
+                      }}
                     >
                       — {s.source}
                     </Box>
-                  </Typography>
+                  </Box>
                 ))}
               </Stack>
             </>
           )}
-        </Container>
-      </Box>
+        </Box>
+      </RootWrapper>
     </PublicLayout>
   );
 };

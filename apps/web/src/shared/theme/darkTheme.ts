@@ -160,8 +160,7 @@ export const palette = {
   background: {
     default: "#030712",
     paper: "#0a0f1a",
-    gradient:
-      "radial-gradient(circle at 50% 50%, #0a0a0a 0%, #030712 60%, #071952 100%)",
+    gradient: `radial-gradient(1100px 620px at 18% -8%, oklch(0.40 0.10 200 / 0.30), transparent 60%), radial-gradient(900px 600px at 92% 4%, oklch(0.34 0.10 268 / 0.34), transparent 58%), linear-gradient(180deg, ${aurora.bg1}, ${aurora.bg0} 60%)`,
   },
   text: {
     primary: "#f5f5f5",

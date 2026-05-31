@@ -1,3 +1,5 @@
+import type { AuroraTone } from "@/shared/components/ui/Aurora/tones";
+
 export const slugToLabel: Record<string, string> = {
   "web-development": "Web Development",
   "mobile-development": "Mobile Development",
@@ -49,6 +51,24 @@ export const categoryImageFallback: Record<string, string> = {
     "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=800",
 };
 
+const categoryToneMap: Record<string, AuroraTone> = {
+  "web-development": "teal",
+  "mobile-development": "ready",
+  "machine-learning": "enrich",
+  "data-science": "concept",
+  devops: "proc",
+  cybersecurity: "fail",
+  "cloud-computing": "ready",
+  databases: "concept",
+  "programming-languages": "teal",
+  "system-design": "proc",
+  "artificial-intelligence": "enrich",
+  "game-development": "fail",
+  "ui-ux-design": "enrich",
+  blockchain: "concept",
+  "software-testing": "proc",
+};
+
 const GENERIC_FALLBACK =
   "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=800";
 
@@ -64,4 +84,8 @@ export function resolveImage(
   categorySlug: string,
 ): string {
   return imageUrl ?? categoryImageFallback[categorySlug] ?? GENERIC_FALLBACK;
+}
+
+export function categoryTone(slug: string): AuroraTone {
+  return categoryToneMap[slug] ?? "teal";
 }

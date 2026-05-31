@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   formatSlug,
-  getCategoryColor,
+  categoryFeedTone,
 } from "@/features/dashboard/components/DashboardNews/news.utils";
 
 describe("formatSlug", () => {
@@ -15,18 +15,14 @@ describe("formatSlug", () => {
   });
 });
 
-describe("getCategoryColor", () => {
-  it("returns mapped color for known slug", () => {
-    const color = getCategoryColor("web-development");
-    expect(color).toBeDefined();
-    expect(typeof color).toBe("string");
+describe("categoryFeedTone", () => {
+  it("returns mapped tone for known slug", () => {
+    expect(categoryFeedTone("web-development")).toBe("teal");
+    expect(categoryFeedTone("devops")).toBe("proc");
+    expect(categoryFeedTone("databases")).toBe("concept");
   });
 
-  it("returns fallback color for unknown slug", () => {
-    const known = getCategoryColor("web-development");
-    const unknown = getCategoryColor("unknown-category");
-    // Both should be strings; unknown falls back to palette.info.main (same as web-development)
-    expect(typeof unknown).toBe("string");
-    expect(unknown).toBe(known);
+  it("falls back to 'teal' for unknown slug", () => {
+    expect(categoryFeedTone("unknown-category")).toBe("teal");
   });
 });

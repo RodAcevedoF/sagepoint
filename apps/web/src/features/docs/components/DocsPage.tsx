@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Box, Container, Toolbar } from "@mui/material";
-import { PublicLayout } from "@/shared/components";
+import { Box } from "@mui/material";
+import { PublicLayout, RootWrapper } from "@/shared/components";
 import { DocsHeader } from "./DocsHeader";
 import {
   DocsSection,
@@ -60,39 +60,36 @@ export const DocsPage = () => {
 
   return (
     <PublicLayout>
-      <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
-        <Toolbar />
-        <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
-          <Box sx={{ display: "flex" }}>
-            <DocsSidebar
+      <RootWrapper paddingTop={130} paddingBottom={64}>
+        <Box sx={{ display: "flex" }}>
+          <DocsSidebar
+            items={sidebarItems}
+            activeId={activeId}
+            onNavigate={handleNavigate}
+          />
+
+          <Box sx={{ flex: 1, pl: { md: 4 }, minWidth: 0 }}>
+            <DocsMobileNav
               items={sidebarItems}
               activeId={activeId}
               onNavigate={handleNavigate}
             />
+            <DocsHeader />
 
-            <Box sx={{ flex: 1, pl: { md: 4 }, minWidth: 0 }}>
-              <DocsMobileNav
-                items={sidebarItems}
-                activeId={activeId}
-                onNavigate={handleNavigate}
-              />
-              <DocsHeader />
-
-              {DOCS_SECTIONS.map((section) => (
-                <DocsSection
-                  key={section.id}
-                  id={section.id}
-                  icon={<section.icon size={22} />}
-                  title={section.title}
-                  showDivider={section.showDivider}
-                >
-                  {section.blocks.map(renderBlock)}
-                </DocsSection>
-              ))}
-            </Box>
+            {DOCS_SECTIONS.map((section) => (
+              <DocsSection
+                key={section.id}
+                id={section.id}
+                icon={<section.icon size={22} />}
+                title={section.title}
+                showDivider={section.showDivider}
+              >
+                {section.blocks.map(renderBlock)}
+              </DocsSection>
+            ))}
           </Box>
-        </Container>
-      </Box>
+        </Box>
+      </RootWrapper>
     </PublicLayout>
   );
 };

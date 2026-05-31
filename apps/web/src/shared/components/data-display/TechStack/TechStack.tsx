@@ -1,64 +1,55 @@
 "use client";
 
-import { Box, Typography, alpha, SxProps, Theme } from "@mui/material";
-import { palette } from "@/shared/theme";
+import { Box } from "@mui/material";
+import { Network, Eye, Bot } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { aurora as auroraPalette } from "@/shared/theme";
 import {
-  Hub as GraphIcon,
-  Psychology as LlmIcon,
-  BubbleChart as VectorIcon,
-} from "@mui/icons-material";
+  toneColor,
+  type AuroraTone,
+} from "@/shared/components/ui/Aurora/tones";
 
-const styles: Record<string, SxProps<Theme>> = {
+interface TechItem {
+  label: string;
+  icon: LucideIcon;
+  tone: AuroraTone;
+}
+
+const TECH_ITEMS: TechItem[] = [
+  { label: "Knowledge Graph", icon: Network, tone: "teal" },
+  { label: "Vision Intel", icon: Eye, tone: "concept" },
+  { label: "LLM Agent", icon: Bot, tone: "enrich" },
+];
+
+const styles = {
   container: {
     display: "flex",
     flexWrap: "wrap",
-    gap: 1,
-    mt: 3,
+    gap: "9px",
+    mt: "22px",
   },
-  techItem: {
-    display: "flex",
+  chipBase: {
+    display: "inline-flex",
     alignItems: "center",
-    gap: 1,
-    color: palette.primary.light,
-    fontSize: "0.7rem",
+    gap: "8px",
+    padding: "8px 13px",
+    borderRadius: "10px",
+    fontSize: "12.5px",
     fontWeight: 600,
-    bgcolor: alpha(palette.secondary.dark, 0.4),
-    px: 1.2,
-    py: 0.6,
-    borderRadius: "6px",
-    border: `1px solid ${alpha(palette.primary.dark, 0.6)}`,
-    transition: "all 0.2s ease",
-    cursor: "default",
-    "&:hover": {
-      bgcolor: alpha(palette.secondary.main, 0.2),
-      borderColor: alpha(palette.primary.main, 0.8),
-      transform: "translateY(-2px)",
-    },
+    whiteSpace: "nowrap",
+    color: auroraPalette.tx,
+    background: auroraPalette.surface2,
+    border: `1px solid ${auroraPalette.line}`,
   },
-};
+} as const;
 
 export function TechStack() {
-  const techItems = [
-    { label: "Knowledge Graph", icon: <GraphIcon sx={{ fontSize: 16 }} /> },
-    { label: "Vision Intel", icon: <VectorIcon sx={{ fontSize: 16 }} /> },
-    { label: "LLM Agent", icon: <LlmIcon sx={{ fontSize: 16 }} /> },
-  ];
-
   return (
     <Box sx={styles.container}>
-      {techItems.map((item) => (
-        <Box key={item.label} sx={styles.techItem}>
-          {item.icon}
-          <Typography
-            variant="inherit"
-            sx={{
-              whiteSpace: "nowrap",
-              fontSize: "0.75rem",
-              letterSpacing: "0.02em",
-            }}
-          >
-            {item.label}
-          </Typography>
+      {TECH_ITEMS.map(({ label, icon: Icon, tone }) => (
+        <Box key={label} sx={styles.chipBase}>
+          <Icon size={14} color={toneColor(tone)} />
+          {label}
         </Box>
       ))}
     </Box>

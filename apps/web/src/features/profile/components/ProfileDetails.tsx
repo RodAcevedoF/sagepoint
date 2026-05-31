@@ -6,12 +6,12 @@ import {
   Typography,
   TextField,
   Stack,
-  alpha,
   IconButton,
   useTheme,
 } from "@mui/material";
 import { User, Mail, Pencil, X, Check, Settings } from "lucide-react";
-import { Card, useSnackbar } from "@/shared/components";
+import { useSnackbar } from "@/shared/components";
+import { aurora as auroraPalette, auroraTint } from "@/shared/theme";
 import type { UserDto } from "@/application/profile/queries/get-profile.query";
 import { useUpdateProfileCommand } from "@/application/profile/commands/update-profile.command";
 import { makeStyles } from "./Profile.styles";
@@ -26,7 +26,7 @@ interface DetailRowProps {
   value: string;
   editable?: boolean;
   onSave?: (value: string) => Promise<void>;
-  color?: string;
+  accent?: string;
 }
 
 function DetailRow({
@@ -35,7 +35,7 @@ function DetailRow({
   value,
   editable,
   onSave,
-  color,
+  accent,
 }: DetailRowProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(value);
@@ -53,7 +53,7 @@ function DetailRow({
       await onSave(editValue);
       setIsEditing(false);
     } catch {
-      // error already surfaced via snackbar in onSave; keep edit mode open
+      // surfaced via snackbar in onSave
     } finally {
       setIsSaving(false);
     }
@@ -65,21 +65,11 @@ function DetailRow({
   };
 
   return (
-    <Box sx={styles.detailRow}>
-      <Box sx={styles.iconBox(color || theme.palette.primary.light)}>
-        {icon}
-      </Box>
+    <Box sx={styles.fieldRow}>
+      <Box sx={styles.fieldIcon(accent)}>{icon}</Box>
 
       <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography
-          variant="caption"
-          sx={{
-            fontWeight: 600,
-            color: theme.palette.text.secondary,
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-          }}
-        >
+        <Typography component="div" sx={styles.fieldLabel}>
           {label}
         </Typography>
         {isEditing ? (
@@ -89,13 +79,22 @@ function DetailRow({
             size="small"
             fullWidth
             autoFocus
-            sx={{ mt: 1 }}
+            sx={{
+              mt: 1,
+              "& .MuiOutlinedInput-root": {
+                color: auroraPalette.txHi,
+                background: auroraPalette.surface2,
+                borderRadius: auroraPalette.radii.sm,
+                "& fieldset": { borderColor: auroraPalette.line },
+                "&:hover fieldset": { borderColor: auroraPalette.line2 },
+                "&.Mui-focused fieldset": {
+                  borderColor: auroraTint(auroraPalette.teal, 0.5),
+                },
+              },
+            }}
           />
         ) : (
-          <Typography
-            variant="body1"
-            sx={{ fontWeight: 600, mt: 0.25, wordBreak: "break-word" }}
-          >
+          <Typography component="div" sx={styles.fieldValue}>
             {value}
           </Typography>
         )}
@@ -110,33 +109,40 @@ function DetailRow({
                 onClick={handleSave}
                 disabled={isSaving}
                 sx={{
-                  color: theme.palette.success.light,
-                  bgcolor: alpha(theme.palette.success.main, 0.1),
+                  color: auroraPalette.teal,
+                  bgcolor: auroraTint(auroraPalette.teal, 0.1),
+                  borderRadius: "10px",
+                  border: `1px solid ${auroraTint(auroraPalette.teal, 0.3)}`,
+                  "&:hover": {
+                    bgcolor: auroraTint(auroraPalette.teal, 0.18),
+                  },
                 }}
               >
-                <Check size={18} />
+                <Check size={16} />
               </IconButton>
               <IconButton
                 size="small"
                 onClick={handleCancel}
                 sx={{
-                  color: theme.palette.error.light,
-                  bgcolor: alpha(theme.palette.error.main, 0.1),
+                  color: auroraPalette.status.fail,
+                  bgcolor: auroraTint(auroraPalette.status.fail, 0.1),
+                  borderRadius: "10px",
+                  border: `1px solid ${auroraTint(auroraPalette.status.fail, 0.3)}`,
+                  "&:hover": {
+                    bgcolor: auroraTint(auroraPalette.status.fail, 0.18),
+                  },
                 }}
               >
-                <X size={18} />
+                <X size={16} />
               </IconButton>
             </Stack>
           ) : (
             <IconButton
               size="small"
               onClick={() => setIsEditing(true)}
-              sx={{
-                color: theme.palette.primary.light,
-                bgcolor: alpha(theme.palette.primary.main, 0.1),
-              }}
+              sx={styles.fieldEdit}
             >
-              <Pencil size={18} />
+              <Pencil size={16} />
             </IconButton>
           )}
         </Box>
@@ -159,29 +165,33 @@ export function ProfileDetails({ user }: ProfileDetailsProps) {
   };
 
   return (
-    <Card variant="glass" sx={styles.profileCard} hoverable={false}>
-      <Card.Content sx={{ p: { xs: 2.5, md: 4 } }}>
-        <Typography variant="h6" sx={styles.sectionTitle}>
+    <Box sx={styles.panel}>
+      <Box sx={styles.panelHead}>
+        <Box sx={styles.panelIcon()}>
           <Settings size={20} />
+        </Box>
+        <Typography component="h2" sx={styles.panelTitle}>
           Account Details
         </Typography>
+      </Box>
+      <Box sx={styles.panelUnderline()} />
 
-        <Stack spacing={0.5} sx={{ mt: 2 }}>
-          <DetailRow
-            icon={<User size={20} />}
-            label="Full Name"
-            value={user.name}
-            editable
-            onSave={handleUpdateName}
-          />
-          <DetailRow
-            icon={<Mail size={20} />}
-            label="Email Address"
-            value={user.email}
-            color={theme.palette.info.light}
-          />
-        </Stack>
-      </Card.Content>
-    </Card>
+      <Stack spacing={1.75}>
+        <DetailRow
+          icon={<User size={20} />}
+          label="Full Name"
+          value={user.name}
+          editable
+          onSave={handleUpdateName}
+          accent={auroraPalette.teal}
+        />
+        <DetailRow
+          icon={<Mail size={20} />}
+          label="Email Address"
+          value={user.email}
+          accent={auroraPalette.status.concept}
+        />
+      </Stack>
+    </Box>
   );
 }
