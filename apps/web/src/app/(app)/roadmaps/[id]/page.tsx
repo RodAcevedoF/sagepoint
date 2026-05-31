@@ -1,7 +1,7 @@
 "use client";
 
 import { use } from "react";
-import { Box, Container } from "@mui/material";
+import { RootWrapper } from "@/shared/components";
 import { RoadmapDetail } from "@/features/roadmap";
 
 interface PageProps {
@@ -12,10 +12,8 @@ export default function RoadmapDetailPage({ params }: PageProps) {
   const { id } = use(params);
 
   return (
-    <Box sx={{ py: 4, pb: 12 }}>
-      <Container maxWidth="lg">
-        <RoadmapDetail roadmapId={id} />
-      </Container>
-    </Box>
+    <RootWrapper>
+      <RoadmapDetail roadmapId={id} />
+    </RootWrapper>
   );
 }

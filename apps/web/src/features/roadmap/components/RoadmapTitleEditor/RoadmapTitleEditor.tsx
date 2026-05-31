@@ -1,11 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { Box, Typography, TextField, useTheme, alpha } from "@mui/material";
+import { Box, TextField } from "@mui/material";
 import { Pencil } from "lucide-react";
 import { useUpdateTitleCommand } from "@/application/roadmap";
 import { useSnackbar } from "@/shared/components";
-import { makeStyles } from "../RoadmapDetail.styles";
+import { aurora as auroraPalette } from "@/shared/theme";
+
+const titleSx = {
+  position: "relative",
+  zIndex: 1,
+  margin: 0,
+  fontFamily: auroraPalette.font.display,
+  fontWeight: 800,
+  fontSize: "clamp(30px, 3.6vw, 46px)",
+  lineHeight: 1.04,
+  letterSpacing: "-0.025em",
+  background: `linear-gradient(120deg, ${auroraPalette.txHi} 28%, ${auroraPalette.teal} 96%)`,
+  WebkitBackgroundClip: "text",
+  backgroundClip: "text",
+  WebkitTextFillColor: "transparent",
+  wordBreak: "break-word",
+} as const;
 
 interface RoadmapTitleEditorProps {
   roadmapId: string;
@@ -18,8 +34,6 @@ export function RoadmapTitleEditor({
   title,
   editable,
 }: RoadmapTitleEditorProps) {
-  const theme = useTheme();
-  const styles = makeStyles(theme);
   const { execute: updateTitle, isLoading } = useUpdateTitleCommand();
   const { showSnackbar } = useSnackbar();
   const [editing, setEditing] = useState(false);
@@ -67,19 +81,16 @@ export function RoadmapTitleEditor({
         inputProps={{ maxLength: 200 }}
         sx={{
           "& .MuiInput-input": {
-            ...styles.title,
+            ...titleSx,
             WebkitTextFillColor: "unset",
-            color: theme.palette.common.white,
-            fontSize: styles.title.fontSize,
-            fontWeight: styles.title.fontWeight,
-            lineHeight: styles.title.lineHeight,
+            color: auroraPalette.teal,
             p: 0,
           },
           "& .MuiInput-underline:before": {
-            borderBottomColor: alpha(theme.palette.primary.light, 0.4),
+            borderBottomColor: auroraPalette.line2,
           },
           "& .MuiInput-underline:after": {
-            borderBottomColor: theme.palette.primary.light,
+            borderBottomColor: auroraPalette.teal,
           },
         }}
       />
@@ -98,15 +109,11 @@ export function RoadmapTitleEditor({
         "&:hover .edit-icon": editable ? { opacity: 1 } : undefined,
       }}
     >
-      <Typography variant="h4" sx={styles.title}>
+      <Box component="h1" sx={titleSx}>
         {title}
-      </Typography>
+      </Box>
       {editable && (
-        <Pencil
-          className="edit-icon"
-          size={16}
-          color={theme.palette.primary.light}
-        />
+        <Pencil className="edit-icon" size={16} color={auroraPalette.teal} />
       )}
     </Box>
   );

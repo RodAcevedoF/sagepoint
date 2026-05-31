@@ -10,6 +10,7 @@ interface ProgressRingProps {
   stroke?: number;
   tone?: AuroraTone;
   accent?: string;
+  caption?: string;
 }
 
 export function ProgressRing({
@@ -18,6 +19,7 @@ export function ProgressRing({
   stroke = 4,
   tone,
   accent,
+  caption,
 }: ProgressRingProps) {
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
@@ -25,6 +27,7 @@ export function ProgressRing({
   const offset = c - (c * safe) / 100;
   const color =
     accent ?? (tone ? resolveAccent(tone, undefined) : "var(--accent)");
+  const pctFontSize = Math.max(13, Math.round(size * 0.25));
 
   return (
     <Box
@@ -63,16 +66,39 @@ export function ProgressRing({
         />
       </svg>
       <Box
-        component="span"
         sx={{
           position: "absolute",
-          fontFamily: auroraPalette.font.mono,
-          fontWeight: 700,
-          fontSize: "13px",
-          color: "var(--accent)",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          lineHeight: 1,
         }}
       >
-        {Math.round(safe)}%
+        <Box
+          component="span"
+          sx={{
+            fontFamily: auroraPalette.font.display,
+            fontWeight: 800,
+            fontSize: `${pctFontSize}px`,
+            color: "var(--accent)",
+          }}
+        >
+          {Math.round(safe)}%
+        </Box>
+        {caption && (
+          <Box
+            component="span"
+            sx={{
+              marginTop: "3px",
+              fontSize: "10px",
+              color: auroraPalette.txLow,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+            }}
+          >
+            {caption}
+          </Box>
+        )}
       </Box>
     </Box>
   );

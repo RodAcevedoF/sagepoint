@@ -1,22 +1,17 @@
-import {
-  Box,
-  Typography,
-  useTheme,
-  alpha,
-  CircularProgress,
-} from "@mui/material";
+"use client";
+
+import { Box, CircularProgress } from "@mui/material";
 import { Target, Lightbulb, GitBranch } from "lucide-react";
 import type { RoadmapStep, StepStatus } from "@sagepoint/domain";
+import { aurora as auroraPalette, auroraTint } from "@/shared/theme";
 import type { ResourceDto } from "@/infrastructure/api/roadmapApi";
 import { StepResources } from "../StepResources";
 import { SubConceptAccordion } from "./SubConceptAccordion";
-import { makeStyles } from "./TimelineStep.styles";
 
 interface StepContentProps {
   step: RoadmapStep;
   resources: ResourceDto[];
   resourcesLoading?: boolean;
-  statusColor: string;
   onExpand?: () => void;
   expandLoading?: boolean;
   subSteps?: RoadmapStep[];
@@ -26,11 +21,63 @@ interface StepContentProps {
   isOwner: boolean;
 }
 
+interface InfoBlockProps {
+  tone: "concept" | "ready";
+  icon: React.ReactNode;
+  label: string;
+  text: string;
+}
+
+function InfoBlock({ tone, icon, label, text }: InfoBlockProps) {
+  const color =
+    tone === "concept"
+      ? auroraPalette.status.concept
+      : auroraPalette.status.ready;
+  return (
+    <Box
+      sx={{
+        borderRadius: auroraPalette.radii.md,
+        border: `1px solid ${auroraTint(color, 0.28)}`,
+        padding: "16px 18px",
+        background: auroraTint(color, 0.07),
+      }}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: "9px",
+          fontFamily: auroraPalette.font.mono,
+          fontSize: "11.5px",
+          fontWeight: 600,
+          letterSpacing: "0.1em",
+          textTransform: "uppercase",
+          marginBottom: "9px",
+          color,
+        }}
+      >
+        {icon}
+        {label}
+      </Box>
+      <Box
+        component="p"
+        sx={{
+          margin: 0,
+          fontSize: "14.5px",
+          lineHeight: 1.6,
+          color: auroraPalette.tx,
+        }}
+      >
+        {text}
+      </Box>
+    </Box>
+  );
+}
+
 export function StepContent({
   step,
   resources,
   resourcesLoading,
-  statusColor,
   onExpand,
   expandLoading,
   subSteps = [],
@@ -39,57 +86,31 @@ export function StepContent({
   roadmapId = "",
   isOwner,
 }: StepContentProps) {
-  const theme = useTheme();
-  const styles = makeStyles(theme, statusColor);
-
   return (
-    <Box sx={styles.expandedContent}>
+    <Box
+      sx={{
+        padding: { xs: "4px 18px 18px", md: "4px 24px 24px" },
+        display: "flex",
+        flexDirection: "column",
+        gap: "16px",
+      }}
+    >
       {step.learningObjective && (
-        <Box sx={styles.infoBox(theme.palette.info.main)}>
-          <Target
-            size={16}
-            color={theme.palette.info.light}
-            style={{ marginTop: 2, flexShrink: 0 }}
-          />
-          <Box>
-            <Typography
-              variant="caption"
-              sx={styles.infoLabel(theme.palette.info.light)}
-            >
-              Learning Objective
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{ color: theme.palette.text.primary }}
-            >
-              {step.learningObjective}
-            </Typography>
-          </Box>
-        </Box>
+        <InfoBlock
+          tone="concept"
+          icon={<Target size={15} />}
+          label="Learning Objective"
+          text={step.learningObjective}
+        />
       )}
 
       {step.rationale && (
-        <Box sx={styles.infoBox(theme.palette.primary.main)}>
-          <Lightbulb
-            size={16}
-            color={theme.palette.primary.light}
-            style={{ marginTop: 2, flexShrink: 0 }}
-          />
-          <Box>
-            <Typography
-              variant="caption"
-              sx={styles.infoLabel(theme.palette.primary.light)}
-            >
-              Why this step?
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{ color: theme.palette.text.primary }}
-            >
-              {step.rationale}
-            </Typography>
-          </Box>
-        </Box>
+        <InfoBlock
+          tone="ready"
+          icon={<Lightbulb size={15} />}
+          label="Why this step?"
+          text={step.rationale}
+        />
       )}
 
       <StepResources resources={resources} isLoading={resourcesLoading} />
@@ -109,32 +130,33 @@ export function StepContent({
             sx={{
               display: "inline-flex",
               alignItems: "center",
-              gap: 1,
-              mt: 1,
-              px: 2,
-              py: 0.75,
-              borderRadius: 2,
-              border: `1px solid ${alpha(theme.palette.secondary.main, 0.3)}`,
-              color: theme.palette.secondary.light,
+              gap: "9px",
+              alignSelf: "flex-start",
+              padding: "10px 16px",
+              borderRadius: auroraPalette.radii.md,
+              background: "transparent",
+              border: `1px dashed ${auroraPalette.line2}`,
+              color: auroraPalette.teal,
+              fontFamily: auroraPalette.font.ui,
+              fontWeight: 600,
+              fontSize: "13.5px",
               cursor: expandLoading ? "default" : "pointer",
               opacity: expandLoading ? 0.6 : 1,
-              transition: "all 0.2s ease",
+              transition: "all .15s",
               "&:hover": expandLoading
-                ? {}
+                ? undefined
                 : {
-                    borderColor: theme.palette.secondary.main,
-                    bgcolor: alpha(theme.palette.secondary.main, 0.08),
+                    background: auroraTint(auroraPalette.teal, 0.08),
+                    borderColor: auroraTint(auroraPalette.teal, 0.4),
                   },
             }}
           >
             {expandLoading ? (
               <CircularProgress size={14} sx={{ color: "inherit" }} />
             ) : (
-              <GitBranch size={14} />
+              <GitBranch size={16} />
             )}
-            <Typography variant="caption" sx={{ fontWeight: 600 }}>
-              {expandLoading ? "Expanding..." : "Expand Sub-concepts"}
-            </Typography>
+            {expandLoading ? "Expanding..." : "Expand Sub-concepts"}
           </Box>
         )
       )}

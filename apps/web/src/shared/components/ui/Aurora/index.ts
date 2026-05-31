@@ -4,6 +4,7 @@ export { Grid as AuroraGrid } from "./Grid";
 export { Hero as AuroraHero } from "./Hero";
 export { IconButton as AuroraIconButton } from "./IconButton";
 export { MixBar, difficultySegments, type MixSegment } from "./MixBar";
+export { ModalTitle } from "./ModalTitle";
 export { Pill } from "./Pill";
 export { Pipeline } from "./Pipeline";
 export { ProgressRing } from "./ProgressRing";

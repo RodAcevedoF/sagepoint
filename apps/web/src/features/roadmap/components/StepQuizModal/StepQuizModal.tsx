@@ -1,5 +1,8 @@
+"use client";
+
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useTheme } from "@mui/material";
+import { Box } from "@mui/material";
+import { Brain } from "lucide-react";
 import { useStepQuizCommand } from "@/application/roadmap";
 import type {
   StepQuizQuestionDto,
@@ -7,7 +10,7 @@ import type {
 } from "@/infrastructure/api/roadmapApi";
 import { Loader } from "@/shared/components/ui/Loader";
 import { ErrorState } from "@/shared/components/ui/States";
-import { makeStyles } from "./StepQuizModal.styles";
+import { ModalTitle } from "@/shared/components";
 import { QuizQuestions } from "./QuizQuestions";
 import { QuizResults } from "./QuizResults";
 
@@ -55,8 +58,6 @@ export function StepQuizModal({
   preGeneratedQuiz,
   onClose,
 }: StepQuizModalProps) {
-  const theme = useTheme();
-  const styles = makeStyles(theme);
   const { generate, submit, isGenerating, isSubmitting } = useStepQuizCommand();
 
   const [state, setState] = useState<QuizState>(() =>
@@ -154,53 +155,50 @@ export function StepQuizModal({
     state.questions.length > 0 &&
     state.questions.every((_, i) => state.answers[i] !== undefined);
 
-  if (state.error && state.phase === "loading") {
-    return (
-      <ErrorState
-        title="Quiz unavailable"
-        description={state.error}
-        onRetry={loadQuiz}
-      />
-    );
-  }
-
-  if (state.phase === "loading") {
-    return (
-      <Loader
-        variant="circular"
-        message={`Preparing quiz for ${conceptName}...`}
-        sx={{ py: 6 }}
-      />
-    );
-  }
-
-  if (state.phase === "results" && state.results) {
-    return (
-      <QuizResults
-        passed={state.passed}
-        score={state.score}
-        results={state.results}
-        questions={state.questions}
-        conceptId={conceptId}
-        isGenerating={isGenerating}
-        onRetry={loadQuiz}
-        onClose={onClose}
-        styles={styles}
-      />
-    );
-  }
-
   return (
-    <QuizQuestions
-      questions={state.questions}
-      answers={state.answers}
-      error={state.error}
-      isSubmitting={isSubmitting}
-      allAnswered={allAnswered}
-      onSelectAnswer={handleSelectAnswer}
-      onSubmit={handleSubmit}
-      onClose={onClose}
-      styles={styles}
-    />
+    <Box sx={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+      <ModalTitle
+        eyebrow="Quiz"
+        title={conceptName}
+        icon={<Brain size={20} />}
+        tone="concept"
+      />
+
+      {state.error && state.phase === "loading" ? (
+        <ErrorState
+          title="Quiz unavailable"
+          description={state.error}
+          onRetry={loadQuiz}
+        />
+      ) : state.phase === "loading" ? (
+        <Loader
+          variant="circular"
+          message="Preparing your quiz..."
+          sx={{ py: 6 }}
+        />
+      ) : state.phase === "results" && state.results ? (
+        <QuizResults
+          passed={state.passed}
+          score={state.score}
+          results={state.results}
+          questions={state.questions}
+          conceptId={conceptId}
+          isGenerating={isGenerating}
+          onRetry={loadQuiz}
+          onClose={onClose}
+        />
+      ) : (
+        <QuizQuestions
+          questions={state.questions}
+          answers={state.answers}
+          error={state.error}
+          isSubmitting={isSubmitting}
+          allAnswered={allAnswered}
+          onSelectAnswer={handleSelectAnswer}
+          onSubmit={handleSubmit}
+          onClose={onClose}
+        />
+      )}
+    </Box>
   );
 }

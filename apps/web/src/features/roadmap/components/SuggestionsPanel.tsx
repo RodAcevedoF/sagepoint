@@ -1,11 +1,11 @@
 "use client";
 
-import { Box, Typography, alpha } from "@mui/material";
-import { Compass } from "lucide-react";
+import { Box } from "@mui/material";
+import { Compass, Link as LinkIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import { useGetSuggestionsQuery } from "@/infrastructure/api/roadmapApi";
-import { Card } from "@/shared/components";
-import { palette } from "@/shared/theme";
+import { Card, Pill } from "@/shared/components";
+import { aurora as auroraPalette, auroraTint } from "@/shared/theme";
 
 const MotionBox = motion.create(Box);
 
@@ -19,29 +19,42 @@ export function SuggestionsPanel({ roadmapId }: SuggestionsPanelProps) {
   if (isLoading || !suggestions || suggestions.length === 0) return null;
 
   return (
-    <Box sx={{ mt: 4 }}>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3 }}>
+    <Box sx={{ marginTop: "18px" }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: "14px",
+          marginBottom: "18px",
+        }}
+      >
         <Box
           sx={{
-            width: 36,
-            height: 36,
-            borderRadius: 2,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            bgcolor: alpha(palette.primary.main, 0.15),
-            color: palette.primary.light,
-            border: `1px solid ${alpha(palette.primary.main, 0.25)}`,
+            width: 46,
+            height: 46,
+            borderRadius: "13px",
+            display: "grid",
+            placeItems: "center",
+            background: `color-mix(in oklch, ${auroraPalette.teal} 15%, ${auroraPalette.surface2})`,
+            border: `1px solid ${auroraTint(auroraPalette.teal, 0.26)}`,
+            color: auroraPalette.teal,
           }}
         >
-          <Compass size={18} />
+          <Compass size={22} />
         </Box>
-        <Typography
-          variant="h6"
-          sx={{ fontWeight: 600, color: palette.primary.light }}
+        <Box
+          component="h2"
+          sx={{
+            margin: 0,
+            fontFamily: auroraPalette.font.display,
+            fontWeight: 700,
+            fontSize: "24px",
+            color: auroraPalette.txHi,
+            letterSpacing: "-0.015em",
+          }}
         >
           Related Topics
-        </Typography>
+        </Box>
       </Box>
 
       <Box
@@ -52,7 +65,7 @@ export function SuggestionsPanel({ roadmapId }: SuggestionsPanelProps) {
             sm: "repeat(2, 1fr)",
             md: "repeat(3, 1fr)",
           },
-          gap: 2,
+          gap: "18px",
         }}
       >
         {suggestions.map((suggestion, index) => (
@@ -61,49 +74,49 @@ export function SuggestionsPanel({ roadmapId }: SuggestionsPanelProps) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: index * 0.05 }}
+            sx={{ display: "flex" }}
           >
-            <Card variant="glass" sx={{ height: "100%" }}>
-              <Card.Content>
-                <Typography
-                  variant="subtitle1"
+            <Card variant="aurora" tone="teal" withAura={false}>
+              <Card.Body
+                sx={{
+                  gap: "12px",
+                  padding: { xs: "22px 22px 20px", md: "22px 22px 20px" },
+                }}
+              >
+                <Box
+                  component="h3"
                   sx={{
+                    margin: 0,
+                    fontFamily: auroraPalette.font.display,
                     fontWeight: 700,
-                    mb: 0.5,
-                    color: palette.primary.light,
+                    fontSize: "17.5px",
+                    color: auroraPalette.teal,
+                    letterSpacing: "-0.01em",
                   }}
                 >
                   {suggestion.concept.name}
-                </Typography>
+                </Box>
                 {suggestion.concept.description && (
-                  <Typography
-                    variant="body2"
+                  <Box
+                    component="p"
                     sx={{
-                      color: alpha(palette.text.primary, 0.6),
-                      mb: 1.5,
+                      margin: 0,
+                      fontSize: "13.5px",
                       lineHeight: 1.55,
+                      color: auroraPalette.txMid,
+                      textWrap: "pretty",
+                      flex: 1,
                     }}
                   >
                     {suggestion.concept.description}
-                  </Typography>
+                  </Box>
                 )}
-                <Box
-                  sx={{
-                    display: "inline-block",
-                    px: 1,
-                    py: 0.25,
-                    borderRadius: 1,
-                    bgcolor: alpha(palette.primary.dark, 0.45),
-                    border: `1px solid ${alpha(palette.primary.main, 0.3)}`,
-                  }}
-                >
-                  <Typography
-                    variant="caption"
-                    sx={{ color: palette.primary.light, fontWeight: 500 }}
-                  >
+                <Box sx={{ display: "flex" }}>
+                  <Pill tone="teal" icon={<LinkIcon size={12} />}>
                     {suggestion.relevance}
-                  </Typography>
+                  </Pill>
                 </Box>
-              </Card.Content>
+              </Card.Body>
             </Card>
           </MotionBox>
         ))}

@@ -18,11 +18,16 @@ import { useModal } from "./modal-context";
 
 const styles = {
   paper: {
-    borderRadius: 4,
+    borderRadius: { xs: 3, sm: 4 },
     background: alpha(palette.background.paper, 0.95),
     backdropFilter: "blur(20px)",
     border: `1px solid ${alpha(palette.primary.light, 0.1)}`,
     boxShadow: `0 25px 50px -12px ${alpha(palette.primary.main, 0.25)}`,
+    "@media (max-width: 600px)": {
+      margin: "10px",
+      maxWidth: "calc(100% - 20px) !important",
+      width: "calc(100% - 20px)",
+    },
   },
   backdrop: {
     backgroundColor: alpha(palette.background.default, 0.85),
@@ -55,7 +60,7 @@ const styles = {
     transition: "all 0.2s ease",
   },
   content: {
-    p: { xs: 2.5, sm: 4 },
+    p: { xs: 2, sm: 4 },
   },
 };
 

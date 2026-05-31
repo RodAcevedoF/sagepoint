@@ -22,6 +22,7 @@ export {
   MixBar,
   difficultySegments,
   type MixSegment,
+  ModalTitle,
   Pill,
   Pipeline,
   ProgressRing,

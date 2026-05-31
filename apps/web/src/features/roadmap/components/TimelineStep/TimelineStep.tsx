@@ -1,7 +1,8 @@
 "use client";
 
 import { lazy, Suspense, useState } from "react";
-import { Box, alpha, useTheme, useMediaQuery } from "@mui/material";
+import { Box, useMediaQuery } from "@mui/material";
+import { BookOpen } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { StepStatus, type RoadmapStep } from "@sagepoint/domain";
 import {
@@ -10,9 +11,9 @@ import {
   useStepQuizCommand,
 } from "@/application/roadmap";
 import type { PreGeneratedQuiz } from "@/application/roadmap/commands/step-quiz.command";
-import { useModal, useSnackbar, Loader } from "@/shared/components";
+import { useModal, useSnackbar, Loader, ModalTitle } from "@/shared/components";
+import { aurora as auroraPalette, auroraTint } from "@/shared/theme";
 import type { ResourceDto } from "@/infrastructure/api/roadmapApi";
-import { makeStyles } from "./TimelineStep.styles";
 import { StepIndicator } from "./StepIndicator";
 import { StepHeader } from "./StepHeader";
 import { StepContent } from "./StepContent";
@@ -57,12 +58,11 @@ export function TimelineStep({
   parentOrder,
   isOwner,
 }: TimelineStepProps) {
-  const theme = useTheme();
   const isMobile = useMediaQuery("(max-width:625px)");
   const { openModal, closeModal } = useModal();
   const { showSnackbar } = useSnackbar();
 
-  const [expanded, setExpanded] = useState(false);
+  const [open, setOpen] = useState(false);
   const [preGeneratedQuiz, setPreGeneratedQuiz] =
     useState<PreGeneratedQuiz | null>(null);
   const [quizReady, setQuizReady] = useState(false);
@@ -82,18 +82,7 @@ export function TimelineStep({
     }
   };
 
-  const STATUS_DOT_COLORS: Record<StepStatus, string> = {
-    [StepStatus.NOT_STARTED]: theme.palette.text.secondary,
-    [StepStatus.IN_PROGRESS]: theme.palette.warning.light,
-    [StepStatus.COMPLETED]: theme.palette.success.light,
-    [StepStatus.SKIPPED]: alpha(theme.palette.text.secondary, 0.5),
-  };
-
-  const dotColor = STATUS_DOT_COLORS[status];
-  const styles = makeStyles(theme, dotColor);
-
   const handleStatusChange = async (newStatus: StepStatus) => {
-    // Intercept completion: require quiz pass
     if (
       newStatus === StepStatus.COMPLETED &&
       status === StepStatus.IN_PROGRESS
@@ -113,7 +102,6 @@ export function TimelineStep({
           />
         </Suspense>,
         {
-          title: `Quiz: ${step.concept.name}`,
           maxWidth: "sm",
           showCloseButton: true,
           closeOnOverlay: false,
@@ -132,7 +120,6 @@ export function TimelineStep({
       return;
     }
 
-    // Pre-generate quiz when starting a step (fire-and-forget)
     if (newStatus === StepStatus.IN_PROGRESS) {
       generate(roadmapId, step.concept.id).then((result) => {
         if (result.ok) {
@@ -150,33 +137,41 @@ export function TimelineStep({
 
   const canExpand = !isExpanded && subSteps.length === 0;
 
+  const renderContent = () => (
+    <StepContent
+      step={step}
+      resources={resources}
+      resourcesLoading={resourcesLoading}
+      onExpand={canExpand && isOwner ? handleExpand : undefined}
+      isOwner={isOwner}
+      expandLoading={expandLoading}
+      subSteps={subSteps}
+      subStepProgress={subStepProgress}
+      parentOrder={parentOrder ?? step.order}
+      roadmapId={roadmapId}
+    />
+  );
+
   const handleToggle = () => {
     if (isMobile) {
       openModal(
-        <Box sx={{ p: { xs: 0, sm: 1 } }}>
-          <StepContent
-            step={step}
-            resources={resources}
-            resourcesLoading={resourcesLoading}
-            statusColor={dotColor}
-            onExpand={canExpand && isOwner ? handleExpand : undefined}
-            isOwner={isOwner}
-            expandLoading={expandLoading}
-            subSteps={subSteps}
-            subStepProgress={subStepProgress}
-            parentOrder={parentOrder ?? step.order}
-            roadmapId={roadmapId}
+        <Box sx={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+          <ModalTitle
+            eyebrow={`Step ${step.order}`}
+            title={step.concept.name}
+            icon={<BookOpen size={20} />}
+            tone="teal"
           />
+          {renderContent()}
         </Box>,
         {
-          title: step.concept.name,
           maxWidth: "lg",
           showCloseButton: true,
         },
       );
-    } else {
-      setExpanded((prev) => !prev);
+      return;
     }
+    setOpen((prev) => !prev);
   };
 
   return (
@@ -184,57 +179,66 @@ export function TimelineStep({
       initial={{ opacity: 0, x: -24 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.4, delay: 0.1 + index * 0.06 }}
-      sx={styles.container}
+      sx={{
+        position: "relative",
+        marginBottom: isLast ? 0 : "18px",
+      }}
     >
-      <StepIndicator
-        order={step.order}
-        isCompleted={status === StepStatus.COMPLETED}
-        isActive={status === StepStatus.IN_PROGRESS}
-        isLast={isLast}
-        statusColor={dotColor}
-      />
+      <StepIndicator order={step.order} status={status} isOpen={open} />
 
-      <Box sx={{ flex: 1, pb: isLast ? 0 : 3 }}>
-        <Box sx={styles.card}>
-          <StepHeader
-            step={step}
-            status={status}
-            expanded={expanded}
-            onToggle={handleToggle}
-            onStatusChange={handleStatusChange}
-            isLoading={isLoading}
-            statusColor={dotColor}
-            parentDocumentId={parentDocumentId}
-            quizReady={quizReady}
-            isOwner={isOwner}
-          />
+      <Box
+        sx={{
+          position: "relative",
+          overflow: "hidden",
+          borderRadius: auroraPalette.radii.card,
+          border: `1px solid ${open ? auroraTint(auroraPalette.teal, 0.3) : auroraPalette.line}`,
+          background:
+            "linear-gradient(168deg, oklch(0.225 0.026 262 / 0.88), oklch(0.165 0.026 262 / 0.8))",
+          boxShadow: auroraPalette.shadow.card,
+          transition: "border-color .2s",
+        }}
+      >
+        <Box
+          aria-hidden
+          sx={{
+            position: "absolute",
+            top: "-50%",
+            left: "-8%",
+            width: "50%",
+            height: "100%",
+            background: `radial-gradient(closest-side, ${auroraTint(auroraPalette.teal, 0.2)}, transparent)`,
+            filter: "blur(20px)",
+            opacity: open ? 0.5 : 0,
+            transition: "opacity .25s",
+            pointerEvents: "none",
+          }}
+        />
 
-          <AnimatePresence>
-            {expanded && !isMobile && (
-              <MotionBox
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-                sx={{ overflow: "hidden" }}
-              >
-                <StepContent
-                  step={step}
-                  resources={resources}
-                  resourcesLoading={resourcesLoading}
-                  statusColor={dotColor}
-                  onExpand={canExpand && isOwner ? handleExpand : undefined}
-                  isOwner={isOwner}
-                  expandLoading={expandLoading}
-                  subSteps={subSteps}
-                  subStepProgress={subStepProgress}
-                  parentOrder={parentOrder ?? step.order}
-                  roadmapId={roadmapId}
-                />
-              </MotionBox>
-            )}
-          </AnimatePresence>
-        </Box>
+        <StepHeader
+          step={step}
+          status={status}
+          expanded={open}
+          onToggle={handleToggle}
+          onStatusChange={handleStatusChange}
+          isLoading={isLoading}
+          parentDocumentId={parentDocumentId}
+          quizReady={quizReady}
+          isOwner={isOwner}
+        />
+
+        <AnimatePresence>
+          {open && !isMobile && (
+            <MotionBox
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              sx={{ overflow: "hidden", position: "relative", zIndex: 1 }}
+            >
+              {renderContent()}
+            </MotionBox>
+          )}
+        </AnimatePresence>
       </Box>
     </MotionBox>
   );

@@ -1,4 +1,6 @@
-import { Box, Typography, Chip, useTheme } from "@mui/material";
+"use client";
+
+import { Box } from "@mui/material";
 import {
   CheckCircle2,
   XCircle,
@@ -8,18 +10,18 @@ import {
   X,
 } from "lucide-react";
 import { ReviewSource } from "@sagepoint/domain";
-import { Button } from "@/shared/components";
+import { Button, Card } from "@/shared/components";
 import {
   ButtonVariants,
   ButtonSizes,
   ButtonIconPositions,
 } from "@/shared/types";
+import { aurora as auroraPalette, auroraTint } from "@/shared/theme";
 import { ReviewCallToAction } from "@/features/review";
 import type {
   StepQuizQuestionDto,
   QuestionResultDto,
 } from "@/infrastructure/api/roadmapApi";
-import type { Styles } from "./StepQuizModal.styles";
 
 interface QuizResultsProps {
   passed: boolean;
@@ -30,7 +32,6 @@ interface QuizResultsProps {
   isGenerating: boolean;
   onRetry: () => void;
   onClose: () => void;
-  styles: Styles;
 }
 
 export function QuizResults({
@@ -42,156 +43,258 @@ export function QuizResults({
   isGenerating,
   onRetry,
   onClose,
-  styles,
 }: QuizResultsProps) {
-  const theme = useTheme();
   const correctCount = results.filter((r) => r.isCorrect).length;
+  const tone = passed ? auroraPalette.status.ready : auroraPalette.status.fail;
 
   return (
-    <Box sx={{ py: 1 }}>
-      <Box sx={styles.resultsBanner(passed)}>
-        {passed ? (
-          <Trophy size={44} color={theme.palette.success.light} />
-        ) : (
-          <XCircle size={44} color={theme.palette.error.light} />
-        )}
-        <Typography variant="h6" sx={{ mt: 1, fontWeight: 700 }}>
+    <Box sx={{ display: "flex", flexDirection: "column", gap: "20px", py: 1 }}>
+      <Box
+        sx={{
+          textAlign: "center",
+          padding: "26px 20px",
+          borderRadius: auroraPalette.radii.card,
+          background: auroraTint(tone, 0.1),
+          border: `1px solid ${auroraTint(tone, 0.25)}`,
+        }}
+      >
+        <Box
+          component="span"
+          sx={{
+            display: "inline-grid",
+            placeItems: "center",
+            width: 64,
+            height: 64,
+            borderRadius: "50%",
+            background: auroraTint(tone, 0.18),
+            color: tone,
+          }}
+        >
+          {passed ? <Trophy size={32} /> : <XCircle size={32} />}
+        </Box>
+        <Box
+          component="h3"
+          sx={{
+            margin: "14px 0 0",
+            fontFamily: auroraPalette.font.display,
+            fontWeight: 800,
+            fontSize: "20px",
+            color: auroraPalette.txHi,
+          }}
+        >
           {passed ? "Quiz Passed!" : "Not Quite..."}
-        </Typography>
-        <Typography variant="h4" sx={styles.resultScore}>
+        </Box>
+        <Box
+          component="div"
+          sx={{
+            marginTop: "10px",
+            fontFamily: auroraPalette.font.display,
+            fontWeight: 900,
+            fontSize: "40px",
+            lineHeight: 1,
+            color: tone,
+          }}
+        >
           {score}%
-        </Typography>
-        <Typography variant="body2" sx={styles.resultSubtext}>
+        </Box>
+        <Box
+          component="p"
+          sx={{
+            margin: "6px 0 0",
+            fontSize: "13.5px",
+            color: auroraPalette.txMid,
+          }}
+        >
           {correctCount}/{results.length} correct
-        </Typography>
+        </Box>
         {passed && (
-          <Typography variant="body2" sx={styles.resultPassedNote}>
+          <Box
+            component="p"
+            sx={{
+              margin: "6px 0 0",
+              fontSize: "13.5px",
+              fontWeight: 500,
+              color: auroraPalette.status.ready,
+            }}
+          >
             Step marked as completed
-          </Typography>
+          </Box>
         )}
       </Box>
 
       {results.map((r) => {
         const question = questions[r.index];
+        const cardTone = r.isCorrect ? "ready" : "fail";
         return (
-          <Box key={r.index} sx={styles.questionCard(r.isCorrect)}>
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "flex-start",
-                gap: 1,
-                mb: 1.5,
-              }}
+          <Card
+            key={r.index}
+            variant="aurora"
+            tone={cardTone}
+            hoverable={false}
+            withAura={false}
+          >
+            <Card.Body
+              sx={{ padding: { xs: "18px 18px 20px", md: "22px 24px 22px" } }}
             >
-              {r.isCorrect ? (
-                <CheckCircle2
-                  size={18}
-                  color={theme.palette.success.light}
-                  style={{ flexShrink: 0, marginTop: 2 }}
-                />
-              ) : (
-                <XCircle
-                  size={18}
-                  color={theme.palette.error.light}
-                  style={{ flexShrink: 0, marginTop: 2 }}
-                />
-              )}
-              <Typography variant="body2" sx={{ fontWeight: 600, flex: 1 }}>
-                {r.index + 1}. {r.text}
-              </Typography>
-            </Box>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: "10px",
+                  marginBottom: "14px",
+                }}
+              >
+                <Box
+                  component="span"
+                  sx={{
+                    color: r.isCorrect
+                      ? auroraPalette.status.ready
+                      : auroraPalette.status.fail,
+                    marginTop: "2px",
+                  }}
+                >
+                  {r.isCorrect ? (
+                    <CheckCircle2 size={18} />
+                  ) : (
+                    <XCircle size={18} />
+                  )}
+                </Box>
+                <Box
+                  component="p"
+                  sx={{
+                    margin: 0,
+                    fontFamily: auroraPalette.font.display,
+                    fontWeight: 700,
+                    fontSize: "15.5px",
+                    lineHeight: 1.4,
+                    color: auroraPalette.txHi,
+                  }}
+                >
+                  {r.index + 1}. {r.text}
+                </Box>
+              </Box>
 
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 0.75,
-                mb: 1.5,
-              }}
-            >
-              {question?.options.map((opt) => {
-                const isCorrectOption = opt.label === r.correctAnswer;
-                const isUserSelection = opt.label === r.selectedAnswer;
-                const isWrongSelection = isUserSelection && !r.isCorrect;
+              <Box
+                sx={{ display: "flex", flexDirection: "column", gap: "8px" }}
+              >
+                {question?.options.map((opt) => {
+                  const isCorrectOption = opt.label === r.correctAnswer;
+                  const isUserSelection = opt.label === r.selectedAnswer;
+                  const isWrongSelection = isUserSelection && !r.isCorrect;
 
-                return (
-                  <Box
-                    key={opt.label}
-                    sx={styles.optionCard(
-                      isUserSelection,
-                      isCorrectOption,
-                      isWrongSelection,
-                    )}
-                  >
-                    <Chip
-                      label={opt.label}
-                      size="small"
-                      sx={styles.optionChip(
-                        isUserSelection,
-                        isCorrectOption,
-                        isWrongSelection,
-                      )}
-                    />
-                    <Typography
-                      variant="body2"
+                  let accent = auroraPalette.txMid;
+                  let bg = "oklch(0.27 0.022 262 / 0.4)";
+                  let border = auroraPalette.line;
+                  if (isCorrectOption) {
+                    accent = auroraPalette.status.ready;
+                    bg = auroraTint(accent, 0.1);
+                    border = auroraTint(accent, 0.4);
+                  } else if (isWrongSelection) {
+                    accent = auroraPalette.status.fail;
+                    bg = auroraTint(accent, 0.1);
+                    border = auroraTint(accent, 0.4);
+                  }
+
+                  return (
+                    <Box
+                      key={opt.label}
                       sx={{
-                        flex: 1,
-                        color: isCorrectOption
-                          ? theme.palette.success.light
-                          : isWrongSelection
-                            ? theme.palette.error.light
-                            : theme.palette.text.primary,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        padding: "10px 12px",
+                        borderRadius: auroraPalette.radii.md,
+                        background: bg,
+                        border: `1px solid ${border}`,
+                        color: auroraPalette.tx,
                       }}
                     >
-                      {opt.text}
-                    </Typography>
-                    {isCorrectOption && (
-                      <CheckCircle2
-                        size={16}
-                        color={theme.palette.success.light}
-                      />
-                    )}
-                    {isWrongSelection && (
-                      <XCircle size={16} color={theme.palette.error.light} />
-                    )}
-                  </Box>
-                );
-              })}
-            </Box>
-
-            {r.explanation && (
-              <Box sx={styles.explanationBox}>
-                <Lightbulb
-                  size={16}
-                  color={theme.palette.info.light}
-                  style={{ flexShrink: 0, marginTop: 2 }}
-                />
-                <Typography
-                  variant="caption"
-                  sx={{ color: theme.palette.text.secondary }}
-                >
-                  {r.explanation}
-                </Typography>
+                      <Box
+                        component="span"
+                        sx={{
+                          flexShrink: 0,
+                          minWidth: 26,
+                          height: 22,
+                          px: "7px",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          borderRadius: auroraPalette.radii.pill,
+                          fontFamily: auroraPalette.font.mono,
+                          fontSize: "10.5px",
+                          fontWeight: 700,
+                          background: auroraTint(accent, 0.2),
+                          color: accent,
+                        }}
+                      >
+                        {opt.label}
+                      </Box>
+                      <Box
+                        component="span"
+                        sx={{ flex: 1, fontSize: "13.5px" }}
+                      >
+                        {opt.text}
+                      </Box>
+                      {isCorrectOption && (
+                        <CheckCircle2
+                          size={16}
+                          color={auroraPalette.status.ready}
+                        />
+                      )}
+                      {isWrongSelection && (
+                        <XCircle size={16} color={auroraPalette.status.fail} />
+                      )}
+                    </Box>
+                  );
+                })}
               </Box>
-            )}
-          </Box>
+
+              {r.explanation && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "10px",
+                    marginTop: "14px",
+                    padding: "12px 14px",
+                    borderRadius: auroraPalette.radii.md,
+                    background: auroraTint(auroraPalette.status.proc, 0.08),
+                    border: `1px solid ${auroraTint(auroraPalette.status.proc, 0.2)}`,
+                    color: auroraPalette.txMid,
+                    fontSize: "13px",
+                    lineHeight: 1.55,
+                  }}
+                >
+                  <Box
+                    component="span"
+                    sx={{
+                      flexShrink: 0,
+                      color: auroraPalette.status.proc,
+                      marginTop: "2px",
+                    }}
+                  >
+                    <Lightbulb size={16} />
+                  </Box>
+                  {r.explanation}
+                </Box>
+              )}
+            </Card.Body>
+          </Card>
         );
       })}
 
-      <Box sx={{ mt: 3 }}>
-        <ReviewCallToAction
-          source={ReviewSource.ROADMAP_STEP}
-          sourceId={conceptId}
-        />
-      </Box>
+      <ReviewCallToAction
+        source={ReviewSource.ROADMAP_STEP}
+        sourceId={conceptId}
+      />
 
-      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 3 }}>
+      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
         {!passed && (
           <Button
             label="Try Again"
             icon={RotateCcw}
             iconPos={ButtonIconPositions.START}
-            variant={ButtonVariants.OUTLINED}
+            variant={ButtonVariants.AURORA_OUTLINE}
             size={ButtonSizes.MEDIUM}
             onClick={onRetry}
             disabled={isGenerating}
@@ -202,6 +305,7 @@ export function QuizResults({
           label="Close"
           icon={X}
           iconPos={ButtonIconPositions.START}
+          variant={ButtonVariants.AURORA}
           size={ButtonSizes.MEDIUM}
           onClick={onClose}
         />
