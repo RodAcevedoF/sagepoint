@@ -104,7 +104,7 @@ function UserPill({ name, initial, avatarUrl, onClick }: UserPillProps) {
         display: "flex",
         alignItems: "center",
         gap: "9px",
-        padding: "5px 8px 5px 5px",
+        padding: { xs: "5px", md: "5px 8px 5px 5px" },
         borderRadius: 999,
         cursor: "pointer",
         background: aurora.surface2,

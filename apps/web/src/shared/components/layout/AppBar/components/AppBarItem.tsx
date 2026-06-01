@@ -35,7 +35,7 @@ interface AppBarItemStyles {
 }
 
 const HORIZONTAL_PAD = 10;
-const COLLAPSED_PAD = 8;
+const COLLAPSED_PAD = 11;
 const VERTICAL_PAD = 7;
 
 const makeStyles = (
@@ -96,7 +96,7 @@ const makeStyles = (
   },
   label: {
     display: "inline-block",
-    maxWidth: showLabel ? 120 : 0,
+    maxWidth: showLabel ? 92 : 0,
     opacity: showLabel ? 1 : 0,
     overflow: "hidden",
     transition: "max-width .3s ease, opacity .22s",
@@ -191,7 +191,7 @@ export function AppBarItem({
       )}
 
       <Box sx={styles.iconContainer}>
-        <Icon size={16} strokeWidth={isActive ? 2.2 : 1.8} />
+        <Icon size={18} strokeWidth={isActive ? 2.1 : 1.75} />
         {badge && <Box sx={styles.badge} />}
       </Box>
 

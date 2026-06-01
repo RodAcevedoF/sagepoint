@@ -1,8 +1,8 @@
 "use client";
 
-import { Box, TextField, Typography, useTheme } from "@mui/material";
-import { Sparkles } from "lucide-react";
-import { Button, ResourceQuotaBar } from "@/shared/components";
+import { Box, TextField, Typography } from "@mui/material";
+import { Sparkles, Plus } from "lucide-react";
+import { Button, ModalTitle, ResourceQuotaBar } from "@/shared/components";
 import { ButtonTypes, ButtonIconPositions, ButtonSizes } from "@/shared/types";
 import { RoadmapRecommendations } from "../RoadmapRecommendations";
 import {
@@ -14,7 +14,7 @@ import {
   type CommitmentLevel,
 } from "../Category/CommitmentLevelSelector";
 import type { ResourceQuotaDto } from "@/infrastructure/api/userApi";
-import { makeStyles } from "./GenerationForm.styles";
+import { styles } from "./GenerationForm.styles";
 
 interface GenerationFormProps {
   topic: string;
@@ -47,11 +47,15 @@ export function GenerationForm({
   onCommitmentChange,
   onSubmit,
 }: GenerationFormProps) {
-  const theme = useTheme();
-  const styles = makeStyles(theme);
-
   return (
     <Box component="form" onSubmit={onSubmit} sx={styles.container}>
+      <ModalTitle
+        eyebrow="Generate"
+        title="Create Roadmap"
+        icon={<Plus size={20} />}
+        tone="teal"
+      />
+
       <TextField
         autoFocus
         fullWidth
@@ -75,7 +79,7 @@ export function GenerationForm({
         onChange={(e) => onTitleChange(e.target.value)}
         disabled={isLoading}
         slotProps={{ htmlInput: { maxLength: 120 } }}
-        sx={styles.nameField}
+        sx={styles.textField}
       />
 
       <ExperienceLevelSelector
@@ -91,13 +95,11 @@ export function GenerationForm({
       />
 
       {quota && (
-        <Box sx={{ mb: 2 }}>
-          <ResourceQuotaBar
-            balance={quota.balance}
-            cost={quota.costs.TOPIC_ROADMAP}
-            costLabel="Generating a roadmap"
-          />
-        </Box>
+        <ResourceQuotaBar
+          balance={quota.balance}
+          cost={quota.costs.TOPIC_ROADMAP}
+          costLabel="Generating a roadmap"
+        />
       )}
 
       {errorMessage && (

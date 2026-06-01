@@ -1,8 +1,9 @@
 "use client";
 
-import { Box, Typography, alpha, useTheme, type Theme } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { Coffee, Clock, Zap, Flame } from "lucide-react";
 import { motion } from "framer-motion";
+import { aurora, auroraTint } from "@/shared/theme";
 
 export const COMMITMENT_LEVELS = [
   {
@@ -10,7 +11,7 @@ export const COMMITMENT_LEVELS = [
     icon: Coffee,
     title: "Casual",
     description: "1-3 hrs/week",
-    color: "#22c55e",
+    color: aurora.status.ready,
     hours: 2,
   },
   {
@@ -18,7 +19,7 @@ export const COMMITMENT_LEVELS = [
     icon: Clock,
     title: "Regular",
     description: "4-7 hrs/week",
-    color: "#3b82f6",
+    color: aurora.status.concept,
     hours: 5,
   },
   {
@@ -26,7 +27,7 @@ export const COMMITMENT_LEVELS = [
     icon: Zap,
     title: "Dedicated",
     description: "8-14 hrs/week",
-    color: "#f59e0b",
+    color: aurora.status.proc,
     hours: 11,
   },
   {
@@ -34,55 +35,70 @@ export const COMMITMENT_LEVELS = [
     icon: Flame,
     title: "Intensive",
     description: "15+ hrs/week",
-    color: "#ef4444",
+    color: aurora.status.fail,
     hours: 15,
   },
 ] as const;
 
 export type CommitmentLevel = (typeof COMMITMENT_LEVELS)[number]["id"];
 
-const makeStyles = (theme: Theme) => ({
+const styles = {
   label: {
-    color: theme.palette.text.secondary,
-    mb: 1.5,
-    fontWeight: 500,
+    color: aurora.txMid,
+    fontFamily: aurora.font.mono,
+    fontSize: "11px",
+    fontWeight: 600,
+    letterSpacing: "0.14em",
+    textTransform: "uppercase",
+    mb: 1.25,
   },
   grid: {
     display: "grid",
     gridTemplateColumns: "repeat(4, 1fr)",
-    gap: 1.5,
-    mb: 3,
+    gap: 1.25,
   },
   iconBox: (color: string) => ({
     width: 40,
     height: 40,
-    borderRadius: 2,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
+    borderRadius: aurora.radii.md,
+    display: "grid",
+    placeItems: "center",
     mx: "auto",
-    mb: 0.5,
-    background: alpha(color, 0.15),
+    mb: 0.75,
+    background: `color-mix(in oklch, ${color} 16%, ${aurora.surface2})`,
+    border: `1px solid ${auroraTint(color, 0.28)}`,
     color,
+    boxShadow: `0 0 18px -6px ${auroraTint(color, 0.55)}`,
   }),
-  card: (color: string, isSelected: boolean, theme: Theme) => ({
-    p: 1.5,
-    borderRadius: 3,
-    border: `1px solid ${alpha(
-      isSelected ? color : theme.palette.primary.light,
-      isSelected ? 0.6 : 0.15,
-    )}`,
-    background: isSelected ? alpha(color, 0.1) : "transparent",
+  card: (color: string, isSelected: boolean) => ({
+    p: 1.25,
+    borderRadius: aurora.radii.md,
+    border: `1px solid ${isSelected ? auroraTint(color, 0.45) : aurora.line}`,
+    background: isSelected
+      ? `color-mix(in oklch, ${color} 10%, ${aurora.surface})`
+      : aurora.surface,
     cursor: "pointer",
-    transition: "all 0.2s ease",
+    transition: "transform .2s, border-color .2s, background .2s",
     textAlign: "center",
     "&:hover": {
-      borderColor: color,
-      background: alpha(color, 0.05),
+      borderColor: auroraTint(color, 0.5),
+      background: `color-mix(in oklch, ${color} 6%, ${aurora.surface})`,
       transform: "translateY(-2px)",
     },
   }),
-});
+  title: {
+    fontFamily: aurora.font.ui,
+    fontWeight: 600,
+    color: aurora.txHi,
+    display: "block",
+    fontSize: "0.75rem",
+  },
+  desc: {
+    color: aurora.txLow,
+    fontSize: "0.62rem",
+    fontFamily: aurora.font.ui,
+  },
+};
 
 interface CommitmentLevelSelectorProps {
   value?: CommitmentLevel;
@@ -95,14 +111,9 @@ export function CommitmentLevelSelector({
   onChange,
   disabled,
 }: CommitmentLevelSelectorProps) {
-  const theme = useTheme();
-  const styles = makeStyles(theme);
-
   return (
-    <>
-      <Typography variant="body2" sx={styles.label}>
-        Weekly commitment (optional)
-      </Typography>
+    <Box>
+      <Typography sx={styles.label}>Weekly commitment (optional)</Typography>
       <Box
         sx={{
           ...styles.grid,
@@ -122,21 +133,15 @@ export function CommitmentLevelSelector({
             >
               <Box
                 onClick={() => onChange(isSelected ? undefined : level.id)}
-                sx={styles.card(level.color, isSelected, theme)}
+                sx={styles.card(level.color, isSelected)}
               >
                 <Box sx={styles.iconBox(level.color)}>
                   <Icon size={20} />
                 </Box>
-                <Typography
-                  variant="caption"
-                  sx={{ fontWeight: 600, display: "block" }}
-                >
+                <Typography variant="caption" sx={styles.title}>
                   {level.title}
                 </Typography>
-                <Typography
-                  variant="caption"
-                  sx={{ color: "text.secondary", fontSize: "0.6rem" }}
-                >
+                <Typography variant="caption" sx={styles.desc}>
                   {level.description}
                 </Typography>
               </Box>
@@ -144,6 +149,6 @@ export function CommitmentLevelSelector({
           );
         })}
       </Box>
-    </>
+    </Box>
   );
 }

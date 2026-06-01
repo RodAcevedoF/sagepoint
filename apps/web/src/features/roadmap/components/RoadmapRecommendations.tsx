@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Box, Typography, alpha } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, Plus, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -11,22 +11,26 @@ import {
   useAdoptRoadmapMutation,
 } from "@/infrastructure/api/roadmapApi";
 import { useSnackbar } from "@/shared/components";
-import { palette } from "@/shared/theme";
+import { aurora, auroraTint } from "@/shared/theme";
 import type { RoadmapDto } from "@/infrastructure/api/roadmapApi";
+
+const concept = aurora.status.concept;
+const ready = aurora.status.ready;
 
 const styles = {
   container: {
-    mb: 2,
     p: 2,
-    borderRadius: 3,
-    bgcolor: alpha(palette.info.main, 0.04),
-    border: `1px solid ${alpha(palette.info.main, 0.1)}`,
+    borderRadius: aurora.radii.md,
+    bgcolor: `color-mix(in oklch, ${concept} 6%, ${aurora.surface})`,
+    border: `1px solid ${auroraTint(concept, 0.22)}`,
   },
   label: {
-    fontWeight: 700,
-    color: palette.info.light,
+    fontWeight: 600,
+    color: concept,
+    fontFamily: aurora.font.mono,
     textTransform: "uppercase",
-    letterSpacing: "0.5px",
+    letterSpacing: "0.14em",
+    fontSize: "11px",
     mb: 1.5,
     display: "flex",
     alignItems: "center",
@@ -43,14 +47,14 @@ const styles = {
     justifyContent: "space-between",
     gap: 2,
     p: 1.5,
-    borderRadius: 2,
-    bgcolor: alpha(palette.background.paper, 0.5),
-    border: `1px solid ${alpha(palette.info.main, 0.08)}`,
+    borderRadius: aurora.radii.sm,
+    bgcolor: aurora.surface2,
+    border: `1px solid ${aurora.line}`,
     cursor: "pointer",
-    transition: "all 0.2s ease",
+    transition: "background .2s, border-color .2s",
     "&:hover": {
-      bgcolor: alpha(palette.info.main, 0.06),
-      borderColor: alpha(palette.info.main, 0.2),
+      bgcolor: `color-mix(in oklch, ${concept} 8%, ${aurora.surface2})`,
+      borderColor: auroraTint(concept, 0.3),
     },
   },
   roadmapInfo: {
@@ -59,10 +63,12 @@ const styles = {
   },
   roadmapTitle: {
     fontWeight: 600,
-    color: "text.primary",
+    color: aurora.txHi,
+    fontFamily: aurora.font.ui,
   },
   roadmapMeta: {
-    color: "text.secondary",
+    color: aurora.txLow,
+    fontFamily: aurora.font.ui,
   },
   adoptButton: {
     display: "flex",
@@ -70,18 +76,19 @@ const styles = {
     gap: 0.5,
     px: 1.5,
     py: 0.5,
-    border: `1px solid ${alpha(palette.success.main, 0.3)}`,
-    borderRadius: 2,
-    bgcolor: alpha(palette.success.main, 0.08),
-    color: palette.success.light,
+    border: `1px solid ${auroraTint(ready, 0.32)}`,
+    borderRadius: aurora.radii.sm,
+    bgcolor: `color-mix(in oklch, ${ready} 12%, ${aurora.surface2})`,
+    color: ready,
     fontSize: "0.75rem",
     fontWeight: 600,
+    fontFamily: aurora.font.ui,
     cursor: "pointer",
-    transition: "all 0.2s ease",
+    transition: "background .2s, border-color .2s",
     flexShrink: 0,
     "&:hover": {
-      bgcolor: alpha(palette.success.main, 0.15),
-      borderColor: palette.success.main,
+      bgcolor: `color-mix(in oklch, ${ready} 18%, ${aurora.surface2})`,
+      borderColor: auroraTint(ready, 0.5),
     },
   },
 };

@@ -147,7 +147,6 @@ export function DashboardQuickActions() {
 
   const handleCreate = () => {
     openModal(<CreateRoadmapModal />, {
-      title: "Create Roadmap",
       showCloseButton: true,
       maxWidth: "sm",
     });
@@ -159,7 +158,6 @@ export function DashboardQuickActions() {
         <LazyUploadDocumentModal />
       </Suspense>,
       {
-        title: "Upload Document",
         showCloseButton: true,
         maxWidth: "sm",
       },

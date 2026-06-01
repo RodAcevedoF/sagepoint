@@ -1,13 +1,135 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Box, Typography, alpha, CircularProgress, Stack } from "@mui/material";
+import { Box, CircularProgress, Stack, Typography } from "@mui/material";
 import { Upload, FileUp, FileText, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useModal, useSnackbar, ResourceQuotaBar } from "@/shared/components";
+import {
+  ModalTitle,
+  ResourceQuotaBar,
+  useModal,
+  useSnackbar,
+} from "@/shared/components";
 import { useUploadDocumentCommand } from "@/application/document";
 import { useGetResourceQuotaQuery } from "@/infrastructure/api/userApi";
-import { palette } from "@/shared/theme";
+import { aurora, auroraTint } from "@/shared/theme";
+
+const teal = aurora.teal;
+const ready = aurora.status.ready;
+const proc = aurora.status.proc;
+
+const styles = {
+  container: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "18px",
+    py: 1,
+  },
+  dropzone: (active: boolean) => ({
+    position: "relative",
+    border: `2px dashed ${active ? teal : aurora.line2}`,
+    borderRadius: aurora.radii.card,
+    p: { xs: 4, md: 7 },
+    textAlign: "center",
+    cursor: "pointer",
+    background: active
+      ? `color-mix(in oklch, ${teal} 8%, ${aurora.surface})`
+      : aurora.surface,
+    transition: "background .25s, border-color .25s, box-shadow .25s",
+    "&:hover": {
+      borderColor: teal,
+      background: `color-mix(in oklch, ${teal} 6%, ${aurora.surface})`,
+      boxShadow: `0 0 0 4px ${auroraTint(teal, 0.12)}`,
+      "& .upload-icon-box": {
+        transform: "scale(1.08) translateY(-3px)",
+        boxShadow: `0 0 32px -6px ${auroraTint(teal, 0.6)}`,
+      },
+    },
+  }),
+  uploadIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: aurora.radii.md,
+    display: "grid",
+    placeItems: "center",
+    mx: "auto",
+    mb: 3,
+    background: `color-mix(in oklch, ${teal} 16%, ${aurora.surface2})`,
+    border: `1px solid ${auroraTint(teal, 0.32)}`,
+    color: teal,
+    boxShadow: `0 0 26px -8px ${auroraTint(teal, 0.5)}`,
+    transition:
+      "transform .35s cubic-bezier(.175,.885,.32,1.275), box-shadow .35s",
+  },
+  heading: {
+    fontFamily: aurora.font.display,
+    fontWeight: 800,
+    fontSize: "20px",
+    letterSpacing: "-0.018em",
+    color: aurora.txHi,
+    mb: 1,
+  },
+  body: {
+    color: aurora.txMid,
+    fontFamily: aurora.font.ui,
+    maxWidth: 300,
+    mx: "auto",
+    mb: 3,
+    lineHeight: 1.6,
+  },
+  metaRow: {
+    color: aurora.txLow,
+    fontFamily: aurora.font.mono,
+    fontSize: "11px",
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    display: "flex",
+    alignItems: "center",
+    gap: 0.75,
+  },
+  metaDot: {
+    width: 4,
+    height: 4,
+    borderRadius: "50%",
+    bgcolor: auroraTint(aurora.txLow, 0.6),
+  },
+  successWrap: {
+    textAlign: "center",
+    py: 4,
+    px: 2,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  successDisc: (loading: boolean) => ({
+    width: 84,
+    height: 84,
+    borderRadius: "50%",
+    display: "grid",
+    placeItems: "center",
+    mx: "auto",
+    mb: 3,
+    position: "relative",
+    background: loading
+      ? `color-mix(in oklch, ${proc} 14%, ${aurora.surface2})`
+      : `color-mix(in oklch, ${ready} 14%, ${aurora.surface2})`,
+    border: `1px solid ${auroraTint(loading ? proc : ready, 0.32)}`,
+    color: loading ? proc : ready,
+    boxShadow: `0 0 28px -6px ${auroraTint(loading ? proc : ready, 0.55)}`,
+  }),
+  successTitle: {
+    fontFamily: aurora.font.display,
+    fontWeight: 800,
+    fontSize: "22px",
+    letterSpacing: "-0.018em",
+    color: aurora.txHi,
+    mb: 1,
+  },
+  successFile: {
+    color: aurora.txMid,
+    fontFamily: aurora.font.ui,
+  },
+};
 
 export function UploadDocumentModal() {
   const { execute, isLoading } = useUploadDocumentCommand();
@@ -56,7 +178,14 @@ export function UploadDocumentModal() {
   );
 
   return (
-    <Box sx={{ p: 1 }}>
+    <Box sx={styles.container}>
+      <ModalTitle
+        eyebrow="Analyze"
+        title="Upload Document"
+        icon={<FileUp size={20} />}
+        tone="concept"
+      />
+
       <AnimatePresence mode="wait">
         {!uploadedFile ? (
           <motion.div
@@ -72,66 +201,19 @@ export function UploadDocumentModal() {
                 setDragOver(true);
               }}
               onDragLeave={() => setDragOver(false)}
-              sx={{
-                position: "relative",
-                border: `2px dashed ${
-                  dragOver
-                    ? palette.primary.main
-                    : alpha(palette.primary.light, 0.2)
-                }`,
-                borderRadius: 6,
-                p: { xs: 4, md: 8 },
-                textAlign: "center",
-                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                bgcolor: dragOver
-                  ? alpha(palette.primary.main, 0.08)
-                  : alpha(palette.background.paper, 0.2),
-                cursor: "pointer",
-                "&:hover": {
-                  borderColor: palette.primary.light,
-                  bgcolor: alpha(palette.primary.light, 0.04),
-                  "& .upload-icon-box": {
-                    transform: "scale(1.1) translateY(-4px)",
-                    bgcolor: alpha(palette.primary.main, 0.2),
-                  },
-                },
-              }}
+              sx={styles.dropzone(dragOver)}
               onClick={() =>
                 document.getElementById("file-upload-input")?.click()
               }
             >
-              <Box
-                className="upload-icon-box"
-                sx={{
-                  width: 80,
-                  height: 80,
-                  borderRadius: 4,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  bgcolor: alpha(palette.primary.main, 0.1),
-                  color: palette.primary.light,
-                  mx: "auto",
-                  mb: 3,
-                  transition:
-                    "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-                  boxShadow: `0 8px 16px ${alpha(palette.primary.main, 0.1)}`,
-                }}
-              >
+              <Box className="upload-icon-box" sx={styles.uploadIcon}>
                 <Upload size={36} />
               </Box>
 
-              <Typography
-                variant="h5"
-                sx={{ fontWeight: 700, mb: 1, color: "text.primary" }}
-              >
+              <Typography sx={styles.heading}>
                 {dragOver ? "Drop it here!" : "Select a document"}
               </Typography>
-              <Typography
-                variant="body1"
-                color="text.secondary"
-                sx={{ mb: 4, maxWidth: 300, mx: "auto", lineHeight: 1.6 }}
-              >
+              <Typography sx={styles.body}>
                 Drag and drop your file or click to browse through your device.
               </Typography>
 
@@ -140,42 +222,14 @@ export function UploadDocumentModal() {
                 spacing={2}
                 justifyContent="center"
                 alignItems="center"
-                sx={{ mb: 2 }}
               >
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    color: "text.secondary",
-                    fontSize: "0.875rem",
-                  }}
-                >
-                  <FileText size={16} />
-                  PDF, DOCX, XLSX
+                <Box sx={styles.metaRow}>
+                  <FileText size={14} />
+                  PDF · DOCX · XLSX
                 </Box>
-                <Box
-                  sx={{
-                    width: 4,
-                    height: 4,
-                    borderRadius: "50%",
-                    bgcolor: alpha(palette.text.secondary, 0.3),
-                  }}
-                />
-                <Box sx={{ color: "text.secondary", fontSize: "0.875rem" }}>
-                  Max 100MB
-                </Box>
+                <Box sx={styles.metaDot} />
+                <Box sx={styles.metaRow}>Max 100MB</Box>
               </Stack>
-
-              {quota && (
-                <Box sx={{ mt: 2, px: 4 }}>
-                  <ResourceQuotaBar
-                    balance={quota.balance}
-                    cost={quota.costs.DOCUMENT_UPLOAD}
-                    costLabel="Uploading a document"
-                  />
-                </Box>
-              )}
             </Box>
           </motion.div>
         ) : (
@@ -183,45 +237,40 @@ export function UploadDocumentModal() {
             key="success-zone"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            style={{ textAlign: "center", padding: "40px 20px" }}
           >
-            <Box
-              sx={{
-                width: 84,
-                height: 84,
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                bgcolor: isLoading
-                  ? alpha(palette.info.main, 0.1)
-                  : alpha(palette.success.main, 0.1),
-                color: isLoading ? palette.info.light : palette.success.light,
-                mx: "auto",
-                mb: 3,
-                position: "relative",
-              }}
-            >
-              {isLoading ? (
-                <CircularProgress
-                  size={84}
-                  thickness={2}
-                  sx={{ position: "absolute", color: palette.info.main }}
-                />
-              ) : (
-                <CheckCircle2 size={48} />
-              )}
-              {isLoading && <FileUp size={32} />}
+            <Box sx={styles.successWrap}>
+              <Box sx={styles.successDisc(isLoading)}>
+                {isLoading ? (
+                  <>
+                    <CircularProgress
+                      size={84}
+                      thickness={2}
+                      sx={{ position: "absolute", color: proc }}
+                    />
+                    <FileUp size={32} />
+                  </>
+                ) : (
+                  <CheckCircle2 size={48} />
+                )}
+              </Box>
+              <Typography sx={styles.successTitle}>
+                {isLoading ? "Processing Document" : "Successfully Uploaded"}
+              </Typography>
+              <Typography sx={styles.successFile}>
+                {uploadedFile.name}
+              </Typography>
             </Box>
-            <Typography variant="h5" fontWeight="700" gutterBottom>
-              {isLoading ? "Processing Document" : "Successfully Uploaded"}
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              {uploadedFile.name}
-            </Typography>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {quota && !uploadedFile && (
+        <ResourceQuotaBar
+          balance={quota.balance}
+          cost={quota.costs.DOCUMENT_UPLOAD}
+          costLabel="Uploading a document"
+        />
+      )}
 
       <input
         id="file-upload-input"

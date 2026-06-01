@@ -1,72 +1,91 @@
 "use client";
 
-import { Box, Typography, alpha, useTheme, type Theme } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { Sprout, Flame, Award, Rocket } from "lucide-react";
 import { motion } from "framer-motion";
-
-// ============================================================================
-// Data
-// ============================================================================
+import { aurora, auroraTint } from "@/shared/theme";
 
 const EXPERIENCE_LEVELS = [
-  { id: "beginner" as const, icon: Sprout, title: "Beginner" },
-  { id: "intermediate" as const, icon: Flame, title: "Intermediate" },
-  { id: "advanced" as const, icon: Award, title: "Advanced" },
-  { id: "expert" as const, icon: Rocket, title: "Expert" },
+  {
+    id: "beginner" as const,
+    icon: Sprout,
+    title: "Beginner",
+    color: aurora.difficulty.beginner,
+  },
+  {
+    id: "intermediate" as const,
+    icon: Flame,
+    title: "Intermediate",
+    color: aurora.difficulty.intermediate,
+  },
+  {
+    id: "advanced" as const,
+    icon: Award,
+    title: "Advanced",
+    color: aurora.difficulty.advanced,
+  },
+  {
+    id: "expert" as const,
+    icon: Rocket,
+    title: "Expert",
+    color: aurora.difficulty.expert,
+  },
 ];
 
 export type ExperienceLevel = (typeof EXPERIENCE_LEVELS)[number]["id"];
 
-// ============================================================================
-// Styles
-// ============================================================================
-
-const makeStyles = (theme: Theme) => ({
+const styles = {
   label: {
-    color: theme.palette.text.secondary,
-    mb: 1.5,
-    fontWeight: 500,
+    color: aurora.txMid,
+    fontFamily: aurora.font.mono,
+    fontSize: "11px",
+    fontWeight: 600,
+    letterSpacing: "0.14em",
+    textTransform: "uppercase",
+    mb: 1.25,
   },
   grid: {
     display: "grid",
     gridTemplateColumns: "repeat(4, 1fr)",
-    gap: 1.5,
-    mb: 3,
+    gap: 1.25,
   },
   iconBox: (color: string) => ({
     width: 40,
     height: 40,
-    borderRadius: 2,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
+    borderRadius: aurora.radii.md,
+    display: "grid",
+    placeItems: "center",
     mx: "auto",
-    mb: 0.5,
-    background: alpha(color, 0.15),
+    mb: 0.75,
+    background: `color-mix(in oklch, ${color} 16%, ${aurora.surface2})`,
+    border: `1px solid ${auroraTint(color, 0.28)}`,
     color,
+    boxShadow: `0 0 18px -6px ${auroraTint(color, 0.55)}`,
   }),
-  card: (color: string, isSelected: boolean, theme: Theme) => ({
-    p: 1.5,
-    borderRadius: 3,
-    border: `1px solid ${alpha(
-      isSelected ? color : theme.palette.primary.light,
-      isSelected ? 0.6 : 0.15,
-    )}`,
-    background: isSelected ? alpha(color, 0.1) : "transparent",
+  card: (color: string, isSelected: boolean) => ({
+    p: 1.25,
+    borderRadius: aurora.radii.md,
+    border: `1px solid ${isSelected ? auroraTint(color, 0.45) : aurora.line}`,
+    background: isSelected
+      ? `color-mix(in oklch, ${color} 10%, ${aurora.surface})`
+      : aurora.surface,
     cursor: "pointer",
-    transition: "all 0.2s ease",
+    transition: "transform .2s, border-color .2s, background .2s",
     textAlign: "center",
     "&:hover": {
-      borderColor: color,
-      background: alpha(color, 0.05),
+      borderColor: auroraTint(color, 0.5),
+      background: `color-mix(in oklch, ${color} 6%, ${aurora.surface})`,
       transform: "translateY(-2px)",
     },
   }),
-});
-
-// ============================================================================
-// Component
-// ============================================================================
+  title: {
+    fontFamily: aurora.font.ui,
+    fontWeight: 600,
+    color: aurora.txHi,
+    display: "block",
+    fontSize: "0.75rem",
+  },
+};
 
 interface ExperienceLevelSelectorProps {
   value?: ExperienceLevel;
@@ -79,12 +98,9 @@ export function ExperienceLevelSelector({
   onChange,
   disabled,
 }: ExperienceLevelSelectorProps) {
-  const theme = useTheme();
-  const styles = makeStyles(theme);
-
   return (
-    <>
-      <Typography variant="body2" sx={styles.label}>
+    <Box>
+      <Typography sx={styles.label}>
         Your experience level (optional)
       </Typography>
       <Box
@@ -97,7 +113,6 @@ export function ExperienceLevelSelector({
         {EXPERIENCE_LEVELS.map((level, index) => {
           const Icon = level.icon;
           const isSelected = value === level.id;
-          const color = theme.palette.experience[level.id];
           return (
             <motion.div
               key={level.id}
@@ -107,15 +122,12 @@ export function ExperienceLevelSelector({
             >
               <Box
                 onClick={() => onChange(isSelected ? undefined : level.id)}
-                sx={styles.card(color, isSelected, theme)}
+                sx={styles.card(level.color, isSelected)}
               >
-                <Box sx={styles.iconBox(color)}>
+                <Box sx={styles.iconBox(level.color)}>
                   <Icon size={20} />
                 </Box>
-                <Typography
-                  variant="caption"
-                  sx={{ fontWeight: 600, display: "block" }}
-                >
+                <Typography variant="caption" sx={styles.title}>
                   {level.title}
                 </Typography>
               </Box>
@@ -123,7 +135,7 @@ export function ExperienceLevelSelector({
           );
         })}
       </Box>
-    </>
+    </Box>
   );
 }
 
