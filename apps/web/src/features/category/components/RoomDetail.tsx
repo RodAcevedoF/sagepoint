@@ -28,7 +28,7 @@ const styles: Record<string, SxProps<Theme>> = {
     gap: 1.5,
     mt: 3,
   },
-  searchRow: { mb: 4, maxWidth: 480 },
+  searchRow: { mb: 4, mt: 2, maxWidth: 480 },
   pagination: {
     mt: 5,
     display: "flex",
