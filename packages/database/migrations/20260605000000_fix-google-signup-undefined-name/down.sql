@@ -1,0 +1,3 @@
+-- Data-only fix. Irreversible: the original polluted strings
+-- ("<given> undefined") are not recoverable from the cleaned values.
+-- No-op.

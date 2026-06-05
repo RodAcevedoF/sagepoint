@@ -11,8 +11,8 @@ export interface IAuthService {
   validateUser(email: string, password: string): Promise<User | null>;
   validateGoogleUser(details: {
     email: string;
-    firstName: string;
-    lastName: string;
+    firstName?: string;
+    lastName?: string;
     picture?: string;
   }): Promise<User>;
 }

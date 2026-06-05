@@ -5,8 +5,8 @@ import { User, UserRole } from '@sagepoint/domain';
 
 export interface GoogleUserDetails {
   email: string;
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  lastName?: string;
   picture?: string;
 }
 
@@ -22,9 +22,15 @@ export class ValidateGoogleUserUseCase {
       return existingUser;
     }
 
+    const name =
+      [details.firstName, details.lastName]
+        .filter((p): p is string => Boolean(p?.trim()))
+        .join(' ')
+        .trim() || details.email.split('@')[0];
+
     const newUser = await this.userService.create({
       email: details.email,
-      name: `${details.firstName} ${details.lastName}`,
+      name,
       role: UserRole.USER,
     });
 
