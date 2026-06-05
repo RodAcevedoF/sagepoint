@@ -5,6 +5,7 @@ import { Box, type SxProps, type Theme } from "@mui/material";
 import { LayoutGroup } from "framer-motion";
 import { aurora, auroraTint } from "@/shared/theme";
 import { AppBarProvider } from "../AppBarContext";
+import { useVisualViewportOffset } from "../hooks/useVisualViewportOffset";
 
 export interface AppBarProps {
   children: ReactNode;
@@ -15,10 +16,12 @@ export interface AppBarProps {
 const navSx: SxProps<Theme> = {
   display: { xs: "block", md: "none" },
   position: "fixed",
-  bottom: 0,
+  bottom: "var(--app-bar-offset, 0px)",
   left: 0,
   right: 0,
   zIndex: 1300,
+  transform: "translateZ(0)",
+  willChange: "transform",
   background: `linear-gradient(0deg, ${auroraTint(aurora.surface2, 0.72)}, ${auroraTint(aurora.bg1, 0.5)})`,
   backdropFilter: "blur(12px)",
   WebkitBackdropFilter: "blur(12px)",
@@ -46,6 +49,7 @@ const barSx: SxProps<Theme> = {
 };
 
 export function AppBarRoot({ children, defaultActive }: AppBarProps) {
+  useVisualViewportOffset();
   return (
     <AppBarProvider defaultActive={defaultActive}>
       <LayoutGroup id="navbar-items">
