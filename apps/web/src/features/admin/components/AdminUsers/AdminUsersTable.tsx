@@ -83,31 +83,15 @@ const iconButtonSx = {
 
 export function AdminUsersTable() {
   const { data: users, isLoading, isError } = useAdminUsersQuery();
-  const {
-    anchorEl,
-    selectedUser,
-    handleMenuOpen,
-    handleMenuClose,
-    handleMenuExited,
-    openBanDialog,
-    openRoleDialog,
-    openEditLimitsDialog,
-    openDeleteDialog,
-    userToDelete,
-    userToToggleBan,
-    userToToggleRole,
-    userToEditLimits,
-    selectedUserLimits,
-    handleBanConfirm,
-    handleRoleConfirm,
-    handleDeleteConfirm,
-    handleLimitsConfirm,
-    cancelDelete,
-    cancelBan,
-    cancelRole,
-    cancelEditLimits,
-    SnackbarAlert,
-  } = useUserActions(users);
+  const { menu, ban, role, remove, limits, SnackbarAlert } =
+    useUserActions(users);
+
+  const fromMenu =
+    (open: (user: NonNullable<typeof menu.user>) => void) => () => {
+      if (!menu.user) return;
+      open(menu.user);
+      menu.close();
+    };
 
   if (isLoading) return <Loader variant="page" message="Loading users" />;
   if (isError || !users)
@@ -212,7 +196,7 @@ export function AdminUsersTable() {
                       <IconButton
                         sx={iconButtonSx}
                         size="small"
-                        onClick={(e) => handleMenuOpen(e, user.id)}
+                        onClick={(e) => menu.openFor(e, user.id)}
                       >
                         <MoreVertical size={16} />
                       </IconButton>
@@ -226,93 +210,84 @@ export function AdminUsersTable() {
       </Card>
 
       <UserActionsMenu
-        anchorEl={anchorEl}
-        user={selectedUser}
-        onClose={handleMenuClose}
-        onMenuExited={handleMenuExited}
-        onBan={openBanDialog}
-        onToggleRole={openRoleDialog}
-        onEditLimits={openEditLimitsDialog}
-        onDelete={openDeleteDialog}
+        anchorEl={menu.anchorEl}
+        user={menu.user}
+        onClose={menu.close}
+        onMenuExited={menu.onExited}
+        onBan={fromMenu(ban.openFor)}
+        onToggleRole={fromMenu(role.openFor)}
+        onEditLimits={fromMenu(limits.openFor)}
+        onDelete={fromMenu(remove.openFor)}
       />
 
       <ConfirmDialog
-        open={Boolean(userToDelete)}
+        open={remove.open}
         title="Delete User Permanently"
         description={
           <>
-            This will permanently delete <strong>{userToDelete?.name}</strong> (
-            {userToDelete?.email}) and all their associated data. This action
+            This will permanently delete <strong>{remove.user?.name}</strong> (
+            {remove.user?.email}) and all their associated data. This action
             cannot be undone.
           </>
         }
         confirmLabel="Delete Permanently"
         confirmIcon={Trash2}
-        onConfirm={handleDeleteConfirm}
-        onCancel={cancelDelete}
+        onConfirm={remove.confirm}
+        onCancel={remove.cancel}
       />
 
       <ConfirmDialog
-        open={Boolean(userToToggleBan)}
-        title={userToToggleBan?.isActive ? "Ban User" : "Unban User"}
+        open={ban.open}
+        title={ban.willBan ? "Ban User" : "Unban User"}
         description={
-          userToToggleBan?.isActive ? (
+          ban.willBan ? (
             <>
-              This will prevent <strong>{userToToggleBan?.name}</strong> from
-              accessing the platform.
+              This will prevent <strong>{ban.user?.name}</strong> from accessing
+              the platform.
             </>
           ) : (
             <>
-              This will restore access for{" "}
-              <strong>{userToToggleBan?.name}</strong>.
+              This will restore access for <strong>{ban.user?.name}</strong>.
             </>
           )
         }
-        confirmLabel={userToToggleBan?.isActive ? "Ban User" : "Unban User"}
-        confirmIcon={userToToggleBan?.isActive ? Ban : UserCheck}
-        variant={userToToggleBan?.isActive ? "danger" : "default"}
-        onConfirm={handleBanConfirm}
-        onCancel={cancelBan}
+        confirmLabel={ban.willBan ? "Ban User" : "Unban User"}
+        confirmIcon={ban.willBan ? Ban : UserCheck}
+        variant={ban.willBan ? "danger" : "default"}
+        onConfirm={ban.confirm}
+        onCancel={ban.cancel}
       />
 
       <ConfirmDialog
-        open={Boolean(userToToggleRole)}
-        title={
-          userToToggleRole?.role === "ADMIN"
-            ? "Revoke Admin Role"
-            : "Grant Admin Role"
-        }
+        open={role.open}
+        title={role.willRevoke ? "Revoke Admin Role" : "Grant Admin Role"}
         description={
-          userToToggleRole?.role === "ADMIN" ? (
+          role.willRevoke ? (
             <>
               This will remove admin privileges from{" "}
-              <strong>{userToToggleRole?.name}</strong>.
+              <strong>{role.user?.name}</strong>.
             </>
           ) : (
             <>
               This will grant admin privileges to{" "}
-              <strong>{userToToggleRole?.name}</strong>. They will gain full
-              access to the admin panel.
+              <strong>{role.user?.name}</strong>. They will gain full access to
+              the admin panel.
             </>
           )
         }
-        confirmLabel={
-          userToToggleRole?.role === "ADMIN" ? "Revoke Admin" : "Make Admin"
-        }
-        confirmIcon={
-          userToToggleRole?.role === "ADMIN" ? ShieldOff : ShieldCheck
-        }
-        variant={userToToggleRole?.role === "ADMIN" ? "danger" : "default"}
-        onConfirm={handleRoleConfirm}
-        onCancel={cancelRole}
+        confirmLabel={role.willRevoke ? "Revoke Admin" : "Make Admin"}
+        confirmIcon={role.willRevoke ? ShieldOff : ShieldCheck}
+        variant={role.willRevoke ? "danger" : "default"}
+        onConfirm={role.confirm}
+        onCancel={role.cancel}
       />
 
       <UserLimitsDialog
-        open={Boolean(userToEditLimits)}
-        user={userToEditLimits ?? undefined}
-        initialBalance={selectedUserLimits?.balance}
-        onClose={cancelEditLimits}
-        onConfirm={handleLimitsConfirm}
+        open={limits.open}
+        user={limits.user ?? undefined}
+        initialBalance={limits.currentBalance}
+        onClose={limits.cancel}
+        onConfirm={limits.confirm}
       />
 
       {SnackbarAlert}

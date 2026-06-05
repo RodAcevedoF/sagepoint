@@ -6,20 +6,18 @@ export { useQueueStatsQuery } from "./queries/get-queue-stats.query";
 export { useAdminRoadmapsQuery } from "./queries/get-admin-roadmaps.query";
 export { useAdminDocumentsQuery } from "./queries/get-admin-documents.query";
 export { useAdminAnalyticsQuery } from "./queries/get-admin-analytics.query";
-
-// Mutations
-export { useUpdateAdminUserMutation } from "@/infrastructure/api/adminApi";
-export { useDeleteAdminUserMutation } from "@/infrastructure/api/adminApi";
-export { useDeleteAdminRoadmapMutation } from "@/infrastructure/api/adminApi";
-export { useToggleRoadmapFeaturedMutation } from "@/infrastructure/api/adminApi";
-export { useDeleteAdminDocumentMutation } from "@/infrastructure/api/adminApi";
 export {
   useGetAdminInvitationsQuery,
-  useCreateInvitationMutation,
-  useRevokeInvitationMutation,
-  useCreateUserDirectMutation,
-} from "@/infrastructure/api/adminApi";
-export {
   useGetUserLimitsQuery,
-  useUpdateUserLimitsMutation,
 } from "@/infrastructure/api/adminApi";
+
+// Commands
+export { useUpdateAdminUserCommand } from "./commands/update-admin-user.command";
+export { useDeleteAdminUserCommand } from "./commands/delete-admin-user.command";
+export { useUpdateUserLimitsCommand } from "./commands/update-user-limits.command";
+export { useDeleteAdminRoadmapCommand } from "./commands/delete-admin-roadmap.command";
+export { useToggleRoadmapFeaturedCommand } from "./commands/toggle-roadmap-featured.command";
+export { useDeleteAdminDocumentCommand } from "./commands/delete-admin-document.command";
+export { useCreateInvitationCommand } from "./commands/create-invitation.command";
+export { useRevokeInvitationCommand } from "./commands/revoke-invitation.command";
+export { useCreateUserDirectCommand } from "./commands/create-user-direct.command";

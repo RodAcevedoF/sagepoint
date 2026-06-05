@@ -22,7 +22,7 @@ import {
 import { FileText, Trash2 } from "lucide-react";
 import {
   useAdminDocumentsQuery,
-  useDeleteAdminDocumentMutation,
+  useDeleteAdminDocumentCommand,
 } from "@/application/admin";
 import { aurora, auroraTint } from "@/shared/theme";
 import {
@@ -136,7 +136,7 @@ export function AdminDocumentsTable() {
     limit,
   });
 
-  const [deleteDocument] = useDeleteAdminDocumentMutation();
+  const deleteDocument = useDeleteAdminDocumentCommand();
   const [deleteTarget, setDeleteTarget] = useState<
     { type: "single"; id: string; filename: string } | { type: "bulk" } | null
   >(null);
@@ -152,24 +152,18 @@ export function AdminDocumentsTable() {
     if (deleteTarget.type === "single") {
       const { id, filename } = deleteTarget;
       setDeleteTarget(null);
-      try {
-        await deleteDocument(id).unwrap();
-        remove(id);
-        show("Document deleted", "success");
-      } catch {
-        show(`Failed to delete "${filename}"`, "error");
-      }
+      const result = await deleteDocument.execute(id);
+      if (result.ok) remove(id);
+      show(
+        result.ok ? "Document deleted" : `Failed to delete "${filename}"`,
+        result.ok ? "success" : "error",
+      );
       return;
     }
 
     setDeleteTarget(null);
     const results = await Promise.all(
-      Array.from(selected).map((id) =>
-        deleteDocument(id)
-          .unwrap()
-          .then(() => ({ ok: true }))
-          .catch(() => ({ ok: false })),
-      ),
+      Array.from(selected).map((id) => deleteDocument.execute(id)),
     );
     const succeeded = results.filter((r) => r.ok).length;
     const failed = results.length - succeeded;

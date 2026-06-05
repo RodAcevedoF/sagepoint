@@ -1,8 +1,8 @@
 import { useState, type MouseEvent } from "react";
 import {
-  useCreateInvitationMutation,
-  useCreateUserDirectMutation,
-  useRevokeInvitationMutation,
+  useCreateInvitationCommand,
+  useCreateUserDirectCommand,
+  useRevokeInvitationCommand,
 } from "@/application/admin";
 import { buildInviteLink } from "../utils/adminFeat.utils";
 
@@ -25,10 +25,8 @@ export function useSnackbar() {
 }
 
 export function useInvitationForm(showSnackbar: ShowSnackbar) {
-  const [createInvitation, { isLoading: isCreating }] =
-    useCreateInvitationMutation();
-  const [createUserDirect, { isLoading: isCreatingUser }] =
-    useCreateUserDirectMutation();
+  const createInvitation = useCreateInvitationCommand();
+  const createUserDirect = useCreateUserDirectCommand();
 
   const [tab, setTab] = useState(0);
   const [email, setEmail] = useState("");
@@ -45,44 +43,38 @@ export function useInvitationForm(showSnackbar: ShowSnackbar) {
 
   const handleCreateInvite = async () => {
     if (!email.trim()) return;
-    try {
-      const result = await createInvitation({
-        email: email.trim(),
-        role,
-      }).unwrap();
-      setInviteLink(buildInviteLink(result.token));
-      setEmail("");
-      showSnackbar("Invitation created — copy the link below", "success");
-    } catch (err) {
-      const msg =
-        (err as { data?: { message?: string } })?.data?.message ??
-        "Failed to create invitation";
-      showSnackbar(msg, "error");
+    const result = await createInvitation.execute({
+      email: email.trim(),
+      role,
+    });
+    if (!result.ok) {
+      showSnackbar(
+        result.error.message || "Failed to create invitation",
+        "error",
+      );
+      return;
     }
+    setInviteLink(buildInviteLink(result.data.token));
+    setEmail("");
+    showSnackbar("Invitation created — copy the link below", "success");
   };
 
   const handleCreateDirect = async () => {
     if (!email.trim() || !name.trim() || !password.trim()) return;
-    try {
-      await createUserDirect({
-        email: email.trim(),
-        name: name.trim(),
-        password,
-        role,
-      }).unwrap();
-      setEmail("");
-      setName("");
-      setPassword("");
-      showSnackbar(
-        "User created successfully — they can log in now",
-        "success",
-      );
-    } catch (err) {
-      const msg =
-        (err as { data?: { message?: string } })?.data?.message ??
-        "Failed to create user";
-      showSnackbar(msg, "error");
+    const result = await createUserDirect.execute({
+      email: email.trim(),
+      name: name.trim(),
+      password,
+      role,
+    });
+    if (!result.ok) {
+      showSnackbar(result.error.message || "Failed to create user", "error");
+      return;
     }
+    setEmail("");
+    setName("");
+    setPassword("");
+    showSnackbar("User created successfully — they can log in now", "success");
   };
 
   const handleCopyLink = async () => {
@@ -104,8 +96,8 @@ export function useInvitationForm(showSnackbar: ShowSnackbar) {
     setPassword,
     inviteLink,
     copied,
-    isCreating,
-    isCreatingUser,
+    isCreating: createInvitation.isLoading,
+    isCreatingUser: createUserDirect.isLoading,
     handleTabChange,
     handleCreateInvite,
     handleCreateDirect,
@@ -114,7 +106,7 @@ export function useInvitationForm(showSnackbar: ShowSnackbar) {
 }
 
 export function useRevokeMenu(showSnackbar: ShowSnackbar) {
-  const [revokeInvitation] = useRevokeInvitationMutation();
+  const revokeInvitation = useRevokeInvitationCommand();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -131,12 +123,11 @@ export function useRevokeMenu(showSnackbar: ShowSnackbar) {
   const handleRevoke = async () => {
     if (!selectedId) return;
     setAnchorEl(null);
-    try {
-      await revokeInvitation(selectedId).unwrap();
-      showSnackbar("Invitation revoked", "success");
-    } catch {
-      showSnackbar("Failed to revoke invitation", "error");
-    }
+    const result = await revokeInvitation.execute(selectedId);
+    showSnackbar(
+      result.ok ? "Invitation revoked" : "Failed to revoke invitation",
+      result.ok ? "success" : "error",
+    );
     setSelectedId(null);
   };
 

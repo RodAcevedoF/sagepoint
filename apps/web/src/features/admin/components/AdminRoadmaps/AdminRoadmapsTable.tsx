@@ -21,8 +21,8 @@ import { Map, Trash2, Star, Globe, Lock } from "lucide-react";
 import { RoadmapVisibility } from "@sagepoint/domain";
 import {
   useAdminRoadmapsQuery,
-  useDeleteAdminRoadmapMutation,
-  useToggleRoadmapFeaturedMutation,
+  useDeleteAdminRoadmapCommand,
+  useToggleRoadmapFeaturedCommand,
 } from "@/application/admin";
 import { aurora } from "@/shared/theme";
 import {
@@ -87,8 +87,8 @@ export function AdminRoadmapsTable() {
     limit,
   });
 
-  const [deleteRoadmap] = useDeleteAdminRoadmapMutation();
-  const [toggleFeatured] = useToggleRoadmapFeaturedMutation();
+  const deleteRoadmap = useDeleteAdminRoadmapCommand();
+  const toggleFeatured = useToggleRoadmapFeaturedCommand();
   const [deleteTarget, setDeleteTarget] = useState<{
     id: string;
     title: string;
@@ -98,20 +98,16 @@ export function AdminRoadmapsTable() {
     if (!deleteTarget) return;
     const { id, title } = deleteTarget;
     setDeleteTarget(null);
-    try {
-      await deleteRoadmap(id).unwrap();
-      show("Roadmap deleted", "success");
-    } catch {
-      show(`Failed to delete "${title}"`, "error");
-    }
+    const result = await deleteRoadmap.execute(id);
+    show(
+      result.ok ? "Roadmap deleted" : `Failed to delete "${title}"`,
+      result.ok ? "success" : "error",
+    );
   };
 
   const handleToggleFeatured = async (id: string) => {
-    try {
-      await toggleFeatured(id).unwrap();
-    } catch {
-      show("Failed to toggle featured", "error");
-    }
+    const result = await toggleFeatured.execute(id);
+    if (!result.ok) show("Failed to toggle featured", "error");
   };
 
   if (isLoading) return <Loader variant="page" message="Loading roadmaps" />;

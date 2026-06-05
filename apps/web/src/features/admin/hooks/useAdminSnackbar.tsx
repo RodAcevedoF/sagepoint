@@ -5,6 +5,8 @@ import { Snackbar, Alert } from "@mui/material";
 
 type Severity = "success" | "error";
 
+export type ShowSnackbar = (message: string, severity: Severity) => void;
+
 export function useAdminSnackbar() {
   const [state, setState] = useState<{
     open: boolean;
