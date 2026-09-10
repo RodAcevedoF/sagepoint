@@ -11,6 +11,8 @@ export class RedisHealthIndicator extends HealthIndicator {
   async isHealthy(key: string): Promise<HealthIndicatorResult> {
     const client = new Redis({
       host: process.env.REDIS_HOST || 'localhost',
+      username: process.env.REDIS_USERNAME || undefined,
+      password: process.env.REDIS_PASSWORD || undefined,
       port: parseInt(process.env.REDIS_PORT || '6379'),
       lazyConnect: true,
     });

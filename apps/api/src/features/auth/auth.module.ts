@@ -42,6 +42,8 @@ import { InvitationModule } from '@/features/invitation/invitation.module';
       useFactory: () => {
         return new Redis({
           host: process.env.REDIS_HOST || 'localhost',
+          username: process.env.REDIS_USERNAME || undefined,
+          password: process.env.REDIS_PASSWORD || undefined,
           port: parseInt(process.env.REDIS_PORT || '6379'),
           db: parseInt(process.env.REDIS_DB || '0'),
         });

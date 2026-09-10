@@ -82,6 +82,8 @@ function createWorkerPrisma(): PrismaClient {
 function createRedisCacheService(keyPrefix: string): ICacheService {
   const redis = new Redis({
     host: process.env.REDIS_HOST || "localhost",
+    username: process.env.REDIS_USERNAME || undefined,
+    password: process.env.REDIS_PASSWORD || undefined,
     port: parseInt(process.env.REDIS_PORT || "6379"),
     db: parseInt(process.env.REDIS_DB || "0"),
     keyPrefix,
@@ -129,6 +131,8 @@ const isDev = process.env.NODE_ENV !== "production";
     BullModule.forRoot({
       connection: {
         host: process.env.REDIS_HOST || "localhost",
+        username: process.env.REDIS_USERNAME || undefined,
+        password: process.env.REDIS_PASSWORD || undefined,
         port: parseInt(process.env.REDIS_PORT || "6379"),
         db: parseInt(process.env.REDIS_DB || "0"),
       },
