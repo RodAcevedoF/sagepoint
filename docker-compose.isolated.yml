@@ -8,7 +8,7 @@ x-logging: &logging
 
 x-app: &app
   restart: unless-stopped
-  env_file: ${SAGEPOINT_APP_ENV_FILE:-.env.production}
+  env_file: ${SAGEPOINT_APP_ENV_FILE:-.env.application}
   environment: &app-environment
     NODE_ENV: production
     DATABASE_URL: postgresql://sagepoint:${SAGEPOINT_POSTGRES_PASSWORD:?Set a URL-safe database password}@postgres:5432/sagepoint?schema=public
