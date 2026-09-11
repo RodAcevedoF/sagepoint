@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSubmitOnboardingMutation } from "@/infrastructure/api/onboardingApi";
 import { useGenerateTopicRoadmapMutation } from "@/infrastructure/api/roadmapApi";
@@ -7,11 +8,13 @@ import type { OnboardingData } from "@/features/onboarding/context/OnboardingCon
 import { catcher } from "@/application/common";
 
 export function useSubmitOnboardingCommand() {
-  const [submitMutation, { isLoading, error }] = useSubmitOnboardingMutation();
+  const [submitMutation, { error }] = useSubmitOnboardingMutation();
+  const [isLoading, setIsLoading] = useState(false);
   const [generateRoadmap] = useGenerateTopicRoadmapMutation();
   const router = useRouter();
 
   const execute = async (data: OnboardingData) => {
+    setIsLoading(true);
     const submit = await catcher(() =>
       submitMutation({
         goal: data.goal,
@@ -21,32 +24,36 @@ export function useSubmitOnboardingCommand() {
         status: "COMPLETED",
       }).unwrap(),
     );
-    if (!submit.ok) return submit;
-
-    if (data.goal) {
-      const generate = await catcher(() =>
-        generateRoadmap({
-          topic: data.goal,
-          userContext: data.experience
-            ? {
-                experienceLevel: data.experience as
-                  | "beginner"
-                  | "intermediate"
-                  | "advanced"
-                  | "expert",
-              }
-            : undefined,
-        }).unwrap(),
-      );
-      if (!generate.ok) return generate;
-      router.refresh();
-      router.push(`/dashboard?creating=roadmap&roadmapId=${generate.data.id}`);
-      return generate;
+    if (!submit.ok) {
+      setIsLoading(false);
+      return submit;
     }
 
-    router.refresh();
-    router.push("/dashboard?creating=roadmap");
-    return submit;
+    if (!data.goal) {
+      router.replace("/dashboard?creating=roadmap");
+      return submit;
+    }
+
+    const generate = await catcher(() =>
+      generateRoadmap({
+        topic: data.goal,
+        ...(data.experience && {
+          userContext: {
+            experienceLevel: data.experience as
+              | "beginner"
+              | "intermediate"
+              | "advanced"
+              | "expert",
+          },
+        }),
+      }).unwrap(),
+    );
+    if (!generate.ok) {
+      setIsLoading(false);
+      return generate;
+    }
+    router.replace(`/dashboard?creating=roadmap&roadmapId=${generate.data.id}`);
+    return generate;
   };
 
   return { execute, isLoading, error };

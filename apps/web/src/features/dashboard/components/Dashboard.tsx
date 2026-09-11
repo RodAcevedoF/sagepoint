@@ -6,7 +6,6 @@ import { Box } from "@mui/material";
 import { AnimatePresence } from "framer-motion";
 import { useCurrentUser } from "@/features/auth/context/UserContext";
 import { useRoadmapEvents } from "@/shared/hooks";
-import { useSnackbar } from "@/shared/components";
 import { OnboardingRoadmapReveal } from "@/features/onboarding";
 import { DevTools } from "./DevTools";
 import { DashboardSkeleton } from "./DashboardSkeleton";
@@ -47,7 +46,6 @@ const splitRowSx = {
 export function Dashboard() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { showSnackbar } = useSnackbar();
   const user = useCurrentUser();
 
   const isCreatingFirstRoadmap = searchParams.get("creating") === "roadmap";
@@ -83,7 +81,6 @@ export function Dashboard() {
         creatingRoadmap?.roadmap.generationStatus === "completed")
     ) {
       refetchRoadmaps();
-      showSnackbar("Your first roadmap is ready!", { severity: "success" });
       router.replace("/dashboard", { scroll: false });
     }
   }, [
@@ -92,7 +89,6 @@ export function Dashboard() {
     creatingRoadmap?.roadmap.generationStatus,
     refetchRoadmaps,
     router,
-    showSnackbar,
   ]);
 
   useEffect(() => {
@@ -101,25 +97,10 @@ export function Dashboard() {
         (r) => r.roadmap.generationStatus === "completed",
       );
       if (hasCompleted) {
-        showSnackbar("Your first roadmap is ready!", { severity: "success" });
         router.replace("/dashboard", { scroll: false });
       }
     }
-  }, [
-    isCreatingFirstRoadmap,
-    creatingRoadmapId,
-    roadmaps,
-    router,
-    showSnackbar,
-  ]);
-
-  if (isLoadingRoadmaps || isLoadingDocuments) {
-    return (
-      <DashboardLayout>
-        <DashboardSkeleton />
-      </DashboardLayout>
-    );
-  }
+  }, [isCreatingFirstRoadmap, creatingRoadmapId, roadmaps, router]);
 
   if (isCreatingFirstRoadmap && !phaseOneDone) {
     return (
@@ -131,6 +112,14 @@ export function Dashboard() {
             sseStage={sseStage}
           />
         </AnimatePresence>
+      </DashboardLayout>
+    );
+  }
+
+  if (isLoadingRoadmaps || isLoadingDocuments) {
+    return (
+      <DashboardLayout>
+        <DashboardSkeleton />
       </DashboardLayout>
     );
   }
